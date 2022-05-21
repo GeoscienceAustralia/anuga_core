@@ -18,6 +18,13 @@ from anuga import create_domain_from_file
 
 from anuga import distribute, myid, numprocs, finalize
 
+#----------------------------------
+# set up MPI to abort on error
+#----------------------------------
+from anuga.utilities.parallel_abstraction import global_except_hook
+import sys
+sys.excepthook = global_except_hook
+
 # ----------------
 # Setup parameters
 # ----------------
@@ -66,7 +73,7 @@ if numprocs > 1:
 # --------------------------------------------------------------
 Br = Reflective_boundary(domain)      # Solid reflective wall - no movement
 
-domain.set_boundary({'outflow': Br, 'inflow': Br, 'inner': Br, 'exterior': Br, 'open': Br})
+domain.set_boundary({'exterior': Br, 'open': Br})
 
 # ---------
 # Evolution

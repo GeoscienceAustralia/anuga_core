@@ -5,7 +5,10 @@
     data over the mesh, and allows data to be sampled at any given point.
 """
 
-pass
+from numpy._pytesttester import PytestTester
+test = PytestTester(__name__)
+del PytestTester
+
 
 
 

@@ -11,6 +11,10 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest Version
 
+.. image:: https://readthedocs.org/projects/anuga/badge/?version=latest
+    :target: https://anuga.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 
 =====
 ANUGA
@@ -60,7 +64,12 @@ For installation instructions, see
 Documentation and Help
 ----------------------
 
-ANUGA documentation is available in the doc folder. In particular the
+
+ANUGA documentation is available via read the docs at 
+
+    https://anuga.readthedocs.io 
+
+Also you can obtain help via the old
 `user_manual <https://github.com/anuga-community/anuga_core/raw/main/doc/anuga_user_manual.pdf>`_
 
 Also helpful information is available online at

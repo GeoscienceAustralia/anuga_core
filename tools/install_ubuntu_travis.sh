@@ -9,7 +9,7 @@
 
 set -e
 
-PYTHON_VERSION=${PYTHON_VERSION:-"2.7"}
+PYTHON_VERSION=${PYTHON_VERSION:-"3.8"}
 ANUGA_PARALLEL=${ANUGA_PARALLEL:-"false"}
 
 echo $PYTHON_VERSION
@@ -70,12 +70,16 @@ sudo apt-get install -q -y git gfortran netcdf-bin \
 echo "+===============================================+"
 echo "|  Using apt-get to install gdal                |"
 echo "+===============================================+"
-sudo add-apt-repository -y ppa:ubuntugis/ppa
-sudo apt-get update
+#sudo add-apt-repository -y ppa:ubuntugis/ppa
+#sudo apt-get update
 sudo apt-get install -y gdal-bin libgdal-dev
+
+echo "+===============================================+"
+echo "|  GDAL version                                 |"
+echo "+===============================================+"
 ogrinfo --version
-export CPLUS_INCLUDE_PATH=/usr/include/gdal
-export C_INCLUDE_PATH=/usr/include/gdal
+#export CPLUS_INCLUDE_PATH=/usr/include/gdal
+#export C_INCLUDE_PATH=/usr/include/gdal
 
 
 echo "+===============================================+"
@@ -88,15 +92,15 @@ echo "|  Using pip to install matplotlib              |"
 echo "+===============================================+"
 python -m pip  install -q matplotlib
 
-echo "+===============================================+"
-echo "|  Using pip to install gdal                    |"
-echo "+===============================================+"
-python -m pip  install -q GDAL==2.2.2
+#echo "+===============================================+"
+#echo "|  Using pip to install gdal                    |"
+#echo "+===============================================+"
+python -m pip  install -q GDAL==3.0.4
 
 echo "+===============================================+"
-echo "|  Using pip to install nose                    |"
+echo "|  Using pip to install nose and pytest         |"
 echo "+===============================================+"
-python -m pip  install -q nose
+python -m pip  install -q nose pytest
 
 echo "+===============================================+"
 echo "|  Using pip to install dill                    |"
@@ -134,14 +138,24 @@ echo "+===============================================+"
 python -m pip install -q pymetis
 
 echo "+===============================================+"
-echo "|  Using pip to install triangle                |"
+echo "|  Using pip to install meshpy                  |"
 echo "+===============================================+"
-python -m pip  install -q triangle
+python -m pip  install -q meshpy
 
 echo "+===============================================+"
 echo "|  Using pip to install Pmw                     |"
 echo "+===============================================+"
 python -m pip  install -q Pmw
+
+echo "+===============================================+"
+echo "|  Using pip to install pytz                    |"
+echo "+===============================================+"
+python -m pip  install -q pytz
+
+echo "+===============================================+"
+echo "|  Using pip to install utm                     |"
+echo "+===============================================+"
+python -m pip  install -q utm
 
     
 ##########################################################
@@ -193,12 +207,8 @@ fi
 #########################################################
 # Build and install anuga
 
-echo "+===============================================+"
-echo "|  Build anuga                                  |"
-echo "+===============================================+"
-python build_all.py
 
 echo "+===============================================+"
-echo "|  Install anuga using setup.py                 |"
+echo "|  Install anuga using pip                      |"
 echo "+===============================================+"
-python setup.py -q install
+python setup.py develop

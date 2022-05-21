@@ -21,12 +21,7 @@ from anuga.utilities.function_utils import determine_function_type
 
 
 class Region(object):
-    """
-    Setup region (defined by indices, polygon or center/radius).
-    Useful in defining where to apply certain operations
-
-    expand_polygon=True then calculation of intersection of polygon
-    with triangles based on vertices, otherwise based just on centroids
+    """ Object which defines a region within the domain
 
     """
 
@@ -40,6 +35,23 @@ class Region(object):
                  poly=None,
                  expand_polygon=False,
                  verbose = False):
+
+        """Create a Region object
+
+        :param domain: Region must be defined wrt a domain
+        :param indices: Define the region by triangle IDs
+        :param polygon: List of [x,y] points to define region
+        :param center: point [x,y] which defines the centre of a circle
+        :param radius: radius of a circle which defines a region
+        :param line: List of [x,y] points defining a polyline
+        :param poly: An old argument which was used to define a polyline or polygon
+        :param expand_polygon: If set true, then calculation of intersection of polygon with triangles based on vertices, otherwise based just on centroids
+        :param verbose: Set to True for more verbose output 
+
+        Setup region (defined by indices, polygon or center/radius).
+        Useful in defining where to apply certain operations
+        
+        """
 
 
         #------------------------------------------
@@ -88,7 +100,7 @@ class Region(object):
             assert self.polygon is None
             assert self.line is None
 
-            self.setup_indices_circle()
+            self._setup_indices_circle()
             self.type = 'circle'
 
         elif (self.polygon is not None):
@@ -98,7 +110,7 @@ class Region(object):
             assert self.center is None
             assert self.line is None
 
-            self.setup_indices_polygon()
+            self._setup_indices_polygon()
             self.type = 'polygon'
 
         elif (self.line is not None):
@@ -108,7 +120,7 @@ class Region(object):
             assert self.center is None
             assert self.polygon is None
 
-            self.setup_indices_line()
+            self._setup_indices_line()
             self.type = 'line'
 
         elif (self.poly is not None):
@@ -124,11 +136,11 @@ class Region(object):
             self.poly = num.asarray(self.poly)
             if len(self.poly) > 2:
                 self.polygon = self.poly
-                self.setup_indices_polygon()
+                self._setup_indices_polygon()
                 self.type = 'polygon'
             else:
                 self.line = self.poly
-                self.setup_indices_line()
+                self._setup_indices_line()
                 self.type = 'line'
         else:
             assert self.indices is None or self.indices is []
@@ -199,7 +211,7 @@ class Region(object):
 
 
 
-    def setup_indices_circle(self):
+    def _setup_indices_circle(self):
 
         # Determine indices in circular region
         N = self.domain.get_number_of_triangles()
@@ -229,7 +241,7 @@ class Region(object):
             if not intersect: raise Exception(msg)
 
 
-    def setup_indices_polygon(self):
+    def _setup_indices_polygon(self):
 
         # Determine indices for polygonal region
         points = self.domain.get_centroid_coordinates(absolute=True)
@@ -259,7 +271,7 @@ class Region(object):
 
 
 
-    def setup_indices_line(self):
+    def _setup_indices_line(self):
 
         # Determine indices for triangles intersecting a line  region
 

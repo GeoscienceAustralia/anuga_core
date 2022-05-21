@@ -13,8 +13,8 @@
     Where an array of 3 input files produce 4 output files.
 """
 
-from numpy.testing import Tester
-test = Tester().test
-
+from numpy._pytesttester import PytestTester
+test = PytestTester(__name__)
+del PytestTester
 
 

@@ -1,4 +1,5 @@
-""" -----------------------------------------------sanddune_erosion_operator V2
+
+""" Sanddune_erosion_operator V2
 
 
 This script provides an Anuga operator that simulates the removal of sand

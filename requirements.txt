@@ -1,0 +1,10 @@
+
+# Mimimal requirements to install anuga in read teh docs
+
+setuptools
+future
+Cython
+wheel
+numpy
+gitpython
+nbsphinx

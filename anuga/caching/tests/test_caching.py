@@ -6,8 +6,12 @@ from builtins import object
 import unittest
 
 from copy import deepcopy
+
+import os
         
-from anuga.caching import *
+from anuga.caching import cache, set_option, options, myhash, system_tools, get_bytecode
+from anuga.caching import get_bytecode, myopen, file_types, checkdir, cachedir
+
 from anuga.caching.dummy_classes_for_testing import Dummy, Dummy_memorytest
 
 import numpy as num

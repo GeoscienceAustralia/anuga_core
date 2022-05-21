@@ -554,6 +554,61 @@ class Test_Domain(unittest.TestCase):
         for k, ((vol_id, edge_id), _) in enumerate(domain.boundary_objects):
             assert domain.neighbours[vol_id, edge_id] == -k-1
 
+    def Xtest_error_when_boundary_tag_does_not_exist(self):
+        """An error should be raised if an invalid tag is supplied to set_boundary().
+        """
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0,0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0,0.0]
+
+        points = [a, b, c, d, e, f]
+        #bac, bce, ecf, dbe
+        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
+        boundary = { (0, 0): 'First',
+                     (0, 2): 'First',
+                     (2, 0): 'Second',
+                     (2, 1): 'Second',
+                     (3, 1): 'Second',
+                     (3, 2): 'Second'}
+
+
+        domain = Generic_Domain(points, vertices, boundary,
+                        conserved_quantities =\
+                        ['stage', 'xmomentum', 'ymomentum'])
+        domain.check_integrity()
+
+
+
+        domain.set_quantity('stage', [[1,2,3], [5,5,5],
+                                      [0,0,9], [-6, 3, 3]])
+
+
+        # First we test exception when some tags are left unbound
+        # In this case it is the tag 'Second' which is missing
+        try:
+            domain.set_boundary({'First': anuga.Dirichlet_boundary([5,2,1])})
+        except Exception as ex:
+            assert 'Tag "Second" has not been bound to a boundary object' in str(ex)            
+        else:
+            msg = 'Incomplete set_boundary call should have failed becouse not all tags were bound.'
+            raise Exception(msg)
+                                 
+        # Now set the second one
+        domain.set_boundary({'Second': anuga.Transmissive_boundary(domain)})
+        
+        # Test that exception is raised if invalid tag is supplied
+        try:
+            domain.set_boundary({'Eggies': anuga.Transmissive_boundary(domain)})        
+        except Exception as ex:
+            # Check error message is correct
+            assert 'Tag "Eggies" provided does not exist in the domain.' in str(ex) 
+        else:
+            msg = 'Invalid boundary tag should have failed.'        
+            raise Exception(msg)
 
 
 

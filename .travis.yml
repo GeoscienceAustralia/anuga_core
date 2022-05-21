@@ -3,23 +3,19 @@ matrix:
 
    include:
 
-       - os: osx
-         language: generic
-         sudo: false
-         env: DISTRIB="conda_macos"
+       - os: linux
+         dist: focal
+         sudo: required
+         python: "3.8"
+         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
 
-        
        - os: linux
          dist: focal
          sudo: required
          python: "3.8"
          env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
 
-       - os: linux
-         dist: xenial
-         sudo: required
-         python: "3.8"
-         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
+
 
 install:
     - if [[ "$DISTRIB" == "conda_macos" ]]; then source tools/install_conda_macos_travis.sh; fi
@@ -31,8 +27,7 @@ install:
 script:
     - export OMPI_MCA_btl_vader_single_copy_mechanism=none
     - python --version
-    - python runtests.py $COVERAGE
-    - if [[ "$COVERAGE" == "--coverage" ]]; then cp build/test/.coverage .; fi
+    - python runtests.py -n
 
 after_success:
-    - if [[ "$COVERAGE" == "--coverage" ]]; then coveralls || echo "failed"; fi
+    - 

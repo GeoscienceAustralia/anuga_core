@@ -12,11 +12,11 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file.csv_file import load_csv_as_array, load_csv_as_dict
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.file.sww import load_sww_as_domain, weed, get_mesh_and_quantities_from_file, \
+from anuga.file.sww import weed, get_mesh_and_quantities_from_file, \
                 Write_sww
 from anuga.file.netcdf import NetCDFFile
 
-from anuga.config import netcdf_mode_w, netcdf_float
+from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_float, default_boundary_tag
 
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \
@@ -39,8 +39,92 @@ class Test_sww(unittest.TestCase):
                 os.remove(filename)
             except:
                 pass
+
+    def test_default_boundary(self):
+        """Test that default boundary is correctly assigned
+        """
         
-    def test_sww2domain1(self):
+        yiel = 0.01
+        points, vertices, temp_boundary = rectangular(4, 4)
+        
+        # Deliberately remove tag 'right' to enforce the application of the default tag
+        boundary = {}
+        for key in temp_boundary:
+            if temp_boundary[key] != 'right':
+                boundary[key] = temp_boundary[key]
+                
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary)
+        
+        found_default_boundary_tag = False
+        for key in domain.boundary:
+            
+            if domain.boundary[key] == 'right':
+                msg = 'Unexpected tag \'right\' found in domain.boundary'
+                raise Exception(msg)
+                
+            if domain.boundary[key] == default_boundary_tag:
+                found_default_boundary_tag = True
+        
+        msg = 'Did not find default boundary tag (%s) as expected' % default_boundary_tag
+        assert found_default_boundary_tag, msg
+                
+                
+        domain.geo_reference = Geo_reference(56,11,11)
+        domain.smooth = False
+        domain.store = True
+        domain.set_name('default_bc')
+        domain.default_order=2
+        
+
+        domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
+        domain.set_quantity('friction', 0.1)
+        
+        # Boundary conditions
+        from math import sin, pi
+        Br = Reflective_boundary(domain)
+        Bt = Transmissive_boundary(domain)
+        Bd = Dirichlet_boundary([0.2,0.,0.])
+        Bw = Time_boundary(domain=domain,function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
+
+        # Check that using the removed tag 'right' triggers an exception
+        try:
+            domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
+        except Exception as ex:
+            # Check error message is correct
+            assert 'Tag "right" provided does not exist' in str(ex) 
+        else:
+            msg = 'Invalid boundary tag should have failed.'        
+            raise Exception(msg)
+            
+        # Now set boundary conditions appropriately
+        domain.set_boundary({'left': Bd, default_boundary_tag: Bd, 'top': Bd, 'bottom': Bd})        
+
+        # Check that it is as expected
+        assert domain.boundary == {(0, 1): 'bottom', (1, 2): 'left', (3, 2): 'left', (5, 2): 'left', (7, 2): 'left', (7, 1): 'top', (8, 1): 'bottom', (15, 1): 'top', (16, 1): 'bottom', (23, 1): 'top', (24, 1): 'bottom', (31, 1): 'top', (24, 2): 'exterior', (26, 2): 'exterior', (28, 2): 'exterior', (30, 2): 'exterior'}
+        
+
+        # And just check that it runs for good measure
+        
+        domain.quantities_to_be_stored['xmomentum'] = 2
+        domain.quantities_to_be_stored['ymomentum'] = 2
+        # Initial condition
+        h = 0.05
+        elevation = domain.quantities['elevation'].vertex_values
+        domain.set_quantity('stage', elevation + h)
+
+        domain.check_integrity()
+        for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
+            #domain.print_timestepping_statistics()
+            pass
+
+        os.remove(domain.get_name() + '.sww') 
+
+
+    def Xtest_sww2domain1(self):
+    
+        # FIXME (Ole): DELETE THIS TEST
+    
         ################################################
         #Create a test domain, and evolve and save it.
         ################################################
@@ -48,18 +132,16 @@ class Test_sww(unittest.TestCase):
 
         #Create basic mesh
 
-        yiel=0.01
+        yiel = 0.01
         points, vertices, boundary = rectangular(10,10)
+        #print('Boundary from rectangular', boundary):  {(0, 1): 'bottom', (1, 2): 'left', (3, 2): 'lef.....
 
-        #print "=============== boundary rect ======================="
-        #print boundary
-
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = False
         domain.store = True
-        domain.set_name('bedslope')
+        domain.set_name('sww2domain')
         domain.default_order=2
         #Bed-slope and friction
         domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
@@ -69,20 +151,19 @@ class Test_sww(unittest.TestCase):
         Br = Reflective_boundary(domain)
         Bt = Transmissive_boundary(domain)
         Bd = Dirichlet_boundary([0.2,0.,0.])
-        Bw = Time_boundary(domain=domain,function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
+        Bw = Time_boundary(domain=domain, function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
 
-        #domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
         domain.quantities_to_be_stored['xmomentum'] = 2
         domain.quantities_to_be_stored['ymomentum'] = 2
-        #Initial condition
+        # Initial condition
         h = 0.05
         elevation = domain.quantities['elevation'].vertex_values
         domain.set_quantity('stage', elevation + h)
 
         domain.check_integrity()
-        #Evolution
+        # Evolution
         #domain.tight_slope_limiters = 1
         for t in domain.evolve(yieldstep = yiel, finaltime = 0.05):
             #domain.print_timestepping_statistics()
@@ -92,15 +173,18 @@ class Test_sww(unittest.TestCase):
 
 
         filename = domain.datadir + os.sep + domain.get_name() + '.sww'
-        domain2 = load_sww_as_domain(filename, None, fail_if_NaN=False,
-                                        verbose=self.verbose)
+        domain2 = load_sww_as_domain(filename, 
+                                     #boundary=domain.boundary, 
+                                     boundary=None,
+                                     fail_if_NaN=False,
+                                     verbose=self.verbose)
 
 
-        # Unfortunately we loss the boundaries top, bottom, left and right,
+        # Unfortunately we lose the boundaries top, bottom, left and right,
         # they are now all lumped into "exterior"
 
-        #print "=============== boundary domain2 ======================="
-        #print domain2.boundary
+        #print("=============== boundary domain2 =======================")
+        #print(domain2.boundary)
         
 
         #print domain2.get_boundary_tags()
@@ -111,7 +195,10 @@ class Test_sww(unittest.TestCase):
         ##NOW TEST IT!!!
         ###################
 
-        os.remove(filename)
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass        
 
         bits = ['vertex_coordinates']
         for quantity in ['stage']:
@@ -134,8 +221,8 @@ class Test_sww(unittest.TestCase):
         final = .1
         domain.set_quantity('friction', 0.1)
         domain.store = False
-        domain.set_boundary({'exterior': Bd, 'left' : Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
-
+        
+        domain.set_boundary({'left' : Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
         for t in domain.evolve(yieldstep = yiel, finaltime = final):
             #domain.print_timestepping_statistics()
@@ -150,10 +237,20 @@ class Test_sww(unittest.TestCase):
         # Boundary conditions
         Bd2=Dirichlet_boundary([0.2,0.,0.])
         domain2.boundary = domain.boundary
-        #print 'domain2.boundary'
-        #print domain2.boundary
-        domain2.set_boundary({'exterior': Bd, 'left' : Bd,  'right': Bd, 'top': Bd, 'bottom': Bd})
-        #domain2.set_boundary({'exterior': Bd})
+        #print('domain2.boundary')
+        #print(domain2.boundary)
+
+        #print('------------------------------------')
+        #print('Third set_boundary')
+        #print('------------------------------------')                
+                
+        domain2.set_boundary({'left' : Bd,  'right': Bd, 'top': Bd, 'bottom': Bd})        
+        #domain2.set_boundary({'exterior' : Bd})
+
+        #print()
+        #print()
+        #print(domain2.boundary_map)
+
 
         domain2.check_integrity()
         
@@ -168,8 +265,8 @@ class Test_sww(unittest.TestCase):
         bits = ['vertex_coordinates']
 
         for quantity in ['elevation','stage', 'ymomentum','xmomentum']:
-            bits.append('get_quantity("%s").get_integral()' %quantity)
-            bits.append('get_quantity("%s").get_values()' %quantity)
+            bits.append('get_quantity("%s").get_integral()' % quantity)
+            bits.append('get_quantity("%s").get_values()' % quantity)
 
         #print bits
         for bit in bits:
@@ -177,39 +274,33 @@ class Test_sww(unittest.TestCase):
             #print eval('domain.'+bit)
             #print eval('domain2.'+bit)
             
-            #print eval('domain.'+bit+'-domain2.'+bit)
             msg = 'Values in the two domains are different for ' + bit
-            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit),
+            assert num.allclose(eval('domain.' + bit), eval('domain2.' + bit),
                                 rtol=5.e-2, atol=5.e-2), msg
 
 
     def test_sww2domain_starttime(self):
+        """Test that domain start time is stored correctly in the sww file 
         """
-        Create a domain and set a starttime, store and read back in 
-        using load_sww_as_domain
-        """
-
-        yiel=0.01
-        points, vertices, boundary = rectangular(10,10)
 
         verbose=False
-        if verbose:
-            print ("=============== boundary rect =======================")
+        starttime = 200.0
+             
+        points, vertices, boundary = rectangular(10,10)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.geo_reference = Geo_reference(56,11,11)
         domain.smooth = False
         domain.store = True
-        domain.set_name('bedslope')
+        domain.set_name('sww2domain_starttime')
         domain.default_order=2
-        
-        domain.set_starttime(200.0)
+        domain.set_starttime(starttime)
 
-
-        #Bed-slope and friction
+        # Bed-slope and friction
         domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
         domain.set_quantity('friction', 0.1)
+        
         # Boundary conditions
         from math import sin, pi
         Br = Reflective_boundary(domain)
@@ -217,134 +308,39 @@ class Test_sww(unittest.TestCase):
         Bd = Dirichlet_boundary([0.2,0.,0.])
         Bw = Time_boundary(domain=domain,function=lambda t: [(0.1*sin(t*2*pi)), 0.0, 0.0])
 
-        #domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
         domain.set_boundary({'left': Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
 
         domain.quantities_to_be_stored['xmomentum'] = 2
         domain.quantities_to_be_stored['ymomentum'] = 2
-        #Initial condition
+        
+        # Initial conditions
         h = 0.05
         elevation = domain.quantities['elevation'].vertex_values
         domain.set_quantity('stage', elevation + h)
 
         domain.check_integrity()
-        #Evolution
-        #domain.tight_slope_limiters = 1
 
         if verbose:
-            print("evolve domain")
+            print('evolve domain')
         
-        duration1 = 0.05
-
-        for t in domain.evolve(yieldstep = yiel, duration = duration1):
+        for t in domain.evolve(yieldstep = 0.01, duration = 0.05):
             #domain.print_timestepping_statistics()
             pass
 
-        #print boundary
-
-
+        # Test that start time was stored correctly
         if verbose:
-            print("read in domain")
-        filename = domain.datadir + os.sep + domain.get_name() + '.sww'
-        domain2 = load_sww_as_domain(filename, None, fail_if_NaN=False,
-                                        verbose=self.verbose)
-
-        if verbose:
-            print("After load_sww_as_domain")
-
-        # Unfortunately we loss the boundaries top, bottom, left and right,
-        # they are now all lumped into "exterior"
-
-        #print "=============== boundary domain2 ======================="
-        #print domain2.boundary
-        
-
-        #print domain2.get_boundary_tags()
-        
-        #points, vertices, boundary = rectangular(15,15)
-        #domain2.boundary = boundary
-        ###################
-        ##NOW TEST IT!!!
-        ###################
-
-        os.remove(filename)
-
-        bits = ['vertex_coordinates']
-        for quantity in ['stage']:
-            bits.append('get_quantity("%s").get_integral()' % quantity)
-            bits.append('get_quantity("%s").get_values()' % quantity)
-
-        for bit in bits:
-            #print 'testing that domain.'+bit+' has been restored'
-            #print bit
-            #print 'done'
-            #print eval('domain.'+bit)
-            #print eval('domain2.'+bit)
-            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit))
-
-        ######################################
-        #Now evolve them both, just to be sure
-        ######################################x
-        from time import sleep
-
-        duration2 = .1
-        domain.set_quantity('friction', 0.1)
-        domain.store = False
-        domain.set_boundary({'exterior': Bd, 'left' : Bd, 'right': Bd, 'top': Bd, 'bottom': Bd})
-
-
-        for t in domain.evolve(yieldstep = yiel, duration = duration2):
-            #domain.print_timestepping_statistics()
-            pass
-
-        #BUT since domain2 gets time hacked back to 0:
-        
-
-        # Load_sww_as_domain sets starttime for domain2 to the last time in the 
-        # sww file (which is the value of time+domain.starttime
-        # finaltime 
-        final2 = 200 + duration1 + duration2
-
-        domain2.smooth = False
-        domain2.store = False
-        domain2.default_order=2
-        domain2.set_quantity('friction', 0.1)
-        #Bed-slope and friction
-        # Boundary conditions
-        Bd2=Dirichlet_boundary([0.2,0.,0.])
-        domain2.boundary = domain.boundary
-        #print 'domain2.boundary'
-        #print domain2.boundary
-        domain2.set_boundary({'exterior': Bd, 'left' : Bd,  'right': Bd, 'top': Bd, 'bottom': Bd})
-        #domain2.set_boundary({'exterior': Bd})
-
-        domain2.check_integrity()
-
-        for t in domain2.evolve(yieldstep = yiel, finaltime = final2):
-            #domain2.print_timestepping_statistics()
-            pass
-
-        ###################
-        ##NOW TEST IT!!!
-        ##################
-
-        bits = ['vertex_coordinates']
-
-        for quantity in ['elevation','stage', 'ymomentum','xmomentum']:
-            bits.append('get_quantity("%s").get_integral()' %quantity)
-            bits.append('get_quantity("%s").get_values()' %quantity)
-
-        #print bits
-        for bit in bits:
-            #print bit
-            #print eval('domain.'+bit)
-            #print eval('domain2.'+bit)
+            print('read in domain')
             
-            #print eval('domain.'+bit+'-domain2.'+bit)
-            msg = 'Values in the two domains are different for ' + bit
-            assert num.allclose(eval('domain.'+bit),eval('domain2.'+bit),
-                                rtol=5.e-2, atol=5.e-2), msg
+        filename = domain.datadir + os.sep + domain.get_name() + '.sww'
+        fid = NetCDFFile(filename, netcdf_mode_r)  # Open sww file for read        
 
+        stored_starttime = float(fid.starttime)
+        assert stored_starttime == starttime
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
 
 
     def test_get_mesh_and_quantities_from_1_5_sww_file(self):
@@ -729,7 +725,12 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
-        os.remove(filename)
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass        
+
 
         
     def test_triangulationII(self):
@@ -767,7 +768,12 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
-        os.remove(filename)
+
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass        
 
         
     def test_triangulation_new_origin(self):
@@ -807,7 +813,10 @@ class Test_sww(unittest.TestCase):
             absolute.change_points_geo_ref(list(zip(x,y)),
                                            new_origin)),points_utm)
         
-        os.remove(filename)
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
         
     def test_triangulation_points_georeference(self):
         # 
@@ -843,7 +852,11 @@ class Test_sww(unittest.TestCase):
         fid.close()
 
         assert num.allclose(num.array(list(zip(x,y))), points_utm)
-        os.remove(filename)
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
         
     def test_triangulation_2_geo_refs(self):
         # 
@@ -883,11 +896,16 @@ class Test_sww(unittest.TestCase):
         assert num.allclose(num.array(
             absolute.change_points_geo_ref(list(zip(x,y)),
                                            new_origin)),points_utm)
-        os.remove(filename)
+
+        try:
+            os.remove(filename)  # Clean up
+        except:
+            pass
+
 
 #################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_sww, 'test_')
+    suite = unittest.makeSuite(Test_sww, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

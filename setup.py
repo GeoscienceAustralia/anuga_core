@@ -6,9 +6,6 @@
 #
 # Setup.py taken from scikit learn
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import filter
 descr = """A set of python modules for modelling the effect of tsunamis and flooding"""
 
 import sys
@@ -16,16 +13,6 @@ import os
 import shutil
 from distutils.command.clean import clean as Clean
 
-if sys.version_info[0] < 3:
-    import __builtin__ as builtins
-else:
-    import builtins
-
-
-# This is the numpy/scipy hack: Set a global variable so that the main
-# anuga __init__ can detect if it is being loaded by the setup routine, to
-# avoid attempting to load components that aren't built yet.
-builtins.__ANUGA_SETUP__ = True
 
 #==============================================================================
 DISTNAME = 'anuga'
@@ -34,25 +21,13 @@ with open('README.rst') as f:
     LONG_DESCRIPTION = f.read()
 MAINTAINER = 'Stephen Roberts'
 MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
-URL = "http://anuga.anu.edu.au"
+URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
+VERSION = '3.1.3'
 #===============================================================================
 
 
-# We can actually import a restricted version of anuga that
-# does not need the compiled code
-import anuga
-
-VERSION = anuga.__version__
-
-
-
-# FIXME(Ole): If we need this, it should be using git now
-# Return the svn revision as a string
-def svn_revision():
-
-    return ''.join(filter(str.isdigit, "$Revision$"))
 
 ###############################################################################
 # Optional setuptools features
@@ -73,24 +48,27 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-		install_requires=['nose',
-                                  'numpy',
-                                  'scipy',
-                                  'netcdf4',
-                                  'matplotlib',
-                                  'gdal',
-                                  'dill',
-                                  'cython',
-                                  'future',   # FIXME(Ole): Deprecate
-                                  #'openmp',   # FIXME - can't find this. Is it required at this level?
-                                  'mpi4py']                                  
-                                  
+      	install_requires=['pytest',
+                          'numpy',
+                          'scipy',
+                          'netcdf4',
+                          'matplotlib',
+                          'gdal',
+                          'dill',
+                          'cython',
+                          'future',   # FIXME(Ole): Deprecate
+                          'mpi4py',
+                          'Pmw',
+                          'meshpy',
+                          'pymetis',
+                          'gitpython',
+                          'pytz',
+                          'utm']
     )
 else:
     extra_setuptools_args = dict()
 
 ###############################################################################
-
 
 class CleanCommand(Clean):
     description = "Remove build artifacts from the source tree"
@@ -132,10 +110,6 @@ def configuration(parent_package='', top_path=None):
 
 def setup_package():
 
-    from anuga.utilities.system_tools import store_git_revision_info
-
-    store_git_revision_info(destination_path='anuga')
-
     metadata = dict(name=DISTNAME,
                     maintainer=MAINTAINER,
                     maintainer_email=MAINTAINER_EMAIL,
@@ -149,6 +123,7 @@ def setup_package():
                                  'Intended Audience :: Developers',
                                  'License :: OSI Approved',
                                  'Programming Language :: C',
+                                 'Programming Language :: C++',
                                  'Programming Language :: Python',
                                  'Topic :: Software Development',
                                  'Topic :: Scientific/Engineering',
@@ -156,8 +131,8 @@ def setup_package():
                                  'Operating System :: POSIX',
                                  'Operating System :: Unix',
                                  'Operating System :: MacOS',
-                                 'Programming Language :: Python :: 2.6',
-                                 'Programming Language :: Python :: 2.7',
+                                 'Programming Language :: Python :: 3.7',
+                                 'Programming Language :: Python :: 3.8',
                                  ],
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
@@ -173,6 +148,4 @@ def setup_package():
 
 
 if __name__ == "__main__":
-
-
     setup_package()

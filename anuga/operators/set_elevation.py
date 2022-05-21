@@ -178,7 +178,7 @@ class Set_elevation(Set_quantity):
 
 
     def update_quantities(self):
-        """Update the vertex values of the quantities to model erosion
+        """Update the vertex and centroid values of the quantities to model erosion
         """
 
         if self.value is None:

@@ -38,14 +38,23 @@ class Test_parallel_riverwall(unittest.TestCase):
             print(result.stderr)
             raise Exception(result.stderr)        
 
-        #---------------------
-        # Then run in parallel
-        #---------------------
+        # --------------------
+        # Calculate extra_options
+        # --------------------
+        extra_options = '--oversubscribe'
+        cmd = 'mpiexec -np 3 ' + extra_options + ' echo '
+
+        result = subprocess.run(cmd.split(), capture_output=True)
+        if result.returncode != 0:
+            extra_options = ' '
+
+        import platform
         if platform.system() == 'Windows':
             extra_options = ' '
-        else:
-            # E.g. for Ubuntu Linux
-            extra_options = '--oversubscribe'            
+
+        #---------------------
+        # Then run in parallel
+        #---------------------           
 
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
         if verbose: 

@@ -321,32 +321,32 @@ def compile(FNs=None, CC=None, LD = None, SFLAG = None, verbose = False, all_war
   if FN=="fitsmooth.c":
     fitlibs = libs 
     if sys.platform == 'win32':	  
-      if fitlibs is "":
+      if fitlibs == "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o "%s.%s" -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
       else:
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o "%s.%s" "%s" -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext, fitlibs)
     else:    
-      if fitlibs is "":
+      if fitlibs == "":
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
       else:
         s = '%s -%s %s ../utilities/quad_tree.o ../utilities/sparse_dok.o ../utilities/sparse_csr.o -o %s.%s %s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext, fitlibs)
   elif FN=="quad_tree_ext.c":
-    if libs is "":
+    if libs == "":
       s = '%s -%s %s quad_tree.o -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
     else:
       s = '%s -%s %s quad_tree.o -o %s.%s "%s" -lm  -fopenmp ' %(loader, sharedflag, object_files, root1, libext, libs)       
   elif FN=="sparse_matrix_ext.c":
-    if libs is "":
+    if libs == "":
       s = '%s -%s %s sparse_dok.o -o %s.%s -lm  -fopenmp ' %(loader, sharedflag, object_files, root1, libext)
     else:
       s = '%s -%s %s sparse_dok.o -o %s.%s "%s" -lm  -fopenmp ' %(loader, sharedflag, object_files, root1, libext, libs) 
   elif FN=="p_test.c":
-    if libs is "":
+    if libs == "":
       s = '%s -%s %s ptinpoly.o rand48.o -o %s.%s -lm  -fopenmp ' %(loader, sharedflag, object_files, root1, libext)
     else:
       s = '%s -%s %s ptinpoly.o rand48.o -o %s.%s "%s" -lm  -fopenmp ' %(loader, sharedflag, object_files, root1, libext, libs) 
   else:
-    if libs is "":
+    if libs == "":
       s = '%s -%s %s -o %s.%s -lm  -fopenmp' %(loader, sharedflag, object_files, root1, libext)
     else:
       s = '%s -%s %s -o %s.%s "%s" -lm -fopenmp' %(loader, sharedflag, object_files, root1, libext, libs)

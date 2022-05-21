@@ -1,12 +1,13 @@
-"""
-Environmental forcing functions, such as wind and rainfall.
+"""Environmental forcing functions, such as wind and rainfall.
 
 Constraints: See GPL license in the user guide
 Version: 1.0 ($Revision: 7731 $)
 ModifiedBy:
     $Author: hudson $
     $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
+
 """
+
 from __future__ import division
 
 from builtins import str

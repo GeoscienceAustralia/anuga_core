@@ -41,29 +41,24 @@ from anuga.parallel import distribute, myid, numprocs, finalize
 #--------------------------------------------------------------------------
 
 mod_path = get_pathname_from_package('anuga.parallel')
-
 mesh_filename = os.path.join(mod_path,'data','merimbula_10785_1.tsh')
-#mesh_filename = os.path.join(mod_path,'data','test-100.tsh')
-yieldstep = 1
-finaltime = 20
-quantity = 'stage'
-nprocs = 4
+
 verbose = False
 
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
 class Set_Stage(object):
-    """Set an initial condition with constant water height, for x<x0
+    """Set an initial condition with constant water height, for x < x0
     """
 
     def __init__(self, x0=0.25, x1=0.5, h=1.0):
         self.x0 = x0
         self.x1 = x1
-        self.h  = h
+        self.h = h
 
     def __call__(self, x, y):
-        return self.h*((x>self.x0)&(x<self.x1))
+        return self.h * ((x > self.x0) & (x < self.x1))
 
 
 
@@ -84,8 +79,7 @@ if numprocs > 1:
 #------------------------------------------------------------------------------
 domain.store = False
 Br = Reflective_boundary(domain)      # Solid reflective wall
-
-domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Br})
+domain.set_boundary({'exterior': Br, 'open': Br})
 
 #------------------------------------------------------------------------------
 # Setup diagnostic arrays
@@ -106,8 +100,8 @@ if numprocs > 1:
 else:
     if verbose: print('SEQUENTIAL EVOLVE')
     
-for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
-    edges = domain.quantities[quantity].edge_values.take(num.flatnonzero(domain.tri_full_flag),axis=0)
+for t in domain.evolve(yieldstep=1, finaltime=20):
+    edges = domain.quantities['stage'].edge_values.take(num.flatnonzero(domain.tri_full_flag),axis=0)
     l1norm[0] = l1_norm(edges[:,0])
     l1norm[1] = l1_norm(edges[:,1])
     l1norm[2] = l1_norm(edges[:,2])
@@ -157,10 +151,6 @@ if numprocs > 1:
     fid = open('distribute_domain_parallel.txt', 'w')
 else: 
     fid = open('distribute_domain_sequential.txt', 'w')
-
-#fid.write(   
-print(l1list, l2list, linflist)
-print(len(l1list), len(l2list), len(linflist))
 
 for i in range(len(l1list)):
     fid.write('%f %f %f %f %f %f %f %f %f\n' % (l1list[i][0], l1list[i][1], l1list[i][2],

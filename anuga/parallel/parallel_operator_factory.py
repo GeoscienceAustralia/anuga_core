@@ -60,19 +60,27 @@ def Inlet_operator(domain,
                    procs = None,
                    verbose = False):
 
-    # If not parallel domain then allocate serial Inlet operator
-    # if isinstance(domain, Parallel_domain) is False:
-    #     if verbose: print("Allocating non parallel inlet operator .....")
-    #     return anuga.structures.inlet_operator.Inlet_operator(domain,
-    #                                                           poly,
-    #                                                           Q,
-    #                                                           velocity = velocity,
-    #                                                           zero_velocity = zero_velocity,
-    #                                                           default = default,
-    #                                                           description = description,
-    #                                                           label = label,
-    #                                                           logging = logging,
-    #                                                           verbose = verbose)
+    """Inlet Operator - add water to a domain via an inlet.
+    
+    :param domain: Specify domain
+    :param region: Apply Inlet flow over a region (which can be a Region, Polygon or line)
+    :param Q: function(t) or scalar discharge (m^3/s)
+    :param velocity: Optional [u,v] to set velocity of applied discharge
+    :param zero_velocity: If set to True, velocity of inlet region set to 0
+    :param default: If outside time domain of the Q function, use this default discharge
+    :param description: Describe the Inlet_operator
+    :param label: Give Inlet_operator a label (name)
+    :param verbose: Provide verbose output
+    
+    
+
+    Example:
+
+    >>> inflow_region  = anuga.Region(domain, center=[0.0,0.0], radius=1.0)
+    >>> inflow = anuga.Inlet_operator(domain, inflow_region, Q = lambda t : 1 + 0.5*math.sin(t/60))
+
+    """
+
 
     from anuga.utilities import parallel_abstraction as pypar
     # if procs is None:

@@ -16,8 +16,9 @@ ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
 sudo apt-get update -q
-sudo apt-get install gfortran git
-sudo apt-get install -y libopenmpi-dev openmpi-bin;
+sudo apt-get install gfortran git wget
+
+#sudo apt-get install -y libopenmpi-dev openmpi-bin;
 
 ##########################################################
 
@@ -47,10 +48,11 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy cython netcdf4 nose matplotlib gdal dill future gitpython
+conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 \
+    nose matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis
 
 source activate anuga_env
-pip install mpi4py triangle Pmw pymetis
+pip install triangle
 
 # python 2.6 doesn't have argparse by default
 if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi

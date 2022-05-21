@@ -112,7 +112,7 @@ class Generic_Domain(object):
                          # number_of_full_nodes=number_of_full_nodes,
                          # number_of_full_triangles=number_of_full_triangles,
                          verbose=verbose)
-
+        
         if verbose:
             log.critical('Domain: Expose mesh attributes')
 
@@ -882,6 +882,26 @@ class Generic_Domain(object):
         restored!!!
         """
 
+        
+        # Check that all tags in boundary map actually exists in the domain
+        # This check is disabled for parallel domains because a valid tag may belong to another instance.
+        # Alternative way of addressing this are
+        # - make the check a flag so that parallel domains can disable the check.
+        # - make the check only applicable when set_domain() is called from a top level user script.
+
+        #print('ID', self.processor, 'Parallel =', self.parallel) #, 'Strict_tag_check =', strict_tag_check)        
+
+        # FIXME (Ole): Perhaps make method .is_parallel() returing True if numprocs > 1 and False if numprocs == 0
+        if not self.parallel:
+            allowed_tags = list(set(self.boundary.values())) # List of unique tags 
+            for key in boundary_map:
+                if key not in allowed_tags:
+                    msg = f'Tag "{key}" provided does not exist in the domain. '
+                    msg += 'Allowed tags are: %s' % allowed_tags
+                    raise Exception(msg)
+        
+
+        # Update self.boundary_map with values provided to this method        
         if self.boundary_map is None:
             # This the first call to set_boundary. Store
             # map for later updates and for use with boundary_stats.
@@ -892,8 +912,10 @@ class Generic_Domain(object):
             for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
-        # FIXME (Ole): Try to remove the sorting and fix test_mesh.py
-        # This should be OK with Python 3 as items already sorted.
+             
+        # FIXME (Ole): Try to remove the sorting. Everyhing works except three tests 
+        # in test_urs2sts (representing functionality not likely to be used anymore).
+        # All other tests and validations work without this sorting step.
         x = list(self.boundary.keys())
         x.sort()
 
@@ -1078,7 +1100,8 @@ class Generic_Domain(object):
                                 track_speeds=False,
                                 triangle_id=None,
                                 relative_time=False,
-                                time_unit='sec'):
+                                time_unit='sec',
+                                datetime=False):
         """Return string with time stepping statistics
 
         Optional boolean keyword track_speeds decides whether to report
@@ -1112,16 +1135,30 @@ class Generic_Domain(object):
         else:
             time_unit = 'sec'
 
+        if datetime:
+            model_dt = self.get_datetime().strftime("%Y-%m-%d %H:%M:%S%z")
 
-        if self.recorded_min_timestep == self.recorded_max_timestep:
-            msg += 'Time = %.4f (%s), delta t = %.8f (s), steps=%d' \
-                % (model_time, time_unit, self.recorded_min_timestep, self.number_of_steps)
-        elif self.recorded_min_timestep > self.recorded_max_timestep:
-            msg += 'Time = %.4f (%s), steps=%d' % (model_time, time_unit, self.number_of_steps)
+            if self.recorded_min_timestep == self.recorded_max_timestep:
+                msg += 'DateTime: %s, delta t = %.8f (s), steps=%d' \
+                    % (model_dt, self.recorded_min_timestep, self.number_of_steps)
+            elif self.recorded_min_timestep > self.recorded_max_timestep:
+                msg += 'DateTime: %s, steps=%d' % (model_dt, self.number_of_steps)
+            else:
+                msg += 'DateTime: %s, delta t in [%.8f, %.8f] (s), steps=%d' \
+                    % (model_dt, self.recorded_min_timestep,
+                    self.recorded_max_timestep, self.number_of_steps)
         else:
-            msg += 'Time = %.4f (%s), delta t in [%.8f, %.8f] (s), steps=%d' \
-                % (model_time, time_unit, self.recorded_min_timestep,
-                   self.recorded_max_timestep, self.number_of_steps)
+            if self.recorded_min_timestep == self.recorded_max_timestep:
+                msg += 'Time = %.4f (%s), delta t = %.8f (s), steps=%d' \
+                    % (model_time, time_unit, self.recorded_min_timestep, self.number_of_steps)
+            elif self.recorded_min_timestep > self.recorded_max_timestep:
+                msg += 'Time = %.4f (%s), steps=%d' % (model_time, time_unit, self.number_of_steps)
+            else:
+                msg += 'Time = %.4f (%s), delta t in [%.8f, %.8f] (s), steps=%d' \
+                    % (model_time, time_unit, self.recorded_min_timestep,
+                    self.recorded_max_timestep, self.number_of_steps)
+
+
 
         msg += ' (%ds)' % (walltime() - self.last_walltime)
         self.last_walltime = walltime()

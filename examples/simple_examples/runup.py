@@ -14,11 +14,7 @@ from math import sin, pi, exp
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
-points, vertices, boundary = anuga.rectangular_cross(10, 10) # Basic mesh
-
-domain = anuga.Domain(points, vertices, boundary)   # Create domain
-domain.set_name('runup')                            # Output to file runup.sww
-domain.set_datadir('.')                             # Use current folder
+domain = anuga.rectangular_cross_domain(10, 10)     # Create domain
 
 #------------------------------------------------------------------------------
 # Setup initial conditions
@@ -35,8 +31,6 @@ domain.set_quantity('stage', -0.4)           # Constant negative initial stage
 # Setup boundary conditions
 #------------------------------------------------------------------------------
 Br = anuga.Reflective_boundary(domain)      # Solid reflective wall
-Bt = anuga.Transmissive_boundary(domain)    # Continue all values on boundary 
-Bd = anuga.Dirichlet_boundary([-0.2,0.,0.]) # Constant boundary values
 Bw = anuga.Time_boundary(domain=domain,     # Time dependent boundary  
                    function=lambda t: [(0.1*sin(t*2*pi)-0.3)*exp(-t), 0.0, 0.0])
 

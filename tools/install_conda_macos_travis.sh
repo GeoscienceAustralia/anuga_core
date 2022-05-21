@@ -25,7 +25,7 @@ export PATH=/Users/travis/miniconda3/bin:$PATH
 # Configure the conda environment and put it in the path using the
 # provided versions
     
-conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython
+conda create -n anuga_env --yes python=3.7 gdal pip nose numpy scipy netcdf4 matplotlib dill cython future gitpython pytz
 
 source activate anuga_env
 

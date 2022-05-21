@@ -228,10 +228,14 @@ point2, 0.5, 2.0\n")
                          
         # clean up
         point1_handle.close()
-        point2_handle.close() 
-        os.remove(points_file)
-        os.remove(point1_filename)
-        os.remove(point2_filename)        
+        point2_handle.close()
+
+        try:
+            os.remove(points_file)
+            os.remove(point1_filename)
+            os.remove(point2_filename)
+        except:
+            pass       
         
 
     def test_sww2csv_gauges2(self):
@@ -299,9 +303,13 @@ point2, 0.5, 2.0, 9.0\n")
         # clean up
         point1_handle.close()
         point2_handle.close()
-        os.remove(points_file)
-        os.remove(point1_filename)
-        os.remove(point2_filename)
+
+        try:
+            os.remove(points_file)
+            os.remove(point1_filename)
+            os.remove(point2_filename)
+        except:
+            pass
 
 
        
@@ -348,7 +356,12 @@ offmesh2, 50.5, 20.25\n")
         for point_filename in points_files: 
             assert not os.path.exists(point_filename)
             
-        os.remove(points_file)
+
+        # clean up
+        try:
+            os.remove(points_file)
+        except:
+            pass
         
         
     def test_sww2csv_centroid(self):
@@ -412,12 +425,17 @@ point2, 4.5, 4.0, 9.0\n")
             #print i, 'assert line',line[i],'point2',point2_answers_array[i]
             assert num.allclose(line[i], point2_answers_array[i])
                          
+
         # clean up
         point1_handle.close()
         point2_handle.close()
-        os.remove(points_file)
-        os.remove(point1_filename)
-        os.remove(point2_filename)
+
+        try:
+            os.remove(points_file)
+            os.remove(point1_filename)
+            os.remove(point2_filename)
+        except:
+            pass
 
 
     def test_sww2csv_output_centroid_attribute(self):
@@ -464,8 +482,11 @@ point1, 2.5, 4.25, 3.0\n")
         # clean up
         point1_handle.close()
 
-        os.remove(points_file)
-        os.remove(point1_filename)
+        try:
+            os.remove(points_file)
+            os.remove(point1_filename)
+        except:
+            pass
 
     def test_sww2csv_multiple_files(self):
         """
@@ -550,14 +571,17 @@ point2, 0.5, 2.0\n")
                          
         # clean up
         point1_handle.close()
-        point2_handle.close() 
-        #os.remove(points_file)
-        #os.remove(point1_filename)
-        #os.remove(point2_filename)       
+        point2_handle.close()
 
-        #remove second swwfile not removed by tearDown
-        os.remove(basename+".sww")
-        #os.remove(basename+str(time.time())+".sww")
+        try:
+            os.remove(points_file)
+            os.remove(point1_filename)
+            os.remove(point2_filename)
+            #remove second swwfile not removed by tearDown
+            os.remove(basename+".sww")
+        except:
+            pass       
+
 
 #-------------------------------------------------------------
 

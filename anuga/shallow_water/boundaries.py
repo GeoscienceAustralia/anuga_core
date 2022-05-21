@@ -1,25 +1,20 @@
-"""
-Boundary conditions - specific to the shallow water wave equation
+""" Boundary conditions specific to the shallow water wave equation
 
 Title: ANUGA boundaries with dependencies on shallow_water_domain
-
-
-Author: Ole Nielsen, Ole.Nielsen@ga.gov.au
-        Stephen Roberts, Stephen.Roberts@anu.edu.au
-        Duncan Gray, Duncan.Gray@ga.gov.au
-        Gareth Davies, gareth.davies.ga.code@gmail.com
-
+Author:
+    Ole Nielsen, Ole.Nielsen@ga.gov.au
+    Stephen Roberts, Stephen.Roberts@anu.edu.au
+    Duncan Gray, Duncan.Gray@ga.gov.au
+    Gareth Davies, gareth.davies.ga.code@gmail.com
 CreationDate: 2010
-
-Description:
-    This module contains boundary functions for ANUGA that are specific
-    to the shallow water Domain class.
-    
+Description::
+    This module contains boundary functions for ANUGA that are specific to the shallow water Domain class.  
 Constraints: See GPL license in the user guide
 Version: 1.0 ($Revision: 7731 $)
-ModifiedBy:
-    $Author: hudson $
-    $Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010) $
+ModifiedBy::
+    Author: hudson
+    Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010)
+
 """
 from __future__ import absolute_import
 from __future__ import division
@@ -51,15 +46,29 @@ from .shallow_water_ext import rotate
 
 
 class Reflective_boundary(Boundary):
-    """Reflective boundary returns same conserved quantities as
-    those present in its neighbour volume but reflected.
-
-    This class is specific to the shallow water equation as it
-    works with the momentum quantities assumed to be the second
-    and third conserved quantities.
+    """Reflective boundary condition object
+    
+    Reflective boundary returns same conserved quantities as
+    those present in its neighbour volume but with normal momentum reflected.
     """
 
     def __init__(self, domain=None):
+        """Create boundary condition object
+        
+        :param domain: domain on which to apply BC
+        
+        Example: 
+        
+        Set all the tagged boundaries to use the Reflective boundaries
+        
+        >>> domain = anuga.rectangular_cross_domain(10, 10) 
+        >>> BC = anuga.Reflective_boundary(domain)
+        >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
+        
+        """
+
+
+
         Boundary.__init__(self)
 
         if domain is None:
@@ -78,10 +87,11 @@ class Reflective_boundary(Boundary):
         return 'Reflective_boundary'
 
     def evaluate(self, vol_id, edge_id):
-        """Calculate reflections (reverse outward momentum).
+        """Calculate BC associated to specified edge
 
-        vol_id   
-        edge_id  
+        :param int vol_id: Triangle ID
+        :param int edge_id: Edge opposite to Vertex ID  
+  
         """
 
         q = self.conserved_quantities
@@ -100,8 +110,11 @@ class Reflective_boundary(Boundary):
 
 
     def evaluate_segment(self, domain, segment_edges):
-        """Apply reflective BC on the boundary edges defined by
-        segment_edges
+        """Apply BC on the boundary edges defined by segment_edges
+
+        :param domain: Apply BC on this domain
+        :param segment_edges: List of boundary cells on which to apply BC
+
         """
 
         if segment_edges is None:
@@ -162,25 +175,31 @@ class Reflective_boundary(Boundary):
 
 
 class Transmissive_momentum_set_stage_boundary(Boundary):
-    """Returns same momentum conserved quantities as
+    """ Bounday condition object that returns transmissive momentum and sets stage
+    
+    Returns same momentum conserved quantities as
     those present in its neighbour volume.
     Sets stage by specifying a function f of time which may either be a
     vector function or a scalar function
-
-    Example:
-
-    def waveform(t):
-        return sea_level + normalized_amplitude/cosh(t-25)**2
-
-    Bts = Transmissive_momentum_set_stage_boundary(domain, waveform)
-
-    Underlying domain must be specified when boundary is instantiated
     """
 
     def __init__(self, domain=None, function=None):
-        Boundary.__init__(self)
-        """ Instantiate a Transmissive_momentum_set_stage_boundary. """
+        """Create boundary condition object.
+        
+        :param domain: domain on which to apply BC
+        :param function: function to set stage
+        
+        Example: Set all the tagged boundaries to use the 
+        
+        >>> domain = anuga.rectangular_cross_domain(10, 10) 
+        >>> def waveform(t):
+        >>>    return sea_level + normalized_amplitude/cosh(t-25)**2
+        >>> BC = anuga.Transmissive_momentum_set_stage_boundary(domain, waveform)
+        >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
+        
+        """
 
+        Boundary.__init__(self)
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
@@ -200,7 +219,8 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
 
     def __repr__(self):
-        """ Return a representation of this instance. """
+        """ Return a representation of this object. """
+
         return 'Transmissive_momentum_set_stage_boundary(%s)' % self.domain
 
     def evaluate(self, vol_id, edge_id):
@@ -244,28 +264,32 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
 
 class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
-    """Returns the same normal momentum as that 
+    """Bounday condition object that returns transmissive normal momentum and sets stage
+    
+    Returns the same normal momentum as that 
     present in neighbour volume edge. Zero out the tangential momentum. 
     Sets stage by specifying a function f of time which may either be a
     vector function or a scalar function
 
-    Example:
-
-    def waveform(t):
-        return sea_level + normalized_amplitude/cosh(t-25)**2
-
-    Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary\
-                            (domain, waveform)
-
-    Underlying domain must be specified when boundary is instantiated
     """
 
     def __init__(self, domain=None, function=None, default_boundary=0.0):
-        """ Instantiate a
-            Transmissive_n_momentum_zero_t_momentum_set_stage_boundary.
-            domain is the domain containing the boundary
-            function is the function to apply
+        """Create boundary condition object.
+        
+        :param domain: domain on which to apply BC
+        :param function: function to set stage
+        :param float default_boundary: 
+        
+        Example: Set all the tagged boundaries to use the BC
+        
+        >>> domain = anuga.rectangular_cross_domain(10, 10) 
+        >>> def waveform(t):
+        >>>    return sea_level + normalized_amplitude/cosh(t-25)**2
+        >>> BC = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, waveform)
+        >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
+        
         """
+
 
         Boundary.__init__(self)
 
@@ -333,8 +357,13 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
 
     def evaluate_segment(self, domain, segment_edges): 
-        """Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
-        applied in vectorized form for speed. Gareth Davies 14/07/2016
+        """Apply BC on the boundary edges defined by segment_edges
+
+        :param domain: Apply BC on this domain
+        :param segment_edges: List of boundary cells on which to apply BC
+
+        Vectorized form for speed. Gareth Davies 14/07/2016
+        
         """
         
         Stage = domain.quantities['stage']
@@ -371,8 +400,7 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
 
 class Transmissive_stage_zero_momentum_boundary(Boundary):
-    """Return same stage as those present in its neighbour volume.
-    Set momentum to zero.
+    """BC where stage is same as neighbour volume and momentum to zero.
 
     Underlying domain must be specified when boundary is instantiated
     """
@@ -513,7 +541,7 @@ class Characteristic_stage_boundary(Boundary):
             default_stage is the assumed stage pre the application of wave
         """
 
-        raise Exception('This boundary type is not implemented yet')
+        #raise Exception('This boundary type is not implemented yet')
     
         Boundary.__init__(self)
 
@@ -529,9 +557,11 @@ class Characteristic_stage_boundary(Boundary):
         self.function = function
         self.default_stage = default_stage
 
-        self.Elev  = domain.quantities['elevation']
-        self.Stage = domain.quantities['stage']
-        self.Height = domain.quantities['height']
+        self.elev   = domain.quantities['elevation']
+        self.stage  = domain.quantities['stage']
+        #self.height = domain.quantities['height']
+        self.xmom   = domain.quantities['xmomentum']
+        self.ymom   = domain.quantities['ymomentum']
 
     def __repr__(self):
         """ Return a representation of this instance. """
@@ -553,24 +583,55 @@ class Characteristic_stage_boundary(Boundary):
 
         value = self.function(t)
         try:
-            stage = float(value)
+            w_outside = float(value)
         except:
-            stage = float(value[0])
+            w_outside = float(value[0])
 
+        q = num.zeros(len(self.conserved_quantities), float)
 
-
-        q = self.conserved_quantities
-        #q[0] = self.stage[vol_id, edge_id]
-        q[0] = stage
-        q[1] = self.xmom[vol_id, edge_id]
-        q[2] = self.ymom[vol_id, edge_id]
+        q[0] = self.stage.edge_values[vol_id, edge_id]
+        q[1] = self.xmom.edge_values[vol_id, edge_id]
+        q[2] = self.ymom.edge_values[vol_id, edge_id]
+        elev = self.elev.edge_values[vol_id, edge_id]
 
         normal = self.normals[vol_id, 2*edge_id:2*edge_id+2]
 
-        r = rotate(q, normal, direction = 1)
-        r[1] = -r[1]
-        q = rotate(r, normal, direction = -1)
+        uh_inside  = normal[0]*q[1] + normal[1]*q[2]
+        vh_inside  = normal[1]*q[1] - normal[0]*q[2]
 
+
+        # use elev as elev both inside and outside
+
+        h_outside = max(w_outside - elev,0)
+        h_inside  = max(q[0] - elev, 0)
+
+        u_inside  = uh_inside/h_inside
+
+
+        sqrt_g = gravity**0.5
+        sqrt_h_inside = h_inside**0.5
+        sqrt_h_outside = h_outside**0.5
+
+        h_m = (0.5*(sqrt_h_inside+sqrt_h_outside) + u_inside/4.0/sqrt_g )**2
+        u_m = 0.5*u_inside + sqrt_g*(sqrt_h_inside - sqrt_h_outside)
+
+        uh_m = h_m*u_m
+        vh_m = vh_inside
+
+        # if uh_inside > 0.0 then outflow
+        if uh_inside > 0.0 :
+            vh_m = vh_inside
+        else:
+            vh_m = 0.0
+
+        if h_inside == 0.0:
+            q[0] = w_outside
+            q[1] = 0.0
+            q[2] = 0.0
+        else:
+            q[0] = h_m + elev       
+            q[1] = uh_m*normal[0] + vh_m*normal[1]
+            q[2] = uh_m*normal[1] - vh_m*normal[0]
 
         return q
 
@@ -580,72 +641,93 @@ class Characteristic_stage_boundary(Boundary):
         segment_edges
         """
 
-        if segment_edges is None:
-            return
-        if domain is None:
-            return
-
-        t = self.domain.get_time()
-
-
-        value = self.function(t)
-        try:
-            stage = float(value)
-        except:
-            stage = float(value[0])
-                       
+        Stage = domain.quantities['stage']
+        Elev  = domain.quantities['elevation']
+        Xmom  = domain.quantities['xmomentum']
+        Ymom  = domain.quantities['ymomentum']
 
         ids = segment_edges
         vol_ids  = domain.boundary_cells[ids]
         edge_ids = domain.boundary_edges[ids]
+        Normals  = domain.normals
 
-        Stage = domain.quantities['stage']
-        Elev  = domain.quantities['elevation']
-        Height= domain.quantities['height']
-        Xmom  = domain.quantities['xmomentum']
-        Ymom  = domain.quantities['ymomentum']
-        Xvel  = domain.quantities['xvelocity']
-        Yvel  = domain.quantities['yvelocity']
-
-        Normals = domain.normals
-
-        #print vol_ids
-        #print edge_ids
-        #Normals.reshape((4,3,2))
-        #print Normals.shape
-        #print Normals[vol_ids, 2*edge_ids]
-        #print Normals[vol_ids, 2*edge_ids+1]
-        
         n1  = Normals[vol_ids,2*edge_ids]
         n2  = Normals[vol_ids,2*edge_ids+1]
+   
+        # Get stage value 
+        t = self.domain.get_time()
+        value = self.function(t)
+        try:
+            w_outside = float(value)
+        except:
+            w_outside = float(value[0])
 
         # Transfer these quantities to the boundary array
-        Stage.boundary_values[ids]  = Stage.edge_values[vol_ids,edge_ids]
-        Elev.boundary_values[ids]   = Elev.edge_values[vol_ids,edge_ids]
-        Height.boundary_values[ids] = Height.edge_values[vol_ids,edge_ids]
+        Stage.boundary_values[ids] = Stage.edge_values[vol_ids,edge_ids]
+        Xmom.boundary_values[ids]  = Xmom.edge_values[vol_ids,edge_ids]
+        Ymom.boundary_values[ids]  = Ymom.edge_values[vol_ids,edge_ids]
+        Elev.boundary_values[ids]  = Elev.edge_values[vol_ids,edge_ids]
 
-        # Rotate and negate Momemtum
-        q1 = Xmom.edge_values[vol_ids,edge_ids]
-        q2 = Ymom.edge_values[vol_ids,edge_ids]
 
-        r1 = -q1*n1 - q2*n2
-        r2 = -q1*n2 + q2*n1
 
-        Xmom.boundary_values[ids] = n1*r1 - n2*r2
-        Ymom.boundary_values[ids] = n2*r1 + n1*r2
+        h_inside = num.maximum(Stage.boundary_values[ids]-Elev.boundary_values[ids], 0.0)
+        w_outside = 0.0*Stage.boundary_values[ids] + w_outside 
 
-        # Rotate and negate Velocity
-        q1 = Xvel.edge_values[vol_ids,edge_ids]
-        q2 = Yvel.edge_values[vol_ids,edge_ids]
+        # Do vectorized operations here
+        #
+        # In dry cells, the values will be ....
+        q0_dry = num.where(Elev.boundary_values[ids] <= w_outside, w_outside, Elev.boundary_values[ids])
+        q1_dry = 0.0 * Xmom.boundary_values[ids]
+        q2_dry = 0.0 * Ymom.boundary_values[ids]
+        #
+        # and in wet cells, the values will be ...
+        # (see 'evaluate' method above for more comments on theory,
+        # in particular we assume subcritical flow and a zero outside velocity)
+        #
+        # (note: When cells are dry, this calculation will throw invalid
+        # values, but such values will never be selected to be returned)
+        sqrt_g = gravity**0.5
+        h_inside  = num.maximum(Stage.boundary_values[ids] - Elev.boundary_values[ids], 0)
+        uh_inside = n1 * Xmom.boundary_values[ids] + n2 * Ymom.boundary_values[ids]
+        vh_inside = n2 * Xmom.boundary_values[ids] - n1 * Ymom.boundary_values[ids]
+        u_inside  = num.where(h_inside>0.0, uh_inside/h_inside, 0.0)
 
-        r1 = q1*n1 + q2*n2
-        r2 = q1*n2 - q2*n1
+        h_outside = num.maximum(w_outside - Elev.boundary_values[ids], 0)
 
-        Xvel.boundary_values[ids] = n1*r1 - n2*r2
-        Yvel.boundary_values[ids] = n2*r1 + n1*r2
+        sqrt_h_inside = h_inside**0.5
+        sqrt_h_outside = h_outside**0.5
 
-        
+        h_m = (0.5*(sqrt_h_inside+sqrt_h_outside) + u_inside/4.0/sqrt_g )**2
+        u_m = 0.5*u_inside + sqrt_g*(sqrt_h_inside - sqrt_h_outside)
 
+        uh_m = h_m*u_m
+
+        # if uh_inside > 0.0 then outflow
+        vh_m = num.where(uh_inside > 0.0, vh_inside, 0.0)
+
+        w_m = h_m + Elev.boundary_values[ids]
+
+        dry_test = num.logical_or(h_inside == 0.0, h_outside == 0.0)
+
+        q1 = uh_m*n1 + vh_m*n2
+        q2 = uh_m*n2 - vh_m*n1
+
+        Stage.boundary_values[ids] = num.where(
+            dry_test,
+            w_outside,
+            w_m 
+            )
+
+        Xmom.boundary_values[ids] = num.where(
+            dry_test, 
+            0.0,
+            q1 
+            )
+
+        Ymom.boundary_values[ids] = num.where(
+            dry_test,
+            0.0,
+            q2)
 
 class Dirichlet_discharge_boundary(Boundary):
     """ Class for a Dirichlet discharge boundary.
@@ -791,7 +873,9 @@ class Inflow_boundary(Boundary):
             
         
 class Field_boundary(Boundary):
-    """Set boundary from given field represented in an sww file containing
+    """Set boundary from given field.
+    
+    Given field is represented in an sww file containing
     values for stage, xmomentum and ymomentum.
 
     Optionally, the user can specify mean_stage to offset the stage provided
@@ -819,31 +903,32 @@ class Field_boundary(Boundary):
                  verbose=False):
         """Constructor
 
-        filename: Name of sww file containing stage and x/ymomentum
-        domain: pointer to shallow water domain for which the boundary applies
-        mean_stage: The mean water level which will be added to stage derived
-                    from the boundary condition
-        time_thinning: Will set how many time steps from the sww file read in
-                       will be interpolated to the boundary. For example if
-                       the sww file has 1 second time steps and is 24 hours
-                       in length it has 86400 time steps. If you set
-                       time_thinning to 1 it will read all these steps.
-                       If you set it to 100 it will read every 100th step eg
-                       only 864 step. This parameter is very useful to increase
-                       the speed of a model run that you are setting up
-                       and testing.
+        :param filename: Name of sww file containing stage and x/ymomentum
 
-        default_boundary: Must be either None or an instance of a
-                          class descending from class Boundary.
-                          This will be used in case model time exceeds
-                          that available in the underlying data.
+        :param domain: pointer to shallow water domain for which the boundary applies
 
-                          Note that mean_stage will also be added to this.
+        :param mean_stage: The mean water level which will be added to stage derived from the boundary condition
 
-        time_limit: 
-        boundary_polygon: 
-        use_cache:        True if caching is to be used.
-        verbose:          True if this method is to be verbose.
+        :param time_thinning: Will set how many time steps from the sww file read in will be interpolated to the boundary. 
+
+        :param default_boundary: This will be used in case model time exceeds that available in the underlying data.
+
+        :param time_limit: 
+
+        :param boundary_polygon: 
+
+        :param use_cache:        True if caching is to be used.
+
+        :param verbose:          True if this method is to be verbose.
+
+        For example if
+        the sww file has 1 second time steps and is 24 hours
+        in length it has 86400 time steps. If you set
+        time_thinning to 1 it will read all these steps.
+        If you set it to 100 it will read every 100th step eg
+        only 864 step. This parameter is very useful to increase
+        the speed of a model run that you are setting up
+        and testing.
 
         """
 
@@ -891,55 +976,52 @@ class Field_boundary(Boundary):
 
 
 class Flather_external_stage_zero_velocity_boundary(Boundary):
-    """
+    """Boundary condition based on a Flather type approach
 
-    Boundary condition based on a Flather type approach 
-    (setting the external stage with a function, and a zero external velocity),
+    Setting the external stage with a function, and a zero external velocity,
     
-
     The idea is similar (but not identical) to that described on page 239 of
-    the following article:
+    the following article::
 
-    Article{blayo05,
-      Title                    = {Revisiting open boundary conditions from the point of view of characteristic variables},
-      Author                   = {Blayo, E. and Debreu, L.},
-      Journal                  = {Ocean Modelling},
-      Year                     = {2005},
-      Pages                    = {231-252},
-      Volume                   = {9},
-    }
+        Article{blayo05,
+        Title       = {Revisiting open boundary conditions from the point of view of characteristic variables},
+        Author      = {Blayo, E. and Debreu, L.},
+        Journal     = {Ocean Modelling},
+        Year        = {2005},
+        Pages       = {231-252},
+        Volume      = {9},
+        }
 
     Approach
-    1) The external (outside boundary) stage is set with a function, the
-       external velocity is zero, the internal stage and velocity are taken from the
-       domain values.
-    2) Some 'characteristic like' variables are computed, depending on whether
-       the flow is incoming or outgoing. See Blayo and Debreu (2005)
-    3) The boundary conserved quantities are computed from these characteristic
-       like variables
+
+     #. The external (outside boundary) stage is set with a function, the
+        external velocity is zero, the internal stage and velocity are taken from the
+        domain values.
+     #. Some 'characteristic like' variables are computed, depending on whether
+        the flow is incoming or outgoing. See Blayo and Debreu (2005)
+     #. The boundary conserved quantities are computed from these characteristic
+        like variables
 
     This has been useful as a 'weakly reflecting' boundary when the stage should
     be approximately specified but allowed to adapt to outgoing waves.
-
-
-    Example:
-
-    def waveform(t):
-        return sea_level + normalized_amplitude/cosh(t-25)**2
-
-    Bf = Flather_external_stage_zero_velocity_boundary(domain, waveform)
-
-    Underlying domain must be specified when boundary is instantiated
-
-
     
     """
 
     def __init__(self, domain=None, function=None):
-        """ Instantiate a
-            Flather_external_stage_zero_velocity_boundary.
-            domain is the domain containing the boundary
-            function is the function to apply
+        """Create boundary condition object.
+
+        :param domain: The domain on which to apply boundary condition
+        :param function: Function to apply on the boundary
+
+        Example:
+
+        .. code:: python
+
+            def waveform(t):
+                return sea_level + normalized_amplitude/cosh(t-25)**2
+
+            Bf = Flather_external_stage_zero_velocity_boundary(domain, waveform)
+
         """
 
         Boundary.__init__(self)
@@ -994,7 +1076,7 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
             # appropriate, depending on whether we have inflow or outflow
 
             # These calculations are based on the paper cited above
-            sqrt_g_on_depth_inside = (old_div(gravity,depth_inside))**0.5
+            sqrt_g_on_depth_inside = (gravity/depth_inside)**0.5
             ndotq_inside = (normal[0]*q[1] + normal[1]*q[2]) # momentum perpendicular to the boundary
             if(ndotq_inside>0.):
                 # Outflow (assumed subcritical)
@@ -1008,10 +1090,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
                 w1 = 0. - sqrt_g_on_depth_inside*stage_outside
 
                 # w2 = v [velocity parallel to boundary] -- uses 'inside' info
-                w2 = old_div((+normal[1]*q[1] -normal[0]*q[2]),depth_inside)
+                w2 = (+normal[1]*q[1] -normal[0]*q[2])/depth_inside
 
                 # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-                w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*q[0]
+                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
                 
             else:
                 # Inflow (assumed subcritical)
@@ -1024,10 +1106,10 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
                 w2 = 0.
 
                 # w3 = u + sqrt(g/depth)*(Stage_inside) -- uses 'inside info'
-                w3 = old_div(ndotq_inside,depth_inside) + sqrt_g_on_depth_inside*q[0]
+                w3 = ndotq_inside/depth_inside + sqrt_g_on_depth_inside*q[0]
 
 
-            q[0] = old_div((w3-w1),(2*sqrt_g_on_depth_inside))
+            q[0] = (w3-w1)/(2*sqrt_g_on_depth_inside)
             qperp= (w3+w1)/2.*depth_inside
             qpar=  w2*depth_inside
 

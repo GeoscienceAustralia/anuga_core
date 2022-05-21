@@ -117,18 +117,34 @@ from anuga.utilities.parallel_abstraction import pypar_available, barrier
 #from pypar import size, rank, send, receive, barrier
 
 class Domain(Generic_Domain):
-    """
+    """Object which encapulates the shallow water model
+
+
     This class is a specialization of class Generic_Domain from
     module generic_domain.py consisting of methods specific to the
     Shallow Water Wave Equation
 
-    U_t + E_x + G_y = S
+    Shallow Water Wave Equation
+
+    .. math::
+    
+        U_t + E_x + G_y = S
 
     where
 
-    U = [w, uh, vh]
-    E = [uh, u^2h + gh^2/2, uvh]
-    G = [vh, uvh, v^2h + gh^2/2]
+    .. math::
+    
+        U = [w, uh, vh]^T
+
+    .. math::
+
+        E = [uh, u^2h + gh^2/2, uvh]
+
+    .. math:: 
+
+        G = [vh, uvh, v^2h + gh^2/2]
+
+
 
     S represents source terms forcing the system
     (e.g. gravity, friction, wind stress, ...)
@@ -136,23 +152,25 @@ class Domain(Generic_Domain):
     and _t, _x, _y denote the derivative with respect to t, x and y
     respectively.
 
+
     The quantities are
 
     symbol    variable name    explanation
-        x         x                horizontal distance from origin [m]
-        y         y                vertical distance from origin [m]
-        z         elevation        elevation of bed on which flow is modelled [m]
-        h         height           water height above z [m]
-        w         stage            absolute water level, w = z+h [m]
-        u                          speed in the x direction [m/s]
-        v                          speed in the y direction [m/s]
-        uh        xmomentum        momentum in the x direction [m^2/s]
-        vh        ymomentum        momentum in the y direction [m^2/s]
+    x         x                horizontal distance from origin [m]
+    y         y                vertical distance from origin [m]
+    z         elevation        elevation of bed on which flow is modelled [m]
+    h         height           water height above z [m]
+    w         stage            absolute water level, w = z+h [m]
+    u                          speed in the x direction [m/s]
+    v                          speed in the y direction [m/s]
+    uh        xmomentum        momentum in the x direction [m^2/s]
+    vh        ymomentum        momentum in the y direction [m^2/s]
 
-        eta                        mannings friction coefficient [to appear]
-        nu                         wind stress coefficient [to appear]
+    eta                        mannings friction coefficient [to appear]
+    nu                         wind stress coefficient [to appear]
 
     The conserved quantities are w, uh, vh
+
     """
 
     def __init__(self,
@@ -178,12 +196,11 @@ class Domain(Generic_Domain):
                  ghost_layer_width=2,
                  **kwargs):
 
-        """
-        Instantiate a shallow water domain.
+        """Instantiate a shallow water domain.
 
-        @param coordinates: vertex locations for the mesh
-        @param vertices: vertex indices for the mesh
-        @param boundary: boundaries of the mesh
+        :param coordinates: vertex locations for the mesh
+        :param vertices: vertex indices defining the triangles of the mesh
+        :param boundary: boundaries of the mesh
         """
 
         # Define quantities for the shallow_water domain
@@ -236,6 +253,10 @@ class Domain(Generic_Domain):
         #-------------------------------
         self.set_flow_algorithm()
 
+        #-------------------------------
+        # datetime and timezone
+        #-------------------------------
+        self.set_timezone()
 
         #-------------------------------
         # Forcing Terms
@@ -1037,6 +1058,95 @@ class Domain(Generic_Domain):
         Generic_Domain.set_quantity(self, name, *args, **kwargs)
 
 
+    def set_timezone(self, tz = None):
+        """Set timezone for domain
+        
+        :param tz: either a timezone object or string
+        
+        We recommend using the timezone provided by the pytz modules. 
+        Default is pytz.utc
+
+        Example: Set default timezone UTC
+
+        >>> domain.set_timezone()
+
+        Example: Set timezone using pytz string
+
+        >>> domain.set_timezone('Australia/Syndey')
+
+        Example: Set timezone using pytz timezone
+
+        >>> new_tz = pytz.timezone('Australia/Sydney')
+        >>> domain.set_timezone(new_tz)
+        """
+
+        import pytz
+
+        if tz is None:
+            new_tz = pytz.utc
+        elif isinstance(tz,str):
+            new_tz = pytz.timezone(tz)
+        elif isinstance(tz, pytz.timezone):
+            new_tz = tz
+        else:
+            msg = "Unknown timezone %s" % tz
+            raise Exception(msg)
+
+        
+        self.timezone = new_tz
+
+    def get_timezone(self):
+        """Retrieve current domain timezone"""
+
+        return self.timezone
+
+    def get_datetime(self):
+        """Retrieve datetime corresponding to current timestamp wrt to domain timezone"""
+
+        import pytz
+        from datetime import datetime
+        utc_datetime = pytz.utc.localize(datetime.utcfromtimestamp(self.get_time()))
+        current_dt = utc_datetime.astimezone(self.timezone)
+        return current_dt
+
+    def set_starttime(self, timestamp=0.0):
+        """Set the starttime for the evolution
+        
+        :param time: Either a float or a datetime object
+        
+        Essentially we use unix time as our absolute time. So 
+        time = 0 corresponds to Jan 1st 1970 UTC
+        
+        Example: 
+        
+        >>> from datetime import datetime
+        >>> dt = datetime(2021,3,21,18,30)
+        >>> domain.set_starttime(dt)
+        >>> print(domain.get_datetime(), domain.get_time())
+        
+        
+        """
+
+
+        from datetime import datetime
+
+        if self.evolved_called:
+            msg = ('Can\'t change simulation start time once evolve has '
+                   'been called')
+            raise Exception(msg)
+
+        if isinstance(timestamp, datetime):
+            dt = self.timezone.localize(timestamp)
+            time = dt.timestamp()
+        else:
+            time = float(timestamp)
+
+
+        self.starttime = time
+        # starttime is now the origin for relative_time
+        self.set_relative_time(0.0)
+
+
     def set_store(self, flag=True):
         """Set whether data saved to sww file.
         """
@@ -1063,14 +1173,13 @@ class Domain(Generic_Domain):
         return self.store_centroids
 
     def set_checkpointing(self, checkpoint= True, checkpoint_dir = 'CHECKPOINTS', checkpoint_step=10, checkpoint_time = None):
-        """
-        Set up checkpointing.
+        """Set up checkpointing.
 
-        @param checkpoint: Default = True. Set to False will tur off checkpointing
+        @param checkpoint: Default = True. Set to False will turn off checkpointing
         @param checkpoint_dir: Where to store checkpointing files
         @param checkpoint_step: Save checkpoint files after this many yieldsteps
-        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files
-                        after this amount of walltime
+        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files 
+        after this amount of walltime
         """
 
 
@@ -1656,9 +1765,9 @@ class Domain(Generic_Domain):
         return water_volume
 
     def get_boundary_flux_integral(self):
-        """
-            Compute the boundary flux integral.
-            Should work in parallel
+        """Compute the boundary flux integral.
+
+        Should work in parallel
         """
 
         from anuga import numprocs
@@ -1694,11 +1803,11 @@ class Domain(Generic_Domain):
         return flux_integral
 
     def get_fractional_step_volume_integral(self):
-        """
-            Compute the integrated flows from fractional steps
-            This requires that the fractional step operators
-              update the fractional_step_volume_integral
-            Should work in parallel
+        """Compute the integrated flows from fractional steps.
+
+        This requires that the fractional step operators update the fractional_step_volume_integral.
+        
+        Should work in parallel
         """
 
         from anuga import numprocs
@@ -2420,21 +2529,31 @@ class Domain(Generic_Domain):
                finaltime=None,
                duration=None,
                skip_initial_step=False):
-        """Specialisation of basic evolve method from parent class.
+        """Evolve method from Domain class.
 
-            Evolve the model up to time finaltime or for a duraton of time duration. 
 
-            yield every yieldstep period
-            output to sww file every outputstep period
+        :param float yieldstep: yield every yieldstep time period
+        :param float outputstep: Output to sww file every outputstep time period. outputstep should be an integer multiple of yieldstep. 
+        :param float finaltime: evolve until finaltime (can be a float or a datetime object)
+        :param float duration: evolve for a time of length duration
+        :param  boolean skip_inital_step: Can be used to restart a simulation (not often used). 
 
-            outputstep should be an integer multiple of yieldstep. 
 
-            If outputstep is None, the output to sww sile every yieldstep. 
-            If yieldstep is None then simply evolve to finaltime or for a duration.
+        If outputstep is None, the output to sww file happens every yieldstep. 
+        If yieldstep is None then simply evolve to finaltime or for a duration.
         """
 
         # Call check integrity here rather than from user scripts
         # self.check_integrity()
+
+        from datetime import datetime
+        if finaltime is not None:
+            if isinstance(finaltime, datetime):
+                dt = self.timezone.localize(finaltime)
+                finaltime = dt.timestamp()
+            else:
+                finaltime = float(finaltime)
+
 
         if outputstep is None:
             outputstep = yieldstep
@@ -2455,9 +2574,8 @@ class Domain(Generic_Domain):
         # evolve loop but we do it here to ensure the values are ok for storage.
         self.distribute_to_vertices_and_edges()
 
-        if self.store is True and self.get_relative_time() == 0.0:
+        if self.store is True and (self.get_relative_time() == 0.0 or self.evolved_called is False):
             self.initialise_storage()
-
 
         # Call basic machinery from parent class
         for t in self._evolve_base(yieldstep=yieldstep,
@@ -2533,12 +2651,18 @@ class Domain(Generic_Domain):
                                 track_speeds=False,
                                 triangle_id=None,
                                 relative_time=False,
-                                time_unit='sec'):
+                                time_unit='sec',
+                                datetime=False):
         """Return string with time stepping statistics for printing or logging
 
-        Optional boolean keyword track_speeds decides whether to report
-        location of smallest timestep as well as a histogram and percentile
-        report.
+        :param time_units: 'sec', 'min', 'hr', 'day'
+        :param bool datetime: flag to use timestamp or datetime
+        :param track_speed: Optional boolean keyword track_speeds decides whether 
+                            to report location of smallest timestep as well as a 
+                            histogram and percentile report.
+        :param bool relative_time: Flag to report relative time instead of absolute time
+        :param int triangle_id: Can be used to specify a particular
+                            triangle rather than the one with the largest speed.
         """
 
         from anuga.config import epsilon, g
@@ -2548,7 +2672,8 @@ class Domain(Generic_Domain):
                                                      track_speeds=track_speeds,
                                                      triangle_id=triangle_id,
                                                      relative_time=relative_time,
-                                                     time_unit=time_unit)
+                                                     time_unit=time_unit,
+                                                     datetime=datetime)
 
         if track_speeds is True:
             # qwidth determines the text field used for quantities
@@ -2664,6 +2789,17 @@ class Domain(Generic_Domain):
         return msg
 
     def print_timestepping_statistics(self, *args, **kwargs):
+        """Print time stepping statistics
+
+        :param time_units: 'sec', 'min', 'hr', 'day'
+        :param bool datetime: flag to use timestamp or datetime
+        :param track_speed: Optional boolean keyword track_speeds decides whether 
+                            to report location of smallest timestep as well as a 
+                            histogram and percentile report.
+        :param bool relative_time: Flag to report relative time instead of absolute time
+        :param int triangle_id: Can be used to specify a particular
+                            triangle rather than the one with the largest speed.
+        """
 
         msg = self.timestepping_statistics(*args, **kwargs)
 
@@ -3364,20 +3500,6 @@ def my_update_special_conditions(domain):
     pass
 
 
-################################################################################
-# Initialise module
-################################################################################
-
-#def _raise_compile_exception():
-#    """ Raise exception if compiler not available. """
-#    msg = 'C implementations could not be accessed by %s.\n ' % __file__
-#    msg += 'Make sure compile_all.py has been run as described in '
-#    msg += 'the ANUGA installation guide.'
-#    raise Exception(msg)
-#
-#from anuga.utilities import compile
-#if not compile.can_use_C_extension('shallow_water_ext.c'):
-#    _raise_compile_exception()
 
 if __name__ == "__main__":
     pass

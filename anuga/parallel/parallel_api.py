@@ -498,12 +498,25 @@ def distribute_mesh(domain, verbose=False, debug=False, parameters=None):
 
 ##     return l2g
 
-def mpicmd(script_name, numprocs=3):
+def mpicmd(script_name='echo', numprocs=3):
+
+    extra_options = mpi_extra_options()
+
+    return "mpiexec -np %d  %s  python -m mpi4py %s" % (numprocs, extra_options, script_name)  
+
+def mpi_extra_options():
 
     extra_options = '--oversubscribe'
+    cmd = 'mpiexec -np 3 ' + extra_options + ' echo '
+
+    #print(cmd)
+    import subprocess
+    result = subprocess.run(cmd.split(), capture_output=True)
+    if result.returncode != 0:
+        extra_options = ' '
 
     import platform
     if platform.system() == 'Windows':
         extra_options = ' '
 
-    return "mpiexec -np %d  %s  python -m mpi4py %s" % (numprocs, extra_options, script_name)  
+    return extra_options
