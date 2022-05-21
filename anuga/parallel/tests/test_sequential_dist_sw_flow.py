@@ -39,6 +39,15 @@ from anuga.parallel.sequential_distribute import sequential_distribute_load
 
 import anuga.utilities.plot_utils as util
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
+
 
 #--------------------------------------------------------------------------
 # Setup parameters
@@ -291,6 +300,8 @@ def setup_and_evolve(domain, verbose=False):
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")

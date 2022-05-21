@@ -62,7 +62,7 @@ Create a conda environment `anuga_env` (or what ever name you like):
 .. code-block:: bash
 
     conda update conda
-    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest nose matplotlib gdal dill future gitpython pytz mpi4py meshpy Pmw pymetis
+    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest matplotlib gdal dill future gitpython pytz mpi4py meshpy Pmw pymetis
     conda activate anuga_env
 
 This will setup an environment using python 3.8. `anuga` has be tested on 3.7, 3.8. 3.9.    
@@ -143,20 +143,37 @@ to a directory `anuga_core`, install dependencies, install anuga and run the uni
     git clone https://github.com/anuga-community/anuga_core.git
     sudo bash anuga_core/tools/install_ubuntu_20_04.sh
 
-Note: This will set ``python``  as ``python3`` and part of the bash shell will run as 
+Note: Part of the bash shell will run as 
 sudo so will ask for a password. If you like you can run the package installs manually, 
-run the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``
+run the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``. 
 
-You should now install anuga: 
+This script also creates a python3 virtual environment `anuga_env`. You should activate this 
+virtual environment when working with `anuga`, via the command:
+
+.. code-block:: bash
+
+    source ~/anuga_env/bin/activate
+
+You might like to add this command to your `.bashrc` file to automatically activate this 
+python environment. 
+
+Updating
+~~~~~~~~
+
+From time to time you might like to update your version of anuga to the latest version on 
+github. You can do this by going to the `anuga_core` directory and `pulling` the latest
+version and then reinstalling via the following commands:
+ 
 .. code-block:: bash
 
   cd anuga_core
+  git pull
   pip install -e .
 
-And finally check the installation by running the unit tests via:
+And finally check the newinstallation by running the unit tests via:
 .. code-block:: bash
 
-  python runtests.py
+  python runtests.py -n 
       
 
 Windows 10 Install using 'Ubuntu on Windows'
@@ -196,7 +213,7 @@ Install conda-forge packages:
 
 .. code-block:: bash
 
-    conda create -n anuga_env python=3.8 gdal pytest nose numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis
+    conda create -n anuga_env python=3.8 gdal pytest numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis
     conda activate anuga_env
     conda install libpython m2w64-toolchain
     
@@ -213,6 +230,6 @@ And finally test the installation:
 
 .. code-block:: bash
 
-    python runtests.py
+    python runtests.py -n
 
     

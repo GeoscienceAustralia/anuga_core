@@ -40,6 +40,15 @@ import anuga.utilities.plot_utils as util
 
 from anuga.utilities.parallel_abstraction import global_except_hook
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
+
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
@@ -144,6 +153,8 @@ def run_simulation(parallel=False, verbose=False):
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("START test_parallel_sw_flow UNITTEST")

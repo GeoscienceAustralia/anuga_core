@@ -38,6 +38,14 @@ from anuga.parallel.parallel_operator_factory import Inlet_operator
 import random
 import unittest
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
 
 """
 
@@ -262,6 +270,8 @@ def run_simulation(parallel = False, control_data = None, test_points = None, ve
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_frac_op(unittest.TestCase):
     def test_parallel_frac_op(self):
         #print "Expect this test to fail if not run from the parallel directory."

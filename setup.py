@@ -24,7 +24,7 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1.3'
+VERSION = '3.1.4'
 #===============================================================================
 
 
@@ -53,11 +53,9 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'scipy',
                           'netcdf4',
                           'matplotlib',
-                          'gdal',
                           'dill',
                           'cython',
                           'future',   # FIXME(Ole): Deprecate
-                          'mpi4py',
                           'Pmw',
                           'meshpy',
                           'pymetis',

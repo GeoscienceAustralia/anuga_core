@@ -23,7 +23,16 @@ from anuga.utilities import spatialInputUtil as su
 #verbose = anuga.get_args().verbose
 verbose = False
 
+import sys
+try:
+    import osgeo
+except ImportError:
+    pass
 
+import pytest
+
+@pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
 class Test_spatialInputUtil(unittest.TestCase):
     """
         Test the spatialInput utilities
