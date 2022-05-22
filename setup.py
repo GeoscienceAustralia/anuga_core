@@ -61,7 +61,8 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                           'pymetis',
                           'gitpython',
                           'pytz',
-                          'utm']
+                          'utm',
+                          'nbsphinx']
     )
 else:
     extra_setuptools_args = dict()
