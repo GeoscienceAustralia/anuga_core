@@ -6,8 +6,8 @@ from __future__ import absolute_import
 
 from .advection import Advection_Domain
 
-from numpy.testing import Tester
-test = Tester().test
 
-
+from numpy._pytesttester import PytestTester
+test = PytestTester(__name__)
+del PytestTester
 

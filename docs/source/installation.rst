@@ -102,7 +102,8 @@ Now we first need to install the `gdal` python package. First install the
 gdal library, via:
 
 .. code-block:: bash
-    sudo apt-get install -y gdal-bin libgdal-dev
+
+   sudo apt-get install -y gdal-bin libgdal-dev
 
 We need to ascertain the version of  `gdal` installed using the following command: 
 
