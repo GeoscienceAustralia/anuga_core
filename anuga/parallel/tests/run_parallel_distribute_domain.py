@@ -35,6 +35,12 @@ from anuga import create_domain_from_file
 
 from anuga.parallel import distribute, myid, numprocs, finalize
 
+#----------------------------------
+# set up MPI to abort on error
+#----------------------------------
+from anuga.utilities.parallel_abstraction import global_except_hook
+import sys
+sys.excepthook = global_except_hook
 
 #--------------------------------------------------------------------------
 # Setup parameters
