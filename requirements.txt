@@ -1,5 +1,5 @@
 
-# Mimimal requirements to install anuga in read teh docs
+# Mimimal requirements to install anuga in read the docs
 
 setuptools
 future
@@ -7,4 +7,5 @@ Cython
 wheel
 numpy
 gitpython
+dill
 nbsphinx
