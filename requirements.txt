@@ -1,12 +1,20 @@
 
-# Mimimal requirements to install anuga in read the docs
+# Requirements to install anuga in read the docs
 
 setuptools
-future
-Cython
 wheel
+pytest
 numpy
-gitpython
-dill
+scipy
+netcdf4
 matplotlib
+dill
+cython
+future
+Pmw
+meshpy
+pymetis
+gitpython
+pytz
+utm
 nbsphinx
