@@ -8,4 +8,5 @@ wheel
 numpy
 gitpython
 dill
+matplotlib
 nbsphinx
