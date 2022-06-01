@@ -15,6 +15,10 @@
     :target: https://anuga.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. image:: https://img.shields.io/pypi/dm/anuga.svg
+    :target: https://pypistats.org/packages/anuga
+    :alt: Python package index download statistics
+
 
 =====
 ANUGA
