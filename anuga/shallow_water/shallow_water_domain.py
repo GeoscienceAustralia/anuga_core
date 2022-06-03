@@ -1086,7 +1086,7 @@ class Domain(Generic_Domain):
             new_tz = pytz.utc
         elif isinstance(tz,str):
             new_tz = pytz.timezone(tz)
-        elif isinstance(tz, pytz.timezone):
+        elif isinstance(tz, pytz.tzinfo.DstTzInfo):
             new_tz = tz
         else:
             msg = "Unknown timezone %s" % tz
@@ -1119,11 +1119,22 @@ class Domain(Generic_Domain):
         
         Example: 
         
+        >>> import pytz
+        >>> import anuga
         >>> from datetime import datetime
-        >>> dt = datetime(2021,3,21,18,30)
+        >>>
+        >>> domain = anuga.rectangular_cross_domain(10,10)
+        >>> 
+        >>> AEST = pytz.timezone('Australia/Sydney')
+        >>> # ========================================================
+        >>> # Either use naive datetime (which will default to UTC)
+        >>> # or use AEST.localize to set timezone of datetime to AEST
+        >>> # Don't use the tzinfo argument of datetime as this 
+        >>> # does not work
+        >>> # ========================================================
+        >>> dt = AEST.localize(datetime(2021,3,21,18,30))
         >>> domain.set_starttime(dt)
-        >>> print(domain.get_datetime(), domain.get_time())
-        
+        >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
         
         """
 
@@ -1136,8 +1147,11 @@ class Domain(Generic_Domain):
             raise Exception(msg)
 
         if isinstance(timestamp, datetime):
-            dt = self.timezone.localize(timestamp)
-            time = dt.timestamp()
+            if timestamp.tzinfo is None:
+                dt = self.timezone.localize(timestamp)
+                time = dt.timestamp()
+            else:
+                time = timestamp.timestamp()
         else:
             time = float(timestamp)
 
