@@ -440,12 +440,12 @@ def build_project(args):
             # add flags used as werrors
             warnings_as_errors = ' '.join([
                 # from tools/travis-test.sh
-                '-Werror=vla',
+                #'-Werror=vla',
                 '-Werror=nonnull',
                 '-Werror=pointer-arith',
                 '-Wlogical-op',
                 # from sysconfig
-                '-Werror=unused-function',
+                #'-Werror=unused-function',
             ])
             env['CFLAGS'] = warnings_as_errors + ' ' + env.get('CFLAGS', '')
     if args.debug or args.gcov:

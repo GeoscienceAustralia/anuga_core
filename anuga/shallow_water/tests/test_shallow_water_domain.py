@@ -4615,7 +4615,6 @@ class Test_Shallow_Water(unittest.TestCase):
                 tt += t
         except AssertionError:
             # Getting here is good as outputstep is not an integer multiple of yieldstep
-            os.remove(domain.get_name() + '.sww')
             return
 
         # Shouldn't get here
