@@ -24,7 +24,7 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1.5'
+VERSION = '3.1.6'
 #===============================================================================
 
 
@@ -48,21 +48,24 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-      	install_requires=['pytest',
-                          'numpy',
-                          'scipy',
-                          'netcdf4',
-                          'matplotlib',
-                          'dill',
-                          'cython',
-                          'future',   # FIXME(Ole): Deprecate
-                          'Pmw',
-                          'meshpy',
-                          'pymetis',
-                          'gitpython',
-                          'pytz',
-                          'utm',
-                          'nbsphinx']
+      	install_requires=['cython >= 0.29',
+                         'dill >= 0.3',
+                         'future >= 0.18',
+                         'gitpython >= 3.1',
+                         'matplotlib >= 3.5',
+                         'meshpy >= 2020.1',
+                         'nbsphinx >= 0.8',
+                         'netcdf4 >= 1.5',
+                         'numpy >= 1.22',
+                         'Pmw >=  2.0.1',
+                         'pymetis >=  2020.1',
+                         'pytest >= 7.1.2',
+                         'pytz >= 2022.1',
+                         'scipy >= 1.8.1',
+                         'setuptools >=  62.3',
+                         'sphinx >= 5.0.1',
+                         'utm >= 0.7.0',
+                         'wheel >= 0.37']
     )
 else:
     extra_setuptools_args = dict()
