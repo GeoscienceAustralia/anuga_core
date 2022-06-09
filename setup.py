@@ -24,7 +24,7 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1.6'
+VERSION = '3.1.7'
 #===============================================================================
 
 
@@ -48,7 +48,8 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-      	install_requires=['cython >= 0.29',
+      	install_requires=['python >= 3.7',
+                         'cython >= 0.29',
                          'dill >= 0.3',
                          'future >= 0.18',
                          'gitpython >= 3.1',
@@ -56,12 +57,12 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                          'meshpy >= 2020.1',
                          'nbsphinx >= 0.8',
                          'netcdf4 >= 1.5',
-                         'numpy >= 1.22',
+                         'numpy >= 1.21',
                          'Pmw >=  2.0.1',
                          'pymetis >=  2020.1',
                          'pytest >= 7.1.2',
                          'pytz >= 2022.1',
-                         'scipy >= 1.8.1',
+                         'scipy >= 1.7',
                          'setuptools >=  62.3',
                          'sphinx >= 5.0.1',
                          'utm >= 0.7.0',
@@ -135,6 +136,8 @@ def setup_package():
                                  'Operating System :: MacOS',
                                  'Programming Language :: Python :: 3.7',
                                  'Programming Language :: Python :: 3.8',
+                                 'Programming Language :: Python :: 3.9',
+                                 'Programming Language :: Python :: 3.10',
                                  ],
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)
