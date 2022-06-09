@@ -48,8 +48,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-      	install_requires=['python >= 3.7',
-                         'cython >= 0.29',
+      	install_requires=['cython >= 0.29',
                          'dill >= 0.3',
                          'future >= 0.18',
                          'gitpython >= 3.1',

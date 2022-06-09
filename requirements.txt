@@ -19,7 +19,6 @@
 # utm
 # nbsphinx
 
-python >= 3.7
 cython >= 0.29
 dill >= 0.3
 future >= 0.18
