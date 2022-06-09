@@ -1457,11 +1457,19 @@ class Generic_Domain(object):
     def get_name(self):
         return self.simulation_name
 
+    def get_global_name(self):
+        return self.simulation_name
+
     def set_name(self, name=None, timestamp=False):
         """Assign a name to this simulation.
+
         This will be used to identify the output sww file.
         Without parameters the name will be derived from the script file,
         ie run_simulation.py -> output_run_simulation.sww
+
+        :param str name: name of simulation, 
+            and in particular the base name of the sww output file
+        :param bool timestamp: add a timestamp to the simulation name
         """
 
         import os

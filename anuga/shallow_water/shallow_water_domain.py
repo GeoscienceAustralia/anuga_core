@@ -2699,6 +2699,13 @@ class Domain(Generic_Domain):
 
 
     def sww_merge(self,  *args, **kwargs):
+        '''Merge all the sub domain sww files into a global sww file
+        
+        :param bool verbose: Flag to produce more output
+        :param bool delete_old: Flag to delete sub domain sww files after
+            creating global sww file
+            
+        '''
 
         pass
 
