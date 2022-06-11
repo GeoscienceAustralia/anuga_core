@@ -18,7 +18,8 @@ ANUGA requires python 3.X (X>6) and the following python packages:
 
 .. code-block::
 
-  numpy scipy matplotlib pytest cython netcdf4 dill future gitpython gdal pyproj pymetis triangle Pmw mpi4py pytz ipython  meshpy Pmw pymetis
+  numpy scipy matplotlib pytest cython netcdf4 dill future gitpython gdal \
+  pyproj pymetis triangle Pmw mpi4py pytz ipython  meshpy Pmw pymetis utm sphinx nbsphinx
 
 ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production environment
 (though ANUGA can be installed on MacOS and Windows using `Miniconda` or `MiniForge`) 
@@ -41,33 +42,46 @@ the `gdal` module is more stable.
 These conda environments do not require administrative rights 
 to your computer and do not interfere with the Python installed in your system. 
 
-But it is necessary to install a few packages via :code:`sudo apt-get`. 
-
-Follow these steps:
-
-.. code-block:: bash
-
-    sudo apt-get update -q
-    sudo apt-get install git wget
-    
-Download and install Miniforge if you haven't already:
+Install the latest version of `Miniconda` from  https://github.com/conda-forge/miniforge or
+use, for instance, `wget` to download the latest version via:
 
 .. code-block:: bash
 
     wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
     bash Miniforge3.sh
+
+
+If you don't have `wget` you can install it via: 
+
+.. code-block:: bash
+
+    sudo apt-get update -q
+    sudo apt-get install git wget git
+    
+Now that `Miniforge` is installed, we can now create an environment to run `anuga'. 
     
 Create a conda environment `anuga_env` (or what ever name you like):
 
 .. code-block:: bash
 
     conda update conda
-    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest matplotlib gdal dill future gitpython pytz mpi4py meshpy Pmw pymetis
+    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest matplotlib gdal \
+                              dill future gitpython pytz mpi4py meshpy Pmw pymetis utm sphinx nbsphinx
     conda activate anuga_env
 
-This will setup an environment using python 3.8. `anuga` has be tested on 3.7, 3.8. 3.9.    
+This will setup a `conda` environment for `anuga` using python 3.8. (`anuga` has be tested on 3.7, 3.8. 3.9.)    
 
-Now Download, install and test `anuga`:
+We are now ready to install and test `anuga'. 
+
+Perhaps easiest is to now use `pip` to install: 
+
+.. code-block:: bash
+
+    pip install anuga
+    python -c "import anuga; anuga.test()"
+
+
+Alternatively you can the most current version of `anuga`` from GitHub
 
 .. code-block:: bash
 
@@ -85,10 +99,10 @@ via the command:
 
 You might even like to set this up in your `.bashrc` file. 
 
-Installing on Ubuntu using apt and pip
+Installing GDAl on Ubuntu using apt and pip
 --------------------------------------
 
-ANUGA can be installed using `pip`, but a complication arrise when installing 
+ANUGA can be installed using `pip`, but a complication arise when installing 
 the `gdal` package. 
 
 First set up a python virtual environment and activate  via:
@@ -129,6 +143,9 @@ Now we complete the installation of `anuga` simply by:
 .. code-block:: bash
 
     pip install anuga
+
+If you obtain errors from `pip` regarding "not installing dependencies", it seems that that can be fixed by just 
+running the `pip install anuga` again
 
 Installing on Ubuntu using apt and pip
 ---------------------------------------
@@ -214,7 +231,7 @@ Install conda-forge packages:
 
 .. code-block:: bash
 
-    conda create -n anuga_env python=3.8 gdal pytest numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis
+    conda create -n anuga_env python=3.8 gdal pytest numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis utm sphinx nbsphinx
     conda activate anuga_env
     conda install libpython m2w64-toolchain
     

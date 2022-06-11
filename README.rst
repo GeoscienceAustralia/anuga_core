@@ -61,8 +61,7 @@ The python 3 version of ANUGA will continue to be developed and the most up-to-d
 Installation
 ------------
 
-For installation instructions, see
-`INSTALL.rst <https://github.com/anuga-community/anuga_core/blob/main/INSTALL.rst>`_
+For installation instructions, see https://anuga.readthedocs.io/en/latest/installation.html
 
 
 Documentation and Help

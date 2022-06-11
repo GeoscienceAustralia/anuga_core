@@ -19,6 +19,14 @@ from anuga.parallel.distribute_mesh import extract_submesh, rec_submesh, send_su
 
 import numpy as num
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
 
 def topography(x,y):
     return -x/2
@@ -31,7 +39,8 @@ def ycoord(x,y):
     return y
 
 
-
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_Distribute_Mesh(unittest.TestCase):
     def setUp(self):
         pass
