@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "future", "Cython", "wheel", "numpy", "gitpython", "dill"]
+requires = ["setuptools <= 60", "future", "Cython", "wheel", "numpy", "gitpython", "dill"]
 build-backend = "setuptools.build_meta"
 
 
