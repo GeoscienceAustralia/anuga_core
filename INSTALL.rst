@@ -8,7 +8,7 @@ Introduction
 ------------
 
 ANUGA is a python package with some C extensions (and an optional fortran 
-extension). This version of ANUGA is run and tested using python 3.8.x
+extension). This version of ANUGA is run and tested using python 3.7 - 3.9
 
 
 Dependencies
@@ -18,8 +18,8 @@ ANUGA requires python 3.X (X>6) and the following python packages:
 
 .. code-block::
 
-  numpy scipy matplotlib pytest cython netcdf4 dill future gitpython gdal \
-  pyproj pymetis triangle Pmw mpi4py pytz ipython  meshpy Pmw pymetis utm sphinx nbsphinx
+  numpy scipy matplotlib pytest cython netcdf4 dill future gdal \
+  pyproj pymetis triangle Pmw mpi4py pytz ipython  meshpy Pmw pymetis utm
 
 ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production environment
 (though ANUGA can be installed on MacOS and Windows using `Miniconda` or `MiniForge`) 
@@ -28,21 +28,20 @@ Ubuntu Install with MiniForge3
 ------------------------------
 
 A clean way to install the dependencies for ANUGA is to use Anaconda, 
-or Miniconda Python distributions by Continuum Analytics, or the `conda-forge`
-distribution Miniforge3. 
+or Miniconda Python distributions by Continuum Analytics. 
 
-This installation has the advantage of allowing you to create multiple 
+Using a `conda` installation has the advantage of allowing you to create multiple 
 python environments and is particularly 
 useful if you want to keep multiple versions of ANUGA
 
 Indeed the most stable install is via the `conda-forge` channel
 which is easily available using the Miniforge. In particular the installation of 
-the `gdal` module is more stable. 
+the `gdal` and `mpi4py` modules are more stable. 
 
 These conda environments do not require administrative rights 
 to your computer and do not interfere with the Python installed in your system. 
 
-Install the latest version of `Miniconda` from  https://github.com/conda-forge/miniforge or
+Install the latest version of `Miniforge` from  https://github.com/conda-forge/miniforge or
 use, for instance, `wget` to download the latest version via:
 
 .. code-block:: bash
@@ -56,30 +55,56 @@ If you don't have `wget` you can install it via:
 .. code-block:: bash
 
     sudo apt-get update -q
-    sudo apt-get install git wget git
+    sudo apt-get install wget git
     
-Now that `Miniforge` is installed, we can now create an environment to run `anuga'. 
+Once `Miniforge` is installed, we can now create an environment to run `anuga'. 
     
 Create a conda environment `anuga_env` (or what ever name you like):
 
 .. code-block:: bash
 
     conda update conda
-    conda create -n anuga_env python=3.8 pip numpy scipy cython netcdf4 pytest matplotlib gdal \
-                              dill future gitpython pytz mpi4py meshpy Pmw pymetis utm sphinx nbsphinx
+    conda create -n anuga_env python=3.8 anuga mpi4py
     conda activate anuga_env
 
-This will setup a `conda` environment for `anuga` using python 3.8. (`anuga` has be tested on 3.7, 3.8. 3.9.)    
+Note we have also installed `mpi4py` to allow anuga to run in parallel. 
+On some systems you may need to manually install `mpi4py` to match the version of `mpi` you are using.
 
-We are now ready to install and test `anuga'. 
 
-Perhaps easiest is to now use `pip` to install: 
+This has setup a `conda` environment for `anuga` using python 3.8. (`anuga` has be tested on 3.7, 3.8. 3.9.)    
+
+We are now ready to use `anuga'. 
+
+You can test your installation via:
+
+.. code-block:: bash
+
+    python -c "import anuga; anuga.test()"
+
+
+
+
+Ubuntu Install with MiniForge3 and pip
+--------------------------------------
+
+Once you have a python environment it is also possible to install `anuga` via `pip`:
 
 .. code-block:: bash
 
     pip install anuga
+
+You might need to run this command twice to push `pip` to install all the dependencies. And indeed 
+you will need to install `gdal` and `mpi4py` manually. 
+
+You can test your installation via:
+
+.. code-block:: bash
+
     python -c "import anuga; anuga.test()"
 
+
+Ubuntu Install with MiniForge3 from github
+------------------------------------------
 
 Alternatively you can the most current version of `anuga`` from GitHub
 
@@ -100,7 +125,7 @@ via the command:
 You might even like to set this up in your `.bashrc` file. 
 
 Installing GDAl on Ubuntu using apt and pip
---------------------------------------
+-------------------------------------------
 
 ANUGA can be installed using `pip`, but a complication arise when installing 
 the `gdal` package. 
@@ -231,23 +256,13 @@ Install conda-forge packages:
 
 .. code-block:: bash
 
-    conda create -n anuga_env python=3.8 gdal pytest numpy cython scipy netcdf4 matplotlib dill future gitpython mpi4py meshpy Pmw pymetis utm sphinx nbsphinx
+    conda create -n anuga_env python=3.8  anuga mpi4py
     conda activate anuga_env
-    conda install libpython m2w64-toolchain
     
-Download ANUGA and install:
+You can test your installation via:
 
 .. code-block:: bash
 
-    git clone https://github.com/anuga-community/anuga_core.git
-    cd anuga_core
-    cp windows_setup.cfg setup.cfg
-    pip install -e .
-    
-And finally test the installation:
-
-.. code-block:: bash
-
-    python runtests.py -n
+    python -c "import anuga; anuga.test()"
 
     
