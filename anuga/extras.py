@@ -120,8 +120,8 @@ def create_domain_from_regions(bounding_polygon,
 
     .. note:: 
     
-    Interior regions should be fully nested, as overlaps may cause
-    unintended resolutions. 
+        Interior regions should be fully nested, as overlaps may cause
+        unintended resolutions. 
   
     
     """

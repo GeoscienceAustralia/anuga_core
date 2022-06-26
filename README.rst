@@ -9,15 +9,23 @@
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
-    :alt: Latest Version
+    :alt: Latest PyPi Version
+
+.. image:: https://img.shields.io/pypi/dm/anuga.svg
+    :target: https://pypistats.org/packages/anuga
+    :alt: PyPi download statistics
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/anuga.svg
+    :target: https://anaconda.org/conda-forge/anuga
+    :alt: Latest Conda Version
+ 
+.. image:: https://img.shields.io/conda/dn/conda-forge/anuga.svg
+    :target: https://anaconda.org/conda-forge/anuga
+    :alt: Conda Forge download statistics
 
 .. image:: https://readthedocs.org/projects/anuga/badge/?version=latest
     :target: https://anuga.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
-
-.. image:: https://img.shields.io/pypi/dm/anuga.svg
-    :target: https://pypistats.org/packages/anuga
-    :alt: Python package index download statistics
 
 
 =====
@@ -61,7 +69,20 @@ The python 3 version of ANUGA will continue to be developed and the most up-to-d
 Installation
 ------------
 
-For installation instructions, see https://anuga.readthedocs.io/en/latest/installation.html
+Installing anuga from the conda-forge channel can be achieved by adding conda-forge to your channels with:
+
+    conda config --add channels conda-forge
+    conda config --set channel_priority strict
+
+
+Once the conda-forge channel has been enabled, anuga can be installed with conda:
+
+
+    conda install anuga
+
+
+
+For more detailed installation instructions, see https://anuga.readthedocs.io/en/latest/installation.html
 
 
 Documentation and Help

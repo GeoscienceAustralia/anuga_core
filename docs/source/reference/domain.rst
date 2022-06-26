@@ -12,7 +12,7 @@ Classes Associated with the Domain
 
 
 .. autosummary::
-   :toctree:  generated
+   :toctree: 
    
    anuga.Domain
    anuga.Quantity

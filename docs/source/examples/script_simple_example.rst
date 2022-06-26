@@ -208,8 +208,8 @@ using the statement:
     domain.set_quantity('stage', -0.4)
 
 
-which specifies that the surface level is set to a height of $-0.4$,
-i.e.\ 0.4 units (metres) below the zero level.
+which specifies that the surface level is set to a height of :math:`-0.4`,
+i.e. 0.4 units (metres) below the zero level.
 
 Although it is not necessary for this example, it may be useful to
 digress here and mention a variant to this requirement, which allows
