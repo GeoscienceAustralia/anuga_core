@@ -71,12 +71,16 @@ Installation
 
 Installing anuga from the conda-forge channel can be achieved by adding conda-forge to your channels with:
 
+.. code-block::
+
     conda config --add channels conda-forge
     conda config --set channel_priority strict
 
 
+
 Once the conda-forge channel has been enabled, anuga can be installed with conda:
 
+.. code-block::
 
     conda install anuga
 
@@ -136,9 +140,10 @@ The latest development version of ANUGA's sources are is available at:
 
 They can be downloaded as a zip file or using the Git client as follows
 
-    `git clone https://github.com/anuga-community/anuga_core` (for read only)
-    
-    `git clone git@github.com:anuga-community/anuga_core.git` (to contribute)
+.. code-block::
+
+    git clone https://github.com/anuga-community/anuga_core #(for read only)
+    git clone git@github.com:anuga-community/anuga_core.git #(to contribute)
 
 For the latter option see e.g. https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/ for instructions on how to authenticate using ssh keys.
 
@@ -166,8 +171,8 @@ and a DISCLAIMER OF ALL WARRANTIES.
 
 Contacts
 --------
-At the Australian National University:
 
+At the Australian National University:
 **Stephen Roberts**
 *Lead Developer*
 <stephen.roberts@anu.edu.au>
