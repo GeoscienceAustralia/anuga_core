@@ -33,6 +33,15 @@ from anuga import rectangular_cross_domain
 
 from anuga import distribute, myid, numprocs, send, receive, barrier, finalize
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
+
 #--------------------------------------------------------------------------
 # Setup parameters
 #--------------------------------------------------------------------------
@@ -180,6 +189,8 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_sw_flow(unittest.TestCase):
     def test_parallel_sw_flow(self):
         if verbose : print("Expect this test to fail if not run from the parallel directory.")

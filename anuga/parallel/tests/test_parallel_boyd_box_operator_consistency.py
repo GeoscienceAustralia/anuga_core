@@ -41,6 +41,15 @@ import unittest
 import pickle
 import pathlib
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
+
 run_path = pathlib.Path(__file__).parent.resolve()
 serial_output_path = os.path.join(run_path, 'serial_boyd.p')
 
@@ -217,6 +226,8 @@ def run_simulation(parallel, verbose=False):
 
 
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_boyd_box_operator_consistency(unittest.TestCase):
     def test_parallel_operator(self):
         #print "Expect this test to fail if not run from the parallel/test directory."

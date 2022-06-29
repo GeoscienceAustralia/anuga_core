@@ -21,7 +21,8 @@ copyright = 'Commonwealth of Australia (Geoscience Australia) and the Australian
 author =  'Stephen Roberts, Ole Nielsen, Gareth Davies'
 
 # The full version, including alpha/beta/rc tags
-release = '3.0.1'
+import anuga
+release = anuga.__version__
 
 
 import os

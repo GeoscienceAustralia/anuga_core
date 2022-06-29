@@ -165,33 +165,7 @@ def Boyd_box_operator(domain,
                        master_proc=0,
                        procs=None):
 
-    # If not parallel domain then allocate serial Boyd box operator
-    # if isinstance(domain, Parallel_domain) is False:
-    #     if verbose: print("Allocating non parallel boyd box operator .....")
-    #     return anuga.structures.boyd_box_operator.Boyd_box_operator(domain=domain,
-    #                                                                 losses=losses,
-    #                                                                 width=width,
-    #                                                                 height=height,
-    #                                                                 blockage=blockage,
-    #                                                                 barrels=barrels,
-    #                                                                 z1=0.0,
-    #                                                                 z2=0.0,
-    #                                                                 end_points=end_points,
-    #                                                                 exchange_lines=exchange_lines,
-    #                                                                 enquiry_points=enquiry_points,
-    #                                                                 invert_elevations=invert_elevations,
-    #                                                                 apron=apron,
-    #                                                                 manning=manning,
-    #                                                                 enquiry_gap=enquiry_gap,
-    #                                                                 smoothing_timescale=smoothing_timescale,
-    #                                                                 use_momentum_jet=use_momentum_jet,
-    #                                                                 use_velocity_head=use_velocity_head,
-    #                                                                 description=description,
-    #                                                                 label=label,
-    #                                                                 structure_type=structure_type,
-    #                                                                 logging=logging,
-    #                                                                 verbose=verbose)
-
+ 
     from anuga.utilities import parallel_abstraction as pypar
     # if procs is None:
     #     procs = list(range(0,pypar.size()))

@@ -9,6 +9,13 @@ import numpy as np
 flow_algorithms = ['DE0', 'DE1', '1_5', '2_0', 'tsunami']
 verbose = False
 
+import sys
+try:
+    import osgeo
+except ImportError:
+    pass
+
+import pytest
 
 class Test_plot_utils(unittest.TestCase):
 
@@ -395,6 +402,8 @@ class Test_plot_utils(unittest.TestCase):
 
         os.remove('test_plot_utils.sww')
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_Make_Geotif(self):
         # VERY BASIC TEST
         #
@@ -426,6 +435,8 @@ class Test_plot_utils(unittest.TestCase):
         # Delete tif made with Make_Geotif
         os.remove('PointData_TestData.tif')
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_Make_Geotif_with_knn(self):
         # VERY BASIC TEST using knn+inverse distance interpolation to make the grid
         #

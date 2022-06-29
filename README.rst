@@ -9,7 +9,19 @@
 
 .. image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
-    :alt: Latest Version
+    :alt: Latest PyPi Version
+
+.. image:: https://img.shields.io/pypi/dm/anuga.svg
+    :target: https://pypistats.org/packages/anuga
+    :alt: PyPi download statistics
+
+.. image:: https://img.shields.io/conda/vn/conda-forge/anuga.svg
+    :target: https://anaconda.org/conda-forge/anuga
+    :alt: Latest Conda Version
+ 
+.. image:: https://img.shields.io/conda/dn/conda-forge/anuga.svg
+    :target: https://anaconda.org/conda-forge/anuga
+    :alt: Conda Forge download statistics
 
 .. image:: https://readthedocs.org/projects/anuga/badge/?version=latest
     :target: https://anuga.readthedocs.io/en/latest/?badge=latest
@@ -57,8 +69,24 @@ The python 3 version of ANUGA will continue to be developed and the most up-to-d
 Installation
 ------------
 
-For installation instructions, see
-`INSTALL.rst <https://github.com/anuga-community/anuga_core/blob/main/INSTALL.rst>`_
+Installing anuga from the conda-forge channel can be achieved by adding conda-forge to your channels with:
+
+.. code-block::
+
+    conda config --add channels conda-forge
+    conda config --set channel_priority strict
+
+
+
+Once the conda-forge channel has been enabled, anuga can be installed with conda:
+
+.. code-block::
+
+    conda install anuga
+
+
+
+For more detailed installation instructions, see https://anuga.readthedocs.io/en/latest/installation.html
 
 
 Documentation and Help
@@ -112,9 +140,10 @@ The latest development version of ANUGA's sources are is available at:
 
 They can be downloaded as a zip file or using the Git client as follows
 
-    `git clone https://github.com/anuga-community/anuga_core` (for read only)
-    
-    `git clone git@github.com:anuga-community/anuga_core.git` (to contribute)
+.. code-block::
+
+    git clone https://github.com/anuga-community/anuga_core #(for read only)
+    git clone git@github.com:anuga-community/anuga_core.git #(to contribute)
 
 For the latter option see e.g. https://help.github.com/articles/adding-a-new-ssh-key-to-your-github-account/ for instructions on how to authenticate using ssh keys.
 
@@ -142,8 +171,8 @@ and a DISCLAIMER OF ALL WARRANTIES.
 
 Contacts
 --------
-At the Australian National University:
 
+At the Australian National University:
 **Stephen Roberts**
 *Lead Developer*
 <stephen.roberts@anu.edu.au>

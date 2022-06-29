@@ -157,6 +157,10 @@ echo "|  Using pip to install utm                     |"
 echo "+===============================================+"
 python -m pip  install -q utm
 
+echo "+===============================================+"
+echo "|  Using pip to install nbsphinx                |"
+echo "+===============================================+"
+python -m pip  install -q nbsphinx
     
 ##########################################################
 # Setup for various versions of MPI

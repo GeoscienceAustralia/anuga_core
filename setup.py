@@ -24,7 +24,7 @@ MAINTAINER_EMAIL = 'stephen.roberts@anu.edu.au'
 URL = "https://github.com/anuga-community/anuga_core"
 LICENSE = 'GPL'
 DOWNLOAD_URL = "http://sourceforge.net/projects/anuga/"
-VERSION = '3.1.3'
+VERSION = '3.1.9'
 #===============================================================================
 
 
@@ -48,22 +48,21 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     extra_setuptools_args = dict(
         zip_safe=False,  # the package can run out of an .egg file
         include_package_data=True,
-      	install_requires=['pytest',
-                          'numpy',
-                          'scipy',
-                          'netcdf4',
-                          'matplotlib',
-                          'gdal',
-                          'dill',
-                          'cython',
-                          'future',   # FIXME(Ole): Deprecate
-                          'mpi4py',
-                          'Pmw',
-                          'meshpy',
-                          'pymetis',
-                          'gitpython',
-                          'pytz',
-                          'utm']
+      	install_requires=['cython',
+                         'numpy',
+                         'dill',
+                         'future',
+                         'gdal >= 3.0.4'
+                         'gitpython',
+                         'matplotlib',
+                         'meshpy',
+                         'netcdf4',
+                         'Pmw',
+                         'pymetis',
+                         'pytest',
+                         'pytz',
+                         'scipy',
+                         'utm']
     )
 else:
     extra_setuptools_args = dict()
@@ -133,6 +132,8 @@ def setup_package():
                                  'Operating System :: MacOS',
                                  'Programming Language :: Python :: 3.7',
                                  'Programming Language :: Python :: 3.8',
+                                 'Programming Language :: Python :: 3.9',
+                                 'Programming Language :: Python :: 3.10',
                                  ],
                     cmdclass={'clean': CleanCommand},
                     **extra_setuptools_args)

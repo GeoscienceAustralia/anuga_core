@@ -11,6 +11,15 @@ import numpy as num
 import os
 import subprocess
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
+
 verbose = False
 
 # These must be the same as given in the run_file.
@@ -18,6 +27,8 @@ sequential_sww_file = 's_riverwall.sww'
 parallel_sww_file = 'p_riverwall.sww'
 mesh_file = 'riverwall.msh'
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_riverwall(unittest.TestCase):
     def setUp(self):
         # Run the sequential and parallel simulations to produce sww files for comparison.

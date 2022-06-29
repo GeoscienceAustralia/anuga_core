@@ -20,6 +20,14 @@ from anuga.config import g
 from anuga.utilities import quantity_setting_functions as qs
 import os
 
+# See if osgeo is installed
+import sys
+try:
+    import osgeo
+except ImportError:
+    pass
+import pytest
+
 # Choose minX,minY consistent a site located in UTM Zone EPSG:32756
 minX = 307000.
 minY = 6193000.
@@ -166,6 +174,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         return
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_composite_quantity_setting_function(self):
         # Test the composite_quantity_setting_function
 
@@ -356,6 +366,8 @@ class Test_quantity_setting_functions(unittest.TestCase):
 
         return
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_quantity_from_Pt_Pol_Data_and_Raster(self):
         #
         #

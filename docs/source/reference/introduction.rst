@@ -13,7 +13,7 @@ ANUGA has been imported this way.
 If importing ANUGA fails, it means that Python cannot find the installed
 module. Check your installation and your PYTHONPATH.
 
-The following :code:`Domain` class is available:
+The following :class:`Domain` class is available:
 
 :class:`Domain`
    This class initializes a domain object.
@@ -22,7 +22,7 @@ Initialize a ANUGA Model with
 
 >>> domain = anuga.Domain()
 
-Once a :code:`domain` is initialized, there are several options available to 
+Once a :class:`Domain` is initialized, there are several options available to 
 setup the domain (initial conditions, boundary conditions, operators) and run the model (evolve). 
 
 .. autosummary::

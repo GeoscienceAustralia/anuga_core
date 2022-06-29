@@ -68,60 +68,61 @@ def create_domain_from_regions(bounding_polygon,
 
     """Create domain from bounding polygons and resolutions.
 
-    bounding_polygon is a list of points in Eastings and Northings,
-    relative to the zone stated in poly_geo_reference if specified.
-    Otherwise points are just x, y coordinates with no particular 
-    association to any location.
+    :param bounding_polygon: list of points in Eastings and Northings,
+        relative to the zone stated in poly_geo_reference if specified.
+        Otherwise points are just x, y coordinates with no particular 
+        association to any location.
 
-    boundary_tags is a dictionary of symbolic tags. For every tag there
-    is a list of indices referring to segments associated with that tag.
-    If a segment is omitted it will be assigned the default tag ''.
+    :param boundary_tags: dictionary of symbolic tags. For every tag there
+        is a list of indices referring to segments associated with that tag.
+        If a segment is omitted it will be assigned the default tag ''.
 
-    maximum_triangle_area is the maximal area per triangle
-    for the bounding polygon, excluding the  interior regions.
+    :param maximum_triangle_area: maximal area per triangle
+        for the bounding polygon, excluding the  interior regions.
 
-    Interior_regions is a list of tuples consisting of (polygon,
-    resolution) for each region to be separately refined. Do not have
-    polygon lines cross or be on-top of each other.  Also do not have
-    polygon close to each other.
+    :param Interior_regions: list of tuples consisting of (polygon,
+        resolution) for each region to be separately refined. Do not have
+        polygon lines cross or be on-top of each other.  Also do not have
+        polygon close to each other.
+        NOTE: If a interior_region is outside the bounding_polygon it should 
+        throw an error
     
-    NOTE: If a interior_region is outside the bounding_polygon it should 
-    throw an error
-    
-    interior_holes is a list of polygons for each hole. These polygons do not
-    need to be closed, but their points must be specified in a counter-clockwise
-    order.
+    :param interior_holes: list of polygons for each hole. These polygons do not
+        need to be closed, but their points must be specified in a counter-clockwise
+        order.
 
-    hole_tags  is a list of tag segment dictionaries.
+    :param hole_tags: list of tag segment dictionaries. 
+        This function does not allow segments to share points - use underlying
+        pmesh functionality for that
 
-    This function does not allow segments to share points - use underlying
-    pmesh functionality for that
-
-    poly_geo_reference is the geo_reference of the bounding polygon and
-    the interior polygons.
-    If none, assume absolute.  Please pass one though, since absolute
-    references have a zone.
+    :param poly_geo_reference: geo_reference of the bounding polygon and
+        the interior polygons. If none, assume absolute.  
+        Please pass one though, since absolute references have a zone.
     
-    mesh_geo_reference is the geo_reference of the mesh to be created.
-    If none is given one will be automatically generated.  It was use
-    the lower left hand corner of  bounding_polygon (absolute)
-    as the x and y values for the geo_ref.
+    :param mesh_geo_reference: geo_reference of the mesh to be created.
+        If none is given one will be automatically generated.  It was use
+        the lower left hand corner of  bounding_polygon (absolute)
+        as the x and y values for the geo_ref.
     
-    breaklines is a list of polygons. These lines will be preserved by the
-               triangulation algorithm - useful for coastlines, walls, etc.
-               The polygons are not closed.    
+    :param breaklines: list of polygons. These lines will be preserved by the
+        triangulation algorithm - useful for coastlines, walls, etc.
+        The polygons are not closed.    
                
-    regionPtArea is a list of user-specified point-based regions with max area  
+    :param regionPtArea: list of 3-tuples specifing a point with max area for region
+        containing point 
+
+    :param fail_if_polygons_outside: If True (the default) Exception in thrown
+        where interior polygons fall outside bounding polygon. If False, these
+        will be ignored and execution continued.
     
-    Returns the shallow water domain instance
+    
+    :return: shallow water domain instance
 
-    Note, interior regions should be fully nested, as overlaps may cause
-    unintended resolutions. 
-
-    fail_if_polygons_outside: If True (the default) Exception in thrown
-    where interior polygons fall outside bounding polygon. If False, these
-    will be ignored and execution continued.
-        
+    .. note:: 
+    
+        Interior regions should be fully nested, as overlaps may cause
+        unintended resolutions. 
+  
     
     """
 

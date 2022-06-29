@@ -1086,7 +1086,7 @@ class Domain(Generic_Domain):
             new_tz = pytz.utc
         elif isinstance(tz,str):
             new_tz = pytz.timezone(tz)
-        elif isinstance(tz, pytz.timezone):
+        elif isinstance(tz, pytz.tzinfo.DstTzInfo):
             new_tz = tz
         else:
             msg = "Unknown timezone %s" % tz
@@ -1116,15 +1116,67 @@ class Domain(Generic_Domain):
         
         Essentially we use unix time as our absolute time. So 
         time = 0 corresponds to Jan 1st 1970 UTC
+
+        Use naive datetime which will be localized to the domain timezone or
+        or use pytz.timezone.localize to set timezone of datetime.
+        Don't use the tzinfo argument of datetime to set timezone as this does not work!
         
         Example: 
         
+            Without setting timezone for the `domain` and the `starttime` then time
+            calculations are all based on UTC. Note the timestamp, which is time in seconds
+            from 1st Jan 1970 UTC.
+        
+        >>> import pytz
+        >>> import anuga
         >>> from datetime import datetime
+        >>> 
+        >>> domain = anuga.rectangular_cross_domain(10,10)
         >>> dt = datetime(2021,3,21,18,30)
         >>> domain.set_starttime(dt)
-        >>> print(domain.get_datetime(), domain.get_time())
-        
-        
+        >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
+        2021-03-21 18:30:00+00:00 TZ UTC Timestamp:  1616351400.0
+
+        Example:
+
+            Setting timezone for the `domain`, then naive `datetime` will be localizes to 
+            the `domain` timezone. Note the timestamp, which is time in seconds
+            from 1st Jan 1970 UTC.
+
+        >>> import pytz
+        >>> import anuga
+        >>> from datetime import datetime
+        >>> 
+        >>> domain = anuga.rectangular_cross_domain(10,10)
+        >>> AEST = pytz.timezone('Australia/Sydney')
+        >>> domain.set_timezone(AEST)
+        >>> 
+        >>> dt = datetime(2021,3,21,18,30)
+        >>> domain.set_starttime(dt)
+        >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
+        2021-03-21 18:30:00+11:00 TZ Australia/Sydney Timestamp:  1616311800.0
+
+        Example:
+
+            Setting timezone for the `domain`, and setting the timezone for the `datetime`. 
+            Note the timestamp, which is time in seconds from 1st Jan 1970 UTC is the same
+            as teh previous example.
+
+        >>> import pytz
+        >>> import anuga
+        >>> from datetime import datetime
+        >>> 
+        >>> domain = anuga.rectangular_cross_domain(10,10)
+        >>> 
+        >>> ACST = pytz.timezone('Australia/Adelaide')
+        >>> domain.set_timezone(ACST)
+        >>> 
+        >>> AEST = pytz.timezone('Australia/Sydney')
+        >>> dt = AEST.localize(datetime(2021,3,21,18,30))
+        >>> 
+        >>> domain.set_starttime(dt)
+        >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
+        2021-03-21 18:00:00+10:30 TZ Australia/Adelaide Timestamp:  1616311800.0
         """
 
 
@@ -1136,8 +1188,11 @@ class Domain(Generic_Domain):
             raise Exception(msg)
 
         if isinstance(timestamp, datetime):
-            dt = self.timezone.localize(timestamp)
-            time = dt.timestamp()
+            if timestamp.tzinfo is None:
+                dt = self.timezone.localize(timestamp)
+                time = dt.timestamp()
+            else:
+                time = timestamp.timestamp()
         else:
             time = float(timestamp)
 
@@ -2644,6 +2699,13 @@ class Domain(Generic_Domain):
 
 
     def sww_merge(self,  *args, **kwargs):
+        '''Merge all the sub domain sww files into a global sww file
+        
+        :param bool verbose: Flag to produce more output
+        :param bool delete_old: Flag to delete sub domain sww files after
+            creating global sww file
+            
+        '''
 
         pass
 

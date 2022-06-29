@@ -5,9 +5,6 @@ Structures
 Culverts and Bridges
 
 
-.. currentmodule:: anuga
-
-
 
 .. autosummary::
    :toctree: generated

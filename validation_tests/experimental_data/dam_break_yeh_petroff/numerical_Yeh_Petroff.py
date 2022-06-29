@@ -9,9 +9,9 @@ similar to a beach environment
 #------------------------------------------------------------------------------
 import sys
 import anuga
-from anuga import Domain as Domain
+from anuga import Domain
 from math import cos
-from numpy import zeros, float
+from numpy import zeros
 from time import localtime, strftime, gmtime
 
 from anuga.geometry.polygon import inside_polygon, is_inside_triangle
@@ -70,10 +70,7 @@ def elevation(x,y):
 #================================================================================
 if myid == 0:
     # structured mesh
-    points, vertices, boundary = anuga.rectangular_cross(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
-
-    #domain = anuga.Domain(points, vertices, boundary) 
-    domain = Domain(points, vertices, boundary) 
+    domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (0.0, 0.0))
 
     domain.set_name(output_file)                
     domain.set_datadir(output_dir) 
@@ -84,10 +81,9 @@ if myid == 0:
     #------------------------------------------------------------------------------
     domain.set_flow_algorithm(alg)
 
-
-    domain.set_quantity('stage', stage)
-    domain.set_quantity('elevation', elevation)
-    domain.set_quantity('friction', 0.03)
+    domain.set_quantity('stage', stage, location='centroids')
+    domain.set_quantity('elevation', elevation, location='centroids')
+    domain.set_quantity('friction', 0.03, location='centroids')
 
 else:
 
@@ -122,7 +118,7 @@ save_parameters_tex(domain)
 #------------------------------------------------------------------------------
 # Evolve system through time
 #------------------------------------------------------------------------------
-for t in domain.evolve(yieldstep=0.05, finaltime=3.0):
+for t in domain.evolve(yieldstep=0.1, finaltime=3.0):
     if myid == 0 and verbose:
         print(domain.timestepping_statistics())
 

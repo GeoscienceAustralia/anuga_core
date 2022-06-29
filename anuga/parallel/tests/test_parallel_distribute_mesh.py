@@ -15,6 +15,15 @@ import numpy as num
 import os
 import subprocess
 
+# Setup to skip test if mpi4py not available
+import sys
+try:
+    import mpi4py
+except ImportError:
+    pass
+
+import pytest
+
 verbose = False
 
 path = os.path.dirname(__file__)  # Get folder where this script lives
@@ -22,6 +31,8 @@ run_filename = os.path.join(path, 'run_parallel_distribute_mesh.py')
 
 
 
+@pytest.mark.skipif('mpi4py' not in sys.modules,
+                    reason="requires the mpi4py module")
 class Test_parallel_distribute_mesh(unittest.TestCase):
     def setUp(self):
 
