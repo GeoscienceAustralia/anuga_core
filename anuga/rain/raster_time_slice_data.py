@@ -1,25 +1,11 @@
 
-"""
-Basic helper routines
-
-
-"""
-from __future__ import print_function
-from __future__ import division
-
-from builtins import range
-from builtins import object
-from past.utils import old_div
 import anuga
-#from anuga.fit_interpolate.interpolate2d import interpolate2d
 from anuga.fit_interpolate.interpolate2d import interpolate_raster
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from os.path import join
 import fnmatch
-import gzip
-from anuga.file.netcdf import NetCDFFile
 
 
 #-----------------------------------------------------------------------------------------
@@ -142,8 +128,8 @@ class Raster_time_slice_data(object):
         y = self.y
         nx = len(x)
         ny = len(y)
-        ldx = old_div(dx,nx)
-        ldy = old_div(dy,ny)
+        ldx = dx/nx
+        ldy = dy/ny
         
         if not polygon is None:
             X,Y = np.meshgrid(x,y)
@@ -283,9 +269,9 @@ class Raster_time_slice_data(object):
             
         dx = self.extent[1]-self.extent[0]
         dy = self.extent[3]-self.extent[2]
-        total_data_vol = old_div(np.mean(data_accumulated)*dx*dy,1e6) # Volume in Million m3 over 128km x 128km area
+        total_data_vol = np.mean(data_accumulated)*dx*dy/1e6 # Volume in Million m3 over 128km x 128km area
         data_max_in_period = self.data_max_in_period
-        peak_intensity = old_div(data_max_in_period,time_step)
+        peak_intensity = data_max_in_period/time_step
         extent = self.extent
         
         if self.verbose:
@@ -341,8 +327,8 @@ class Raster_time_slice_data(object):
 
             bar_values = [values[lid] for values in all_values]
             total_values = sum(bar_values)
-            average_values = old_div(total_values,(self.times[-1]-self.times[0]))
-            max_intensity = old_div(max(bar_values),time_step)
+            average_values = total_values/(self.times[-1]-self.times[0])
+            max_intensity = max(bar_values)/time_step
             
             
             b_title = 'Total = %.2e, Average = %.2e, Max Int.= %.2e' % (total_values,average_values,max_intensity)
