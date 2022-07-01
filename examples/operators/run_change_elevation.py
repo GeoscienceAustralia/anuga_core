@@ -24,7 +24,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_name()
-print domain.statistics()
+print (domain.statistics())
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2,
                                     'xmomentum': 2,
@@ -109,7 +109,7 @@ for t in domain.evolve(yieldstep=0.1, finaltime=30.0):
     domain.print_operator_timestepping_statistics()
 
     if numpy.allclose(t, 10.0):
-        print 'changing elevation'
+        print ('changing elevation')
         op1()
 
 

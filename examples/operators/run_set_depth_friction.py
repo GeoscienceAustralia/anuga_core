@@ -53,7 +53,7 @@ if anuga.myid == 0:
                                                len1=length, len2=width)
     domain = Domain(points, vertices, boundary)
     domain.set_name() # Output name
-    print domain.statistics()
+    print (domain.statistics())
 
 
     domain.set_quantity('elevation', topography)           # elevation is a function
@@ -113,7 +113,7 @@ for t in domain.evolve(yieldstep=0.1, finaltime=10.0):
     
     vol=anuga.collect_value(vol)
     
-    if anuga.myid == 0: print indent+'Int_p2(h) = '+str(vol)
+    if anuga.myid == 0: print (indent+'Int_p2(h) = '+str(vol))
 
 
 domain.sww_merge()

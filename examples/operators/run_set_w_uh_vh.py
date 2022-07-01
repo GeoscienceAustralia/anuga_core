@@ -64,7 +64,7 @@ wuhvh1 = lambda t: [ h0 + 20.0 * math.sin(t/3.0) ,  20.0 * math.sin(t/3.0),  10.
 cop1 = Set_w_uh_vh_operator(domain, w_uh_vh=wuhvh1, center=(0.0, 0.0), radius=100.0 )
 
 
-print cop1.statistics()
+print (cop1.statistics())
 #print cop2.statistics()
 
 #------------------------------------------------------------------------------

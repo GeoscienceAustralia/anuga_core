@@ -25,7 +25,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_name() # Output name based on script name. You can add timestamp=True
-print domain.statistics()
+print (domain.statistics())
 
 
 #------------------------------------------------------------------------------
@@ -124,7 +124,7 @@ for t in domain.evolve(yieldstep=0.01, finaltime=0.0):
     elev  = domain.get_quantity('elevation')
     height = stage - elev
 
-    print 'integral = ', height.get_integral()
+    print ('integral = ', height.get_integral())
 
 
 for t in domain.evolve(yieldstep=0.1, duration=5.0):
@@ -136,7 +136,7 @@ for t in domain.evolve(yieldstep=0.1, duration=5.0):
     elev  = domain.get_quantity('elevation')
     height = stage - elev
 
-    print 'integral = ', height.get_integral()
+    print ('integral = ', height.get_integral())
 
 
 

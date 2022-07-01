@@ -32,7 +32,7 @@ geo = Geo_reference(56, x0, y0)
 #------------------------------------------------------------------------------
 def topography(x,y):
     """Complex topography defined by a function of vectors x and y."""
-    print ' Creating topography....'
+    print (' Creating topography....')
     
     z = 0.0*(x)                             # horizontal plane 
 
@@ -78,12 +78,12 @@ polygon2 += num.array([x0,y0])
 #------------------------------------------------------------------------------
 
 if myid == 0:
-    print '>>>>> DUNE EROSION TEST SCRIPT V2'
-    print '>>>>> Setting  up Domain on processor 0...'
+    print ('>>>>> DUNE EROSION TEST SCRIPT V2')
+    print ('>>>>> Setting  up Domain on processor 0...')
     length = 36.
     width = 5.
     dx = dy = 0.1            # Resolution: Length of subdivisions on both axes
-    print '>>>>> Domain has L = %f, W = %f, dx=dy= %f' %(length,width,dx) 
+    print ('>>>>> Domain has L = %f, W = %f, dx=dy= %f' %(length,width,dx))
     points, vertices, boundary = anuga.rectangular_cross(int(length/dx), int(width/dy), len1=length, len2=width)
     points = points + 1000.0
     
@@ -99,17 +99,17 @@ if myid == 0:
     domain.set_quantity('friction', 0.01)                  # Constant friction
     domain.set_quantity('stage', expression='elevation')   # Dry initial condition
 
-    print domain.statistics()
+    print (domain.statistics())
     
     # get the indices of triangles in each erosion poly so can setup nsbase_ in domain
     poly1ind = (Region(domain, polygon=polygon1)).indices
     poly2ind = (Region(domain, polygon=polygon2)).indices
-    print '>>>>> poly1ind is of length ', len(poly1ind), ' and contains triangles', poly1ind[0], ' to ' , poly1ind[-1]
-    print '>>>>> poly2ind is of length ', len(poly2ind), ' and contains triangles', poly2ind[0], ' to ' , poly2ind[-1]
+    print ('>>>>> poly1ind is of length ', len(poly1ind), ' and contains triangles', poly1ind[0], ' to ' , poly1ind[-1])
+    print ('>>>>> poly2ind is of length ', len(poly2ind), ' and contains triangles', poly2ind[0], ' to ' , poly2ind[-1])
     
     # get the initial model surface elevation
     nsbase_elev_c = domain.get_quantity('elevation').get_values(location='centroids')
-    print '>>>>> nsbase_elev_c is of length ',len(nsbase_elev_c) 
+    print ('>>>>> nsbase_elev_c is of length ',len(nsbase_elev_c)) 
         
         
     # build the no scour base surface  by combining initial elev where < nsbase and nsbase in each scour poly
@@ -130,8 +130,8 @@ else:
 #------------------------------------------------------------------------------
 
 if myid == 0:
-    print '>>>>> erosion polygon1 contains ', polygon1
-    print '>>>>> erosion polygon2 contains ', polygon2
+    print ('>>>>> erosion polygon1 contains ', polygon1)
+    print ('>>>>> erosion polygon2 contains ', polygon2)
 
 #------------------------------------------------------------------------------
 # Distribute the domain onto the n partitions
@@ -153,7 +153,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 
 if myid == 0:
-    print '>>>>> Setting up Erosion Area(s) to test...'
+    print ('>>>>> Setting up Erosion Area(s) to test...')
 
 # power up the erosion operator
 from anuga import Sanddune_erosion_operator
@@ -181,15 +181,15 @@ for t in domain.evolve(yieldstep=1, duration=6.0):
 #  run completed - tidy up 
 barrier()  
 if myid == 0: 
-    print ' >>>>> Simulation completed successfully '
-    print ' >>>>> Merging the individual cpu sww files and deleting the individual swws once merged'
+    print (' >>>>> Simulation completed successfully ')
+    print (' >>>>> Merging the individual cpu sww files and deleting the individual swws once merged')
 
 # Merge the individual parallel swws created by the n processors
 barrier()                         # wait foir all processors to complete
 domain.sww_merge(delete_old=True)
 
 if myid == 0: 
-    print ' >>>>> Finalising the run -- all done'
+    print (' >>>>> Finalising the run -- all done')
 
 # Finaise the parallel code and this model run
 barrier()                         # wait for all processors to complete
