@@ -1063,30 +1063,34 @@ class Domain(Generic_Domain):
         
         :param tz: either a timezone object or string
         
-        We recommend using the timezone provided by the pytz modules. 
-        Default is pytz.utc
+        We recommend using the ZoneInfo provided by zoneinfo. 
+        Default is ZoneInfo('UTC')
 
         Example: Set default timezone UTC
 
         >>> domain.set_timezone()
 
-        Example: Set timezone using pytz string
+        Example: Set timezone using tsdata string
 
         >>> domain.set_timezone('Australia/Syndey')
 
-        Example: Set timezone using pytz timezone
+        Example: Set timezone using ZoneInfo timezone
 
-        >>> new_tz = pytz.timezone('Australia/Sydney')
+        >>> from zoneinfo import ZoneInfo
+        >>> new_tz = ZoneInfo('Australia/Sydney')
         >>> domain.set_timezone(new_tz)
         """
 
-        import pytz
+        try:
+            from zoneinfo import ZoneInfo
+        except:
+            from backports.zoneinfo import ZoneInfo
 
         if tz is None:
-            new_tz = pytz.utc
+            new_tz = ZoneInfo('UTC')
         elif isinstance(tz,str):
-            new_tz = pytz.timezone(tz)
-        elif isinstance(tz, pytz.tzinfo.DstTzInfo):
+            new_tz = ZoneInfo(tz)
+        elif isinstance(tz, ZoneInfo):
             new_tz = tz
         else:
             msg = "Unknown timezone %s" % tz
@@ -1102,10 +1106,16 @@ class Domain(Generic_Domain):
 
     def get_datetime(self):
         """Retrieve datetime corresponding to current timestamp wrt to domain timezone"""
-
-        import pytz
+        
         from datetime import datetime
-        utc_datetime = pytz.utc.localize(datetime.utcfromtimestamp(self.get_time()))
+
+        try:
+            from zoneinfo import ZoneInfo
+        except:
+            from backports.zoneinfo import ZoneInfo
+
+
+        utc_datetime = datetime.utcfromtimestamp(self.get_time()).replace(tzinfo=ZoneInfo('UTC'))
         current_dt = utc_datetime.astimezone(self.timezone)
         return current_dt
 
@@ -1127,8 +1137,8 @@ class Domain(Generic_Domain):
             calculations are all based on UTC. Note the timestamp, which is time in seconds
             from 1st Jan 1970 UTC.
         
-        >>> import pytz
         >>> import anuga
+        >>> from zoneinfo import ZoneInfo
         >>> from datetime import datetime
         >>> 
         >>> domain = anuga.rectangular_cross_domain(10,10)
@@ -1143,12 +1153,12 @@ class Domain(Generic_Domain):
             the `domain` timezone. Note the timestamp, which is time in seconds
             from 1st Jan 1970 UTC.
 
-        >>> import pytz
+        >>> from zoneinfo import ZoneInfo
         >>> import anuga
         >>> from datetime import datetime
         >>> 
         >>> domain = anuga.rectangular_cross_domain(10,10)
-        >>> AEST = pytz.timezone('Australia/Sydney')
+        >>> AEST = ZoneInfo('Australia/Sydney')
         >>> domain.set_timezone(AEST)
         >>> 
         >>> dt = datetime(2021,3,21,18,30)
@@ -1162,13 +1172,13 @@ class Domain(Generic_Domain):
             Note the timestamp, which is time in seconds from 1st Jan 1970 UTC is the same
             as teh previous example.
 
-        >>> import pytz
+        >>> from zoneinfo import ZoneInfo
         >>> import anuga
         >>> from datetime import datetime
         >>> 
         >>> domain = anuga.rectangular_cross_domain(10,10)
         >>> 
-        >>> ACST = pytz.timezone('Australia/Adelaide')
+        >>> ACST = ZoneInfo('Australia/Adelaide')
         >>> domain.set_timezone(ACST)
         >>> 
         >>> AEST = pytz.timezone('Australia/Sydney')
@@ -1189,7 +1199,7 @@ class Domain(Generic_Domain):
 
         if isinstance(timestamp, datetime):
             if timestamp.tzinfo is None:
-                dt = self.timezone.localize(timestamp)
+                dt = timestamp.replace(tzinfo=self.timezone)
                 time = dt.timestamp()
             else:
                 time = timestamp.timestamp()
@@ -2604,21 +2614,24 @@ class Domain(Generic_Domain):
         from datetime import datetime
         if finaltime is not None:
             if isinstance(finaltime, datetime):
-                dt = self.timezone.localize(finaltime)
+                if finaltime.tzinfo is None:
+                    dt = finaltime.replace(tzinfo=self.timezone)
+                else:
+                    dt = finaltime
                 finaltime = dt.timestamp()
             else:
                 finaltime = float(finaltime)
-
 
         if outputstep is None:
             outputstep = yieldstep
 
         if yieldstep is None:
-            output_frequency = 1
+            self.output_frequency = 1
         else:
             msg = f'outputstep ({outputstep}) should be an integer multiple of yieldstep ({yieldstep})'
             output_frequency = outputstep/yieldstep
             assert float(output_frequency).is_integer(), msg
+            self.output_frequency = int(output_frequency)
 
         msg = 'Attribute self.beta_w must be in the interval [0, 2]'
         assert 0 <= self.beta_w <= 2.0, msg
@@ -2643,7 +2656,7 @@ class Domain(Generic_Domain):
             #print t , self.get_time()
             # Store model data, e.g. for subsequent visualisation
             if self.store:
-                if self.yieldstep_counter%output_frequency == 0:
+                if self.yieldstep_counter%self.output_frequency == 0:
                     self.store_timestep()
 
             if self.checkpoint:

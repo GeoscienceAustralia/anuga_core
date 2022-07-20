@@ -84,7 +84,7 @@ class Inlet(object):
         
     def get_average_elevation(self):
 
-        return old_div(num.sum(self.get_elevations()*self.get_areas()),self.area)
+        return num.sum(self.get_elevations()*self.get_areas())/self.area
     
     
     def get_xmoms(self):
@@ -94,7 +94,7 @@ class Inlet(object):
         
     def get_average_xmom(self):
 
-        return old_div(num.sum(self.get_xmoms()*self.get_areas()),self.area)
+        return num.sum(self.get_xmoms()*self.get_areas())/self.area
         
     
     def get_ymoms(self):
@@ -104,7 +104,7 @@ class Inlet(object):
  
     def get_average_ymom(self):
         
-        return old_div(num.sum(self.get_ymoms()*self.get_areas()),self.area)
+        return num.sum(self.get_ymoms()*self.get_areas())/self.area
     
 
     def get_depths(self):
@@ -119,14 +119,14 @@ class Inlet(object):
 
     def get_average_depth(self):
     
-        return old_div(self.get_total_water_volume(),self.area)
+        return self.get_total_water_volume()/self.area
         
         
     def get_velocities(self):
         
             depths = self.get_depths()
-            u = old_div(self.get_xmoms(),(depths + old_div(velocity_protection,depths)))
-            v = old_div(self.get_ymoms(),(depths + old_div(velocity_protection,depths)))
+            u = self.get_xmoms()*depths/(depths*depths + velocity_protection)
+            v = self.get_ymoms()*depths/(depths*depths + velocity_protection)
             
             return u, v
 
@@ -134,27 +134,27 @@ class Inlet(object):
     def get_xvelocities(self):
 
             depths = self.get_depths()
-            return old_div(self.get_xmoms(),(depths + old_div(velocity_protection,depths)))
+            return self.get_xmoms()*depths/(depths*depths + velocity_protection)
 
     def get_yvelocities(self):
 
             depths = self.get_depths()
-            return old_div(self.get_ymoms(),(depths + old_div(velocity_protection,depths)))
+            return self.get_ymoms()*depths/(depths*depths + velocity_protection)
             
             
     def get_average_speed(self):
  
             u, v = self.get_velocities()
             
-            average_u = old_div(num.sum(u*self.get_areas()),self.area)
-            average_v = old_div(num.sum(v*self.get_areas()),self.area)
+            average_u = num.sum(u*self.get_areas())/self.area
+            average_v = num.sum(v*self.get_areas())/self.area
             
             return math.sqrt(average_u**2 + average_v**2)
 
 
     def get_average_velocity_head(self):
 
-        return old_div(0.5*self.get_average_speed()**2,g)
+        return 0.5*self.get_average_speed()**2/g
 
 
     def get_average_total_energy(self):
