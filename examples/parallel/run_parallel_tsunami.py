@@ -27,6 +27,17 @@ from anuga import distribute, myid, numprocs, finalize, barrier
 from anuga import rectangular_cross_domain
 
 
+#------------------------------
+# Simulation parameters
+#------------------------------
+length = 2.0
+width = 2.0
+refinement_factor = 50
+yieldstep = 0.2
+finaltime = 2.5
+
+verbose = True
+
 #--------------------------------------------------------------------------
 # Setup functions for topograpy etc
 #--------------------------------------------------------------------------
@@ -40,45 +51,28 @@ def stagefun(x,y):
     #topo=topography(x,y)
     return stge#*(stge>topo) + (topo)*(stge<=topo)
 
-
-
 #--------------------------------------------------------------------------
 # Create domains
 #--------------------------------------------------------------------------
-
-
-
 t0 = time.time()
-
-verbose = True
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    length = 2.0
-    width = 2.0
-    sqrtN = int(math.sqrt(numprocs))*4
-    domain = rectangular_cross_domain(sqrtN, sqrtN,
+
+    cbrtN = int((numprocs)**(1.0/3.0)*refinement_factor)
+    domain = rectangular_cross_domain(cbrtN, cbrtN,
                                       len1=length, len2=width, 
                                       origin=(-length/2, -width/2), 
                                       verbose=verbose)
 
-    #---------------------------------------
-    # Add these two commands to use Gareth's
-    # tsunami algorithm. Play with the 
-    # minimum allowed height to remove possible 
-    # unrealistic large velocities
-    #---------------------------------------
-    domain.set_flow_algorithm('tsunami')
     domain.set_minimum_allowed_height(0.01)
 
     domain.set_store(True)
     domain.set_quantity('elevation',topography)     # Use function for elevation
-    domain.get_quantity('elevation').smooth_vertex_values()
     domain.set_quantity('friction',0.03)            # Constant friction
     domain.set_quantity('stage', stagefun)          # Constant negative initial stage
-    domain.get_quantity('stage').smooth_vertex_values()
 
     domain.set_name('rectangular_tsunami')
 
@@ -108,23 +102,16 @@ t2 = time.time()
 if myid == 0 :
     print ('Distribute domain ',t2-t1)
     
-if myid == 0 : print ('after parallel domain'
-)
+if myid == 0 : print ('after parallel domain')
 
 #Boundaries
 T = anuga.Transmissive_boundary(domain)
 R = anuga.Reflective_boundary(domain)
 D = anuga.Dirichlet_boundary([-0.1*scale_me,0.,0.])
 
-
-domain.set_boundary( {'left': R, 'right': D, 'bottom': R, 'top': R, 'ghost': None} )
-
+domain.set_boundary( {'left': R, 'right': D, 'bottom': R, 'top': R} )
 
 if myid == 0 : print ('after set_boundary')
-
-
-yieldstep = 0.2
-finaltime = 20.0
 
 barrier()
 
@@ -158,4 +145,8 @@ if domain.number_of_global_triangles < 50000:
         print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
+
+if myid==0:
+    print (50*'=')
+    print('Number of triangles:', domain.number_of_global_triangles)
 finalize()

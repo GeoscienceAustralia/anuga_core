@@ -3,7 +3,7 @@
 
    run using command like:
 
-   mpiexec -np m python run_parallel_sw_merimbula.py
+   mpiexec -np m python run_parallel_merimbula.py
 
    where m is the number of processors to be used.
    
@@ -44,15 +44,11 @@ from anuga.utilities.system_tools import get_pathname_from_package
 # Setup parameters
 #--------------------------------------------------------------------------
 
-DATA_DIR = get_pathname_from_package('anuga.parallel')
+DATA_DIR = 'data'
 
-mesh_filename = anuga.join(DATA_DIR,"data/merimbula_10785_1.tsh") ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 10; finaltime = 100
-#mesh_filename = anuga.join(DATA_DIR,"data/merimbula_17156.tsh")   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
-#mesh_filename = anuga.join(DATA_DIR,"data/merimbula_43200_1.tsh")   ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 50; finaltime = 500
-#mesh_filename = anuga.join(DATA_DIR,"data/test-100.tsh") ; x0 = 200.0 ; x1 = 300.0; yieldstep = 1; finaltime = 10
-#mesh_filename = anuga.join(DATA_DIR,"data/test-20.tsh") ; x0 = 250.0 ; x1 = 350.0; yieldstep = 1; finaltime = 50
+mesh_filename = anuga.join(DATA_DIR,"merimbula_10785_1.tsh") ; x0 = 756000.0 ; x1 = 756500.0; yieldstep = 10; finaltime = 100
 
-verbose = False
+verbose = True
 
 #--------------------------------------------------------------------------
 # Setup procedures
@@ -89,18 +85,8 @@ class Set_Elevation:
 if myid == 0:
     domain = create_domain_from_file(mesh_filename)
     domain.set_quantity('stage', Set_Stage(x0, x1, 1.0))
-    #domain.set_quantity('stage', 0.0)
-    #domain.set_datadir('.')
-    domain.set_name()
-    domain.set_store(True)
-    #domain.set_store_vertices_smoothly(True)
     domain.set_store_vertices_smoothly(False)
-    #domain.set_quantity('elevation', Set_Elevation(500.0))
 
-    #print domain.statistics()
-    #print domain.get_extent()
-    #print domain.get_extent(absolute=True)
-    #print domain.geo_reference
 else:
     domain = None
 
@@ -114,26 +100,7 @@ domain = distribute(domain, verbose=verbose)
 #--------------------------------------------------------------------------
 # On all processors, setup evolve parameters for domains on all processors
 # (all called "domain"
-#--------------------------------------------------------------------------
-
-domain.set_flow_algorithm('2_0')
-domain.set_store_centroids()
-
-#for p in range(numprocs):
-#    if myid == p:
-#        print 'P%d'%p
-#        print domain.get_extent()
-#        print domain.get_extent(absolute=True)
-#        print domain.geo_reference
-#        print domain.s2p_map
-#        print domain.p2s_map
-#        print domain.tri_l2g
-#        print domain.node_l2g
-#    else:
-#        pass
-#
-#    barrier()
-
+#-------------------------------------------------------------------------
 
 domain.set_quantities_to_be_stored({'elevation':1,
                                     'friction':1,
@@ -150,16 +117,8 @@ Br = Reflective_boundary(domain)      # Solid reflective wall
 from math import sin
 Bts = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, lambda t: 10*sin(t/60))
 
-domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
-
-
-#bdy_ids = domain.tag_boundary_cells['open']
-#vol_ids = domain.boundary_cells[bdy_ids]
-#edge_ids = domain.boundary_edges[bdy_ids]
-
-#print domain.mesh.edge_midpoint_coordinates[3*vol_ids+edge_ids]
-
-
+#domain.set_boundary({'outflow' :Br, 'inflow' :Br, 'inner' :Br, 'exterior' :Br, 'open' :Bts})
+domain.set_boundary({'exterior' :Br, 'open' :Bts})
 
 #------------------------------------------------------------------------------
 # Evolution
@@ -171,13 +130,14 @@ t0 = time.time()
 for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
     #print 'P:'+ str(myid) + ' '+ domain.timestepping_statistics()
     if myid == 0:
-        domain.write_time()
+        domain.print_timestepping_statistics()
 
 
 barrier()
 
 for p in range(numprocs):
     if myid == p:
+        print (50*'=')
         print ('Processor %g ' %myid)
         print ('That took %.2f seconds' %(time.time()-t0))
         print ('Communication time %.2f seconds'%domain.communication_time)
@@ -193,9 +153,12 @@ for p in range(numprocs):
 # Merge the individual sww files into one file
 #--------------------------------------------------
 domain.sww_merge(delete_old=True)
+    
+if myid==0:
+    print(50*"=")
+    print('Number of Tirangles:', domain.number_of_global_triangles)
 
-
-domain.dump_triangulation()
+#domain.dump_triangulation()
 
 finalize()
 

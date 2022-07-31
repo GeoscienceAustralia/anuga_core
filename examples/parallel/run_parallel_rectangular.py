@@ -58,8 +58,8 @@ verbose = True
 #--------------------------------------------------------------------------
 if myid == 0:
 
-    sqrtN = int(math.sqrt(numprocs)*refinement_factor)
-    domain = rectangular_cross_domain(sqrtN, sqrtN,
+    cbrtN = int((numprocs)**(1.0/3.0)*refinement_factor)
+    domain = rectangular_cross_domain(cbrtN, cbrtN,
                                       len1=length, len2=width, 
                                       origin=(-length/2, -width/2), 
                                       verbose=verbose)
@@ -150,5 +150,11 @@ if domain.number_of_global_triangles < 5000:
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
 domain.sww_merge(delete_old=True)
+
+
+
+if myid==0:
+    print(50*"=")
+    print('Number of Triangles:', domain.number_of_global_triangles)
 
 finalize()
