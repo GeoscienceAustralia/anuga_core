@@ -7,12 +7,12 @@ import unittest
 import os
 from datetime import datetime
 
-# try:
-#     from zoneinfo import ZoneInfo
-# except:
-#     from backports.zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except:
+    from backports.zoneinfo import ZoneInfo
 
-from zoneinfo import ZoneInfo
+#from zoneinfo import ZoneInfo
 
 class Test_Timzone(unittest.TestCase):
     def setUp(self):
