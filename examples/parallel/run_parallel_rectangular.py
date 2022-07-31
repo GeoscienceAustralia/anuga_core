@@ -4,9 +4,10 @@
 #
 #  Need mpi setup for your machine 
 #
-#  Run in parallel as follows (on 4 processors)
+#  To run in parallel on 4 processes, use the following
 #
-#  mpiexec -np 4 python run_parallel_sw_rectangular_cross.py
+#  mpiexec -np 4 python -u run_parallel_sw_rectangular_cross.py
+#
 #
 #  Note the use of "if myid == 0" to restrict some calculations 
 #  to just one processor, in particular the creation of a 
@@ -41,17 +42,23 @@ from anuga import distribute, myid, numprocs, finalize, barrier
 
 t0 = time.time()
 
+#----------------------------
+# simulation parameters
+#----------------------------
+length = 2.0
+width = 2.0
+refinement_factor = 100
+yieldstep = 0.005
+finaltime = 0.05
+
 verbose = True
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    length = 2.0
-    width = 2.0
-    #dx = dy = 0.005
-    #dx = dy = 0.00125
-    sqrtN = int(math.sqrt(numprocs))*4
+
+    sqrtN = int(math.sqrt(numprocs)*refinement_factor)
     domain = rectangular_cross_domain(sqrtN, sqrtN,
                                       len1=length, len2=width, 
                                       origin=(-length/2, -width/2), 
@@ -96,7 +103,7 @@ T = Transmissive_boundary(domain)
 R = Reflective_boundary(domain)
 
 
-domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R, 'ghost': None} )
+domain.set_boundary( {'left': R, 'right': R, 'bottom': R, 'top': R} )
 
 
 if myid == 0 : print ('After set_boundary')
@@ -108,9 +115,6 @@ setter = Set_stage(domain,center=(0.0,0.0), radius=0.5, stage = 2.0)
 setter()
 
 if myid == 0 : print ('After set quantity')
-
-yieldstep = 0.005
-finaltime = 0.05
 
 barrier()
 
