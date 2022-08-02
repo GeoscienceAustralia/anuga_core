@@ -45,10 +45,8 @@ SETUPTOOLS_COMMANDS = set([
 
 if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
     import setuptools
-    extra_setuptools_args = dict(
-        zip_safe=False,  # the package can run out of an .egg file
-        include_package_data=True,
-      	install_requires=['cython',
+    import platform
+    install_requires = ['cython',
                          'numpy',
                          'dill',
                          'future',
@@ -60,9 +58,16 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                          'Pmw',
                          'pymetis',
                          'pytest',
-                         'pytz',
                          'scipy',
                          'utm']
+    version_tuple = platform.python_version_tuple()
+    if version_tuple[0] == '3' and int(version_tuple[1]) < 9 :
+        install_requires.append('backports.zoneinfo')
+
+    extra_setuptools_args = dict(
+        zip_safe=False,  # the package can run out of an .egg file
+        include_package_data=True,
+      	install_requires=install_requires
     )
 else:
     extra_setuptools_args = dict()

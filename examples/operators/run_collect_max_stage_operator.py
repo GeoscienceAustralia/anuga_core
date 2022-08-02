@@ -32,7 +32,7 @@ domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (0.0, -W/2))
 
 domain.set_name() # based on script name
 
-print domain.mesh.statistics(nbins=50)
+print (domain.mesh.statistics(nbins=50))
 
 #------------------------------------------------------------------------------
 # Setup Algorithm

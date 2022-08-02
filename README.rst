@@ -44,11 +44,8 @@ and floods.
 ANUGA is a python 3 package with some C and Cython extensions (and an optional
 fortran extension). 
 
-ANUGA is developed at Geoscience Australia, Mathematical Sciences Institute at the
-Australian National University and volunteers. 
-
-Althought ANUGA was created in a collaboration by Geoscience Australia and Mathematical Sciences Institute at the
-Australian National University, it is now developed and maintained by a community of volunteers.
+ANUGA was created in a collaboration by Geoscience Australia and Mathematical Sciences Institute at the
+Australian National University, though now it is further developed and maintained by a community of volunteers.
 
 Copyright Commonwealth of Australia (Geoscience Australia) and Australian National University 2004-Now
 
@@ -60,22 +57,23 @@ ANUGA is available from either https://github.com/anuga-community/anuga_core or 
 
 The Python 3.x version is the default and available in the main branches of both repositories. 
 
-If you rely on the deprecated Python 2.7 version, it is available in branches named anuga_py2.
+If you rely on the old Python 2.7 version, it is available in branches named anuga_py2.
 
-The python 3 version of ANUGA will continue to be developed and the most up-to-date versions will be available from the `anuga-community <https://github.com/anuga-community/anuga_core>`_ repository. 
+The python 3 version of ANUGA will continue to be developed and the most up-to-date 
+versions will be available from the `anuga-community <https://github.com/anuga-community/anuga_core>`_ repository. 
 
 
 
 Installation
 ------------
 
-Installing anuga from the conda-forge channel can be achieved by adding conda-forge to your channels with:
+If you use `conda` to provide your `python` envirnment, then you can install `anuga` from the conda-forge channel
+as follows. First setup the `conda-forge` channel:
 
 .. code-block::
 
     conda config --add channels conda-forge
     conda config --set channel_priority strict
-
 
 
 Once the conda-forge channel has been enabled, anuga can be installed with conda:
@@ -85,15 +83,14 @@ Once the conda-forge channel has been enabled, anuga can be installed with conda
     conda install anuga
 
 
-
-For more detailed installation instructions, see https://anuga.readthedocs.io/en/latest/installation.html
+For more installation instructions, see https://anuga.readthedocs.io/en/latest/installation.html
 
 
 Documentation and Help
 ----------------------
 
 
-ANUGA documentation is available via read the docs at 
+ANUGA documentation is available via "read the docs" at 
 
     https://anuga.readthedocs.io 
 
@@ -118,6 +115,10 @@ You can subscribe to our mailing via:
 and send questions using the address
 
     anuga-user@lists.sourceforge.net
+
+You can also submit issues to:
+
+    https://github.com/anuga-community/anuga_core/issues
 
 
 Web sites

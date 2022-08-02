@@ -23,7 +23,7 @@ import numpy as num
 #------------------------------------------------------------------------------
 def topography(x,y):
     """Complex topography defined by a function of vectors x and y."""
-    print ' Create topography....'
+    print (' Create topography....')
     z = -x/100
 
     N = len(x)
@@ -60,7 +60,7 @@ def topography(x,y):
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
-print ' Set up Domain first...'
+print (' Set up Domain first...')
 length = 24.
 width = 5.
 dx = dy = 0.2 #.1           # Resolution: Length of subdivisions on both axes
@@ -70,7 +70,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
 domain = Domain(points, vertices, boundary)
 domain.set_flow_algorithm('DE1')
 domain.set_name() # Output name based on script name
-print domain.statistics()
+print (domain.statistics())
 
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2,
@@ -95,7 +95,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 #------------------------------------------------------------------------------
 # Setup erosion operator in the middle of dam
 #------------------------------------------------------------------------------
-print 'Set up Erosion Area to test...'
+print ('Set up Erosion Area to test...')
 
 from anuga import Flat_fill_slice_erosion_operator as Default_erosion_operator
 from anuga import Set_elevation_operator as Default_erosion_operator

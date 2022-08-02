@@ -27,7 +27,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_name() # Output name based on script
-print domain.statistics()
+print (domain.statistics())
 
 
 #------------------------------------------------------------------------------
@@ -125,13 +125,13 @@ op1 = Rate_operator(domain, rate=10.0, polygon=polygon2)
 
 area1 = numpy.sum(domain.areas[op1.indices])
 Q1 = 10.0*area1
-print 'op1 Q ',Q1
+print ('op1 Q ',Q1)
 
 op2 = Rate_operator(domain, rate=10.0, radius=0.5, center=(10.0, 3.0))
 
 area2 = numpy.sum(domain.areas[op2.indices])
 Q2 = 10.0*area2
-print 'op2 Q ',Q2
+print ('op2 Q ',Q2)
 
 
 def rain(x,y,t):
@@ -167,8 +167,8 @@ for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
     elev  = domain.get_quantity('elevation')
     height = stage - elev
 
-    print indent + 'Integral = ', height.get_integral()
-    print indent + 'Exact accumultion = ', accum
+    print (indent + 'Integral = ', height.get_integral())
+    print (indent + 'Exact accumultion = ', accum)
     
     dd = max(min(yieldstep,4.0-t),0.0)
     accum += (Q1+Q2)*yieldstep + dd*Q3

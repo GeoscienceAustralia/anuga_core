@@ -3,11 +3,16 @@
 
 import anuga
 import numpy as num
-import pytz
 import unittest
 import os
 from datetime import datetime
 
+try:
+    from zoneinfo import ZoneInfo
+except:
+    from backports.zoneinfo import ZoneInfo
+
+#from zoneinfo import ZoneInfo
 
 class Test_Timzone(unittest.TestCase):
     def setUp(self):
@@ -28,14 +33,14 @@ class Test_Timzone(unittest.TestCase):
 
         domainTZ = domain.get_timezone()
 
-        UTC = pytz.utc
+        UTC = ZoneInfo('UTC')
 
         assert domainTZ == UTC
 
-    def test_set_timezone_pytz(self):
+    def test_set_timezone_zoneinfo(self):
 
         domain = anuga.rectangular_cross_domain(10,10)
-        AEST = pytz.timezone('Australia/Sydney')
+        AEST = ZoneInfo('Australia/Sydney')
         domain.set_timezone(AEST)
         domainTZ = domain.get_timezone()
         assert AEST == domainTZ
@@ -48,7 +53,7 @@ class Test_Timzone(unittest.TestCase):
         domain.set_timezone('Australia/Sydney')
         domainTZ = domain.get_timezone()
 
-        AEST = pytz.timezone('Australia/Sydney')
+        AEST = ZoneInfo('Australia/Sydney')
         assert AEST == domainTZ
 
     def test_starttime_with_datetime(self):
@@ -57,8 +62,8 @@ class Test_Timzone(unittest.TestCase):
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
         
-        AEST = pytz.timezone('Australia/Sydney')
-        dt = AEST.localize(datetime(2021,3,21,18,30))
+        AEST = ZoneInfo('Australia/Sydney')
+        dt = datetime(2021,3,21,18,30, tzinfo=AEST)
 
         domain.set_starttime(dt)
 
@@ -77,8 +82,8 @@ class Test_Timzone(unittest.TestCase):
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
 
-        AEST = pytz.timezone('Australia/Sydney')
-        dt = AEST.localize(datetime(2021,3,21,18,30))
+        AEST = ZoneInfo('Australia/Sydney')
+        dt = datetime(2021,3,21,18,30, tzinfo=AEST)
 
         domain.set_starttime(dt)
 
@@ -95,11 +100,11 @@ class Test_Timzone(unittest.TestCase):
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
         
-        AEST = pytz.timezone('Australia/Sydney')
+        AEST = ZoneInfo('Australia/Sydney')
         domain.set_timezone(AEST)
 
-        UTC = pytz.utc
-        dt = UTC.localize(datetime(2021,3,21,7,30))
+        UTC = ZoneInfo('UTC')
+        dt = datetime(2021,3,21,7,30, tzinfo=UTC)
         domain.set_starttime(dt)
 
         # The domain timezone is AEST
@@ -117,7 +122,7 @@ class Test_Timzone(unittest.TestCase):
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
 
-        AEST = pytz.timezone('Australia/Sydney')
+        AEST = ZoneInfo('Australia/Sydney')
 
         domain.set_timezone(AEST)
 

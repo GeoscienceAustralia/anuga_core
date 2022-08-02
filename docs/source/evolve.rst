@@ -37,7 +37,7 @@ code:
 >>> for t in domain.evolve(yieldstep=1.0, finaltime=10.0):
 >>>    pass
 
-This will run the model from `time=0` to the `finaltime = 10.0`. The method will "yield" 
+This will run the model from `time=0` to the `finaltime = 10.0`. The method will `yield` 
 to the for loop every `yieldstep = 1`. By default the state 
 of the simulation will be saved to a file (by default named `domain.sww`) 
 every `yieldstep`, in this case every 1 second of simulation time. 
@@ -145,6 +145,8 @@ We can change it via :meth:`set_timezone <anuga.Domain.set_timezone>`
 
 >>> domain.set_timezone('Australia/Sydney')
 
+A list of timezones names can be found on `Wikipedia <https://en.wikipedia.org/wiki/List_of_tz_database_time_zones>`_.
+
 Suppose we want to start the model at 18:45 on the 21st July 2021. Use the `datetime` module 
 to setup this date, and the set the start time, as follows:
 
@@ -171,7 +173,7 @@ DateTime: 2021-07-21 19:00:00+1000, delta t in [0.00959070, 0.00964172] (s), ste
 Default zero time
 -----------------
 
-We use unix timestamp as our underlying absolute time. So `time = 0` corresponds to Jan 1st 1970 UTC. 
+We use unix timestamp as our underlying absolute time. So `time = 0` actually corresponds to Jan 1st 1970 UTC. 
 
 For instance going back to an earlier example which uses the default timezone (UTC) and 0 start time.
 

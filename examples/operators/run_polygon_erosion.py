@@ -124,7 +124,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
 domain = Domain(points, vertices, boundary)
 domain.set_name() # Output name based on script
 domain.set_flow_algorithm('DE1')
-print domain.statistics()
+print (domain.statistics())
 domain.set_store_vertices_uniquely(True)
 
 domain.set_quantities_to_be_stored({'elevation': 2,

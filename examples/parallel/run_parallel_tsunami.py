@@ -27,6 +27,20 @@ from anuga import distribute, myid, numprocs, finalize, barrier
 from anuga import rectangular_cross_domain
 
 
+#------------------------------
+# Simulation parameters
+#------------------------------
+refinement_factor = 100
+sqrtN = int((numprocs)**(1.0/2.0)*refinement_factor)
+
+sqrtN = 500
+length = 2.0
+width = 2.0
+yieldstep = 0.01
+finaltime = 0.02
+
+verbose = False
+
 #--------------------------------------------------------------------------
 # Setup functions for topograpy etc
 #--------------------------------------------------------------------------
@@ -40,58 +54,44 @@ def stagefun(x,y):
     #topo=topography(x,y)
     return stge#*(stge>topo) + (topo)*(stge<=topo)
 
-
-
 #--------------------------------------------------------------------------
 # Create domains
 #--------------------------------------------------------------------------
-
-
-
 t0 = time.time()
-
-verbose = True
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
 #--------------------------------------------------------------------------
 if myid == 0:
-    length = 2.0
-    width = 2.0
-    sqrtN = int(math.sqrt(numprocs))*4
+
     domain = rectangular_cross_domain(sqrtN, sqrtN,
                                       len1=length, len2=width, 
                                       origin=(-length/2, -width/2), 
                                       verbose=verbose)
 
-    #---------------------------------------
-    # Add these two commands to use Gareth's
-    # tsunami algorithm. Play with the 
-    # minimum allowed height to remove possible 
-    # unrealistic large velocities
-    #---------------------------------------
-    domain.set_flow_algorithm('tsunami')
     domain.set_minimum_allowed_height(0.01)
 
     domain.set_store(True)
     domain.set_quantity('elevation',topography)     # Use function for elevation
-    domain.get_quantity('elevation').smooth_vertex_values()
     domain.set_quantity('friction',0.03)            # Constant friction
     domain.set_quantity('stage', stagefun)          # Constant negative initial stage
-    domain.get_quantity('stage').smooth_vertex_values()
 
     domain.set_name('rectangular_tsunami')
 
-    domain.print_statistics()
+    if verbose: domain.print_statistics()
 else:
     domain = None
 
 t1 = time.time()
 
-if myid == 0 :
-    print ('Create sequential domain ',t1-t0)
+creation_time = t1-t0
 
-if myid == 0 and verbose: 
+if myid == 0 :
+    print ('Creation of sequential domain: Time =',t1-t0)
+    print ('Creation of sequential domain: Number of Triangles =',domain.number_of_global_triangles)
+
+
+if myid == 0: 
     print ('DISTRIBUTING DOMAIN')
     sys.stdout.flush()
     
@@ -105,26 +105,21 @@ domain = distribute(domain,verbose=verbose)
 
 t2 = time.time()
 
+distribute_time = t2-t1
+
 if myid == 0 :
-    print ('Distribute domain ',t2-t1)
+    print ('Distribute domain: Time ',distribute_time)
     
-if myid == 0 : print ('after parallel domain'
-)
+if myid == 0 : print ('after parallel domain')
 
 #Boundaries
 T = anuga.Transmissive_boundary(domain)
 R = anuga.Reflective_boundary(domain)
 D = anuga.Dirichlet_boundary([-0.1*scale_me,0.,0.])
 
-
-domain.set_boundary( {'left': R, 'right': D, 'bottom': R, 'top': R, 'ghost': None} )
-
+domain.set_boundary( {'left': R, 'right': D, 'bottom': R, 'top': R} )
 
 if myid == 0 : print ('after set_boundary')
-
-
-yieldstep = 0.2
-finaltime = 20.0
 
 barrier()
 
@@ -139,23 +134,34 @@ for t in domain.evolve(yieldstep = yieldstep, finaltime = finaltime):
         sys.stdout.flush()
 						
 
+evolve_time = time.time()-t0
 
+if myid == 0 :
+    print ('Evolve: Time',evolve_time)
 
-for p in range(numprocs):
-    barrier()
-    if myid == p:
-        print (50*'=')
-        print ('P%g' %(myid))
-        print ('That took %.2f seconds' %(time.time()-t0))
-        print ('Communication time %.2f seconds'%domain.communication_time)
-        print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
-        print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
-        sys.stdout.flush()
+if verbose:
+    for p in range(numprocs):
+        barrier()
+        if myid == p:
+            print (50*'=')
+            print ('P%g' %(myid))
+            print ('That took %.2f seconds' %(evolve_time))
+            print ('Communication time %.2f seconds'%domain.communication_time)
+            print ('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
+            print ('Broadcast time %.2f seconds'%domain.communication_broadcast_time)
+            sys.stdout.flush()
 
 
 if domain.number_of_global_triangles < 50000:
     if myid == 0 :
         print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+
+
+if myid == 0:
+    print(50*'=')
+    print('numprocs, no triangles, creation_time, distribute_time, evolve_time')
+    msg = " %d, %d, %f, %f, %f "% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
+    print(msg)
 
 finalize()

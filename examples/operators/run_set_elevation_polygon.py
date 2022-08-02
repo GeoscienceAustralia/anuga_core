@@ -23,7 +23,7 @@ points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)
 domain.set_name('set_elevation') # Output name
-print domain.statistics()
+print (domain.statistics())
 domain.set_quantities_to_be_stored({'elevation': 2,
                                     'stage': 2})
 
@@ -119,7 +119,7 @@ for t in domain.evolve(yieldstep=0.1, finaltime=40.0):
     domain.print_operator_timestepping_statistics()
 
     if t >= 10 and not dam_break:
-        print 'changing elevation'
+        print ('changing elevation')
 
         stage_c = domain.get_quantity('stage').centroid_values
         elev_c =  domain.get_quantity('elevation').centroid_values
