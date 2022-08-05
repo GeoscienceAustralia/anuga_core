@@ -40,12 +40,16 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     t0 = time.time()
 
 
+    #pypar.allreduce(domain.local_timestep, pypar.MIN,
+    #                  buffer=domain.global_timestep,
+    #                  bypass=True)
 
+    from mpi4py import MPI
+    pypar.comm.Barrier()
+    pypar.comm.Allreduce(domain.local_timestep, domain.global_timestep, op=MPI.MIN)
+    pypar.comm.Barrier()
 
-    pypar.allreduce(domain.local_timestep, pypar.MIN,
-                      buffer=domain.global_timestep,
-                      bypass=True)
-
+    
     domain.communication_reduce_time += time.time()-t0
 
 
@@ -134,6 +138,93 @@ def communicate_ghosts_blocking(domain):
 
 
 
+def communicate_ghosts_non_blocking(domain, quantities=None):
+
+    # We must send the information from the full cells and
+    # receive the information for the ghost cells
+    # We have a dictionary of lists with ghosts expecting updates from
+    # the separate processors
+    # Using isend and irecv
+
+    import numpy as num
+    import time
+    t0 = time.time()
+
+    sendDict = domain.full_send_dict
+    recvDict = domain.ghost_recv_dict
+    
+    if quantities is None:
+        quantities = domain.conserved_quantities
+
+    # update of non-local ghost cells by copying full cell data into the
+    # Xout buffer arrays
+
+    #iproc == domain.processor
+
+    #Setup send buffer arrays for sending full data to other processors
+    for send_proc in domain.full_send_dict:
+        Idf  = sendDict[send_proc][0]
+        Xout = sendDict[send_proc][2]
+
+        for i, q in enumerate(quantities):
+            #print 'Store send data',i,q
+            Q_cv =  domain.quantities[q].centroid_values
+            Xout[:,i] = num.take(Q_cv, Idf)
+
+    #--------------------------------------------
+    # Do all the comuunication using isend/irecv 
+    # via the buffers in the
+    # full_send_dict and ghost_recv_dict
+    #--------------------------------------------
+
+
+    #-------------------------
+    # Do the Irecvs first
+    #-------------------------
+    recv_requests = []
+    for recv_proc in recvDict:
+
+        Idg = recvDict[recv_proc][0]
+        X   = recvDict[recv_proc][2]
+
+        request = pypar.comm.Irecv(X, recv_proc, 123)
+        recv_requests.append(request)
+
+    #---------------------
+    # Do the Isends second
+    #---------------------
+    send_requests = []
+    for send_proc in sendDict:
+
+        Idg = sendDict[send_proc][0]
+        X   = sendDict[send_proc][2]
+
+        request = pypar.comm.Isend(X, send_proc, 123)
+        send_requests.append(request)
+
+    #-----------------------------------------
+    # Now complete communication.
+    # We could put some computation between the 
+    # communication calls above and this call.
+    #-----------------------------------------
+    import mpi4py
+    re=mpi4py.MPI.Request.Waitall(recv_requests)
+
+
+    # Now copy data from receive buffers to the domain
+    for recv_proc in recvDict:
+        Idg  = recvDict[recv_proc][0]
+        X    = recvDict[recv_proc][2]
+
+        for i, q in enumerate(quantities):
+            #print 'Read receive data',i,q
+            Q_cv =  domain.quantities[q].centroid_values
+            num.put(Q_cv, Idg, X[:,i])
+
+
+    domain.communication_time += time.time()-t0
+
+
 def communicate_ghosts_asynchronous(domain, quantities=None):
 
     # We must send the information from the full cells and
@@ -164,32 +255,15 @@ def communicate_ghosts_asynchronous(domain, quantities=None):
             Q_cv =  domain.quantities[q].centroid_values
             Xout[:,i] = num.take(Q_cv, Idf)
 
-
-
-
-
-
     # Do all the comuunication using isend/irecv via the buffers in the
     # full_send_dict and ghost_recv_dict
 
     pypar.send_recv_via_dicts(domain.full_send_dict,domain.ghost_recv_dict)
 
-#
-#    if pypar.rank() == 0:
-#        print 'After commun 0'
-#        pprint(domain.ghost_recv_dict)
-#
-#    if pypar.rank() == 1:
-#        print 'After commun 1'
-#        pprint(domain.ghost_recv_dict)
-
     # Now copy data from receive buffers to the domain
     for recv_proc in domain.ghost_recv_dict:
         Idg  = domain.ghost_recv_dict[recv_proc][0]
         X    = domain.ghost_recv_dict[recv_proc][2]
-
-        #print recv_proc
-        #print X
 
         for i, q in enumerate(quantities):
             #print 'Read receive data',i,q
@@ -198,5 +272,4 @@ def communicate_ghosts_asynchronous(domain, quantities=None):
 
 
     domain.communication_time += time.time()-t0
-
 

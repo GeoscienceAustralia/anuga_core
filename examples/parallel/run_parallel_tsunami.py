@@ -39,7 +39,7 @@ width = 2.0
 yieldstep = 0.01
 finaltime = 0.02
 
-verbose = False
+verbose = True
 
 #--------------------------------------------------------------------------
 # Setup functions for topograpy etc
@@ -160,7 +160,7 @@ if domain.number_of_global_triangles < 50:
 
 if myid == 0:
     print(50*'=')
-    print('numprocs, no triangles, creation_time, distribute_time, evolve_time')
+    print('numprocs,no triangles,creation_time,distribute_time,evolve_time')
     msg = "%d,%d,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
     print(msg)
 

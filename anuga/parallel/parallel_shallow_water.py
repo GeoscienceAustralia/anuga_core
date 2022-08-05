@@ -145,7 +145,8 @@ class Parallel_domain(Domain):
         receive the information for the ghost cells
         """
 
-        generic_comms.communicate_ghosts_asynchronous(self, quantities)
+        #generic_comms.communicate_ghosts_asynchronous(self, quantities)
+        generic_comms.communicate_ghosts_non_blocking(self, quantities)
         #generic_comms.communicate_ghosts_blocking(self)
 
     def apply_fractional_steps(self):
