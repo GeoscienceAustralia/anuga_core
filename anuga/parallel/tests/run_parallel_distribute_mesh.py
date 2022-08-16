@@ -81,17 +81,13 @@ def distibute_three_processors():
         if verbose: print('Should be run with 3 processes')
         return
 
-    try:
+    if sys.platform == 'win32':
         from pymetis import part_graph
         metis_version = "5_part_graph"
-    except:
-        metis_version = 4
-
-    try:
+    else:
         from pymetis import part_mesh
         metis_version = "5_part_mesh"
-    except:
-        metis_version = 4    
+    
 
     if myid == 0 and verbose0: print('metis version = ', metis_version)
 
