@@ -37,17 +37,14 @@ try:
 except:
     from . import config as config
 
-try:
-    from pymetis import part_graph
-    metis_version = "5_part_graph"
-except:
-    metis_version = 4
+
+from pymetis import part_graph
 
 try:
     from pymetis import part_mesh
     metis_version = "5_part_mesh"
 except:
-    metis_version = 4 
+    metis_version = "5_part_graph"
 
 verbose = False
 
