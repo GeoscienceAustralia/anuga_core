@@ -37,8 +37,17 @@ try:
 except:
     from . import config as config
 
-import pymetis
-metis_version='5_part_mesh'
+try:
+    from pymetis import part_graph
+    metis_version = "5_part_graph"
+except:
+    metis_version = 4
+
+try:
+    from pymetis import part_mesh
+    metis_version = "5_part_mesh"
+except:
+    metis_version = 4 
 
 verbose = False
 
@@ -157,6 +166,7 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
     n_tri = len(domain.triangles)
     if n_procs != 1:  # Because metis chokes on it...
+
         if metis_version == 4:
             n_vert = domain.get_number_of_nodes()
             t_list2 = domain.triangles.copy()
@@ -169,15 +179,13 @@ def pmesh_divide_metis_helper(domain, n_procs):
             del edgecut
             del npart
 
-            domain.metis_version = metis_version
 
         if metis_version == "5_part_mesh":
-            
-            objval, epart, npart = pymetis.part_mesh(n_procs, domain.triangles)
 
-            domain.metis_version = metis_version
+            objval, epart, npart = part_mesh(n_procs, domain.triangles)
 
-        if metis_version == 5:
+
+        if metis_version == "5_part_graph":
             # build adjacency list
             # neighbours uses negative integer-indices to denote boudary edges.
             # pymetis totally cant handle that, so we have to delete these.
@@ -190,11 +198,9 @@ def pmesh_divide_metis_helper(domain, n_procs):
                 if neigh[i][0] < 0:
                     del neigh[i][0]
 
-            cutcount, partvert = pymetis.part_graph(n_procs, neigh)
+            cutcount, partvert = part_graph(n_procs, neigh)
 
             epart = partvert
-
-            domain.metis_version = metis_version
 
 
 

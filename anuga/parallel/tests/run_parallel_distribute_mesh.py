@@ -82,10 +82,16 @@ def distibute_three_processors():
         return
 
     try:
-        import pymetis
-        metis_version = "5_part_mesh"
+        from pymetis import part_graph
+        metis_version = "5_part_graph"
     except:
         metis_version = 4
+
+    try:
+        from pymetis import part_mesh
+        metis_version = "5_part_mesh"
+    except:
+        metis_version = 4    
 
     if myid == 0 and verbose0: print('metis version = ', metis_version)
 
@@ -310,7 +316,7 @@ def get_true_seq_values(metis_version=4):
         return true_seq_values
 
     
-    if sys.platform == 'win32' and metis_version == 5:
+    if sys.platform == 'win32' and metis_version == '5_part_graph':
         true_seq_values = dict(
             triangles = array([[ 0,  9,  1],
             [ 3,  9,  0],
@@ -452,7 +458,7 @@ def get_true_seq_values(metis_version=4):
         true_full_send_dict_1=[array([0, 1, 2, 4]), array([0, 1, 2, 4])]
         true_full_send_dict_2=[array([0, 1, 2, 3]), array([0, 1, 2, 3])]
 
-    if metis_version == 5:
+    if metis_version == '5_part_graph':
         triangles = [[0,  9,  1], [3,  9,  0], [4,  9,  3], [1,  9,  4],
                       [3, 11,  4], [1, 10,  2], [4, 10,  1], [5, 10,  4],
                       [2, 10,  5], [4, 12,  5], [6, 11,  3], [7, 11,  6],
@@ -538,7 +544,7 @@ def get_true_seq_values(metis_version=4):
             true_ghost_layer_width=2
             true_tri_map=array([ 6,  7,  8, -1,  9,  0,  1,  2,  3,  4,  5, 10, 11])
 
-        if metis_version == 5:
+        if metis_version == '5_part_graph':
             true_vertices=array([[ 0,  4,  1],
                 [ 2,  4,  0],
                 [ 3,  4,  2],
@@ -606,7 +612,7 @@ def get_true_seq_values(metis_version=4):
             true_ghost_layer_width=2
             true_tri_map=array([ 5,  6,  7,  8, -1,  9, 10, -1, -1, -1, -1,  0,  1,  2,  3,  4, -1])
 
-        if metis_version == 5:
+        if metis_version == '5_part_graph':
             true_vertices=array([[3, 6, 0],
                 [4, 6, 3],
                 [1, 6, 4],
@@ -775,7 +781,7 @@ def get_true_submesh_values(metis_version = 4):
         return true_values
 
 
-    if sys.platform == 'win32'  and metis_version == 5:
+    if sys.platform == 'win32'  and metis_version == '5_part_graph':
 
         true_values = dict( \
             full_nodes_0=array([[ 0.  ,  0.  ,  0.  ],
@@ -975,7 +981,7 @@ def get_true_submesh_values(metis_version = 4):
         return true_values
 
     #===============================================
-    if metis_version == 5: # get_true_submesh_values
+    if metis_version == '5_part_graph': # get_true_submesh_values
         true_values = dict(
         full_nodes_0=array([[  0.  ,   0.  ,   0.  ],
             [  1.  ,   0.  ,   0.5 ],
@@ -1253,7 +1259,7 @@ def get_true_extract_submesh(metis_version=4):
 
         return true_values
 
-    if sys.platform == 'win32' and metis_version == 5:
+    if sys.platform == 'win32' and metis_version == '5_part_graph':
         true_values = \
             {'full_send_dict_1': [array([1, 2, 3]), array([1, 2, 3])],
              'full_send_dict_2': [array([3, 4]), array([3, 4])],
@@ -1334,7 +1340,7 @@ def get_true_extract_submesh(metis_version=4):
                 [ 7, 11,  6],
                 [ 4, 11,  7]])}
 
-    if metis_version == 5: # get_true_extract_submesh
+    if metis_version == '5_part_graph': # get_true_extract_submesh
         true_values = \
             {'full_send_dict_1': [array([0, 2, 3]), array([0, 2, 3])],
             'full_send_dict_2': [array([2, 4]), array([2, 4])],
@@ -1472,7 +1478,7 @@ def get_true_rec_submesh_1(metis_version=4):
 
         return true_values
 
-    if sys.platform == 'win32' and metis_version == 5:
+    if sys.platform == 'win32' and metis_version == '5_part_graph':
         rec_submesh_1 = \
             {'full_send_dict_0': [array([0, 1, 3]), array([5, 6, 8])],
              'full_send_dict_2': [array([3, 4]), array([8, 9])],
@@ -1540,7 +1546,7 @@ def get_true_rec_submesh_1(metis_version=4):
                 [ 7,  5,  0],
                 [ 7, 10,  3]])}
 
-    if metis_version == 5: # get_true_rec_submesh_1
+    if metis_version == '5_part_graph': # get_true_rec_submesh_1
         true_values = \
             {'full_send_dict_0': [array([0, 1, 2]), array([5, 6, 7])],
             'full_send_dict_2': [array([2, 4]), array([7, 9])],
@@ -1746,7 +1752,7 @@ def get_true_rec_submesh_2(metis_version=4):
         ghost_layer_width=2,
         tri_map=array([ 5,  6,  7,  8, -1,  9, 10, -1, -1, -1, -1,  0,  1,  2,  3,  4, -1]))
 
-    if metis_version == 5: # get_true_rec_submesh_2
+    if metis_version == '5_part_graph': # get_true_rec_submesh_2
         true_values = dict(
         triangles=array([[3, 6, 0],
             [4, 6, 3],
