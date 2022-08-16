@@ -49,8 +49,9 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     pypar.comm.Allreduce(domain.local_timestep, domain.global_timestep, op=MPI.MIN)
     pypar.comm.Barrier()
 
-    
+
     domain.communication_reduce_time += time.time()-t0
+
 
 
 

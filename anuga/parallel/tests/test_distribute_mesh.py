@@ -150,34 +150,70 @@ class Test_Distribute_Mesh(unittest.TestCase):
         [4, 11, 7], [4, 12, 5], [1, 10, 2], [5, 10, 4], [2, 10, 5], [6, 11, 3], [7, 11, 6], \
         [7, 12, 4], [8, 12, 7], [5, 12, 8]]
 
-
-        true_triangles_5 = [[ 0,  9,  1], [ 3,  9,  0], [ 4,  9,  3], [ 1,  9,  4], [ 1, 10,  2], \
-        [ 4, 10,  1],[ 5, 10,  4], [ 2, 10,  5], [ 3, 11,  4], [ 6, 11,  3], [ 7, 11,  6], \
-        [ 4, 11,  7], [ 4, 12,  5], [ 7, 12,  4], [ 8, 12,  7], [ 5, 12,  8]]
-
         from numpy import array
-        true_triangles_win_4 = array([[ 4,  9,  3],
-            [ 1,  9,  4],
-            [ 4, 10,  1],
-            [ 5, 10,  4],
-            [ 4, 11,  7],
-            [ 4, 12,  5],
-            [ 7, 12,  4],
-            [ 8, 12,  7],
-            [ 0,  9,  1],
-            [ 3,  9,  0],
-            [ 1, 10,  2],
-            [ 2, 10,  5],
-            [ 3, 11,  4],
-            [ 6, 11,  3],
-            [ 7, 11,  6],
-            [ 5, 12,  8]])
+
+        true_triangles_5 = array([[0,  9,  1],
+                                  [3,  9,  0],
+                                  [4,  9,  3],
+                                  [1,  9,  4],
+                                  [1, 10,  2],
+                                  [4, 10,  1],
+                                  [5, 10,  4],
+                                  [2, 10,  5],
+                                  [3, 11,  4],
+                                  [6, 11,  3],
+                                  [7, 11,  6],
+                                  [4, 11,  7],
+                                  [4, 12,  5],
+                                  [7, 12,  4],
+                                  [8, 12,  7],
+                                  [5, 12,  8]])
+
+
+        true_triangles_win_4 = array([[4,  9,  3],
+                                      [1,  9,  4],
+                                      [4, 10,  1],
+                                      [5, 10,  4],
+                                      [4, 11,  7],
+                                      [4, 12,  5],
+                                      [7, 12,  4],
+                                      [8, 12,  7],
+                                      [0,  9,  1],
+                                      [3,  9,  0],
+                                      [1, 10,  2],
+                                      [2, 10,  5],
+                                      [3, 11,  4],
+                                      [6, 11,  3],
+                                      [7, 11,  6],
+                                      [5, 12,  8]])
+
+        true_triangles_5_part_mesh = array([[4,  9,  3],
+                                            [1,  9,  4],
+                                            [1, 10,  2],
+                                            [4, 10,  1],
+                                            [5, 10,  4],
+                                            [2, 10,  5],
+                                            [3, 11,  4],
+                                            [4, 11,  7],
+                                            [4, 12,  5],
+                                            [0,  9,  1],
+                                            [3,  9,  0],
+                                            [6, 11,  3],
+                                            [7, 11,  6],
+                                            [7, 12,  4],
+                                            [8, 12,  7],
+                                            [5, 12,  8]])
 
         assert num.allclose(nodes,true_nodes)
-        assert num.allclose(triangles,true_triangles_4) or num.allclose(triangles,true_triangles_5) or num.allclose(triangles,true_triangles_win_4)
 
+        #pprint(triangles)
+        assert num.allclose(triangles, true_triangles_4) or \
+            num.allclose(triangles, true_triangles_5) or \
+            num.allclose(triangles, true_triangles_win_4) or \
+            num.allclose(triangles, true_triangles_5_part_mesh)
 
-        assert num.allclose(triangles_per_proc,[8,8])
+        #print(triangles_per_proc)
+        assert num.allclose(triangles_per_proc,[8,8]) or num.allclose(triangles_per_proc,[9,7])
 
 
 

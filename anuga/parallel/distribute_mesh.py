@@ -38,7 +38,7 @@ except:
     from . import config as config
 
 import pymetis
-METIS=5
+metis_version='5_part_mesh'
 
 verbose = False
 
@@ -157,12 +157,11 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
     n_tri = len(domain.triangles)
     if n_procs != 1:  # Because metis chokes on it...
-        if METIS == 4:
+        if metis_version == 4:
             n_vert = domain.get_number_of_nodes()
             t_list2 = domain.triangles.copy()
             t_list = num.reshape(t_list2, (-1,))
             # The 1 here is for triangular mesh elements.
-            # FIXME: Should update to Metis 5
             edgecut, epart, npart = partMeshNodal(n_tri, n_vert, t_list, 1, n_procs)
             # print edgecut
             # print npart
@@ -170,7 +169,15 @@ def pmesh_divide_metis_helper(domain, n_procs):
             del edgecut
             del npart
 
-        if METIS == 5:
+            domain.metis_version = metis_version
+
+        if metis_version == "5_part_mesh":
+            
+            objval, epart, npart = pymetis.part_mesh(n_procs, domain.triangles)
+
+            domain.metis_version = metis_version
+
+        if metis_version == 5:
             # build adjacency list
             # neighbours uses negative integer-indices to denote boudary edges.
             # pymetis totally cant handle that, so we have to delete these.
@@ -185,9 +192,11 @@ def pmesh_divide_metis_helper(domain, n_procs):
 
             cutcount, partvert = pymetis.part_graph(n_procs, neigh)
 
-            # print "cutcount: ",cutcount
-            # print "partvert: ",len(partvert)
             epart = partvert
+
+            domain.metis_version = metis_version
+
+
 
         # Sometimes (usu. on x86_64), partMeshNodal returns an array of zero
         # dimensional arrays. Correct this.

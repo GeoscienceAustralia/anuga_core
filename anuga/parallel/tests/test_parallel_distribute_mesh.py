@@ -55,14 +55,14 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
         # Run in parallel on 3 processes
         # --------------------
 
-        cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
+        cmd = 'mpiexec -np 3 ' + extra_options + ' python -u ' + run_filename
         if verbose:
             print(cmd)
 
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
-            print(result.stdout)
-            print(result.stderr)
+            print(result.stdout.decode('UTF-8'))
+            print(result.stderr.decode('UTF-8'))
             raise Exception(result.stderr)
 
         if verbose:
@@ -73,7 +73,6 @@ class Test_parallel_distribute_mesh(unittest.TestCase):
         pass
 
     def test_that_sequential_and_parallel_outputs_are_identical(self):
-
         pass
            
 if __name__ == "__main__":

@@ -34,6 +34,7 @@ refinement_factor = 100
 sqrtN = int((numprocs)**(1.0/2.0)*refinement_factor)
 
 sqrtN = 500
+
 length = 2.0
 width = 2.0
 yieldstep = 0.01
@@ -152,11 +153,16 @@ if verbose:
             sys.stdout.flush()
 
 
-if domain.number_of_global_triangles < 50:
+if domain.number_of_global_triangles < 500:
     if myid == 0 :
         print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
-    domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
+    #domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
+if domain.number_of_triangles < 1000:
+    domain.dump_local_triangulation()
+
+
+barrier()
 
 if myid == 0:
     print(50*'=')
