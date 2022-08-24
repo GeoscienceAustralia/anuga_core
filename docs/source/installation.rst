@@ -57,7 +57,7 @@ If you don't have `wget` you can install it via:
     sudo apt-get update -q
     sudo apt-get install wget git
     
-Once `Miniforge` is installed, we can now create an environment to run `anuga'. 
+Once `Miniforge` is installed, we can now create an environment to run `anuga`. 
     
 Create a conda environment `anuga_env` (or what ever name you like):
 
@@ -73,7 +73,7 @@ On some systems you may need to manually install `mpi4py` to match the version o
 
 This has setup a `conda` environment for `anuga` using python 3.8. (`anuga` has be tested on 3.7, 3.8. 3.9.)    
 
-We are now ready to use `anuga'. 
+We are now ready to use `anuga`. 
 
 You can test your installation via:
 

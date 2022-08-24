@@ -14,9 +14,9 @@ ANUGA is a python 3 package with some C and Cython extensions (and an optional f
 ANUGA is developed at Geoscience Australia, Mathematical Sciences Institute 
 at the Australian National University and volunteers.
 
-Althought ANUGA was created in a collaboration by Geoscience Australia 
-and Mathematical Sciences Institute at the Australian National University, 
-it is now developed and maintained by a community of volunteers.
+ANUGA was created in a collaboration by Geoscience Australia 
+and Mathematical Sciences Institute at the Australian National University. 
+It is now developed and maintained by a community of volunteers.
 
 .. note::
 

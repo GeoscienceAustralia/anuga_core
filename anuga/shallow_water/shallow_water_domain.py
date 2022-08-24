@@ -34,6 +34,7 @@ Description:
     The quantities are
 
     symbol    variable name    explanation
+
     x         x                horizontal distance from origin [m]
     y         y                vertical distance from origin [m]
     z         elevation        elevation of bed on which flow is modelled [m]
@@ -43,7 +44,7 @@ Description:
     v                          speed in the y direction [m/s]
     uh        xmomentum        momentum in the x direction [m^2/s]
     vh        ymomentum        momentum in the y direction [m^2/s]
-
+                             
     eta                        mannings friction coefficient [to appear]
     nu                         wind stress coefficient [to appear]
 
@@ -155,19 +156,49 @@ class Domain(Generic_Domain):
 
     The quantities are
 
-    symbol    variable name    explanation
-    x         x                horizontal distance from origin [m]
-    y         y                vertical distance from origin [m]
-    z         elevation        elevation of bed on which flow is modelled [m]
-    h         height           water height above z [m]
-    w         stage            absolute water level, w = z+h [m]
-    u                          speed in the x direction [m/s]
-    v                          speed in the y direction [m/s]
-    uh        xmomentum        momentum in the x direction [m^2/s]
-    vh        ymomentum        momentum in the y direction [m^2/s]
+    .. list-table::
+        :widths: 25 25 50
+        :header-rows: 1
 
-    eta                        mannings friction coefficient [to appear]
-    nu                         wind stress coefficient [to appear]
+        * - symbol
+          - variable name
+          - explanation
+        * - x
+          - x
+          - horizontal distance from origin [m]
+        * - y
+          - y
+          - vertical distance from origin [m] 
+        * - z
+          - elevation
+          - elevation of bed on which flow is modelled [m]
+        * - h
+          - height
+          - water height above z [m]
+        * - w
+          - stage
+          - absolute water level, w = z+h [m]
+        * - u
+          -
+          - speed in the x direction [m/s]
+        * - v
+          - 
+          - speed in the y direction [m/s]
+        * - uh
+          - xmomentum
+          - momentum in the x direction [m^2/s]
+        * - vh
+          - ymomentum
+          - momentum in the y direction [m^2/s]
+        * -
+          - 
+          -
+        * - eta
+          - 
+          - mannings friction coefficient [to appear]
+        * - nu
+          - 
+          - wind stress coefficient [to appear]
 
     The conserved quantities are w, uh, vh
 
@@ -1181,8 +1212,8 @@ class Domain(Generic_Domain):
         >>> ACST = ZoneInfo('Australia/Adelaide')
         >>> domain.set_timezone(ACST)
         >>> 
-        >>> AEST = pytz.timezone('Australia/Sydney')
-        >>> dt = AEST.localize(datetime(2021,3,21,18,30))
+        >>> AEST = ZoneInfo('Australia/Sydney')
+        >>> dt = datetime(2021,3,21,18,30, tzinfo=AEST)
         >>> 
         >>> domain.set_starttime(dt)
         >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
