@@ -20,7 +20,7 @@ build_script:
   - CMD: SET
   - conda config --set always_yes yes
   - conda update conda
-  - conda install -c conda-forge python=3.8 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm backports.zoneinfo pymetis brotlipy mpi4py msmpi Pmw pytz libpython m2w64-toolchain
+  - conda install -c conda-forge python=3.8 numpy gdal pytest meshpy cython scipy netcdf4=1.5.6 matplotlib dill future gitpython utm backports.zoneinfo pymetis brotlipy mpi4py msmpi Pmw pytz libpython m2w64-toolchain
   - python --version
   - cp windows_setup.cfg setup.cfg
   # install locally so that the pytest will work

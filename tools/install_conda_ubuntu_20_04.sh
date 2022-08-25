@@ -23,8 +23,8 @@ echo "#==========================="
 echo "# Create conda environment anuga_env"
 echo "#==========================="
 conda update --yes conda
-conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 \
-    pytest nose matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis meshpy
+conda create -n anuga_env --yes python=3.8 pip wheel scipy numpy cython netcdf4 backports.zoneinfo
+    pytest nose matplotlib gdal dill future gitpython mpi4py utm Pmw pymetis meshpy
 conda activate anuga_env 
 
 
@@ -38,4 +38,5 @@ echo "# pip install -e ."
 echo "# and then test via"
 echo "# pytest"
 echo "#==========================="
+
 
