@@ -31,10 +31,11 @@ run_filename = os.path.join(path, 'run_parallel_distribute_mesh.py')
 
 
 
-@pytest.mark.skipif('mpi4py' not in sys.modules,
-                    reason="requires the mpi4py module")
+#@pytest.mark.skipif('mpi4py' not in sys.modules,
+#                    reason="requires the mpi4py module")
 #@pytest.mark.skipif(True,
 #                    reason="problem with metis 5 test with pymetis")
+@pytest.mark.xfail
 class Test_parallel_distribute_mesh(unittest.TestCase):
     def setUp(self):
 
