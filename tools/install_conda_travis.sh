@@ -47,7 +47,7 @@ conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill future gitpython pytz Pmw pymetis utm mpi4py
+conda create -n anuga_env -c conda-forge --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill future gitpython backports.zoneinfo Pmw pymetis utm mpi4py
 
 source activate anuga_env
 
