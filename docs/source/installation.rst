@@ -21,6 +21,8 @@ ANUGA requires python 3.X (X>6) and the following python packages:
   numpy scipy matplotlib pytest cython netcdf4 dill future gdal \
   pyproj pymetis triangle Pmw mpi4py pytz ipython  meshpy Pmw pymetis utm
 
+and `backport.zoneinfo` if using `python <= 3.8`.
+
 ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production environment
 (though ANUGA can be installed on MacOS and Windows using `Miniconda` or `MiniForge`) 
 
@@ -55,9 +57,9 @@ If you don't have `wget` you can install it via:
 .. code-block:: bash
 
     sudo apt-get update -q
-    sudo apt-get install wget git
+    sudo apt-get install wget
     
-Once `Miniforge` is installed, we can now create an environment to run `anuga'. 
+Once `Miniforge` is installed, we can now create an environment to run ANUGA. 
     
 Create a conda environment `anuga_env` (or what ever name you like):
 
@@ -71,14 +73,15 @@ Note we have also installed `mpi4py` to allow anuga to run in parallel.
 On some systems you may need to manually install `mpi4py` to match the version of `mpi` you are using.
 
 
-This has setup a `conda` environment for `anuga` using python 3.8. (`anuga` has be tested on 3.7, 3.8. 3.9.)    
+This has setup a `conda` environment `anuga_env` using python 3.8. (ANUGA has be tested on 3.7, 3.8. 3.9.)    
 
-We are now ready to use `anuga'. 
+We are now ready to use ANUGA. 
 
 You can test your installation via:
 
 .. code-block:: bash
 
+    conda activate anuga_env
     python -c "import anuga; anuga.test()"
 
 
@@ -87,7 +90,7 @@ You can test your installation via:
 Ubuntu Install with MiniForge3 and pip
 --------------------------------------
 
-Once you have a python environment it is also possible to install `anuga` via `pip`:
+Once you have a python environment it is also possible to install ANUGA via `pip`:
 
 .. code-block:: bash
 
@@ -106,7 +109,7 @@ You can test your installation via:
 Ubuntu Install with MiniForge3 from github
 ------------------------------------------
 
-Alternatively you can the most current version of `anuga`` from GitHub
+Alternatively you can the most current version of ANUGA from GitHub
 
 .. code-block:: bash
 
@@ -120,11 +123,11 @@ via the command:
 
 .. code-block:: bash
     
-    conda activate anuga_env`
+    conda activate anuga_env
 
 You might even like to set this up in your `.bashrc` file. 
 
-Installing GDAl on Ubuntu using apt and pip
+Installing GDAL on Ubuntu using apt and pip
 -------------------------------------------
 
 ANUGA can be installed using `pip`, but a complication arise when installing 
@@ -163,7 +166,7 @@ So in this case we install the `gdal` python package as follows
 
     pip install gdal==3.0.4
 
-Now we complete the installation of `anuga` simply by:
+Now we complete the installation of ANUGA simply by:
 
 .. code-block:: bash
 
@@ -175,7 +178,7 @@ running the `pip install anuga` again
 Installing on Ubuntu using apt and pip
 ---------------------------------------
 
-You can install the `anuga` dependencies via a  combination of the 
+You can install the ANUGA dependencies via a  combination of the 
 standard ubuntu ``apt`` method and python pip install.
 
 From your home directory run the following commands which will download anuga 
@@ -184,14 +187,14 @@ to a directory `anuga_core`, install dependencies, install anuga and run the uni
 .. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
-    sudo bash anuga_core/tools/install_ubuntu_20_04.sh
+    bash anuga_core/tools/install_ubuntu_20_04.sh
 
 Note: Part of the bash shell will run as 
-sudo so will ask for a password. If you like you can run the package installs manually, 
-run the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``. 
+sudo so will ask for a password. If you don't like this, you can run the package installs manually, 
+see the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``. 
 
 This script also creates a python3 virtual environment `anuga_env`. You should activate this 
-virtual environment when working with `anuga`, via the command:
+virtual environment when working with ANUGA, via the command:
 
 .. code-block:: bash
 
@@ -232,7 +235,7 @@ Then just use your preferred ubuntu install described above.
 Windows Installation using MiniForge
 ------------------------------------
 
-We have installed `anuga` on `windows` using miniforge.  
+We have installed ANUGA on `windows` using miniforge.  
 
 You can download MiniForge manually 
 from the MiniForge site https://github.com/conda-forge/miniforge:
