@@ -217,6 +217,7 @@ version and then reinstalling via the following commands:
   pip install -e .
 
 And finally check the newinstallation by running the unit tests via:
+
 .. code-block:: bash
 
   python runtests.py -n 
