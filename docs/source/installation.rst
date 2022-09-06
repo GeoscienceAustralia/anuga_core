@@ -85,6 +85,62 @@ You can test your installation via:
     python -c "import anuga; anuga.test()"
 
 
+Ubuntu Install with MiniForge with git repository
+-------------------------------------------------
+
+If you want to use the very latest version of ANUGA within a `conda` environment then we need
+to download the `git` version of ANUGA.
+
+First install the latest version of `Miniforge` from  https://github.com/conda-forge/miniforge or
+use, for instance, `wget` to download the latest version via:
+
+.. code-block:: bash
+
+    wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+    bash Miniforge3.sh
+
+and now create a `conda` environment with ANUGA's dependencies
+
+.. code-block:: bash
+
+    conda create -n anuga_env python=3.8 gxx pip wheel scipy numpy cython netcdf4 backports.zoneinfo pytest nose matplotlib gdal dill future gitpython mpi4py utm Pmw backports.zoneinfo pymetis meshpy 
+    conda activate anuga_env
+
+Now we need to download the ANUGA source code from `github`
+
+.. code-block:: bash
+
+    git clone https://github.com/anuga-community/anuga_core.git
+    cd anuga_core
+    pip install -e .
+
+This installs ANUGA "inplace" so you should be able to change code in the `anuga_core` directories. 
+
+Finally it is sensible to test the installation.
+
+.. code-block:: bash
+
+    # from directory anuga_core
+    python runtests.py -n
+
+Updating
+~~~~~~~~
+
+From time to time you might like to update your version of anuga to the latest version on 
+github. You can do this by going to the `anuga_core` directory and `pulling` the latest
+version and then reinstalling via the following commands:
+ 
+.. code-block:: bash
+
+  cd anuga_core
+  git pull
+  pip install -e .
+
+And finally check the new installation by running the unit tests via:
+
+.. code-block:: bash
+
+  python runtests.py -n 
 
 
 Ubuntu Install with MiniForge3 and pip
@@ -216,7 +272,7 @@ version and then reinstalling via the following commands:
   git pull
   pip install -e .
 
-And finally check the newinstallation by running the unit tests via:
+And finally check the new installation by running the unit tests via:
 
 .. code-block:: bash
 
