@@ -186,7 +186,7 @@ if myid == 0:
     print(50*'=')
     print('numprocs, no triangles, creation_time, distribute_time, evolve_time')
     
-    msg = " %d, %d, %f, %f, %f "% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
+    msg = "%d,%d,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
     
     print(msg)
 

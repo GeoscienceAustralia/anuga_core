@@ -152,7 +152,7 @@ if verbose:
             sys.stdout.flush()
 
 
-if domain.number_of_global_triangles < 50000:
+if domain.number_of_global_triangles < 50:
     if myid == 0 :
         print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
@@ -161,7 +161,7 @@ if domain.number_of_global_triangles < 50000:
 if myid == 0:
     print(50*'=')
     print('numprocs, no triangles, creation_time, distribute_time, evolve_time')
-    msg = " %d, %d, %f, %f, %f "% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
+    msg = "%d,%d,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
     print(msg)
 
 finalize()

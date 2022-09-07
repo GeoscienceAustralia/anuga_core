@@ -38,7 +38,7 @@ import sys
 sys.excepthook = global_except_hook
 
 
-verbose = False
+verbose = True
 verbose1 = True
 
 
