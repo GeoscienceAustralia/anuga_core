@@ -186,18 +186,17 @@ You might even like to set this up in your `.bashrc` file.
 Installing GDAL on Ubuntu using apt and pip
 -------------------------------------------
 
-ANUGA can be installed using `pip`, but a complication arise when installing 
-the `gdal` package. 
+ANUGA can be installed using the python provided by the Ubuntu system and using `pip`. 
 
 First set up a python virtual environment and activate  via:
 
 .. code-block:: bash
 
     python3 -m venv anuga_env
-    course anuga_env/bin/activate
+    source anuga_env/bin/activate
 
-Now we first need to install the `gdal` python package. First install the 
-gdal library, via:
+A complication arises when installing  the `gdal` package. 
+First install the gdal library, via:
 
 .. code-block:: bash
 
@@ -231,7 +230,7 @@ Now we complete the installation of ANUGA simply by:
 If you obtain errors from `pip` regarding "not installing dependencies", it seems that that can be fixed by just 
 running the `pip install anuga` again
 
-Installing on Ubuntu using apt and pip
+Installing on Ubuntu 20.04 using script
 ---------------------------------------
 
 You can install the ANUGA dependencies via a  combination of the 
