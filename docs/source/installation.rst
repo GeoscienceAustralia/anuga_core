@@ -165,7 +165,7 @@ You can test your installation via:
 Ubuntu Install with MiniForge3 from github
 ------------------------------------------
 
-Alternatively you can the most current version of ANUGA from GitHub
+Alternatively you can get the most current version of ANUGA from GitHub
 
 .. code-block:: bash
 
@@ -341,4 +341,4 @@ Now we complete the installation of ANUGA simply by:
     pip install anuga
 
 If you obtain errors from `pip` regarding "not installing dependencies", it seems that that can be fixed by just 
-running the `pip install anuga` again
+running the `pip install anuga` again.
