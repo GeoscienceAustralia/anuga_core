@@ -8,20 +8,20 @@
 # License: 3-clause BSD
 
 
-set -e
-
 
 echo "#==========================="
 echo "# Install miniforge"
 echo "#==========================="
 if [[ -f "Miniforge3.sh" ]]; then 
-  echo "Miniforge3.sh already exists"
+  echo "Miniforge3.sh already exists";
+  bash Miniforge3.sh -u -b
 else
-  echo "Downloading Miniforge3.sh"
-  #wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-  #bash Miniforge3.sh
+  echo "Downloading Miniforge3.sh";
+  wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh";
+  bash Miniforge3.sh -b -u;
 fi
 
+source miniforge3/bin/activate
 
 echo "#==========================="
 echo "# Create conda environment anuga_env"
