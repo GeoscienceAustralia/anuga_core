@@ -230,23 +230,31 @@ Now we complete the installation of ANUGA simply by:
 If you obtain errors from `pip` regarding "not installing dependencies", it seems that that can be fixed by just 
 running the `pip install anuga` again
 
-Installing on Ubuntu 20.04 using script
----------------------------------------
+Installing on Ubuntu 20.04 and 22_04 using script
+-------------------------------------------------
 
 You can install the ANUGA dependencies via a  combination of the 
 standard ubuntu ``apt`` method and python pip install.
 
-From your home directory run the following commands which will download anuga 
-to a directory `anuga_core`, install dependencies, install anuga and run the unit tests:
+From your home directory run the following command which will download anuga 
+to a directory `anuga_core`:
 
 .. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
-    bash anuga_core/tools/install_ubuntu_20_04.sh
+
+Then the following will install dependencies, installs anuga and runs the unit tests:
+
+.. code-block:: bash
+
+    bash anuga_core/tools/install_ubuntu.sh
+
+Note: This generic script will only work for Ubuntu 20_04 and 22_04
 
 Note: Part of the bash shell will run as 
 sudo so will ask for a password. If you don't like this, you can run the package installs manually, 
-see the commands in the script ``anuga_core/tools/install_ubuntu_20._04.sh``. 
+see the commands in the scripts ``anuga_core/tools/install_ubuntu_20._04.sh`` 
+or ``anuga_core/tools/install_ubuntu_22._04.sh`` as appropriate.  
 
 This script also creates a python3 virtual environment `anuga_env`. You should activate this 
 virtual environment when working with ANUGA, via the command:
