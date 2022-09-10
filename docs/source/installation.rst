@@ -183,73 +183,28 @@ via the command:
 
 You might even like to set this up in your `.bashrc` file. 
 
-Installing GDAL on Ubuntu using apt and pip
--------------------------------------------
 
-ANUGA can be installed using the python provided by the Ubuntu system and using `pip`. 
-
-First set up a python virtual environment and activate  via:
-
-.. code-block:: bash
-
-    python3 -m venv anuga_env
-    source anuga_env/bin/activate
-
-A complication arises when installing  the `gdal` package. 
-First install the gdal library, via:
-
-.. code-block:: bash
-
-   sudo apt-get install -y gdal-bin libgdal-dev
-
-We need to ascertain the version of  `gdal` installed using the following command: 
-
-.. code-block:: bash
-
-    ogrinfo --version
-
-THe version of `gdal` to install via `pip` should match the version of the library. 
-For instance on Ubuntu 20.04 the previous command produces:
-
-.. code-block:: bash
-
-    GDAL 3.0.4, released 2020/01/28
-
-So in this case we install the `gdal` python package as follows
-
-.. code-block:: bash
-
-    pip install gdal==3.0.4
-
-Now we complete the installation of ANUGA simply by:
-
-.. code-block:: bash
-
-    pip install anuga
-
-If you obtain errors from `pip` regarding "not installing dependencies", it seems that that can be fixed by just 
-running the `pip install anuga` again
 
 Installing on Ubuntu 20.04 and 22_04 using script
 -------------------------------------------------
 
-You can install the ANUGA dependencies via a  combination of the 
-standard ubuntu ``apt`` method and python pip install.
+For Ubuntu 20.04 and 22.04 you can install ANUGA and its dependencies into a python virtual environment via 
+a simple `bash` script.
 
-From your home directory run the following command which will download anuga 
+First from your home directory run the following command which will download anuga 
 to a directory `anuga_core`:
 
 .. code-block:: bash
 
     git clone https://github.com/anuga-community/anuga_core.git
 
-Then the following will install dependencies, installs anuga and runs the unit tests:
+Then the following will install dependencies, install anuga and run the unit tests:
 
 .. code-block:: bash
 
     bash anuga_core/tools/install_ubuntu.sh
 
-Note: This generic script will only work for Ubuntu 20_04 and 22_04
+Note: This script will only work for Ubuntu 20_04 and 22_04.
 
 Note: Part of the bash shell will run as 
 sudo so will ask for a password. If you don't like this, you can run the package installs manually, 
@@ -261,7 +216,7 @@ virtual environment when working with ANUGA, via the command:
 
 .. code-block:: bash
 
-    source ~/anuga_env/bin/activate
+    source ~/anuga_core/anuga_env/bin/activate
 
 You might like to add this command to your `.bashrc` file to automatically activate this 
 python environment. 
@@ -273,6 +228,14 @@ From time to time you might like to update your version of anuga to the latest v
 github. You can do this by going to the `anuga_core` directory and `pulling` the latest
 version and then reinstalling via the following commands:
  
+ Activate the environment if necessary:
+
+.. code-block:: bash
+
+    source ~/anuga_core/anuga_env/bin/activate
+
+Then update ANUGA to latest version:
+
 .. code-block:: bash
 
   cd anuga_core
@@ -333,3 +296,49 @@ You can test your installation via:
     python -c "import anuga; anuga.test()"
 
     
+Installing GDAL on Ubuntu using apt and pip
+-------------------------------------------
+
+ANUGA can be installed using the python provided by the Ubuntu system and using `pip`. 
+
+First set up a python virtual environment and activate  via:
+
+.. code-block:: bash
+
+    python3 -m venv anuga_env
+    source anuga_env/bin/activate
+
+A complication arises when installing  the `gdal` package. 
+First install the gdal library, via:
+
+.. code-block:: bash
+
+   sudo apt-get install -y gdal-bin libgdal-dev
+
+We need to ascertain the version of  `gdal` installed using the following command: 
+
+.. code-block:: bash
+
+    ogrinfo --version
+
+THe version of `gdal` to install via `pip` should match the version of the library. 
+For instance on Ubuntu 20.04 the previous command produces:
+
+.. code-block:: bash
+
+    GDAL 3.0.4, released 2020/01/28
+
+So in this case we install the `gdal` python package as follows
+
+.. code-block:: bash
+
+    pip install gdal==3.0.4
+
+Now we complete the installation of ANUGA simply by:
+
+.. code-block:: bash
+
+    pip install anuga
+
+If you obtain errors from `pip` regarding "not installing dependencies", it seems that that can be fixed by just 
+running the `pip install anuga` again
