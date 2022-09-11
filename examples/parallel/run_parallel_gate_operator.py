@@ -10,14 +10,8 @@ import sys
 import anuga
 import time
 
-
-from math import pi, pow, sqrt
-
+from math import pi
 import numpy as num
-
-from anuga import distribute, myid, numprocs, finalize, barrier
-
-from anuga import Inlet_operator, Boyd_box_operator
 
 
 
@@ -62,34 +56,31 @@ width = 15.
 dx = dy = 0.5          # Resolution: Length of subdivisions on both axes
 
 
-if myid == 0:
+if anuga.myid == 0:
 
-    points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
-                                                         int(width/dy),
-                                                         len1=length,
-                                                         len2=width)
-    domain = anuga.Domain(points, vertices, boundary)
-    domain.set_name()                 # Output name
+    domain = anuga.rectangular_cross_domain(int(length/dx),
+                                            int(width/dy),
+                                            len1=length,
+                                            len2=width)
+    #domain.set_name('anuga_gate_operator')     # Output name
+    domain.set_name() 
     domain.set_flow_algorithm('DE0')
     domain.set_store_vertices_uniquely(True)
     domain.set_quantity('elevation', topography)
     domain.set_quantity('friction', 0.01)         # Constant friction
     domain.set_quantity('stage',
                         expression='elevation')   # Dry initial condition
-
-
-
 else:
 
     domain = None
 
 
-domain = distribute(domain, verbose = True)
+domain = anuga.distribute(domain, verbose = True)
 
 #domain.set_store_vertices_uniquely(False)
 
 
-gate = Boyd_box_operator(domain,
+gate = anuga.Boyd_box_operator(domain,
                             end_points=[[9.0, 2.5],[13.0, 2.5]],
                             losses=1.5,
                             width=1.5,
@@ -106,7 +97,7 @@ if gate is not None:
 
 line = [[0.0, 5.0], [0.0, 10.0]]
 Q = 1.0
-in0 = Inlet_operator(domain, line, Q)
+in0 = anuga.Inlet_operator(domain, line, Q)
 
 
 
@@ -124,13 +115,13 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 ##-----------------------------------------------------------------------
 ## Evolve system through time
 ##-----------------------------------------------------------------------
-barrier()
+anuga.barrier()
 
 t0 = time.time()
 
 for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
 
-    if myid == 0:
+    if anuga.myid == 0:
         print(80*'=')
         domain.write_time()
 
@@ -150,22 +141,19 @@ for t in domain.evolve(yieldstep = 1.0, finaltime = 50):
 
         output = gate.discharge_routine()
 
-        if myid == gate.get_master_proc():
-            print('myid ', myid, s0,s1)
-            print('myid ', myid, d0,d1)
-            print('myid ', myid, e0,e1)
-            print('myid ', myid, i0,i1)
-            print('myid ', myid, w0,w1)
-
-            print('myid ',myid, output)
+        if anuga.myid == gate.get_master_proc():
+            print('myid, time ', anuga.myid, t, s0,s1)
+            print('myid, time ', anuga.myid, t, d0,d1)
+            print('myid, time ', anuga.myid, t, e0,e1)
+            print('myid, time ', anuga.myid, t, i0,i1)
+            print('myid, time ', anuga.myid, t, w0,w1)
+            print('myid, time ', anuga.myid, t, output)
 
 
             if d0 > 0.2: gate.set_culvert_height(10.0)
 
 
-
-
-barrier()
+    anuga.barrier()
 
 
 domain.sww_merge(delete_old=True)
@@ -173,11 +161,11 @@ domain.sww_merge(delete_old=True)
 
 
 
-barrier()
+anuga.barrier()
 
-for p in range(numprocs):
-    if myid == p:
-        print('Processor %g ' %myid)
+for p in range(anuga.numprocs):
+    if anuga.myid == p:
+        print('Processor %g ' % anuga.myid)
         print('That took %.2f seconds' %(time.time()-t0))
         print('Communication time %.2f seconds'%domain.communication_time)
         print('Reduction Communication time %.2f seconds'%domain.communication_reduce_time)
@@ -185,7 +173,7 @@ for p in range(numprocs):
     else:
         pass
 
-    barrier()
+    anuga.barrier()
 
 
-finalize()
+anuga.finalize()
