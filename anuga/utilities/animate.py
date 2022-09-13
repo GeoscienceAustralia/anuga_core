@@ -49,7 +49,10 @@ class Domain_plotter(object):
             self.yvel = np.where(self.depth > self.min_depth,
                              self.ymom / self.depth, 0.0)
 
-        self.speed = np.sqrt(self.xvel**2 + self.yvel**2)        
+        self.speed = np.sqrt(self.xvel**2 + self.yvel**2) 
+
+        self.speed_depth = self.speed*self.depth
+
         self.domain = domain
 
     def _depth_frame(self, figsize, dpi, vmin, vmax):
@@ -441,8 +444,13 @@ class SWW_plotter(object):
 
         self.speed = np.sqrt(self.xvel**2 + self.yvel**2)
 
+        self.speed_depth = self.speed*self.depth
+
         self.time = np.array(p.variables['time'])
 
+    #------------------------------------------
+    # Depth procedures
+    #------------------------------------------
     def _depth_frame(self, figsize, dpi, frame, vmin, vmax):
 
         import matplotlib.pyplot as plt
@@ -504,6 +512,10 @@ class SWW_plotter(object):
 
         plt.show()
 
+
+    #------------------------------------------
+    # Stage procedures
+    #------------------------------------------
     def _stage_frame(self, figsize, dpi, frame, vmin, vmax):
 
         import matplotlib.pyplot as plt
@@ -566,6 +578,139 @@ class SWW_plotter(object):
 
         plt.show()
 
+    # #------------------------------------------
+    # # Depth procedures
+    # #------------------------------------------
+    # def _depth_frame(self, figsize, dpi, frame, vmin, vmax):
+
+    #     import matplotlib.pyplot as plt
+
+    #     name = self.name
+    #     time = self.time[frame]
+    #     depth = self.depth[frame, :]
+        
+    #     md = self.min_depth
+        
+    #     try:
+    #         elev = self.elev[frame, :]
+    #     except:
+    #         elev = self.elev
+
+    #     ims = []
+
+    #     fig = plt.figure(figsize=figsize, dpi=dpi)
+
+    #     plt.title('Depth: Time {0:0>4}'.format(time))
+
+    #     self.triang.set_mask(depth > md)
+    #     plt.tripcolor(self.triang,
+    #                   facecolors=elev,
+    #                   cmap='Greys_r')
+
+    #     self.triang.set_mask(depth < md)
+    #     plt.tripcolor(self.triang,
+    #                   facecolors=depth,
+    #                   cmap='viridis',
+    #                   vmin=vmin, vmax=vmax)
+
+    #     plt.colorbar()
+
+    # def save_depth_frame(self, figsize=(10, 6), dpi=160, frame=-1,
+    #                      vmin=0.0, vmax=20.0):
+
+    #     import matplotlib.pyplot as plt
+
+    #     name = self.name
+    #     time = self.time[frame]
+    #     plot_dir = self.plot_dir
+
+    #     self._depth_frame(figsize, dpi, frame, vmin, vmax)
+
+    #     if plot_dir is None:
+    #         plt.savefig(name+'_depth_{0:0>10}.png'.format(int(time)))
+    #     else:
+    #         plt.savefig(os.path.join(plot_dir, name
+    #                                  + '_depth_{0:0>10}.png'.format(int(time))))
+    #     plt.close()
+
+    # def plot_depth_frame(self, figsize=(5, 3), dpi = 80, frame=-1,
+    #                      vmin=0.0, vmax=20.0):
+
+    #     import matplotlib.pyplot as plt
+
+    #     self._depth_frame(figsize, dpi, frame, vmin, vmax)
+
+    #     plt.show()
+
+    #------------------------------------------
+    # Depth Speed procedures
+    #------------------------------------------
+    def _speed_depth_frame(self, figsize, dpi, frame, vmin, vmax):
+
+        import matplotlib.pyplot as plt
+
+        name = self.name
+        time = self.time[frame]
+        stage = self.stage[frame, :]
+        speed_depth = self.speed_depth[frame, :]
+        depth = self.depth[frame, :]
+        
+        md = self.min_depth
+        
+        try:
+            elev = self.elev[frame, :]
+        except:
+            elev = self.elev
+
+        ims = []
+
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+
+        plt.title('Speed_Depth: Time {0:0>4}'.format(time))
+
+        self.triang.set_mask(depth > md)
+        plt.tripcolor(self.triang,
+                      facecolors=speed_depth,
+                      cmap='Greys_r')
+
+        self.triang.set_mask(depth < md)
+        plt.tripcolor(self.triang,
+                      facecolors=elev,
+                      cmap='viridis',
+                      vmin=vmin, vmax=vmax)
+
+        plt.colorbar()
+
+    def save_speed_depth_frame(self, figsize=(10, 6), dpi=160, frame=-1,
+                         vmin=-20.0, vmax=20.0):
+
+        import matplotlib.pyplot as plt
+
+        name = self.name
+        time = self.time[frame]
+        plot_dir = self.plot_dir
+
+        self._speed_depth_frame(figsize, dpi, frame, vmin, vmax)
+
+        if plot_dir is None:
+            plt.savefig(name+'_speed_depth_{0:0>10}.png'.format(int(time)))
+        else:
+            plt.savefig(os.path.join(plot_dir, name
+                                     + '_speed_depth_{0:0>10}.png'.format(int(time))))
+        plt.close()
+
+    def plot_speed_depth_frame(self, figsize=(5, 3), dpi=80, frame=-1,
+                         vmin=-20, vmax=20.0):
+
+        import matplotlib.pyplot as plt
+
+        self._speed_depth_frame(figsize, dpi, frame, vmin, vmax)
+
+        plt.show()
+
+    #------------------------------------------
+    # Speed procedures
+    #------------------------------------------
     def _speed_frame(self, figsize, dpi, frame, vmin, vmax):
 
         import matplotlib.pyplot as plt
@@ -628,6 +773,10 @@ class SWW_plotter(object):
 
         plt.show()
 
+
+    #------------------------------------------
+    # Animation procedures
+    #------------------------------------------
     def make_depth_animation(self):
 
         return self._make_quantity_animation(quantity='depth')
@@ -639,6 +788,11 @@ class SWW_plotter(object):
     def make_stage_animation(self):
 
         return self._make_quantity_animation(quantity='stage')
+
+    def make_speed_depth_animation(self):
+
+        return self._make_quantity_animation(quantity='speed_depth')
+
 
     def _make_quantity_animation(self, quantity='depth'):
 

@@ -179,6 +179,8 @@ for p in range(numprocs):
     barrier()
 
 
+domain.sww_merge(delete_old=True) 
+
 finalize()
 
 

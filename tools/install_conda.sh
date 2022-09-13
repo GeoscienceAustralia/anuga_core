@@ -26,17 +26,14 @@ sudo apt-get install gfortran git wget
 # conda-based environment instead
 deactivate || echo "deactivate failed"
 
-# Use the miniconda installer for faster download
-# install of conda itself
-if [[ "$ANUGA_BITS" == "64" ]]; then
-    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh ;
-fi
-if [[ "$ANUGA_BITS" == "32" ]]; then
-    wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86.sh -O miniconda.sh ;
-fi
-chmod +x miniconda.sh && ./miniconda.sh -b
 
-export PATH=/home/travis/miniconda2/bin:$PATH
+echo "#==========================="
+echo "# Install miniforge"
+echo "#==========================="
+wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+bash Miniforge3.sh
+
+#export PATH=/home/travis/miniconda2/bin:$PATH
 
 ls
 
@@ -44,38 +41,27 @@ ls ..
 
 echo $PATH
 
+echo "#==========================="
+echo "# Create conda environment anuga_env"
+echo "#==========================="
+
 conda update --yes conda
 
 # Configure the conda environment and put it in the path using the
 # provided versions
-conda create -n anuga_env -c conda-forge --yes python=3.8 pip numpy scipy cython netcdf4 \
-    nose matplotlib gdal dill future gitpython mpi4py pytz utm Pmw pymetis
+conda create -n anuga_env --yes python=3.8 pip numpy scipy cython netcdf4 \
+    nose matplotlib gdal dill future gitpython mpi4py backports.zoneinfo utm Pmw pymetis meshpy
 
 source activate anuga_env
-pip install triangle
-
-# python 2.6 doesn't have argparse by default
-if [[ "$PYTHON_VERSION" == "2.6" ]]; then conda install --yes argparse; fi
-
-export GDAL_DATA=`gdal-config --datadir`;
-
-# Install more software to deal with geographical projections
-#pip install pyproj
-
-# Install pypar if parallel set
-# if [[ "$ANUGA_PARALLEL" == "mpich2" || "$ANUGA_PARALLEL" == "openmpi" ]]; then
-#     git clone https://github.com/daleroberts/pypar.git;
-#     pushd pypar;
-#     python setup.py install;
-#     popd;
-# fi
 
 # Useful for debugging any issues with conda
 conda info -a
 
+echo "#==========================="
+echo "# Installing anuga from the anuga_core directory"
+echo "# and then run unittests"
+echo "#==========================="
 
-#########################################################
-# Build and install anuga
-
-python setup.py build
-python setup.py install
+cd "$(dirname "${BASH_SOURCE[0]}")"/..
+pip install -e .
+python runtests.py -n

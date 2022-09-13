@@ -126,7 +126,7 @@ for p in range(numprocs):
 """
 
 
-domain.dump_triangulation()
+#domain.dump_triangulation()
 
 #------------------------------------------------------------------------------
 # Evolution
@@ -174,6 +174,8 @@ for p in range(numprocs):
 
     barrier()
 
+
+domain.sww_merge(delete_old=True)
 
 finalize()
 

@@ -1,21 +1,23 @@
-import os.path
+
 import sys
 
 
 import anuga
 
-from anuga import myid, numprocs, finalize, barrier
-from anuga import Inlet_operator, Boyd_box_operator
-
-
-
 
 """
 This test exercises the parallel culvert
 """
+
+if anuga.numprocs == 4:
+    if anuga.myid == 0:
+        print(50*'=')
+        print('Problem with running this example with 4 processes')
+        print('Try with a different number of processes')
+        print(50*'=')
+    sys.exit()
+
 verbose = True
-
-
 
 length = 40.
 width = 16.
@@ -59,15 +61,14 @@ def topography(x, y):
 ##-----------------------------------------------------------------------
 ## Setup domain
 ##-----------------------------------------------------------------------
-if myid == 0:
-    points, vertices, boundary = anuga.rectangular_cross(int(length/dx),
+if anuga.myid == 0:
+    domain = anuga.rectangular_cross_domain(int(length/dx),
                                                    int(width/dy),
                                                    len1=length,
                                                    len2=width)
 
-    domain = anuga.Domain(points, vertices, boundary)
     domain.set_name()                 # Output name output_script_name.sww
-    #domain.set_flow_algorithm('1_5')
+    #domain.set_flow_algorithm('DE_0')
 else:
     domain = None
 
@@ -96,7 +97,7 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
 
 
-    ################ Define Fractional Operators ##########################
+################ Define Fractional Operators ##########################
 line0 = [[10.0, 10.0], [30.0, 10.0]]
 #line0 = [[29.0, 10.0], [30.0, 10.0]]
 poly1 = [[0.0, 10.0], [0.0, 15.0], [5.0, 15.0], [5.0, 10.0]]
@@ -110,12 +111,12 @@ inlet0 = None
 inlet1 = None
 boyd_box0 = None
 
-inlet0 = Inlet_operator(domain, line0, Q0, logging=True, description='inlet0', verbose = False)
-inlet1 = Inlet_operator(domain, poly1, Q1, logging=True, description='inlet1', verbose = False)
+inlet0 = anuga.Inlet_operator(domain, line0, Q0, logging=True, description='inlet0', verbose = False)
+inlet1 = anuga.Inlet_operator(domain, poly1, Q1, logging=True, description='inlet1', verbose = False)
 
-# Enquiry point [ 19.    2.5] is contained in two domains in 4 proc case
+# Enquiry point [ 19., 2.5] is contained in two domains in 4 proc case
 
-boyd_box0 = Boyd_box_operator(domain,
+boyd_box0 = anuga.Boyd_box_operator(domain,
                               end_points=[[9.0, 2.5],[19.0, 2.5]],
                               losses=1.5,
                               width=5.0,
@@ -132,7 +133,7 @@ boyd_box0 = Boyd_box_operator(domain,
 #if boyd_box0 is not None and verbose: boyd_box0.print_statistics()
 
 sys.stdout.flush()
-barrier()
+anuga.barrier()
 
 ##-----------------------------------------------------------------------
 ## Evolve system through time
@@ -145,21 +146,21 @@ for t in domain.evolve(yieldstep = 2.0, finaltime = 20.0):
         sys.stdout.flush()
     #print domain.volumetric_balance_statistics()
 
-    barrier()
+    anuga.barrier()
 
     stage = domain.get_quantity('stage')
 
 
     if boyd_box0 is not None and verbose :
-        #print myid
+        #print anuga.myid
         boyd_box0.print_timestepping_statistics()
         sys.stdout.flush()
 
     #for i in range(samples):
     #    if tri_ids[i] >= 0:
-    #        if verbose: print 'P%d tri %d, value = %s' %(myid, i, stage.centroid_values[tri_ids[i]])
+    #        if verbose: print 'P%d tri %d, value = %s' %(anuga.myid, i, stage.centroid_values[tri_ids[i]])
 
-    barrier()
+    anuga.barrier()
 
 ##-----------------------------------------------------------------------
 ## Assign/Test Control data
@@ -167,4 +168,4 @@ for t in domain.evolve(yieldstep = 2.0, finaltime = 20.0):
 
 domain.sww_merge(delete_old=True)
 
-finalize()
+anuga.finalize()

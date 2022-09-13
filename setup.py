@@ -50,7 +50,7 @@ if len(SETUPTOOLS_COMMANDS.intersection(sys.argv)) > 0:
                          'numpy',
                          'dill',
                          'future',
-                         'gdal >= 3.0.4'
+                         'gdal >= 3.0.4',
                          'gitpython',
                          'matplotlib',
                          'meshpy',

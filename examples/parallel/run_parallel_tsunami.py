@@ -170,4 +170,6 @@ if myid == 0:
     msg = "%d,%d,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
     print(msg)
 
+domain.sww_merge(delete_old=True)
+
 finalize()

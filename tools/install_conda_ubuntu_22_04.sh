@@ -23,7 +23,7 @@ echo "#==========================="
 echo "# Create conda environment anuga_env"
 echo "#==========================="
 conda update --yes conda
-conda create -n anuga_env python=3.8 gxx pip wheel scipy numpy cython netcdf4 backports.zoneinfo pytest nose matplotlib gdal dill future gitpython mpi4py utm Pmw pymetis meshpy
+conda create -n anuga_env python=3.10 gxx pip wheel scipy numpy cython netcdf4 pytest nose matplotlib gdal dill future gitpython utm Pmw pymetis meshpy mpi4py
 conda activate anuga_env 
 
 

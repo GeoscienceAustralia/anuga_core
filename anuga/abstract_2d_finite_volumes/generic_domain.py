@@ -1478,7 +1478,8 @@ class Generic_Domain(object):
         if name is None:
             frame = inspect.currentframe()
             script_name = inspect.getouterframes(frame)[1][1]
-            name = 'output_' + os.path.splitext(script_name)[0]
+            basename = os.path.basename(script_name)
+            name = 'output_' + os.path.splitext(basename)[0]
 
         # remove any '.sww' end
         if name.endswith('.sww'):
