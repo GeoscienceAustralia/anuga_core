@@ -85,8 +85,8 @@ def distibute_three_processors():
         from pymetis import part_graph
         metis_version = "5_part_graph"
     else:
-        from pymetis import part_mesh
-        metis_version = "5_part_mesh"
+        from pymetis import part_graph
+        metis_version = "5_part_graph"
     
 
     if myid == 0 and verbose0: print('metis version = ', metis_version)
