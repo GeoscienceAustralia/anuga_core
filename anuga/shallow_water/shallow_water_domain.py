@@ -1104,8 +1104,10 @@ class Domain(Generic_Domain):
 
         return self.timezone
 
-    def get_datetime(self):
-        """Retrieve datetime corresponding to current timestamp wrt to domain timezone"""
+    def get_datetime(self, timestamp=None):
+        """Retrieve datetime corresponding to current timestamp wrt to domain timezone
+        
+        param: timestamp: return datetime corresponding to given timestamp"""
         
         from datetime import datetime
 
@@ -1115,7 +1117,10 @@ class Domain(Generic_Domain):
             from backports.zoneinfo import ZoneInfo
 
 
-        utc_datetime = datetime.utcfromtimestamp(self.get_time()).replace(tzinfo=ZoneInfo('UTC'))
+        if timestamp is None:
+            timestamp = self.get_time()
+        
+        utc_datetime = datetime.utcfromtimestamp(timestamp).replace(tzinfo=ZoneInfo('UTC'))
         current_dt = utc_datetime.astimezone(self.timezone)
         return current_dt
 
@@ -1210,6 +1215,16 @@ class Domain(Generic_Domain):
         self.starttime = time
         # starttime is now the origin for relative_time
         self.set_relative_time(0.0)
+
+    def get_starttime(self, datetime=False):
+        """return starttime, either as timestamp, or as a datetime"""
+
+        starttime = self.starttime
+
+        if not datetime:
+            return starttime
+        else:
+            return self.get_datetime(starttime)
 
 
     def set_store(self, flag=True):
