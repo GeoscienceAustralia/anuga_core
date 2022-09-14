@@ -81,6 +81,7 @@ from future.utils import raise_
 def profileit(name):
     def inner(func):
         def wrapper(*args, **kwargs):
+            import cProfile
             prof = cProfile.Profile()
             retval = prof.runcall(func, *args, **kwargs)
             # Note use of name from outer scope
@@ -2308,7 +2309,7 @@ class Domain(Generic_Domain):
                 raise Exception('Unknown order')
         else:
             # Old code:
-            for name in domain.conserved_quantities:
+            for name in self.conserved_quantities:
                 Q = self.quantities[name]
 
                 if self._order_ == 1:
@@ -3368,7 +3369,7 @@ def distribute_using_vertex_limiter(domain):
                 raise Exception('Unknown order')
 
     # Take bed elevation into account when water heights are small
-    balance_deep_and_shallow(domain)
+    domain.balance_deep_and_shallow()
 
     # Compute edge values by interpolation
     for name in domain.conserved_quantities:
@@ -3589,7 +3590,7 @@ def depth_dependent_friction(domain, default_friction,
         elif d_vals[i] >= d2:
             ddf = n2
         else:
-            ddf = n1 + (old_div((n2-n1),(d2-d1)))*(d_vals[i]-d1)
+            ddf = n1 + ((n2-n1)/(d2-d1))*(d_vals[i]-d1)
 
         # check sanity of result
         if (ddf  < 0.010 or \

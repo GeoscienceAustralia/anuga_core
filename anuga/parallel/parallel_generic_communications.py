@@ -40,14 +40,17 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     t0 = time.time()
 
 
+    local_timestep = domain.local_timestep
+    global_timestep = domain.global_timestep
+
     #pypar.allreduce(domain.local_timestep, pypar.MIN,
     #                  buffer=domain.global_timestep,
     #                  bypass=True)
 
     from mpi4py import MPI
-    pypar.comm.Barrier()
-    pypar.comm.Allreduce(domain.local_timestep, domain.global_timestep, op=MPI.MIN)
-    pypar.comm.Barrier()
+    #pypar.comm.Barrier()
+    pypar.comm.Allreduce(local_timestep, global_timestep, op=MPI.MIN)
+    #pypar.comm.Barrier()
 
 
     domain.communication_reduce_time += time.time()-t0
@@ -75,7 +78,7 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     
     
 
-def communicate_ghosts_blocking(domain):
+def communicate_ghosts_blocking(domain, quantities=None):
 
     # We must send the information from the full cells and
     # receive the information for the ghost cells
@@ -85,6 +88,9 @@ def communicate_ghosts_blocking(domain):
     import numpy as num
     import time
     t0 = time.time()
+
+    if quantities is None:
+        quantities = domain.conserved_quantities
 
     # update of non-local ghost cells
     for iproc in range(domain.numproc):
@@ -96,7 +102,7 @@ def communicate_ghosts_blocking(domain):
                     Idf  = domain.full_send_dict[send_proc][0]
                     Xout = domain.full_send_dict[send_proc][2]
 
-                    for i, q in enumerate(domain.conserved_quantities):
+                    for i, q in enumerate(quantities):
                         #print 'Send',i,q
                         Q_cv =  domain.quantities[q].centroid_values
                         Xout[:,i] = num.take(Q_cv, Idf)
@@ -113,7 +119,7 @@ def communicate_ghosts_blocking(domain):
 
                 X = pypar.receive(int(iproc), buffer=X, bypass=True)
 
-                for i, q in enumerate(domain.conserved_quantities):
+                for i, q in enumerate(quantities):
                     #print 'Receive',i,q
                     Q_cv =  domain.quantities[q].centroid_values
                     num.put(Q_cv, Idg, X[:,i])
@@ -130,7 +136,7 @@ def communicate_ghosts_blocking(domain):
         # now store ghost as local id, global id, value
         Idg = domain.ghost_recv_dict[iproc][0]
 
-        for i, q in enumerate(domain.conserved_quantities):
+        for i, q in enumerate(quantities):
             #print 'LOCAL SEND RECEIVE',i,q
             Q_cv =  domain.quantities[q].centroid_values
             num.put(Q_cv, Idg, num.take(Q_cv, Idf))
