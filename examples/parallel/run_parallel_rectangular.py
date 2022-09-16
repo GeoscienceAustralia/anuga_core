@@ -25,6 +25,7 @@
 import time
 import sys
 import math
+import anuga
 
 
 #----------------------------
@@ -48,14 +49,38 @@ t0 = time.time()
 refinement_factor = 100
 sqrtN = int((numprocs)**(1.0/2.0)*refinement_factor)
 
-sqrtN = 500
+sqrtN = 100
 length = 2.0
 width = 2.0
 
 yieldstep = 0.005
 finaltime = 0.015
 
-verbose = False
+import argparse
+parser = argparse.ArgumentParser(description='Rectangular')
+
+parser.add_argument('-ft', '--finaltime', type=float, default=finaltime,
+                       help='finaltime')
+parser.add_argument('-ys', '--yieldstep', type=float, default=yieldstep,
+                       help='yieldstep')
+parser.add_argument('-sn', '--sqrtN', type=int, default = sqrtN,
+                   help='Size of grid: 500 -> 1_000_000 triangles')
+
+parser.add_argument('-v', '--verbose', action='store_true', help='turn on verbosity')
+
+parser.add_argument('-ve', '--evolve_verbose', action='store_true', help='turn on evolve verbosity')
+
+args = parser.parse_args()
+
+if myid == 0: print(args)
+
+sqrtN = args.sqrtN
+yieldstep = args.yieldstep
+finaltime = args.finaltime
+verbose = args.verbose
+evolve_verbose = args.evolve_verbose
+
+
 
 #--------------------------------------------------------------------------
 # Setup Domain only on processor 0
@@ -142,7 +167,7 @@ evolve_time = time.time()-t0
 if myid == 0 :
     print ('Evolve: Time',evolve_time)
 
-if verbose:
+if evolve_verbose:
     for p in range(numprocs):
         barrier()
         if myid == p:
@@ -165,8 +190,8 @@ domain.sww_merge(delete_old=True)
 
 
 if myid == 0:
-    print(50*'=')
-    print('numprocs, no triangles, creation_time, distribute_time, evolve_time')
+    print(80*'=')
+    print('np,ntri,ctime,dtime,etime')
     msg = "%d,%d,%f,%f,%f"% (numprocs, domain.number_of_global_triangles, creation_time, distribute_time, evolve_time)
     print(msg)
 
