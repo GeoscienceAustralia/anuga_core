@@ -55,10 +55,6 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
 
     domain.communication_reduce_time += time.time()-t0
 
-
-
-
-
 #    pypar.reduce(domain.local_timestep, pypar.MIN, 0,
 #                      buffer=domain.global_timestep,
 #                      bypass=True)
