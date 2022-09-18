@@ -38,7 +38,8 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     # disable allreduce if fixed_flux_timestep is set
     if domain.fixed_flux_timestep is not None:
         domain.flux_timestep = domain.fixed_flux_timestep
-        #return
+        return
+
 
     #Compute minimal timestep across all processes
     domain.local_timestep[0] = domain.flux_timestep
