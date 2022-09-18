@@ -63,14 +63,16 @@ import argparse
 parser = argparse.ArgumentParser(description='Rectangular')
 
 parser.add_argument('-ft', '--finaltime', type=float, default=finaltime,
-                       help='finaltime')
+                    help='finaltime')
 parser.add_argument('-ys', '--yieldstep', type=float, default=yieldstep,
-                       help='yieldstep')
-parser.add_argument('-sn', '--sqrtN', type=int, default = sqrtN,
-                   help='Size of grid: 500 -> 1_000_000 triangles')
+                    help='yieldstep')
+parser.add_argument('-sn', '--sqrtN', type=int, default=sqrtN,
+                    help='Size of grid: 500 -> 1_000_000 triangles')
 
-parser.add_argument('-fdt', '--fixed_dt', type=float, default = fixed_flux_timestep,
-                   help='Set a fixed flux timestep')
+parser.add_argument('-fdt', '--fixed_dt', type=float, default=fixed_flux_timestep,
+                    help='Set a fixed flux timestep')
+parser.add_argument('-ta', '--test_allreduce', type=bool, default=False,
+                    help='run fixed timestep with dummy allreduce')
 
 parser.add_argument('-v', '--verbose', action='store_true', help='turn on verbosity')
 
@@ -86,6 +88,7 @@ finaltime = args.finaltime
 verbose = args.verbose
 evolve_verbose = args.evolve_verbose
 fixed_flux_timestep = args.fixed_dt
+test_allreduce = args.test_allreduce
 
 if fixed_flux_timestep == 0.0:
     fixed_flux_timestep = None
@@ -142,7 +145,7 @@ domain.set_CFL(1.0)
 if myid == 0: 
     print('CFL ',domain.CFL)
     print('fixed_flux_timestep ',domain.fixed_flux_timestep)
-    
+domain.test_allreduce = test_allreduce
 
 t2 = time.time()
 
