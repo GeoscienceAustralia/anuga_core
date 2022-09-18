@@ -310,6 +310,8 @@ class Generic_Domain(object):
         self.set_beta(beta_w)
         self.set_evolve_max_timestep(max_timestep)
         self.set_evolve_min_timestep(min_timestep)
+        self.set_fixed_flux_timestep(None)
+
         self.boundary_map = None  # Will be populated by set_boundary
 
         # Model time
@@ -2184,6 +2186,24 @@ class Generic_Domain(object):
     def set_fractional_step_operator(self, operator):
         self.fractional_step_operators.append(operator)
 
+
+    def set_fixed_flux_timestep(self, flux_timestep=None):
+        """Disable variable timestepping and manually set a fixed flux_timestep
+        
+        :param flux_timestep: [float, None] Either set fixed flux_flux_timestep or 
+                              disable with value None"""
+
+        if flux_timestep is None:
+            self.fixed_flux_timestep = None
+            return
+
+        if flux_timestep > 0.0:
+            self.fixed_flux_timestep = flux_timestep
+            return
+        else:
+            msg = 'flux_timestep needs to be greater than 0.0'
+            raise(Exception, msg)
+
     def update_timestep(self, yieldstep, finaltime):
         """Calculate the next timestep to take
         """
@@ -2191,6 +2211,10 @@ class Generic_Domain(object):
         # Protect against degenerate timesteps arising from isolated
         # triangles
         self.apply_protection_against_isolated_degenerate_timesteps()
+
+        # disable variable timestepping
+        if self.fixed_flux_timestep is not None:
+            self.flux_timestep = self.fixed_flux_timestep
 
         # self.timestep is calculated from speed of characteristics
         # Apply CFL condition here

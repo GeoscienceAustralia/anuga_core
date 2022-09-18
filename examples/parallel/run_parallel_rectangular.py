@@ -25,6 +25,7 @@
 import time
 import sys
 import math
+from xml import dom
 import anuga
 
 
@@ -56,6 +57,8 @@ width = 2.0
 yieldstep = 0.005
 finaltime = 0.015
 
+fixed_flux_timestep = 0.0
+
 import argparse
 parser = argparse.ArgumentParser(description='Rectangular')
 
@@ -65,6 +68,9 @@ parser.add_argument('-ys', '--yieldstep', type=float, default=yieldstep,
                        help='yieldstep')
 parser.add_argument('-sn', '--sqrtN', type=int, default = sqrtN,
                    help='Size of grid: 500 -> 1_000_000 triangles')
+
+parser.add_argument('-fdt', '--fixed_dt', type=float, default = fixed_flux_timestep,
+                   help='Set a fixed flux timestep')
 
 parser.add_argument('-v', '--verbose', action='store_true', help='turn on verbosity')
 
@@ -79,6 +85,13 @@ yieldstep = args.yieldstep
 finaltime = args.finaltime
 verbose = args.verbose
 evolve_verbose = args.evolve_verbose
+fixed_flux_timestep = args.fixed_dt
+
+if fixed_flux_timestep == 0.0:
+    fixed_flux_timestep = None
+
+#print('fixed_flux_timestep ',fixed_flux_timestep)
+
 
 
 
@@ -98,6 +111,7 @@ if myid == 0:
     domain.set_quantity('stage', 1.0)
     domain.set_flow_algorithm('DE0')
     domain.set_name('sw_rectangle')
+ 
     if verbose: domain.print_statistics()
 else:
     domain = None
@@ -121,6 +135,14 @@ barrier()
 #-------------------------------------------------------------------------
 domain = distribute(domain,verbose=verbose)
 
+
+# FIXME: THis should be able to be set in the sequential domain
+domain.set_fixed_flux_timestep(fixed_flux_timestep)
+domain.set_CFL(1.0)
+if myid == 0: 
+    print('CFL ',domain.CFL)
+    print('fixed_flux_timestep ',domain.fixed_flux_timestep)
+    
 
 t2 = time.time()
 

@@ -1258,6 +1258,23 @@ class Domain(Generic_Domain):
         else:
             return self.get_datetime(starttime)
 
+    def set_fixed_flux_timestep(self, flux_timestep=None):
+        """Disable variable timestepping and manually set a fixed flux_timestep
+        
+        :param flux_timestep: [float, None] Either set fixed flux_flux_timestep or 
+                              disable with value None"""
+
+        if flux_timestep is None:
+            self.fixed_flux_timestep = None
+            return
+
+        if flux_timestep > 0.0:
+            self.fixed_flux_timestep = flux_timestep
+            return
+        else:
+            msg = 'flux_timestep needs to be greater than 0.0'
+            raise(Exception, msg)
+
 
     def set_store(self, flag=True):
         """Set whether data saved to sww file.
@@ -2646,8 +2663,8 @@ class Domain(Generic_Domain):
 
         :param float yieldstep: yield every yieldstep time period
         :param float outputstep: Output to sww file every outputstep time period. outputstep should be an integer multiple of yieldstep. 
-        :param float finaltime: evolve until finaltime (can be a float or a datetime object)
-        :param float duration: evolve for a time of length duration
+        :param float finaltime: evolve until finaltime (can be a float (secs) or a datetime object)
+        :param float duration: evolve for a time of length duration (secs)
         :param  boolean skip_inital_step: Can be used to restart a simulation (not often used). 
 
 

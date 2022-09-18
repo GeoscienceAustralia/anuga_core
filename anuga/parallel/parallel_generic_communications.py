@@ -35,6 +35,11 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
 
     import time
 
+    # disable allreduce if fixed_flux_timestep is set
+    if domain.fixed_flux_timestep is not None:
+        domain.flux_timestep = domain.fixed_flux_timestep
+        #return
+
     #Compute minimal timestep across all processes
     domain.local_timestep[0] = domain.flux_timestep
     t0 = time.time()
