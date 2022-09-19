@@ -211,7 +211,8 @@ if domain.number_of_global_triangles < 10:
         print ('Create dump of triangulation for %g triangles' % domain.number_of_global_triangles)
     domain.dump_triangulation(filename="rectangular_cross_%g.png"% numprocs)
 
-domain.sww_merge(delete_old=True)
+# to save time avoid merge
+#domain.sww_merge(delete_old=True)
 
 
 if myid == 0:
