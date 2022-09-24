@@ -28,12 +28,20 @@ def setup_buffers(domain):
     domain.communication_reduce_time = 0.0
     domain.communication_broadcast_time = 0.0
 
+    domain.calls_to_update_ghosts = 0
+    domain.calls_to_update_timestep = 0
+
 
 def communicate_flux_timestep(domain, yieldstep, finaltime):
     """Calculate local timestep
     """
 
     import time
+    import anuga
+
+    if anuga.myid == 0:
+        print('o', end = '')
+        domain.calls_to_update_timestep += 1
 
     # disable allreduce if fixed_flux_timestep is set
     if domain.fixed_flux_timestep is not None:
@@ -158,7 +166,12 @@ def communicate_ghosts_non_blocking(domain, quantities=None):
 
     import numpy as num
     import time
+    import anuga
     t0 = time.time()
+
+    if anuga.myid == 0:
+        print('.', end = '')
+        domain.calls_to_update_ghosts += 1
 
     sendDict = domain.full_send_dict
     recvDict = domain.ghost_recv_dict

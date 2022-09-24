@@ -68,6 +68,8 @@ parser.add_argument('-ys', '--yieldstep', type=float, default=yieldstep,
                     help='yieldstep')
 parser.add_argument('-sn', '--sqrtN', type=int, default=sqrtN,
                     help='Size of grid: 500 -> 1_000_000 triangles')
+parser.add_argument('-gl', '--ghost_layer', type=int, default=2,
+                    help='Size of ghost layer')
 
 parser.add_argument('-fdt', '--fixed_dt', type=float, default=fixed_flux_timestep,
                     help='Set a fixed flux timestep')
@@ -89,6 +91,9 @@ verbose = args.verbose
 evolve_verbose = args.evolve_verbose
 fixed_flux_timestep = args.fixed_dt
 test_allreduce = args.test_allreduce
+
+dist_params = {}
+dist_params['ghost_layer_width'] = args.ghost_layer
 
 if fixed_flux_timestep == 0.0:
     fixed_flux_timestep = None
@@ -136,7 +141,7 @@ barrier()
 #-------------------------------------------------------------------------
 # Distribute domain
 #-------------------------------------------------------------------------
-domain = distribute(domain,verbose=verbose)
+domain = distribute(domain,verbose=verbose,parameters=dist_params)
 
 
 # FIXME: THis should be able to be set in the sequential domain
