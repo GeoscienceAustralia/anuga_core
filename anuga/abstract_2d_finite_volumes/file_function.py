@@ -30,13 +30,14 @@ def file_function(filename,
                   domain=None,
                   quantities=None,
                   interpolation_points=None,
+                  use_relative_time=True,
                   time_thinning=1,
                   time_limit=None,
                   verbose=False,
                   use_cache=False,
                   boundary_polygon=None,
                   output_centroids=False):
-    """Read time history of spatial data from NetCDF file and return
+    """Read time history of spatial and/or temporal data from NetCDF file and return
     a callable object.
 
     Input variables:
@@ -70,6 +71,8 @@ def file_function(filename,
 
     interpolation_points - list of absolute UTM coordinates for points (N x 2)
     or geospatial object or points file name at which values are sought
+
+    use_relative_time - 
 
     time_thinning - 
 
@@ -117,6 +120,7 @@ def file_function(filename,
     kwargs = {'quantities': quantities,
               'interpolation_points': interpolation_points,
               'domain_starttime': domain_starttime,
+              'use_relative_time': use_relative_time,
               'time_thinning': time_thinning,      
               'time_limit': time_limit,                                 
               'verbose': verbose,
@@ -168,6 +172,7 @@ def _file_function(filename,
                    quantities=None,
                    interpolation_points=None,
                    domain_starttime=None,
+                   use_relative_time=True,
                    time_thinning=1,
                    time_limit=None,
                    verbose=False,
@@ -202,6 +207,7 @@ def _file_function(filename,
                                         quantities,
                                         interpolation_points,
                                         domain_starttime,
+                                        use_relative_time=use_relative_time,
                                         time_thinning=time_thinning,
                                         time_limit=time_limit,
                                         verbose=verbose,
@@ -220,7 +226,8 @@ def _file_function(filename,
 def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,
-                             domain_starttime=None,                            
+                             domain_starttime=None,
+                             use_relative_time=False,                            
                              time_thinning=1,                 
                              time_limit=None,            
                              verbose=False,
@@ -316,6 +323,9 @@ def get_netcdf_file_function(filename,
     # Get variables
     # if verbose: log.critical('Get variables'    )
     time = fid.variables['time'][:]
+
+    if not use_relative_time:
+        time = time + starttime
 
     # FIXME(Ole): Is time monotoneous?
 

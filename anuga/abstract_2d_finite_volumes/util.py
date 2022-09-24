@@ -34,6 +34,7 @@ def file_function(filename,
                   domain=None,
                   quantities=None,
                   interpolation_points=None,
+                  use_relative_time=True,
                   time_thinning=1,
                   time_limit=None,
                   verbose=False,
@@ -42,7 +43,7 @@ def file_function(filename,
                   output_centroids=False):
     from .file_function import file_function as file_function_new
     return file_function_new(filename, domain, quantities, interpolation_points,
-                      time_thinning, time_limit, verbose, use_cache,
+                      use_relative_time, time_thinning, time_limit, verbose, use_cache,
                       boundary_polygon, output_centroids)
 
 

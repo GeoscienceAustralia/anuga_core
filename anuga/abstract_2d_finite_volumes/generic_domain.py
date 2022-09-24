@@ -1758,7 +1758,7 @@ class Generic_Domain(object):
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
 
-            # Yield results
+            # Yield results at finaltime
             if self.finaltime is not None and\
                self.get_time() >= self.finaltime - epsilon:
 
@@ -1778,7 +1778,7 @@ class Generic_Domain(object):
                 yield(self.get_time())
                 break
 
-            # If we are at the next yield point
+            # Yield results at next yieldstep
             if self.get_time() >= self.yieldtime:
                 # Yield (intermediate) time and allow inspection of domain
                 # if self.checkpoint is True:
