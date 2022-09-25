@@ -40,7 +40,7 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     import anuga
 
     if anuga.myid == 0:
-        print('o', end = '')
+        #print('o', end = '')
         domain.calls_to_update_timestep += 1
 
     # disable allreduce if fixed_flux_timestep is set
@@ -170,7 +170,7 @@ def communicate_ghosts_non_blocking(domain, quantities=None):
     t0 = time.time()
 
     if anuga.myid == 0:
-        print('.', end = '')
+        #print('.', end = '')
         domain.calls_to_update_ghosts += 1
 
     sendDict = domain.full_send_dict
