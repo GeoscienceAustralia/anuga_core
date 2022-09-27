@@ -1700,6 +1700,7 @@ class Generic_Domain(object):
 
         N = len(self)                             # Number of triangles
         self.yieldtime = self.get_time() + yieldstep    # set next yield time
+        self.relative_yieldtime = self.get_relative_time() + yieldstep # set next relative yield time
 
         # Initialise interval of timestep sizes (for reporting only)
         # Note that we set recorded_min_timestep to be large so that it comes
@@ -1729,6 +1730,7 @@ class Generic_Domain(object):
 
         while True:
             initial_time = self.get_time()
+            initial_relative_time = self.relative_time
 
             # Apply fluid flow fractional step
             if self.get_timestepping_method() == 'euler':
@@ -1746,7 +1748,8 @@ class Generic_Domain(object):
             # Centroid Values of variables should be ok
 
             # Update time
-            self.set_time(initial_time + self.timestep)
+            #self.set_time(initial_time + self.timestep)
+            self.relative_time = initial_relative_time + self.timestep
 
             self.update_ghosts()
 
@@ -1757,6 +1760,8 @@ class Generic_Domain(object):
 
             if self._order_ == 1:
                 self.number_of_first_order_steps += 1
+
+            print(self.relative_time, self.get_time())
 
             # Yield results at finaltime
             if self.finaltime is not None and\
@@ -1779,7 +1784,7 @@ class Generic_Domain(object):
                 break
 
             # Yield results at next yieldstep
-            if self.get_time() >= self.yieldtime:
+            if self.get_relative_time() >= self.relative_yieldtime:
                 # Yield (intermediate) time and allow inspection of domain
                 # if self.checkpoint is True:
                 #    self.store_checkpoint()
@@ -1794,6 +1799,7 @@ class Generic_Domain(object):
 
                 # Reinitialise
                 self.yieldtime += yieldstep  # Move to next yield
+                self.relative_yieldtime += yieldstep
                 self.recorded_min_timestep = self.evolve_max_timestep
                 self.recorded_max_timestep = self.evolve_min_timestep
                 self.number_of_steps = 0
