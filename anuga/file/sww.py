@@ -108,6 +108,12 @@ class SWW_file(Data_format):
         else:
             self.minimum_storable_height = default_minimum_storable_height
 
+        if hasattr(domain, 'timezone'):
+            self.timezone = str(domain.get_timezone())
+        else:
+            self.timezone = 'UTC'
+
+
         # Call parent constructor
         Data_format.__init__(self, domain, 'sww', mode)
 
@@ -154,7 +160,8 @@ class SWW_file(Data_format):
                                      institution=self.institution,
                                      smoothing=domain.smooth,
                                      order=domain.default_order,
-                                     sww_precision=self.precision)
+                                     sww_precision=self.precision,
+                                     timezone=self.timezone)
 
             # Extra optional information
             if hasattr(domain, 'texture'):
@@ -567,6 +574,7 @@ class Write_sww(Write_sts):
                      smoothing=True,
                      order=1,
                      sww_precision=netcdf_float32,
+                     timezone='UTC',
                      verbose=False):
         """Write an SWW file header.
 
@@ -639,6 +647,7 @@ class Write_sww(Write_sts):
             starttime = times
 
         outfile.starttime = starttime
+        outfile.timezone = timezone
 
         # dimension definitions
         outfile.createDimension('number_of_volumes', number_of_volumes)
