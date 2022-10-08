@@ -20,6 +20,7 @@
 # nbsphinx
 
 cython >= 0.29
+pybind11
 dill >= 0.3
 future >= 0.18
 gitpython >= 3.1
