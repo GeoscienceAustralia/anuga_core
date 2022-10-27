@@ -126,6 +126,11 @@ class Rate_operator(Operator):
                 rate  = self.rate.centroid_values
             else:
                 rate = self.rate.centroid_values[indices]
+        elif self.rate_type == 'centroid_array':
+            if indices is None:
+                rate  = self.rate
+            else:
+                rate = self.rate[indices]
         else:
             rate = self.get_non_spatial_rate(t)
 
@@ -236,6 +241,14 @@ class Rate_operator(Operator):
         # Test if rate is a quantity
         if isinstance(rate, Quantity):
             self.rate_type = 'quantity'
+        elif isinstance(rate, num.ndarray):
+            rate_shape = rate.shape
+            msg =  f"The shape {rate_shape} of the input rate "
+            msg += f"should match (number of triangles,) i.e. ({self.domain.number_of_triangles},)"
+            assert rate_shape == (self.domain.number_of_triangles,) \
+                or rate_shape == (self.domain.number_of_triangles, 1), msg
+            self.rate_type = 'centroid_array'
+            rate = rate.reshape((-1,)) 
         else:
             # Possible types are 'scalar', 't', 'x,y' and 'x,y,t'
             from anuga.utilities.function_utils import determine_function_type
@@ -251,17 +264,15 @@ class Rate_operator(Operator):
         elif self.rate_type == 'quantity':
             self.rate_callable = False
             self.rate_spatial = False
+        elif self.rate_type == 'centroid_array':
+            self.rate_callable = False
+            self.rate_spatial = False
         elif self.rate_type == 't':
             self.rate_callable = True
             self.rate_spatial = False
         else:
             self.rate_callable = True
             self.rate_spatial = True
-
-
-
-
-
 
     def set_areas(self):
 
@@ -300,6 +311,10 @@ class Rate_operator(Operator):
                 rate = self.rate.centroid_values # rate is a quantity
                 fid = self.full_indices
                 return num.sum(self.areas[fid]*rate[fid])*self.factor
+            elif self.rate_type == 'centroid_array':
+                rate = self.rate # rate is already a centroid sized array
+                fid = self.full_indices
+                return num.sum(self.areas[fid]*rate[fid])*self.factor
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
                 fid = self.full_indices
@@ -310,6 +325,9 @@ class Rate_operator(Operator):
                 return num.sum(self.areas*rate)*self.factor
             elif self.rate_type == 'quantity':
                 rate = self.rate.centroid_values # rate is a quantity
+                return num.sum(self.areas*rate)*self.factor
+            elif self.rate_type == 'centroid_array':
+                rate = self.rate # rate is already a centroid sized array
                 return num.sum(self.areas*rate)*self.factor
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
@@ -376,6 +394,13 @@ class Rate_operator(Operator):
             rate = self.get_non_spatial_rate() # return quantity
             min_rate = rate.get_minimum_value()
             max_rate = rate.get_maximum_value()
+            Q = self.get_Q()
+            message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
+
+        elif self.rate_type == 'centroid_array':
+            rate = self.get_non_spatial_rate() # return centroid_array
+            min_rate = rate.min()
+            max_rate = rate.max()
             Q = self.get_Q()
             message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
 
