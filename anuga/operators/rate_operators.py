@@ -26,12 +26,6 @@ class Rate_operator(Operator):
     Add water at certain rate (ms^{-1} = vol/Area/sec) over a
     triangles specified by
 
-    indices: None == all triangles, Empty list [] no triangles
-
-    rate can be a function of time.
-
-    Other units can be used by using the factor argument.
-
     """
 
     def __init__(self,
@@ -50,6 +44,24 @@ class Rate_operator(Operator):
                  verbose = False,
                  monitor = False):
 
+        """
+        Create a Rate_operator that adds water over a region at a specified
+        rate (ms^{-1} = vol/Area/sec)
+
+        Parameters specifying locaton of operator
+        :param region: Region object where water applied 
+        :param indices: List of triangles where water applied
+        :param  polygon: List of [x,y] points specifying where water applied
+        :param center: [x.y] point of circle where water applied
+        :param radius: radius of circle where water applied
+
+        :param rate: scalar, function of (t), (x,y), or (x,y,t), a Quantity, 
+                     a numpy array of size (number_of_triangles), or an xarray with rate at points and time
+
+        :param factor: scalar to specify conversion from input rate to m/s
+        
+        :param default_rate: use this rate if outside time interval of rate function or xarray
+        """
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
@@ -233,8 +245,9 @@ class Rate_operator(Operator):
 
 
     def set_rate(self, rate):
-        """Set rate
-        Can change rate while running
+        """Set rate. Can change rate while running
+
+
         Can be a scalar, or a function of t or x,y or x,y,t or a quantity
         """
 
