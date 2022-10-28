@@ -86,7 +86,7 @@ class Test_csv2sts(unittest.TestCase):
 
         path = get_pathname_from_package( 'anuga.file_conversion' )
         
-        cmd = 'python ' + os.path.join( path, 'csv2sts.py') + ' --latitude ' 
+        cmd = sys.executable + ' ' + os.path.join( path, 'csv2sts.py') + ' --latitude ' 
         cmd += '%s --lon %s %s %s' % (str(lat), str(lon), testfile_csv, sts_out)
         
         os.system(cmd)
