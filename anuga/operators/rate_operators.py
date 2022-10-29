@@ -23,9 +23,31 @@ from anuga import Region
 
 class Rate_operator(Operator):
     """
-    Add water at certain rate (ms^{-1} = vol/Area/sec) over a
-    triangles specified by
+    Create a Rate_operator that adds water over a region at a specified
+    rate (ms^{-1} = vol/Area/sec)
 
+    Parameters specifying locaton of operator
+
+    :param region: Region object where water applied 
+    :param indices: List of triangles where water applied
+    :param  polygon: List of [x,y] points specifying where water applied
+    :param center: [x.y] point of circle where water applied
+    :param radius: radius of circle where water applied
+
+    Parameters specifying rate
+
+    :param rate: scalar, function of (t), (x,y), or (x,y,t), a Quantity, 
+                    a numpy array of size (number_of_triangles), or an xarray with rate at points and time
+    :param factor: scalar to specify conversion from rate argument to m/s
+    :param default_rate: use this rate if outside time interval of rate function or xarray
+
+    Parameters involving communication
+
+    :param description:
+    :param label:
+    :param logging:
+    :param verbose:
+    :param monitor:
     """
 
     def __init__(self,
@@ -44,24 +66,7 @@ class Rate_operator(Operator):
                  verbose = False,
                  monitor = False):
 
-        """
-        Create a Rate_operator that adds water over a region at a specified
-        rate (ms^{-1} = vol/Area/sec)
 
-        Parameters specifying locaton of operator
-        :param region: Region object where water applied 
-        :param indices: List of triangles where water applied
-        :param  polygon: List of [x,y] points specifying where water applied
-        :param center: [x.y] point of circle where water applied
-        :param radius: radius of circle where water applied
-
-        :param rate: scalar, function of (t), (x,y), or (x,y,t), a Quantity, 
-                     a numpy array of size (number_of_triangles), or an xarray with rate at points and time
-
-        :param factor: scalar to specify conversion from input rate to m/s
-        
-        :param default_rate: use this rate if outside time interval of rate function or xarray
-        """
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
@@ -87,23 +92,54 @@ class Rate_operator(Operator):
         # Local variables
         #------------------------------------------
         self.indices = self.region.indices
+        self.set_areas()
+        self.set_full_indices()        
 
-        self.monitor = monitor
+        #--------------------------------
+        # Setting up rate
+        #--------------------------------
         self.factor = factor
-
         self.rate_callable = False
         self.rate_spatial = False
+        self.rate_xarray = False
+
+        #-------------------------------
+        # Check if rate is actually an xarray. 
+        # Need xarray package installed
+        #-------------------------------
+        try:
+            import xarray
+        except:
+            pass
+        else:
+            if type(rate) is xarray.core.dataarray.DataArray:
+                self.rate_xarray = True
+                xa = rate
+                rate = 0.0
+                self._prepare_xarray_rate(xa)
+
 
         self.set_rate(rate)
         self.set_default_rate(default_rate)
-
-
         self.default_rate_invoked = False    # Flag
 
-        self.set_areas()
-        self.set_full_indices()
+        #-------------------------------
+        # Check if rate is actually an xarray. 
+        # Need xarray package installed
+        #-------------------------------
+        try:
+            import xarray
+        except:
+            pass
+        else:
+            if type(rate) is xarray.core.dataarray.DataArray:
+                self._prepare_xarray_rate(rate)
 
+
+        # ----------------
         # Mass tracking
+        #-----------------
+        self.monitor = monitor
         self.local_influx=0.
 
     def __call__(self):
@@ -117,6 +153,10 @@ class Rate_operator(Operator):
 
         if self.indices is []:
             return
+
+        if self.rate_xarray:
+            # setup centroid_array from xarray corresponding to current time
+            self._update_Q_xarray()
 
         t = self.domain.get_time()
         timestep = self.domain.get_timestep()
@@ -374,6 +414,63 @@ class Rate_operator(Operator):
 
         self.default_rate = default_rate
 
+    def _prepare_xarray_rate(self, xa):
+
+        import numpy as np
+
+        # to speed up parallel code it helps to load the xarray
+        self.xa = xa.load()
+
+        self.xy = np.array([self.xa['eastings'], self.xa['northings']]).T
+
+
+        # FIXME SR: need to determine timestep from xarray  300 is hard coded at present
+        self.domain.set_evolve_max_timestep(min(300, self.domain.get_evolve_max_timestep()))
+
+
+        from scipy.spatial import KDTree
+        tree = KDTree(self.xy)
+        print(tree.size, self.xy.shape)
+
+        #FIXME SR: Is this right or do we need to take into account the xll and yll offsets?
+        dd, ii = tree.query(self.domain.centroid_coordinates)
+
+        self.ii = ii
+
+        self.previous_Q_ref_time = None
+        self.previous_Q_numpy = None
+
+
+    def _update_Q_xarray(self):
+
+        import pandas
+        current_utc_datetime64 = pandas.to_datetime(self.domain.get_datetime()).tz_convert('UTC').replace(tzinfo=None)
+      
+        try:
+            Q_ref = self.xa.sel(time=current_utc_datetime64, method="ffill", tolerance='5m')
+
+            Q_ref_time = Q_ref['time'].values
+
+            if self.verbose:
+                print(f"UTC time {current_utc_datetime64} Q_ref time {Q_ref_time} {Q_ref_time == self.previous_Q_ref_time} ")
+
+            optimize = True
+            if optimize:
+                if Q_ref_time == self.previous_Q_ref_time :
+                    Q_numpy = self.previous_Q_numpy
+                else:
+                    Q_numpy = Q_ref[self.ii].to_numpy()
+                    self.previous_Q_numpy = Q_numpy
+                    self.previous_Q_ref_time = Q_ref_time
+            else:
+                Q_numpy = Q_ref[self.ii].to_numpy()
+                  
+        except:
+            Q_numpy = self.default_rate
+            if self.verbose:
+                print(f"UTC time {current_utc_datetime64} Using default rate Q = {Q_numpy(self.get_time())}")
+            
+        self.set_rate(rate=Q_numpy)             
 
     def parallel_safe(self):
         """Operator is applied independently on each cell and
