@@ -23,15 +23,31 @@ from anuga import Region
 
 class Rate_operator(Operator):
     """
-    Add water at certain rate (ms^{-1} = vol/Area/sec) over a
-    triangles specified by
+    Create a Rate_operator that adds water over a region at a specified
+    rate (ms^{-1} = vol/Area/sec)
 
-    indices: None == all triangles, Empty list [] no triangles
+    Parameters specifying locaton of operator
 
-    rate can be a function of time.
+    :param region: Region object where water applied 
+    :param indices: List of triangles where water applied
+    :param  polygon: List of [x,y] points specifying where water applied
+    :param center: [x.y] point of circle where water applied
+    :param radius: radius of circle where water applied
 
-    Other units can be used by using the factor argument.
+    Parameters specifying rate
 
+    :param rate: scalar, function of (t), (x,y), or (x,y,t), a Quantity, 
+                    a numpy array of size (number_of_triangles), or an xarray with rate at points and time
+    :param factor: scalar to specify conversion from rate argument to m/s
+    :param default_rate: use this rate if outside time interval of rate function or xarray
+
+    Parameters involving communication
+
+    :param description:
+    :param label:
+    :param logging:
+    :param verbose:
+    :param monitor:
     """
 
     def __init__(self,
@@ -49,6 +65,7 @@ class Rate_operator(Operator):
                  logging = False,
                  verbose = False,
                  monitor = False):
+
 
 
         Operator.__init__(self, domain, description, label, logging, verbose)
@@ -75,23 +92,54 @@ class Rate_operator(Operator):
         # Local variables
         #------------------------------------------
         self.indices = self.region.indices
+        self.set_areas()
+        self.set_full_indices()        
 
-        self.monitor = monitor
+        #--------------------------------
+        # Setting up rate
+        #--------------------------------
         self.factor = factor
-
         self.rate_callable = False
         self.rate_spatial = False
+        self.rate_xarray = False
+
+        #-------------------------------
+        # Check if rate is actually an xarray. 
+        # Need xarray package installed
+        #-------------------------------
+        try:
+            import xarray
+        except:
+            pass
+        else:
+            if type(rate) is xarray.core.dataarray.DataArray:
+                self.rate_xarray = True
+                xa = rate
+                rate = 0.0
+                self._prepare_xarray_rate(xa)
+
 
         self.set_rate(rate)
         self.set_default_rate(default_rate)
-
-
         self.default_rate_invoked = False    # Flag
 
-        self.set_areas()
-        self.set_full_indices()
+        #-------------------------------
+        # Check if rate is actually an xarray. 
+        # Need xarray package installed
+        #-------------------------------
+        try:
+            import xarray
+        except:
+            pass
+        else:
+            if type(rate) is xarray.core.dataarray.DataArray:
+                self._prepare_xarray_rate(rate)
 
+
+        # ----------------
         # Mass tracking
+        #-----------------
+        self.monitor = monitor
         self.local_influx=0.
 
     def __call__(self):
@@ -105,6 +153,10 @@ class Rate_operator(Operator):
 
         if self.indices is []:
             return
+
+        if self.rate_xarray:
+            # setup centroid_array from xarray corresponding to current time
+            self._update_Q_xarray()
 
         t = self.domain.get_time()
         timestep = self.domain.get_timestep()
@@ -126,6 +178,11 @@ class Rate_operator(Operator):
                 rate  = self.rate.centroid_values
             else:
                 rate = self.rate.centroid_values[indices]
+        elif self.rate_type == 'centroid_array':
+            if indices is None:
+                rate  = self.rate
+            else:
+                rate = self.rate[indices]
         else:
             rate = self.get_non_spatial_rate(t)
 
@@ -228,14 +285,23 @@ class Rate_operator(Operator):
 
 
     def set_rate(self, rate):
-        """Set rate
-        Can change rate while running
+        """Set rate. Can change rate while running
+
+
         Can be a scalar, or a function of t or x,y or x,y,t or a quantity
         """
 
         # Test if rate is a quantity
         if isinstance(rate, Quantity):
             self.rate_type = 'quantity'
+        elif isinstance(rate, num.ndarray):
+            rate_shape = rate.shape
+            msg =  f"The shape {rate_shape} of the input rate "
+            msg += f"should match (number of triangles,) i.e. ({self.domain.number_of_triangles},)"
+            assert rate_shape == (self.domain.number_of_triangles,) \
+                or rate_shape == (self.domain.number_of_triangles, 1), msg
+            self.rate_type = 'centroid_array'
+            rate = rate.reshape((-1,)) 
         else:
             # Possible types are 'scalar', 't', 'x,y' and 'x,y,t'
             from anuga.utilities.function_utils import determine_function_type
@@ -251,17 +317,15 @@ class Rate_operator(Operator):
         elif self.rate_type == 'quantity':
             self.rate_callable = False
             self.rate_spatial = False
+        elif self.rate_type == 'centroid_array':
+            self.rate_callable = False
+            self.rate_spatial = False
         elif self.rate_type == 't':
             self.rate_callable = True
             self.rate_spatial = False
         else:
             self.rate_callable = True
             self.rate_spatial = True
-
-
-
-
-
 
     def set_areas(self):
 
@@ -300,6 +364,10 @@ class Rate_operator(Operator):
                 rate = self.rate.centroid_values # rate is a quantity
                 fid = self.full_indices
                 return num.sum(self.areas[fid]*rate[fid])*self.factor
+            elif self.rate_type == 'centroid_array':
+                rate = self.rate # rate is already a centroid sized array
+                fid = self.full_indices
+                return num.sum(self.areas[fid]*rate[fid])*self.factor
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
                 fid = self.full_indices
@@ -310,6 +378,9 @@ class Rate_operator(Operator):
                 return num.sum(self.areas*rate)*self.factor
             elif self.rate_type == 'quantity':
                 rate = self.rate.centroid_values # rate is a quantity
+                return num.sum(self.areas*rate)*self.factor
+            elif self.rate_type == 'centroid_array':
+                rate = self.rate # rate is already a centroid sized array
                 return num.sum(self.areas*rate)*self.factor
             else:
                 rate = self.get_non_spatial_rate() # rate is a scalar
@@ -343,6 +414,63 @@ class Rate_operator(Operator):
 
         self.default_rate = default_rate
 
+    def _prepare_xarray_rate(self, xa):
+
+        import numpy as np
+
+        # to speed up parallel code it helps to load the xarray
+        self.xa = xa.load()
+
+        self.xy = np.array([self.xa['eastings'], self.xa['northings']]).T
+
+
+        # FIXME SR: need to determine timestep from xarray  300 is hard coded at present
+        self.domain.set_evolve_max_timestep(min(300, self.domain.get_evolve_max_timestep()))
+
+
+        from scipy.spatial import KDTree
+        tree = KDTree(self.xy)
+        print(tree.size, self.xy.shape)
+
+        #FIXME SR: Is this right or do we need to take into account the xll and yll offsets?
+        dd, ii = tree.query(self.domain.centroid_coordinates)
+
+        self.ii = ii
+
+        self.previous_Q_ref_time = None
+        self.previous_Q_numpy = None
+
+
+    def _update_Q_xarray(self):
+
+        import pandas
+        current_utc_datetime64 = pandas.to_datetime(self.domain.get_datetime()).tz_convert('UTC').replace(tzinfo=None)
+      
+        try:
+            Q_ref = self.xa.sel(time=current_utc_datetime64, method="ffill", tolerance='5m')
+
+            Q_ref_time = Q_ref['time'].values
+
+            if self.verbose:
+                print(f"UTC time {current_utc_datetime64} Q_ref time {Q_ref_time} {Q_ref_time == self.previous_Q_ref_time} ")
+
+            optimize = True
+            if optimize:
+                if Q_ref_time == self.previous_Q_ref_time :
+                    Q_numpy = self.previous_Q_numpy
+                else:
+                    Q_numpy = Q_ref[self.ii].to_numpy()
+                    self.previous_Q_numpy = Q_numpy
+                    self.previous_Q_ref_time = Q_ref_time
+            else:
+                Q_numpy = Q_ref[self.ii].to_numpy()
+                  
+        except:
+            Q_numpy = self.default_rate
+            if self.verbose:
+                print(f"UTC time {current_utc_datetime64} Using default rate Q = {Q_numpy(self.get_time())}")
+            
+        self.set_rate(rate=Q_numpy)             
 
     def parallel_safe(self):
         """Operator is applied independently on each cell and
@@ -376,6 +504,13 @@ class Rate_operator(Operator):
             rate = self.get_non_spatial_rate() # return quantity
             min_rate = rate.get_minimum_value()
             max_rate = rate.get_maximum_value()
+            Q = self.get_Q()
+            message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
+
+        elif self.rate_type == 'centroid_array':
+            rate = self.get_non_spatial_rate() # return centroid_array
+            min_rate = rate.min()
+            max_rate = rate.max()
             Q = self.get_Q()
             message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
 

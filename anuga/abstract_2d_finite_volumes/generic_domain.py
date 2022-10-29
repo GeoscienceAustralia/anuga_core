@@ -643,7 +643,10 @@ class Generic_Domain(object):
     def set_evolve_max_timestep(self, max_timestep):
         """Set default max_timestep for evolving."""
 
-        self.evolve_max_timestep = max_timestep
+        try:
+            self.evolve_max_timestep = min(self.evolve_max_timestep, max_timestep)
+        except:
+            self.evolve_max_timestep = max_timestep
 
     def get_evolve_max_timestep(self):
         """Set default max_timestep for evolving."""
