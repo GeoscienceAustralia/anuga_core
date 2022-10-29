@@ -14,9 +14,10 @@ import numpy as np
 #------------------------------------------------------------------------------
 # Setup computational domain
 #------------------------------------------------------------------------------
+plotting = False
 length = 10.
 width = 10.
-dx = dy = 0.02           # Resolution: Length of subdivisions on both axes
+dx = dy = 0.05           # Resolution: Length of subdivisions on both axes
 center = (length/2 * 0.7, width/2)
 
 # Create a domain with named boundaries "left", "right", "top" and "bottom"
@@ -61,14 +62,15 @@ def wall_polygon():
             
             inner_vertices.append((x, y))        
     
-    # Diagnostic plotting only
-    xos = [x[0] for x in outer_vertices]
-    yos = [x[1] for x in outer_vertices]    
-    
-    xis = [x[0] for x in inner_vertices]
-    yis = [x[1] for x in inner_vertices]        
-    plt.plot(xos, yos, 'bo', xis, yis, 'g*')        
-    #plt.show()
+    if plotting:
+        # Diagnostic plotting only
+        xos = [x[0] for x in outer_vertices]
+        yos = [x[1] for x in outer_vertices]    
+        
+        xis = [x[0] for x in inner_vertices]
+        yis = [x[1] for x in inner_vertices]        
+        plt.plot(xos, yos, 'bo', xis, yis, 'g*')        
+        plt.show()
 
     return outer_vertices + inner_vertices[::-1]  # Reverse inner points to make polygon sensible
     
@@ -102,83 +104,13 @@ domain.set_quantity('stage',                 # Dry bed
 
                     
 #------------------------------------------------------------------------------
-# Setup forcing functions
+# Setup inflow and outflow operators
 #------------------------------------------------------------------------------                    
-# FIXME: Let's use the built in Inflow class from ANUGA
-class Inflow:
-    """Class Inflow - general 'rain and drain' forcing term.
-    
-    Useful for implementing flows in and out of the domain.
-    
-    Inflow(center, radius, flow)
-    
-    center [m]: Coordinates at center of flow point
-    radius [m]: Size of circular area
-    flow [m/s]: Rate of change of quantity over the specified area.  
-                This parameter can be either a constant or a function of time. 
-                Positive values indicate inflow, 
-                negative values indicate outflow.
-    
-    Examples
-    
-    Inflow((0.7, 0.4), 0.07, -0.2) # Constant drain at 0.2 m/s.
-                                   # This corresponds to a flow of 
-                                   # 0.07**2*pi*0.2 = 0.00314 m^3/s
-                                   
-    Inflow((0.5, 0.5), 0.001, lambda t: min(4*t, 5)) # Tap turning up to 
-                                                     # a maximum inflow of
-                                                     # 5 m/s over the 
-                                                     # specified area 
-    """
-    
+drain_region = anuga.Region(domain, center=center, radius=0.2)
+drain = anuga.Inlet_operator(domain, region=drain_region, Q=0.0)
 
-    def __init__(self, 
-                 center=None, radius=None,
-                 flow=0.0,
-                 quantity_name = 'stage'):
-                 
-        if center is not None and radius is not None:
-            assert len(center) == 2
-        else:
-            msg = 'Both center and radius must be specified'
-            raise Exception(msg)
-    
-        self.center = center
-        self.radius = radius
-        self.flow = flow
-        self.quantity = domain.quantities[quantity_name].explicit_update
-        
-    
-    def __call__(self, domain):
-    
-        # Determine indices in flow area
-        if not hasattr(self, 'indices'):
-            center = self.center
-            radius = self.radius
-            
-            N = len(domain)    
-            self.indices = []
-            coordinates = domain.get_centroid_coordinates()     
-            for k in range(N):
-                x, y = coordinates[k,:] # Centroid
-                if ((x - center[0])**2 + (y - center[1])**2) < radius**2:
-                    self.indices.append(k)    
-
-        # Update inflow
-        if callable(self.flow):
-            flow = self.flow(domain.get_time())
-        else:
-            flow = self.flow
-                   
-        for k in self.indices:
-            self.quantity[k] += flow                    
-                    
-
-drain = Inflow(center=center, radius=0.2, flow=0.0)  # Zero initially             
-domain.forcing_terms.append(drain)
-
-source = Inflow(center=(9.4, 6.0), radius=0.2, flow=1.0)             
-domain.forcing_terms.append(source)
+source_region = anuga.Region(domain, center=(9.4, 6.0), radius=0.2)
+source = anuga.Inlet_operator(domain, region=source_region, Q=0.1)
                     
 #------------------------------------------------------------------------------
 # Setup boundary conditions
@@ -194,6 +126,6 @@ domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 for t in domain.evolve(yieldstep=0.2, finaltime=40):
     domain.print_timestepping_statistics()
 
-    if domain.get_time() >= 14 and drain.flow == 0.0:
-        print('Turning drain on')
-        drain.flow = -2.5        
+    if domain.get_time() >= 14 and drain.get_Q() == 0.0:
+        print('    Turning drain on')
+        drain.set_Q(-2.5)       
