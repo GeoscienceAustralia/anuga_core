@@ -142,22 +142,44 @@ int __point_on_line(double x, double y,
       is_parallel = 1;
     }    
   }
-    
-  if (is_parallel) {
+
+  if (is_parallel)
+  {
     // Point is somewhere on the infinite extension of the line
     // subject to specified absolute tolerance
 
-    len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
-    len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
+    //        len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
+    //        len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
 
-    if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
-      return 1;
+    //        if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
+    if (a0 * b0 + a1 * b1 >= 0)
+    { // inside line segment from one end point
+      double len_a2 = a0 * a0 + a1 * a1;
+      if (len_a2 <= denominator)
+      { // inside line segment from the other end point
+        return 1;
+      }
+    }
+  }
+  return 0;
+
+  /*
+    if (is_parallel) {
+      // Point is somewhere on the infinite extension of the line
+      // subject to specified absolute tolerance
+
+      len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
+      len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
+
+      if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
+        return 1;
+      } else {
+        return 0;
+      }
     } else {
       return 0;
     }
-  } else {
-    return 0;
-  }
+    */
 };
 
 int __is_inside_triangle(double* point,
