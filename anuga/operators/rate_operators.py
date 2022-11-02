@@ -421,16 +421,23 @@ class Rate_operator(Operator):
         # to speed up parallel code it helps to load the xarray
         self.xa = xa.load()
 
-        self.xy = np.array([self.xa['eastings'], self.xa['northings']]).T
+        # these are absolute coord (since we haven't implemented offsets)
+        # Convert to relative coords to domain xllcorner and yllcorner
+
+        xllcorner = self.domain.geo_reference.xllcorner
+        yllcorner = self.domain.geo_reference.yllcorner
+        self.xy = np.array([self.xa['eastings']-xllcorner, self.xa['northings']-yllcorner]).T
 
 
-        # FIXME SR: need to determine timestep from xarray  300 is hard coded at present
-        self.domain.set_evolve_max_timestep(min(300, self.domain.get_evolve_max_timestep()))
+        # Determine data timestep from xarray. We assume the timestep is constant, so just test first 2 timeslices.
+        data_dt = (self.xa['time'][1].values.astype('int64')-self.xa['time'][0].values.astype('int64'))/1.0e9
+        self.domain.set_evolve_max_timestep(min(data_dt, self.domain.get_evolve_max_timestep()))
 
 
         from scipy.spatial import KDTree
         tree = KDTree(self.xy)
-        print(tree.size, self.xy.shape)
+        if self.verbose:
+            print(tree.size, self.xy.shape)
 
         #FIXME SR: Is this right or do we need to take into account the xll and yll offsets?
         dd, ii = tree.query(self.domain.centroid_coordinates)
