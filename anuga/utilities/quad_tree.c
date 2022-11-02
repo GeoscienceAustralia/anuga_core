@@ -101,15 +101,16 @@ double dist(double x,
 }
 
 int __point_on_line(double x, double y,
-		    double x0, double y0,
-		    double x1, double y1,
-		    double rtol,
-		    double atol) {
+                    double x0, double y0,
+                    double x1, double y1,
+                    double rtol,
+                    double atol)
+{
   /*Determine whether a point is on a line segment
 
     Input: x, y, x0, x0, x1, y1: where
         point is given by x, y
-	line is given by (x0, y0) and (x1, y1)
+  line is given by (x0, y0) and (x1, y1)
 
   */
 
@@ -126,38 +127,47 @@ int __point_on_line(double x, double y,
   b0 = x1 - x0;
   b1 = y1 - y0;
 
-  nominator = fabs(a_normal0*b0 + a_normal1*b1);
-  denominator = b0*b0 + b1*b1;
-  
+  nominator = fabs(a_normal0 * b0 + a_normal1 * b1);
+  denominator = b0 * b0 + b1 * b1;
+
   // Determine if line is parallel to point vector up to a tolerance
   is_parallel = 0;
-  if (denominator == 0.0) {
+  if (denominator == 0.0)
+  {
     // Use absolute tolerance
-    if (nominator <= atol) {
+    if (nominator <= atol)
+    {
       is_parallel = 1;
     }
-  } else {
-    // Denominator is positive - use relative tolerance
-    if (nominator/denominator <= rtol) {
-      is_parallel = 1;
-    }    
   }
-    
-  if (is_parallel) {
+  else
+  {
+    // Denominator is positive - use relative tolerance
+    if (nominator / denominator <= rtol)
+    {
+      is_parallel = 1;
+    }
+  }
+
+  if (is_parallel)
+  {
     // Point is somewhere on the infinite extension of the line
     // subject to specified absolute tolerance
 
-    len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
-    len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
+    //        len_a = dist(a0, a1); //sqrt(a0*a0 + a1*a1);
+    //        len_b = dist(b0, b1); //sqrt(b0*b0 + b1*b1);
 
-    if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
-      return 1;
-    } else {
-      return 0;
+    //        if (a0*b0 + a1*b1 >= 0 && len_a <= len_b) {
+    if (a0 * b0 + a1 * b1 >= 0)
+    { // inside line segment from one end point
+      double len_a2 = a0 * a0 + a1 * a1;
+      if (len_a2 <= denominator)
+      { // inside line segment from the other end point
+        return 1;
+      }
     }
-  } else {
-    return 0;
   }
+  return 0;
 };
 
 int __is_inside_triangle(double* point,
