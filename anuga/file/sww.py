@@ -297,7 +297,7 @@ class SWW_file(Data_format):
 
         i = len(time) + 1
         file_size = stat(self.filename)[6]
-        file_size_increase = old_div(file_size, i)
+        file_size_increase = file_size//i
         if file_size + file_size_increase > self.max_size * 2**self.recursion:
             # In order to get the file name and start time correct,
             # I change the domain.filename and domain.starttime.

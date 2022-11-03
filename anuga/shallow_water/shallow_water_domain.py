@@ -357,8 +357,8 @@ class Domain(Generic_Domain):
         # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
         self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3) # Advective fluxes
         self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0])) # Gravity related terms
-        self.x_centroid_work=num.zeros(old_div(len(self.edge_coordinates[:,0]),3))
-        self.y_centroid_work=num.zeros(old_div(len(self.edge_coordinates[:,0]),3))
+        self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])//3)
+        self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])//3)
 
         ############################################################################
         ## Local-timestepping information
@@ -376,7 +376,7 @@ class Domain(Generic_Domain):
         # Flag: should we update the extrapolation on the next extrapolation call?
         # (Only do this if one or more of the fluxes on that triangle will be computed on
         # the next timestep, assuming only the flux computation uses edge/vertex values)
-        self.update_extrapolation=num.zeros(old_div(len(self.edge_coordinates[:,0]),3)).astype(int)+1
+        self.update_extrapolation=num.zeros(len(self.edge_coordinates[:,0])//3).astype(int)+1
 
         # edge_timestep [wavespeed/radius] -- not updated every timestep
         self.edge_timestep=num.zeros(len(self.edge_coordinates[:,0]))+1.0e+100
@@ -1257,23 +1257,6 @@ class Domain(Generic_Domain):
             return starttime
         else:
             return self.get_datetime(starttime)
-
-    def set_fixed_flux_timestep(self, flux_timestep=None):
-        """Disable variable timestepping and manually set a fixed flux_timestep
-        
-        :param flux_timestep: [float, None] Either set fixed flux_flux_timestep or 
-                              disable with value None"""
-
-        if flux_timestep is None:
-            self.fixed_flux_timestep = None
-            return
-
-        if flux_timestep > 0.0:
-            self.fixed_flux_timestep = flux_timestep
-            return
-        else:
-            msg = 'flux_timestep needs to be greater than 0.0'
-            raise(Exception, msg)
 
 
     def set_store(self, flag=True):
