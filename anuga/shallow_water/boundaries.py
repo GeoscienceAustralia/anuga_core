@@ -825,7 +825,7 @@ class Inflow_boundary(Boundary):
                     length += self.domain.mesh.get_edgelength(v_id, e_id)            
 
             self.length = length
-            self.average_momentum = old_div(self.rate,length)
+            self.average_momentum = self.rate/length
             
             
         # Average momentum has now been established across this boundary
@@ -852,7 +852,7 @@ class Inflow_boundary(Boundary):
         mannings_n = friction[edge_id]
 
         if slope > epsilon and mannings_n > epsilon:
-            depth = pow(old_div(self.average_momentum * mannings_n,math.sqrt(slope)), \
+            depth = pow(self.average_momentum * mannings_n/math.sqrt(slope), \
                         3.0/5) 
         else:
             depth = 1.0

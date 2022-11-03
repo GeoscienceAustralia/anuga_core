@@ -5,7 +5,6 @@ from __future__ import print_function
 from __future__ import division
 
 from builtins import range
-from past.utils import old_div
 import os
 import anuga.utilities.log as log
 import numpy as num
@@ -351,13 +350,13 @@ def get_energy_through_cross_section(filename,
             # Average velocity across this segment
             if h > epsilon:
                 # Use protection against degenerate velocities
-                u = old_div(uh, (h + old_div(h0,h)))
-                v = old_div(vh, (h + old_div(h0,h)))
+                u = uh/ (h + h0/h)
+                v = vh/ (h + h0/h)
             else:
                 u = v = 0.0
 
             speed_squared = u*u + v*v
-            kinetic_energy = old_div(0.5 * speed_squared, g)
+            kinetic_energy = 0.5 * speed_squared/ g
 
             if kind == 'specific':
                 segment_energy = depth + kinetic_energy
@@ -368,7 +367,7 @@ def get_energy_through_cross_section(filename,
                 msg += 'I got %s' % kind
 
             # Add to weighted average
-            weigth = old_div(segments[i].length, total_line_length)
+            weigth = segments[i].length/ total_line_length
             average_energy += segment_energy * weigth
 
         # Store energy at this timestep
