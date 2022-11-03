@@ -615,7 +615,7 @@ def gauge_get_from_file(filename):
         if len(fields) > 2:
             elev.append(float(fields[elev_index]))
             loc = fields[name_index]
-            gaugelocation.append(loc.strip('\n'))
+            gaugelocation.append(loc.strip(r'\n'))
 
     return gauges, gaugelocation, elev
 
@@ -852,9 +852,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
             g = gauges[k]
             count1 = 0
             if report == True and len(label_id) > 1:
-                s = '\\begin{figure}[ht] \n' \
-                    '\\centering \n' \
-                    '\\begin{tabular}{cc} \n'
+                s = r'\\begin{figure}[ht] \n' \
+                    r'\\centering \n' \
+                    r'\\begin{tabular}{cc} \n'
                 fid.write(s)
             if len(label_id) > 1: graphname_report = []
 
@@ -867,9 +867,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 where2 = 0
                 word_quantity = ''
                 if report == True and len(label_id) == 1:
-                    s = '\\begin{figure}[hbt] \n' \
-                        '\\centering \n' \
-                        '\\begin{tabular}{cc} \n'
+                    s = r'\\begin{figure}[hbt] \n' \
+                        r'\\centering \n' \
+                        r'\\begin{tabular}{cc} \n'
                     fid.write(s)
 
                 for which_quantity in plot_quantity:
@@ -973,12 +973,12 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                                                     'report_figures' + altsep,
                                                 gaugeloc2, which_quantity,
                                                 label_id2)
-                            s = '\includegraphics' \
-                                '[width=0.49\linewidth, height=50mm]{%s%s}' % \
+                            s = r'\includegraphics' \
+                                r'[width=0.49\linewidth, height=50mm]{%s%s}' % \
                                 (graphname_report, '.png')
                             fid.write(s)
                             if where1 % 2 == 0:
-                                s = '\\\\ \n'
+                                s = r'\\\\ \n'
                                 where1 = 0
                             else:
                                 s = '& \n'
@@ -1027,13 +1027,13 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         elev_output.append([locations[k], east, north,
                                             elevations[0,k,j]])
                     label = '%sgauge%s' % (label_id2, gaugeloc2)
-                    s = '\end{tabular} \n' \
-                        '\\caption{%s} \n' \
-                        '\label{fig:%s} \n' \
-                        '\end{figure} \n \n' % (caption, label)
+                    s = r'\end{tabular} \n' \
+                        r'\\caption{%s} \n' \
+                        r'\label{fig:%s} \n' \
+                        r'\end{figure} \n \n' % (caption, label)
                     fid.write(s)
                     cc += 1
-                    if cc % 6 == 0: fid.write('\\clearpage \n')
+                    if cc % 6 == 0: fid.write(r'\\clearpage \n')
                     savefig(graphname_latex)
 
             if report == True and len(label_id) > 1:
@@ -1053,13 +1053,13 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     index = j*len(plot_quantity)
                     for which_quantity in plot_quantity:
                         where1 += 1
-                        s = '\includegraphics' \
-                            '[width=0.49\linewidth, height=50mm]{%s%s}' % \
+                        s = r'\includegraphics' \
+                            r'[width=0.49\linewidth, height=50mm]{%s%s}' % \
                             (graphname_report[index], '.png')
                         index += 1
                         fid.write(s)
                         if where1 % 2 == 0:
-                            s = '\\\\ \n'
+                            s = r'\\\\ \n'
                             where1 = 0
                         else:
                             s = '& \n'
@@ -1080,13 +1080,13 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         elev_output.append([locations[k], east, north,
                                             elevations[0,k,j]])
 
-                s = '\end{tabular} \n' \
-                    '\\caption{%s} \n' \
-                    '\label{fig:%s} \n' \
-                    '\end{figure} \n \n' % (caption, label)
+                s = r'\end{tabular} \n' \
+                    r'\\caption{%s} \n' \
+                    r'\label{fig:%s} \n' \
+                    r'\end{figure} \n \n' % (caption, label)
                 fid.write(s)
                 if float(old_div((k+1),div) - pp) == 0.:
-                    fid.write('\\clearpage \n')
+                    fid.write(r'\\clearpage \n')
                     pp += 1
                 #### finished generating figures ###
 

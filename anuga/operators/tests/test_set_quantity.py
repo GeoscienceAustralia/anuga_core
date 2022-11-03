@@ -130,7 +130,7 @@ class Test_set_quantity(unittest.TestCase):
             update_stage = Set_quantity(domain, 'stage', value=stage, indices=indices)
         except AssertionError:
             pass
-        except e:
+        except Exception:
             self.fail('Unexpected exception thrown:', e)
         else:
             self.fail('ExpectedException not thrown')

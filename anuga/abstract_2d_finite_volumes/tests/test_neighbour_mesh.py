@@ -1289,7 +1289,7 @@ class Test_Mesh(unittest.TestCase):
 
         polygon =[[4.0, -1.0], [4.0, 4.0], [5.0, 4.0], [5.0, -2.0]]
         ids = mesh.get_triangles_inside_polygon(polygon)
-        assert not ids       
+        assert ids.size == 0     
 
         
 
