@@ -5,7 +5,6 @@ boundary.py - Classes for implementing boundary conditions
 from __future__ import division
 
 from builtins import str
-from past.utils import old_div
 from builtins import object
 from warnings import warn
 

@@ -62,8 +62,7 @@ def _quantities2csv(quantities, point_quantities, centroids, point_i):
                 if point_quantities[2] < 1.0e6:
                     momentum = sqrt(point_quantities[2]**2
                                     + point_quantities[3]**2)
-                    vel = old_div(momentum, (point_quantities[0]
-                                      - point_quantities[1]))
+                    vel = momentum/(point_quantities[0] - point_quantities[1])
                 else:
                     momentum = 0
                     vel = 0
