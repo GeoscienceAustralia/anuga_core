@@ -776,9 +776,9 @@ class AWI_boundary(Boundary):
             x2, y2 = V[base_index+2, :]
             
             # Compute midpoints
-            if edge_id == 0: m = num.array([old_div((x1 + x2),2), old_div((y1 + y2),2)])
-            if edge_id == 1: m = num.array([old_div((x0 + x2),2), old_div((y0 + y2),2)])
-            if edge_id == 2: m = num.array([old_div((x1 + x0),2), old_div((y1 + y0),2)])
+            if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2])
+            if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2])
+            if edge_id == 2: m = num.array([(x1 + x0)/2, (y1 + y0)/2])
 
             # Convert to absolute UTM coordinates
             m[0] += xllcorner

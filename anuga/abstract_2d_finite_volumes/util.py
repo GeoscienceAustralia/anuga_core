@@ -10,9 +10,6 @@ from builtins import map
 from builtins import str
 from builtins import range
 from past.builtins import basestring
-from past.utils import old_div
-import anuga.geometry.polygon
-import sys
 import os
 
 from os import remove, mkdir, access, F_OK, R_OK, W_OK, sep,getcwd
@@ -281,7 +278,7 @@ def get_centroid_values(x, triangles):
         i1 = triangles[k][1]
         i2 = triangles[k][2]        
         
-        xc[k] = old_div((x[i0] + x[i1] + x[i2]),3)
+        xc[k] = (x[i0] + x[i1] + x[i2])/3
 
     return xc
 
@@ -658,8 +655,8 @@ def csv2timeseries_graphs(directories_dic={},
                                                       + filename + '.csv')
             #get data from dict in to list
             #do maths to list by changing to array
-            t = old_div((num.array(directory_quantity_value[directory][filename]['time'])
-                     + directory_start_time), seconds_in_minutes)
+            t = (num.array(directory_quantity_value[directory][filename]['time'])
+                     + directory_start_time)/seconds_in_minutes
 
             #finds the maximum elevation, used only as a test
             # and as info in the graphs
@@ -918,7 +915,7 @@ def greens_law(d1, d2, h1, verbose=False):
         msg = 'the wave amplitude, h1 (%f), must be strictly positive' % (h1)
         raise Exception(msg)
     
-    h2 = h1*(old_div(d1,d2))**0.25
+    h2 = h1*(d1/d2)**0.25
 
     assert h2 > 0
     

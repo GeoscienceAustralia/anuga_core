@@ -10,7 +10,6 @@ from __future__ import division
 from builtins import map
 from builtins import zip
 from builtins import range
-from past.utils import old_div
 import sys
 import numpy as num
 import anuga.utilities.log as log
@@ -193,7 +192,7 @@ def pmesh_dict_to_tag_dict_old(mesh_dict):
                 #"" represents null.  Don't put these into the dictionary
                 #this creates a dict of lists of faces, indexed by tag
                 #tagged_edges.setdefault(tag,[]).append(sides[key])
-                vol_id = old_div(sides[key],3)
+                vol_id = sides[key]//3
                 edge_id = sides[key]%3
                 tag_dict[vol_id,edge_id] = tag
 

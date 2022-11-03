@@ -47,7 +47,6 @@ from __future__ import print_function
 from __future__ import division
 from builtins import str
 from builtins import range
-from past.utils import old_div
 from future.utils import raise_
 import sys
 import os
@@ -405,8 +404,8 @@ if gdal_available:
         if(segLen == 0.):
             raise_(Exception, 'Line has repeated points: Line %s Pt %s' % (str(line),str(pt)))
 
-        seg_unitVec_x = old_div(seg_unitVec_x,segLen)
-        seg_unitVec_y = old_div(seg_unitVec_y,segLen)
+        seg_unitVec_x = seg_unitVec_x/segLen
+        seg_unitVec_y = seg_unitVec_y/segLen
 
         # Get vector from pt to p0 
         pt_p0_vec_x = float(pt[0]-p0[0])
@@ -541,7 +540,7 @@ if gdal_available:
                    (L1_pts[tmp[1]][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
                 d1=((L1_pts[tmp[1]+2][0]-L1_pts[tmp[1]+1][0])**2.+\
                    (L1_pts[tmp[1]+2][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
-                L1_pts[tmp[1]+1][2] = old_div((d0*L1_pts[tmp[1]+2][2] + d1*L1_pts[tmp[1]][2]),(d0+d1))
+                L1_pts[tmp[1]+1][2] = (d0*L1_pts[tmp[1]+2][2] + d1*L1_pts[tmp[1]][2])/(d0+d1)
     
         else:
             if verbose:
@@ -741,8 +740,8 @@ if gdal_available:
         pixelHeight = transform[5] # Negative
         
         # Get coordinates in pixel values
-        px = old_div((xy[:,0] - xOrigin), pixelWidth)
-        py = old_div((xy[:,1] - yOrigin), pixelHeight)
+        px = (xy[:,0] - xOrigin)/pixelWidth
+        py = (xy[:,1] - yOrigin)/pixelHeight
       
         # Hold elevation 
         elev = px*0. 
@@ -910,10 +909,10 @@ if gdal_available:
         poly_ymax = polygonArr[:,1].max()
     
         # Make a 'grid' of points which covers the polygon
-        xGridCount = max( numpy.ceil( old_div((poly_xmax-poly_xmin),approx_grid_spacing[0])+1. ).astype(int), 4)
+        xGridCount = max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 4)
         R = (poly_xmax-poly_xmin)*eps
         Xvals = numpy.linspace(poly_xmin+R,poly_xmax-R, xGridCount)
-        yGridCount = max( numpy.ceil( old_div((poly_ymax-poly_ymin),approx_grid_spacing[1])+1. ).astype(int), 4)
+        yGridCount = max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 4)
         R = (poly_ymax-poly_ymin)*eps
         Yvals = numpy.linspace(poly_ymin+R,poly_ymax-R, yGridCount)
     

@@ -13,7 +13,6 @@ from __future__ import division
 from builtins import str
 from six import string_types
 from builtins import range
-from past.utils import old_div
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
@@ -740,9 +739,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if depth < 0.001:
                         vel = 0.0
                     else:
-                        vel = old_div(m, (depth + old_div(1.e-6,depth)))
+                        vel = m/ (depth + 1.e-6/depth)
                     bearing = calc_bearing(uh, vh)
-                    model_time[i,k,j] = old_div((t + starttime),scale) #t/60.0
+                    model_time[i,k,j] = (t + starttime)/scale #t/60.0
                     stages[i,k,j] = w
                     elevations[i,k,j] = z
                     xmom[i,k,j] = uh
@@ -828,17 +827,17 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
     elev_output = []
     if generate_fig is True:
-        depth_axis = axis([old_div(starttime,scale), old_div(time_max,scale), -0.1,
+        depth_axis = axis([starttime/scale, time_max/scale, -0.1,
                            max(max_depths)*1.1])
-        stage_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        stage_axis = axis([starttime/scale, time_max/scale,
                            min(min_stages), max(max_stages)*1.1])
-        vel_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        vel_axis = axis([starttime/scale, time_max/scale,
                          min(min_speeds), max(max_speeds)*1.1])
-        mom_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        mom_axis = axis([starttime/scale, time_max/scale,
                          min(min_momentums), max(max_momentums)*1.1])
-        xmom_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        xmom_axis = axis([starttime/scale, time_max/scale,
                           min(min_xmomentums), max(max_xmomentums)*1.1])
-        ymom_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        ymom_axis = axis([starttime/scale, time_max/scale,
                           min(min_ymomentums), max(max_ymomentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
         nn = len(plot_quantity)
@@ -1085,7 +1084,7 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     r'\label{fig:%s} \n' \
                     r'\end{figure} \n \n' % (caption, label)
                 fid.write(s)
-                if float(old_div((k+1),div) - pp) == 0.:
+                if float((k+1)//div - pp) == 0.:
                     fid.write(r'\\clearpage \n')
                     pp += 1
                 #### finished generating figures ###
