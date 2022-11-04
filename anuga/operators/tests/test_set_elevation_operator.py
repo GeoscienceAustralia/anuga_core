@@ -1,8 +1,6 @@
 """  Test set operators - stage elevation erosion.
 """
-from __future__ import division
 
-from past.utils import old_div
 import unittest, os
 import anuga
 from anuga import Domain
@@ -503,7 +501,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         length = 2.0
         width = 2.0
         dx = dy = 0.5
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 
@@ -604,7 +602,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         length = 2.0
         width = 2.0
         dx = dy = 0.5
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 
@@ -715,7 +713,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         length = 2.0
         width = 2.0
         dx = dy = 0.5
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 
@@ -812,7 +810,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         length = 2.0
         width = 2.0
         dx = dy = 0.5
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 
@@ -1007,7 +1005,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         length = 2.0
         width = 2.0
         dx = dy = 0.5
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 

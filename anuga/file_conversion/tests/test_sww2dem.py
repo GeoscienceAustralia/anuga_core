@@ -1,9 +1,5 @@
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import zip
-from builtins import range
-from past.utils import old_div
+
+
 import unittest, os, sys
 import numpy as num
 
@@ -1107,7 +1103,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 jj = 4 - j
                 for i in range(5):
                     if i % 2 == 0:
-                        index = old_div(jj, 2) + old_div(i, 2) * 3
+                        index = jj//2 + i//2 * 3
                         val0 = stage[0, index]
                         val1 = stage[1, index]
 
@@ -1212,7 +1208,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 jj = 4 - j
                 for i in range(5):
                     if i % 2 == 0:
-                        index = old_div(jj, 2) + old_div(i, 2) * 3
+                        index = jj//2 + i//2 * 3
                         
                         val = stage[1, index]
                    
@@ -1320,7 +1316,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 jj = 4 - j
                 for i in range(5):
                     if i % 2 == 0:
-                        index = old_div(jj, 2) + old_div(i, 2) * 3
+                        index = jj//2 + i//2 * 3
                         val0 = stage[0, index] - z[index]
                         val1 = stage[1, index] - z[index]
 

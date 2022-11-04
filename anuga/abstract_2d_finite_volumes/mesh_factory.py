@@ -1,11 +1,7 @@
 """Library of standard meshes and facilities for reading various
 mesh file formats
 """
-from __future__ import absolute_import
-from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 from builtins import object
 import anuga.utilities.log as log
 import numpy as num

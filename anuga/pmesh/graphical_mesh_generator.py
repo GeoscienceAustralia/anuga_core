@@ -1,11 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import range
-from past.utils import old_div
 import  Pmw, AppShell, math, time, string, marshal
 
 try:
@@ -313,7 +306,7 @@ class Draw(AppShell.AppShell):
         pi = math.pi
         num_of_cuts = 100
         cuts = []
-        factor = old_div(2* math.pi,num_of_cuts)
+        factor = 2* math.pi/num_of_cuts
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
 
@@ -337,7 +330,7 @@ class Draw(AppShell.AppShell):
         pi = math.pi
         num_of_cuts = 100
         cuts = []
-        factor = old_div(2* math.pi,num_of_cuts)
+        factor = 2* math.pi/num_of_cuts
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
 
@@ -418,14 +411,14 @@ class Draw(AppShell.AppShell):
             else:
                 obj.draw(self.canvas,obj.guiID,  scale =self.SCALE )
         top, bottom = self.scrolledcanvas.xview()
-        xcenter  = old_div((top + bottom),2)
+        xcenter  = (top + bottom)/2
         xdiff =  xcenter - top
-        xcnew = xcenter - old_div(xdiff,fraction)
+        xcnew = xcenter - xdiff/fraction
 
         top, bottom = self.scrolledcanvas.yview()
-        ycenter = old_div((top + bottom),2)
+        ycenter = (top + bottom)/2
         ydiff = ycenter - top
-        ycnew = ycenter - old_div(ydiff,fraction)
+        ycnew = ycenter - ydiff/fraction
 
         self.scrolledcanvas.resizescrollregion()
         # update so the moveto calls will work...
@@ -659,7 +652,7 @@ class Draw(AppShell.AppShell):
             pass
         meshArea = 0
         meshArea = tempMesh.tri_mesh.calc_mesh_area()
-        maxArea = old_div(meshArea,numTriangles)
+        maxArea = meshArea/numTriangles
 
 
         return self.MeshGenAreaAngle (minAngle,

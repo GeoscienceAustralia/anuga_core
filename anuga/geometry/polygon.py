@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 
 """Polygon manipulations"""
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
+
 
 from .polygon_ext import _is_inside_triangle
 from .polygon_ext import _interpolate_polyline
@@ -11,10 +9,7 @@ from .polygon_ext import _line_intersect
 from .polygon_ext import _polygon_overlap
 from .polygon_ext import _separate_points_by_polygon
 from .polygon_ext import _point_on_line
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
 import numpy as num
 import math
 
@@ -172,8 +167,8 @@ def intersection(line0, line1, rtol=1.0e-5, atol=1.0e-8):
             return 4, None  # FIXME (Ole): Add distance here instead of None
     else:
         # Lines are not parallel, check if they intersect
-        u0 = old_div(u0, denom)
-        u1 = old_div(u1, denom)
+        u0 = u0/ denom
+        u1 = u1/ denom
 
         x = x0 + u0*(x1-x0)
         y = y0 + u0*(y1-y0)
@@ -230,7 +225,7 @@ def polygon_overlap(triangles, polygon, verbose=False):
     polygon = ensure_numeric(polygon)
     triangles = ensure_numeric(triangles)
 
-    M = old_div(triangles.shape[0], 3)  # Number of triangles
+    M = triangles.shape[0]//3 # Number of triangles
 
     indices = num.zeros(M, int)
 
@@ -250,7 +245,7 @@ def not_polygon_overlap(triangles, polygon, verbose=False):
     polygon = ensure_numeric(polygon)
     triangles = ensure_numeric(triangles)
 
-    M = old_div(triangles.shape[0], 3)  # Number of triangles
+    M = triangles.shape[0]// 3  # Number of triangles
 
     indices = num.zeros(M, int)
 
@@ -270,7 +265,7 @@ def line_intersect(triangles, line, verbose=False):
     line = ensure_numeric(line)
     triangles = ensure_numeric(triangles)
 
-    M = old_div(triangles.shape[0], 3)  # Number of triangles
+    M = triangles.shape[0]// 3  # Number of triangles
 
     indices = num.zeros(M, int)
 
@@ -299,7 +294,7 @@ def not_line_intersect(triangles, line, verbose=False):
     line = ensure_numeric(line)
     triangles = ensure_numeric(triangles)
 
-    M = old_div(triangles.shape[0], 3)  # Number of triangles
+    M = triangles.shape[0]// 3  # Number of triangles
 
     indices = num.zeros(M, int)
 
@@ -731,7 +726,7 @@ def polygon_area(input_polygon):
         yi = pti[1]
         poly_area += xi*yi1 - xi1*yi
 
-    return abs(old_div(poly_area, 2))
+    return abs(poly_area/ 2)
 
 
 def plot_polygons(polygons_points,
@@ -1008,21 +1003,21 @@ def number_mesh_triangles(interior_regions, bounding_poly, remainder_res):
 
     for poly, resolution in interior_regions:
         this_area = polygon_area(poly)
-        this_triangles = old_div(this_area, resolution)
+        this_triangles = this_area/ resolution
         no_triangles += this_triangles
         area -= this_area
 
         log.info('Interior %s%s%d'
                  % (('%.0f' % resolution).ljust(25),
-                    ('%.2f' % (old_div(this_area, 1000000))).ljust(19),
+                    ('%.2f' % (this_area/ 1_000_000)).ljust(19),
                     this_triangles))
 
-    bound_triangles = old_div(area, remainder_res)
+    bound_triangles = area/remainder_res
     no_triangles += bound_triangles
 
     log.info('Bounding %s%s%d'
              % (('%.0f' % remainder_res).ljust(25),
-                ('%.2f' % (old_div(area, 1000000))).ljust(19),
+                ('%.2f' % (area/ 1_000_000)).ljust(19),
                 bound_triangles))
 
     total_number_of_triangles = no_triangles/0.7

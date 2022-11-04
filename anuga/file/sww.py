@@ -16,11 +16,7 @@ from anuga.config import max_float
 from anuga.config import netcdf_float, netcdf_float32, netcdf_int, netcdf_float64
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
-from future.utils import raise_
+
 
 
 class DataFileNotOpenError(Exception):
@@ -290,7 +286,7 @@ class SWW_file(Data_format):
 
         if not file_open:
             msg = 'File %s could not be opened for append' % self.filename
-            raise_(DataFileNotOpenError, msg)
+            raise DataFileNotOpenError(msg)
 
         # Check to see if the file is already too big:
         time = fid.variables['time'][:]
@@ -490,7 +486,7 @@ class Read_sww(object):
 
         self.frame_number = frame_number
 
-        M = old_div(len(self.x), 3)
+        M = len(self.x)//3
 
         fin = NetCDFFile(self.source, 'r')
 
@@ -907,7 +903,7 @@ class Write_sww(Write_sts):
             if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise_(NewQuantity, msg)
+                raise NewQuantity(msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -957,7 +953,7 @@ class Write_sww(Write_sts):
             if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise_(NewQuantity, msg)
+                raise NewQuantity(msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -1020,7 +1016,7 @@ class Write_sww(Write_sts):
             if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise_(NewQuantity, msg)
+                raise NewQuantity(msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -1087,7 +1083,7 @@ class Write_sww(Write_sts):
             if q not in quant:
                 msg = 'Values for quantity %s was not specified in ' % q
                 msg += 'store_quantities so they cannot be stored.'
-                raise_(NewQuantity, msg)
+                raise NewQuantity(msg)
             else:
                 q_values = ensure_numeric(quant[q])
 
@@ -1260,7 +1256,7 @@ def Xload_sww_as_domain(filename, boundary=None, t=None,
         fid.close()
         msg = 'Domain could not be created: %s. ' \
               'Perhaps use "fail_if_NaN=False and NaN_filler = ..."' % e
-        raise_(DataDomainError, msg)
+        raise DataDomainError(msg)
 
     if boundary is not None:
         domain.boundary = boundary
@@ -1284,12 +1280,12 @@ def Xload_sww_as_domain(filename, boundary=None, t=None,
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
                 msg = 'quantity "%s" contains no_data entry' % quantity
-                raise_(DataMissingValuesError, msg)
+                raise DataMissingValuesError(msg)
             else:
                 data = (X != NaN)
                 X = (X*data) + (data == 0)*NaN_filler
         if unique:
-            X = num.resize(X, (old_div(len(X), 3), 3))
+            X = num.resize(X, (len(X)//3, 3))
         domain.set_quantity(quantity, X)
     #
     for quantity in dynamic_quantities:
@@ -1309,12 +1305,12 @@ def Xload_sww_as_domain(filename, boundary=None, t=None,
         if max(X) == NaN or min(X) == NaN:
             if fail_if_NaN:
                 msg = 'quantity "%s" contains no_data entry' % quantity
-                raise_(DataMissingValuesError, msg)
+                raise DataMissingValuesError(msg)
             else:
                 data = (X != NaN)
                 X = (X*data) + (data == 0)*NaN_filler
         if unique:
-            X = num.resize(X, (old_div(X.shape[0], 3), 3))
+            X = num.resize(X, (X.shape[0]//3, 3))
         domain.set_quantity(quantity, X)
 
     fid.close()
@@ -1391,7 +1387,7 @@ def get_mesh_and_quantities_from_file(filename,
     except AssertionError as e:
         fid.close()
         msg = 'Domain could not be created: %s. "' % e
-        raise_(DataDomainError, msg)
+        raise DataDomainError(msg)
 
     def gather(quantity):
 
@@ -1429,7 +1425,7 @@ def get_mesh_and_quantities_from_file(filename,
 
             for i in range(n_time):
                 my_num_add_at(temp_uv[i, :], mesh_ids, quantity[i, :])
-                temp_uv[i, :] = old_div(temp_uv[i, :], count_uv)
+                temp_uv[i, :] = temp_uv[i, :]/count_uv
 
         elif len(shape) == 1:
             # non time array
@@ -1484,9 +1480,9 @@ def get_time_interp(time, t=None):
               % ('FIXMEfilename', T[0], T[-1])
         msg += ' does not match model time: %s' % tau
         if tau < time[0]:
-            raise_(DataTimeError, msg)
+            raise DataTimeError(msg)
         if tau > time[-1]:
-            raise_(DataTimeError, msg)
+            raise DataTimeError(msg)
         while tau > time[index]:
             index += 1
         while tau < time[index]:
@@ -1497,7 +1493,7 @@ def get_time_interp(time, t=None):
             ratio = 0
         else:
             # t is now between index and index+1
-            ratio = old_div((tau - time[index]), (time[index+1] - time[index]))
+            ratio = (tau - time[index])/(time[index+1] - time[index])
 
     return (index, ratio)
 

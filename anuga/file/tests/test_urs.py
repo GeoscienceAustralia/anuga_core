@@ -1,6 +1,4 @@
-from __future__ import division
-from builtins import range
-from past.utils import old_div
+
 import unittest
 import numpy as num
 import os
@@ -187,8 +185,8 @@ class Test_Urs(unittest.TestCase):
         LL_LAT = 0.0
         LL_LONG = 90.0
         GRID_SPACING = 2.0/60.0
-        LAT_AMOUNT = old_div((15-LL_LAT),GRID_SPACING)
-        LONG_AMOUNT = old_div((100-LL_LONG),GRID_SPACING) 
+        LAT_AMOUNT = (15-LL_LAT)/GRID_SPACING
+        LONG_AMOUNT = (100-LL_LONG)/GRID_SPACING
         ZONE = 47
         
         poly2 = [[419336.424,810100.845],

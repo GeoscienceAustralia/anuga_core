@@ -42,7 +42,7 @@ class Test_poly(unittest.TestCase):
 
             for key2 in ['enquiry_point0', 'enquiry_point1']:
                 point = P[key2]
-                assert not inside_polygon(point, polygon)
+                assert len(inside_polygon(point, polygon)) == 0
         
 
     def test_2(self):
@@ -72,7 +72,7 @@ class Test_poly(unittest.TestCase):
 
             for key2 in ['enquiry_point0', 'enquiry_point1']:
                 point = P[key2]
-                assert not inside_polygon(point, polygon)                        
+                assert len(inside_polygon(point, polygon)) == 0                      
 
     
                

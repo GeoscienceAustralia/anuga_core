@@ -2,10 +2,7 @@
 
 Ole Nielsen, 2011
 """
-from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 __author__ = 'Ole Nielsen <ole.moller.nielsen@gmail.com>'
 __revision__ = '$Format:%H$'
 __date__ = '01/11/2011'
@@ -187,8 +184,8 @@ class Test_interpolate(unittest.TestCase):
         z11 = A[idx, idy]
 
         # Location coefficients
-        alpha = old_div((xi - x0), (x1 - x0))
-        beta = old_div((eta - y0), (y1 - y0))
+        alpha = (xi - x0)/ (x1 - x0)
+        beta = (eta - y0)/ (y1 - y0)
 
         refs = numpy.zeros(len(vals))
         for i in range(len(refs)):

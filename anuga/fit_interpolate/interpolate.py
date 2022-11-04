@@ -52,8 +52,8 @@ import numpy as num
 
 # Interpolation specific exceptions
 
-class Modeltime_too_late(Exception): pass
-class Modeltime_too_early(Exception): pass
+class Modeltime_too_late(BaseException): pass
+class Modeltime_too_early(BaseException): pass
 
 
 def interpolate(vertex_coordinates,

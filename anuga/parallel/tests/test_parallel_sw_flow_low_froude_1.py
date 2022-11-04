@@ -6,16 +6,10 @@ similar to a beach environment
 
 This is a very simple test of the parallel algorithm using the simplified parallel API
 """
-from __future__ import print_function
-from __future__ import division
-
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
 import unittest
 import os
 import sys
@@ -56,7 +50,7 @@ verbose = False
 # Setup Functions
 #---------------------------------
 def topography(x,y):
-    return old_div(-x,2)
+    return -x/2
 
 ###########################################################################
 # Setup Test

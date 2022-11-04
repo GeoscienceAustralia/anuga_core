@@ -6,13 +6,7 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia, 2004
 """
-from __future__ import absolute_import
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
 from .general_mesh import General_mesh
 from anuga.caching import cache
 import anuga.utilities.log as log

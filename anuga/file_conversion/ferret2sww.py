@@ -1,11 +1,8 @@
 """
     Convert a ferret file to an SWW file.
 """
-from __future__ import division
-# external modules
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
+
 import numpy as num
 
 
@@ -18,6 +15,9 @@ import anuga.utilities.log as log
 
 #local modules
 from anuga.file_conversion.file_conversion import get_min_max_indices                            
+
+class DataMissingValuesError(Exception):
+    pass
 
 
 def ferret2sww(basename_in, name_out=None,
@@ -193,7 +193,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ha.nc'
-            raise_(DataMissingValuesError, msg)
+            raise DataMissingValuesError(msg)
         else:
             amplitudes = amplitudes*(missing==0) + missing*NaN_filler
 
@@ -202,7 +202,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ua.nc'
-            raise_(DataMissingValuesError, msg)
+            raise DataMissingValuesError(msg)
         else:
             uspeed = uspeed*(missing==0) + missing*NaN_filler
 
@@ -211,7 +211,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_va.nc'
-            raise_(DataMissingValuesError, msg)
+            raise DataMissingValuesError(msg)
         else:
             vspeed = vspeed*(missing==0) + missing*NaN_filler
 
@@ -220,7 +220,7 @@ def ferret2sww(basename_in, name_out=None,
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_e.nc'
-            raise_(DataMissingValuesError, msg)
+            raise DataMissingValuesError(msg)
         else:
             elevations = elevations*(missing==0) + missing*NaN_filler
 
@@ -333,17 +333,17 @@ def ferret2sww(basename_in, name_out=None,
 
     n = len(times)
     for j in range(n):
-        if verbose and j % (old_div((n+10),10)) == 0:
+        if verbose and j % ((n+10)//10) == 0:
             log.critical('  Doing %d of %d' % (j, n))
 
         i = 0
         for k in range(number_of_latitudes):      # Y direction
             for l in range(number_of_longitudes): # X direction
-                w = old_div(zscale * amplitudes[j, k, l], 100) + mean_stage
+                w = zscale * amplitudes[j, k, l]/100.0 + mean_stage
                 stage[j, i] = w
                 h = w - z[i]
-                xmomentum[j, i] = old_div(uspeed[j, k, l],100)*h
-                ymomentum[j, i] = old_div(vspeed[j, k, l],100)*h
+                xmomentum[j, i] = uspeed[j, k, l]/100.0*h
+                ymomentum[j, i] = vspeed[j, k, l]/100.0*h
                 i += 1
 
     #outfile.close()

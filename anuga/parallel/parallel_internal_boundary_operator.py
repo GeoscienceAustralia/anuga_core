@@ -1,7 +1,4 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from past.utils import old_div
+
 import anuga
 import math
 import numpy
@@ -213,7 +210,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
             case = ''
 
             # 'Timescale' for smoothed discharge and energy
-            ts = old_div(self.domain.timestep,max(self.domain.timestep, self.smoothing_timescale, 1.0e-30))
+            ts = self.domain.timestep/max(self.domain.timestep, self.smoothing_timescale, 1.0e-30)
 
             # Energy or stage as head
             if self.use_velocity_head:
@@ -419,7 +416,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
             # Smooth discharge
             if dt > 0.:
-                ts = old_div(dt,max(dt, self.smoothing_timescale, 1.0e-30))
+                ts = dt/max(dt, self.smoothing_timescale, 1.0e-30)
             else:
                 # No smoothing
                 ts = 1.0

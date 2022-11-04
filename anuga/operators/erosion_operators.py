@@ -3,11 +3,7 @@ Erosion operators
 
 
 """
-from __future__ import print_function
-from __future__ import division
 
-from builtins import str
-from builtins import range
 __author__="steve"
 __date__ ="$09/03/2012 4:46:39 PM$"
 
@@ -211,7 +207,7 @@ class Erosion_operator(Operator, Region):
                 vidd = self.domain.vertex_value_indices[vid]
 
                 # Replaced this (Ole)
-                #self.elev_v[old_div(vidd,3),vidd%3] = old_div(num.sum(self.elev_v[old_div(vidd,3),vidd%3]),non)
+                #self.elev_v[vidd//3,vidd%3] = num.sum(self.elev_v[vidd,//3,vidd%3])/non
 
                 # with this to get it working in both Python2 and Python3
                 res = num.sum(self.elev_v[vidd // 3, vidd % 3]) / non

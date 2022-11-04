@@ -8,13 +8,7 @@ ModifiedBy:
 
 """
 
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
-from future.utils import raise_
 from warnings import warn
 import numpy as num
 from copy import copy
@@ -1075,7 +1069,7 @@ class Barometric_pressure_fast(object):
 
             msg = 'No pressure values exist for times greater than domain.starttime'
             if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
-                raise_(Exception, msg)
+                raise Exception(msg)
 
             # FIXME(JJ): How do we check that evolve 
             # finaltime  < pressure_file.finaltime      

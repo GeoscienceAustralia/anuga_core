@@ -5,10 +5,7 @@ MOSTs output.
  $Author: Peter Row
  
 """
-from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 import sys
 from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a

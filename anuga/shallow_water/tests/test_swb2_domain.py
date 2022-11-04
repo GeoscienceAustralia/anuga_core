@@ -1,8 +1,6 @@
 """  Test environmental forcing - rain, wind, etc.
 """
-from __future__ import division
 
-from past.utils import old_div
 import unittest, os
 
 import anuga
@@ -91,7 +89,7 @@ class Test_swb2_domain(unittest.TestCase):
             dd = domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values
             #dd_raw=1.0*dd
             dd = (dd)*(dd>1.0e-03)+1.0e-03
-            vv = ( (old_div(xx,dd))**2 + (old_div(yy,dd))**2)**0.5
+            vv = ( (xx/dd)**2 + (yy/dd)**2)**0.5
             vv = vv*(dd>1.0e-03)
             #print 'Peak velocity is: ', vv.max(), vv.argmax()
             #print 'Volume is', sum(dd_raw*domain.areas)

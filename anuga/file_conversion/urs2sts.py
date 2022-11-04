@@ -1,9 +1,8 @@
-from __future__ import division
-from builtins import str
-from builtins import range
+
+
 from past.builtins import basestring
-from past.utils import old_div
-from future.utils import raise_
+
+
 import numpy as num
 
 import anuga.utilities.log as log
@@ -90,7 +89,7 @@ def urs2sts(basename_in, basename_out=None,
     # Check that basename is a list of strings
     if not reduce(__and__, [isinstance(z,basestring) for z in basename_in]):
         msg= 'basename_in must be a string or list of strings'
-        raise_(Exception, msg)
+        raise(Exception, msg)
 
     # Find the number of sources to be used
     numSrc = len(basename_in)
@@ -98,7 +97,7 @@ def urs2sts(basename_in, basename_out=None,
     # A weight must be specified for each source
     if weights is None:
         # Default is equal weighting
-        weights = old_div(num.ones(numSrc, float), numSrc)
+        weights = num.ones(numSrc, float)/numSrc
     else:
         weights = ensure_numeric(weights)
         msg = 'When combining multiple sources must specify a weight for ' \
@@ -111,7 +110,7 @@ def urs2sts(basename_in, basename_out=None,
     if basename_out is None:
         msg = 'STS filename must be specified as basename_out ' \
               'in function urs2sts'
-        raise_(Exception, msg)
+        raise(Exception, msg)
 
     if basename_out.endswith('.sts'):
         stsname = basename_out
@@ -130,7 +129,7 @@ def urs2sts(basename_in, basename_out=None,
         for file_in in files_in[i]:
             if (os.access(file_in, os.R_OK) == 0):
                 msg = 'File %s does not exist or is not accessible' % file_in
-                raise_(IOError, msg)
+                raise(IOError, msg)
 
     # Establish permutation array
     if ordering_filename is not None:
@@ -145,18 +144,18 @@ def urs2sts(basename_in, basename_out=None,
             fid.close()
         except:
             msg = 'Cannot open %s' % ordering_filename
-            raise_(Exception, msg)
+            raise(Exception, msg)
 
         reference_header = 'index, longitude, latitude\n'
         reference_header_split = reference_header.split(',')
         for i in range(3):
             if not file_header[i].strip() == reference_header_split[i].strip():
                 msg = 'File must contain header: ' + reference_header
-                raise_(Exception, msg)
+                raise(Exception, msg)
 
         if len(ordering_lines) < 2:
             msg = 'File must contain at least two points'
-            raise_(Exception, msg)
+            raise(Exception, msg)
 
         permutation = [int(line.split(',')[0]) for line in ordering_lines]
         permutation = ensure_numeric(permutation)
@@ -272,7 +271,7 @@ def urs2sts(basename_in, basename_out=None,
                    % (computed_zone, easting, northing)
             msg += 'previous gauge:Zone %d,%.4f, %4f' \
                    % (old_zone, old_easting, old_northing)
-            raise_(Exception, msg)
+            raise(Exception, msg)
         old_zone = computed_zone
         old_easting = easting
         old_northing = northing

@@ -1,7 +1,4 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from past.utils import old_div
+
 import anuga
 import math
 import numpy
@@ -308,7 +305,7 @@ def boyd_box_function(width,
     # FIXME(Ole): Are these functions really for inlet control?
     if Q_inlet_unsubmerged < Q_inlet_submerged:
         Q = Q_inlet_unsubmerged
-        dcrit = (old_div(old_div(Q**2,anuga.g),(bf*width*barrels)**2))**0.333333
+        dcrit = (Q**2/anuga.g/(bf*width*barrels)**2)**0.333333
         if dcrit > depth:
             dcrit = depth
             flow_area = bf*width*dcrit*barrels
@@ -320,7 +317,7 @@ def boyd_box_function(width,
         case = 'Inlet unsubmerged Box Acts as Weir'
     else: # Inlet Submerged but check internal culvert flow depth
         Q = Q_inlet_submerged
-        dcrit = (old_div(old_div(Q**2,anuga.g),(bf*width*barrels)**2))**0.333333
+        dcrit = (Q**2/anuga.g/(bf*width*barrels)**2)**0.333333
         if dcrit > depth:
             dcrit = depth
             flow_area = bf*width*barrels*dcrit
@@ -331,7 +328,7 @@ def boyd_box_function(width,
         outlet_culvert_depth = dcrit
         case = 'Inlet submerged Box Acts as Orifice'
 
-    dcrit = (old_div(old_div(Q**2,anuga.g),(bf*width*barrels)**2))**0.333333
+    dcrit = (Q**2/anuga.g/(bf*width*barrels)**2)**0.333333
 
     # May not need this .... check if same is done above
     outlet_culvert_depth = dcrit
@@ -348,10 +345,10 @@ def boyd_box_function(width,
     # Initial Estimate of Flow for Outlet Control using energy slope
     #( may need to include Culvert Bed Slope Comparison)
 
-    hyd_rad = old_div(flow_area,perimeter)
+    hyd_rad = flow_area/perimeter
 
-    culvert_velocity = math.sqrt(old_div(delta_total_energy,((old_div(old_div(sum_loss,2),anuga.g)) \
-                                                          +old_div((manning**2*length),hyd_rad**1.33333))))
+    culvert_velocity = math.sqrt(delta_total_energy/((sum_loss/2/anuga.g) \
+                                                          +(manning**2*length)/hyd_rad**1.33333))
     Q_outlet_tailwater = flow_area * culvert_velocity
 
 
@@ -365,7 +362,7 @@ def boyd_box_function(width,
             perimeter = 2.0*(bf*width*barrels + depth)
             case = 'Outlet submerged'
         else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
-            dcrit = (old_div(old_div(Q**2,anuga.g),(bf*width*barrels)**2))**0.333333
+            dcrit = (Q**2/anuga.g/(bf*width*barrels)**2)**0.333333
             outlet_culvert_depth = dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
             if outlet_culvert_depth > depth:
                 outlet_culvert_depth = depth
@@ -377,11 +374,11 @@ def boyd_box_function(width,
                 perimeter = bf*width*barrels + 2.0*outlet_culvert_depth
                 case = 'Outlet is open channel flow'
 
-        hyd_rad = old_div(flow_area,perimeter)
+        hyd_rad = flow_area/perimeter
 
         # Final Outlet control velocity using tail water
-        culvert_velocity = math.sqrt(old_div(delta_total_energy,((old_div(old_div(sum_loss,2),anuga.g))\
-                                                          +old_div((manning**2*length),hyd_rad**1.33333))))
+        culvert_velocity = math.sqrt(delta_total_energy/((sum_loss/2/anuga.g)\
+                                                          +(manning**2*length)/hyd_rad**1.33333))
         Q_outlet_tailwater = flow_area * culvert_velocity
 
         Q = min(Q, Q_outlet_tailwater)
@@ -393,7 +390,7 @@ def boyd_box_function(width,
     if  flow_area <= 0.0 :
         culv_froude = 0.0
     else:
-        culv_froude=math.sqrt(old_div(Q**2*flow_width*barrels,(anuga.g*flow_area**3)))
+        culv_froude=math.sqrt(Q**2*flow_width*barrels/(anuga.g*flow_area**3))
 
     if local_debug:
         anuga.log.critical('FLOW AREA = %s' % str(flow_area))
@@ -403,7 +400,7 @@ def boyd_box_function(width,
         anuga.log.critical('Case = %s' % case)
 
     # Determine momentum at the outlet
-    barrel_velocity = old_div(Q,(flow_area + old_div(anuga.velocity_protection,flow_area)))
+    barrel_velocity = Q/(flow_area + anuga.velocity_protection/flow_area)
 
     # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 
@@ -418,7 +415,7 @@ def total_energy(smooth_delta_total_energy,
     if(forward_Euler_smooth):
         # To avoid 'overshoot' we ensure ts<1.
         if(timestep>0.):
-            ts=old_div(timestep,max(timestep, smoothing_timescale,1.0e-06))
+            ts=timestep/max(timestep, smoothing_timescale,1.0e-06)
         else:
             # Without this the unit tests with no smoothing fail [since they have domain.timestep=0.]
             # Note though the discontinuous behaviour as domain.timestep-->0. from above
@@ -428,8 +425,8 @@ def total_energy(smooth_delta_total_energy,
     else:
         # Use backward euler -- the 'sensible' ts limitation is different in this case
         # ts --> Inf is reasonable and corresponds to the 'nosmoothing' case
-        ts=old_div(timestep,max(smoothing_timescale, 1.0e-06))
-        smooth_delta_total_energy = old_div((smooth_delta_total_energy+ts*(delta_total_energy)),(1.+ts))
+        ts=timestep/max(smoothing_timescale, 1.0e-06)
+        smooth_delta_total_energy = (smooth_delta_total_energy+ts*(delta_total_energy))/(1.+ts)
     return smooth_delta_total_energy, ts
 
 def smooth_discharge(smooth_delta_total_energy,
@@ -446,7 +443,7 @@ def smooth_discharge(smooth_delta_total_energy,
         smooth_Q = smooth_Q +ts*(Q*Qsign-smooth_Q)
     else:
         # Try implicit euler method
-        smooth_Q = old_div((smooth_Q+ts*(Q*Qsign)),(1.+ts))
+        smooth_Q = (smooth_Q+ts*(Q*Qsign))/(1.+ts)
 
     if numpy.sign(smooth_Q)!=Qsign:
         # The flow direction of the 'instantaneous Q' based on the
@@ -459,5 +456,5 @@ def smooth_discharge(smooth_delta_total_energy,
     if flow_area == 0:
         barrel_velocity = 0.0
     else:
-        barrel_velocity=old_div(Q,flow_area)
+        barrel_velocity=Q/flow_area
     return smooth_Q, Q, barrel_velocity

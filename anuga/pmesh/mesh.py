@@ -12,13 +12,7 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia
 """
-from __future__ import division
 
-from builtins import zip
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from builtins import object
 import sys
 import math
 import re
@@ -152,7 +146,7 @@ class Vertex(Point):
              yoffset=0, ):
         x = scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
-        cornerOffset = old_div(self.VERTEXSQUARESIDELENGTH, 2)
+        cornerOffset = self.VERTEXSQUARESIDELENGTH/ 2
 
         # A hack to see the vert tags
         # note: there will be many tags, since tags will not be removed
@@ -192,7 +186,7 @@ class Hole(Point):
              yoffset=0, ):
         x = scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)  # - since for a canvas - is up
-        cornerOffset = old_div(self.HOLECORNERLENGTH, 2)
+        cornerOffset = self.HOLECORNERLENGTH/ 2
         return canvas.create_oval(x-cornerOffset,
                                   y-cornerOffset,
                                   x+cornerOffset,
@@ -264,7 +258,7 @@ class Region(Point):
         """
         x = scale*(self.x + xoffset)
         y = -1*scale*(self.y + yoffset)
-        cornerOffset = old_div(self.CROSSLENGTH, 2)
+        cornerOffset = self.CROSSLENGTH/ 2
         return canvas.create_polygon(x,
                                      y-cornerOffset,
                                      x,
@@ -447,7 +441,7 @@ class Rigid_triangulation(object):
             cx = vertices[2][0]
             cy = vertices[2][1]
 
-            area += old_div(abs((bx*ay-ax*by)+(cx*by-bx*cy)+(ax*cy-cx*ay)), 2)
+            area += abs((bx*ay-ax*by)+(cx*by-bx*cy)+(ax*cy-cx*ay))/ 2
         return area
 
 
@@ -825,7 +819,7 @@ class Mesh(object):
         """
         # convert center and radius to a polygon
         cuts = []
-        factor = old_div(2 * math.pi, segment_count)
+        factor = 2 * math.pi/ segment_count
         for cut in range(segment_count):
             cuts.append(cut*factor)
 
@@ -1228,8 +1222,8 @@ class Mesh(object):
 
         for v in self.userVertices:
             # tag is the center of the boxes
-            tag = (round(old_div(v.x, delta), 0)*delta,
-                   round(old_div(v.y, delta), 0)*delta)
+            tag = (round(v.x/delta, 0)*delta,
+                   round(v.y/ delta, 0)*delta)
             # this creates a dict of lists of faces, indexed by tag
             boxedVertices.setdefault(tag, []).append(v)
 
@@ -1682,31 +1676,27 @@ class Mesh(object):
             min, max = ymin, ymax
 
         for obj in self.getUserVertices():
-            obj.x = old_div((obj.x - xmin), (max - min))*scale + offset
-            obj.y = old_div((obj.y - ymin), (max - min))*scale + offset
+            obj.x = (obj.x - xmin)/ (max - min)*scale + offset
+            obj.y = (obj.y - ymin)/ (max - min)*scale + offset
             if len(obj.attributes) > 0 and attmin0 != attmax0:
-                obj.attributes[0] = old_div((obj.attributes[0]-attmin0),
-                                            (attmax0-attmin0))*height_scale
+                obj.attributes[0] = (obj.attributes[0]-attmin0)/(attmax0-attmin0)*height_scale
             if len(obj.attributes) > 1 and attmin1 != attmax1:
-                obj.attributes[1] = old_div((obj.attributes[1]-attmin1),
-                                            (attmax1-attmin1))*height_scale
+                obj.attributes[1] = (obj.attributes[1]-attmin1)/(attmax1-attmin1)*height_scale
 
         for obj in self.getMeshVertices():
-            obj.x = old_div((obj.x - xmin), (max - min))*scale + offset
-            obj.y = old_div((obj.y - ymin), (max - min))*scale + offset
+            obj.x = (obj.x - xmin)/ (max - min)*scale + offset
+            obj.y = (obj.y - ymin)/ (max - min)*scale + offset
             if len(obj.attributes) > 0 and attmin0 != attmax0:
-                obj.attributes[0] = old_div((obj.attributes[0]-attmin0),
-                                            (attmax0-attmin0))*height_scale
+                obj.attributes[0] = (obj.attributes[0]-attmin0)/(attmax0-attmin0)*height_scale
             if len(obj.attributes) > 1 and attmin1 != attmax1:
-                obj.attributes[1] = old_div((obj.attributes[1]-attmin1),
-                                            (attmax1-attmin1))*height_scale
+                obj.attributes[1] = (obj.attributes[1]-attmin1)/(attmax1-attmin1)*height_scale
 
         for obj in self.getHoles():
-            obj.x = old_div((obj.x - xmin), (max - min))*scale + offset
-            obj.y = old_div((obj.y - ymin), (max - min))*scale + offset
+            obj.x = (obj.x - xmin)/ (max - min)*scale + offset
+            obj.y = (obj.y - ymin)/ (max - min)*scale + offset
         for obj in self.getRegions():
-            obj.x = old_div((obj.x - xmin), (max - min))*scale + offset
-            obj.y = old_div((obj.y - ymin), (max - min))*scale + offset
+            obj.x = (obj.x - xmin)/ (max - min)*scale + offset
+            obj.y = (obj.y - ymin)/ (max - min)*scale + offset
         [xmin, ymin, xmax, ymax] = self.boxsize()
         #print [xmin, ymin, xmax, ymax]
 
@@ -1799,8 +1789,7 @@ class Mesh(object):
         """
         OFFSET = 0.05*min([WIDTH, HEIGHT])
         [xmin, ymin, xmax, ymax] = self.boxsize()
-        SCALE = old_div(min([0.9*WIDTH, 0.9*HEIGHT]),
-                        max([xmax-xmin, ymax-ymin]))
+        SCALE = min([0.9*WIDTH, 0.9*HEIGHT])/max([xmax-xmin, ymax-ymin])
 
         if SCALE*xmin < OFFSET:
             xoffset = abs(SCALE*xmin) + OFFSET
@@ -2218,19 +2207,18 @@ def square_outline(side_length=1, up="top", left="left", right="right",
     s5 = Segment(a, c, tag=down)
 
     if regions:
-        e = Vertex(old_div(side_length, 2), old_div(side_length, 2))
+        e = Vertex(side_length/ 2, side_length/ 2)
         s6 = Segment(a, e, tag=down + left)
         s7 = Segment(b, e, tag=up + left)
         s8 = Segment(c, e, tag=down + right)
         s9 = Segment(d, e, tag=up + right)
-        r1 = Region(old_div(side_length, 2),
-                    old_div(3.*side_length, 4), tag=up)
-        r2 = Region(old_div(1.*side_length, 4),
-                    old_div(side_length, 2), tag=left)
-        r3 = Region(old_div(3.*side_length, 4),
-                    old_div(side_length, 2), tag=right)
-        r4 = Region(old_div(side_length, 2), old_div(
-            1.*side_length, 4), tag=down)
+        r1 = Region(side_length/ 2,
+                    3.*side_length/ 4, tag=up)
+        r2 = Region(1.*side_length/ 4,
+                    side_length/ 2, tag=left)
+        r3 = Region(3.*side_length/ 4,
+                    side_length/ 2, tag=right)
+        r4 = Region(side_length/ 2, 1.*side_length/4, tag=down)
         mesh = Mesh(userVertices=[a, b, c, d, e],
                     userSegments=[s2, s3, s4, s5, s6, s7, s8, s9],
                     regions=[r1, r2, r3, r4])

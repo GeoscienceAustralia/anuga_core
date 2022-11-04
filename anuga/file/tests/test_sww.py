@@ -1,8 +1,4 @@
-from __future__ import division
-from builtins import zip
-from builtins import map
-from builtins import range
-from past.utils import old_div
+
 import os
 import unittest
 import tempfile
@@ -77,7 +73,7 @@ class Test_sww(unittest.TestCase):
         domain.default_order=2
         
 
-        domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
+        domain.set_quantity('elevation', lambda x,y: -x/3.0)
         domain.set_quantity('friction', 0.1)
         
         # Boundary conditions
@@ -144,7 +140,7 @@ class Test_sww(unittest.TestCase):
         domain.set_name('sww2domain')
         domain.default_order=2
         #Bed-slope and friction
-        domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
+        domain.set_quantity('elevation', lambda x,y: -x/3.0)
         domain.set_quantity('friction', 0.1)
         # Boundary conditions
         from math import sin, pi
@@ -298,7 +294,7 @@ class Test_sww(unittest.TestCase):
         domain.set_starttime(starttime)
 
         # Bed-slope and friction
-        domain.set_quantity('elevation', lambda x,y: old_div(-x,3))
+        domain.set_quantity('elevation', lambda x,y: -x/3)
         domain.set_quantity('friction', 0.1)
         
         # Boundary conditions

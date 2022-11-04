@@ -1,9 +1,6 @@
 """ Load a DEM file, decimate it, and resave it.
 """
-from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 import numpy as num
 
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_float
@@ -65,11 +62,11 @@ def dem2dem(name_in, stencil, cellsize_new, name_out=None,
 
     #Determine some dimensions for decimated grid
     (nrows_stencil, ncols_stencil) = stencil.shape
-    x_offset = old_div(ncols_stencil, 2)
-    y_offset = old_div(nrows_stencil, 2)
-    cellsize_ratio = int(old_div(cellsize_new, cellsize))
-    ncols_new = 1 + old_div((ncols - ncols_stencil), cellsize_ratio)
-    nrows_new = 1 + old_div((nrows - nrows_stencil), cellsize_ratio)
+    x_offset = ncols_stencil/ 2
+    y_offset = nrows_stencil/ 2
+    cellsize_ratio = int(cellsize_new/ cellsize)
+    ncols_new = 1 + (ncols - ncols_stencil)// cellsize_ratio
+    nrows_new = 1 + (nrows - nrows_stencil)// cellsize_ratio
 
     #print type(ncols_new), ncols_new
     

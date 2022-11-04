@@ -1,7 +1,4 @@
-from __future__ import absolute_import
-from __future__ import division
-from builtins import str
-from past.utils import old_div
+
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
 import math
@@ -109,8 +106,8 @@ class Inlet_enquiry(inlet.Inlet):
     def get_enquiry_velocity(self):
 
             depth = self.get_enquiry_water_depth()
-            u = old_div(depth*self.get_enquiry_xmom(),(depth**2 + velocity_protection))
-            v = old_div(depth*self.get_enquiry_ymom(),(depth**2 + velocity_protection))
+            u = depth*self.get_enquiry_xmom()/(depth**2 + velocity_protection)
+            v = depth*self.get_enquiry_ymom()/(depth**2 + velocity_protection)
 
             return u, v
 
@@ -118,12 +115,12 @@ class Inlet_enquiry(inlet.Inlet):
     def get_enquiry_xvelocity(self):
 
             depth = self.get_enquiry_water_depth()
-            return old_div(depth*self.get_enquiry_xmom(),(depth**2 + velocity_protection))
+            return depth*self.get_enquiry_xmom()/(depth**2 + velocity_protection)
 
     def get_enquiry_yvelocity(self):
 
             depth = self.get_enquiry_water_depth()
-            return old_div(depth*self.get_enquiry_ymom(),(depth**2 + velocity_protection))
+            return depth*self.get_enquiry_ymom()/(depth**2 + velocity_protection)
 
 
     def get_enquiry_speed(self):
@@ -135,7 +132,7 @@ class Inlet_enquiry(inlet.Inlet):
 
     def get_enquiry_velocity_head(self):
 
-        return old_div(0.5*self.get_enquiry_speed()**2,g)
+        return 0.5*self.get_enquiry_speed()**2/g
 
 
     def get_enquiry_total_energy(self):
