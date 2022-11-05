@@ -336,7 +336,7 @@ class Quantity(object):
 
 
         if self.domain.parallel:
-            import pypar
+            from anuga.utilities import parallel_abstraction as pypar
             pypar.barrier()
 
             # On processor 0 catenate the files
@@ -380,7 +380,7 @@ class Quantity(object):
 
 
         if self.domain.parallel:
-            import pypar
+            from anuga.utilities import parallel_abstraction as pypar
             pypar.barrier()
 
             # On processor 0 catenate the files
@@ -464,9 +464,6 @@ class Quantity(object):
             print(yllcorner)
             print(x)
             print(y)
-            print(node_coordinates[:,0])
-            print(node_coordinates[:,1])
-
 
 
         # Create grid and update xll/yll corner and x,y
@@ -2204,7 +2201,7 @@ class Quantity(object):
         if indices is None:
             indices = region.get_indices(full_only)
 
-        if indices == []:
+        if len(indices) == 0:
             return 0.0
         elif indices is None:
             return num.sum(areas*self.centroid_values)

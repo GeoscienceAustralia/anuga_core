@@ -1,9 +1,6 @@
 """  Test set_quantity
 """
-from __future__ import print_function
-from __future__ import division
 
-from past.utils import old_div
 import unittest, os
 import anuga
 from anuga import Domain
@@ -130,7 +127,7 @@ class Test_set_quantity(unittest.TestCase):
             update_stage = Set_quantity(domain, 'stage', value=stage, indices=indices)
         except AssertionError:
             pass
-        except e:
+        except Exception:
             self.fail('Unexpected exception thrown:', e)
         else:
             self.fail('ExpectedException not thrown')
@@ -250,7 +247,7 @@ class Test_set_quantity(unittest.TestCase):
         width = 2.0
         dx = dy = 0.5
         #dx = dy = 0.1
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 
@@ -352,7 +349,7 @@ class Test_set_quantity(unittest.TestCase):
         width = 2.0
         dx = dy = 0.5
         #dx = dy = 0.1
-        domain = rectangular_cross_domain(int(old_div(length,dx)), int(old_div(width,dy)),
+        domain = rectangular_cross_domain(int(length/dx), int(width/dy),
                                               len1=length, len2=width)
 
 

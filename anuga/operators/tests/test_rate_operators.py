@@ -1,11 +1,7 @@
 """  Test environmental forcing - rain, wind, etc.
 """
-from __future__ import print_function
-from __future__ import division
-from builtins import range
-from past.utils import old_div
+
 from future.utils import raise_
-import operator
 
 import unittest, os
 import anuga
@@ -287,7 +283,7 @@ class Test_rate_operators(unittest.TestCase):
         t = 0.0
         while t <= finaltime:
             t_string = time.strftime(time_format, time.gmtime(t+start))
-            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(old_div(t*pi,600))))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
             t += dt
 
         fid.close()
@@ -312,7 +308,7 @@ class Test_rate_operators(unittest.TestCase):
             assert num.allclose(q[0], 2*t)
             if i%6 == 0:
                 assert num.allclose(q[1], t**2)
-                assert num.allclose(q[2], sin(old_div(t*pi,600)))
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 

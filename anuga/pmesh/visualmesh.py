@@ -1,11 +1,4 @@
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from past.utils import old_div
-from builtins import object
+
 
 try:
     from . import mesh
@@ -94,7 +87,7 @@ class vPoints(vAbstract):
 
         event isn't used
         """
-        point = mesh.addUserPoint(self.association,old_div(x,scale),old_div(y,scale))
+        point = mesh.addUserPoint(self.association,x/scale,y/scale)
         self.visualise(point, uniqueID, canvas, scale)
         return point
  

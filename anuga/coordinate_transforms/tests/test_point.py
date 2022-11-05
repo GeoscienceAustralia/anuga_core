@@ -1,6 +1,4 @@
-from __future__ import division
 
-from past.utils import old_div
 import unittest
 from anuga.coordinate_transforms.point import Point
 from math import fabs
@@ -79,7 +77,7 @@ class TestCase(unittest.TestCase):
     def testRSISE2Home(self):
         D = 2068   # True Distance to Home
         B = 11     # True Bearing to Home
-        self.assertTrue((old_div(fabs(self.RSISE.DistanceTo(self.Home) - D),D) < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Home) - D)/D < self.eps),\
                         'Dist to Home failed')
         self.assertTrue((self.RSISE.BearingTo(self.Home) - B == 0),\
                         'Computed bearing to Home: %d, Should have been: %d'\
@@ -90,7 +88,7 @@ class TestCase(unittest.TestCase):
     def testRSISE2Sydney(self):
         D = 239.5 * 1000   # True Distance to Sydney Airport
         B = 52             # True Bearing to Sydney Airport        
-        self.assertTrue((old_div(fabs(self.RSISE.DistanceTo(self.Syd) - D),D) < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Syd) - D)/D < self.eps),\
                         'Dist to Sydney failed')
         self.assertTrue((self.RSISE.BearingTo(self.Syd) - B == 0),\
                         'Computed bearing to Sydney: %d, Should have been: %d'\
@@ -100,7 +98,7 @@ class TestCase(unittest.TestCase):
     def testRSISE2Nadi(self):
         D = 3406.1 * 1000   # True Distance to Nadi Airport
         B = 63              # True Bearing to Nadi Airport        
-        self.assertTrue((old_div(fabs(self.RSISE.DistanceTo(self.Nadi) - D),D) < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Nadi) - D)/D < self.eps),\
                         'Dist to Nadi failed')
         
         self.assertTrue((self.RSISE.BearingTo(self.Nadi) - B == 0),\
@@ -111,7 +109,7 @@ class TestCase(unittest.TestCase):
     def testRSISE2Kobenhavn(self):        
         D = 16025 * 1000   # True Distance to Kobenhavn
         B = 319            # True Bearing to Kobenhavn        
-        self.assertTrue((old_div(fabs(self.RSISE.DistanceTo(self.Kobenhavn) - D),D) < self.eps),\
+        self.assertTrue((fabs(self.RSISE.DistanceTo(self.Kobenhavn) - D)/D < self.eps),\
                         'Computed Distance to Kobenhavn: %d, Should have been: %d' \
                         %(self.RSISE.DistanceTo(self.Kobenhavn), D))
         self.assertTrue((self.RSISE.BearingTo(self.Kobenhavn) - B == 0),\

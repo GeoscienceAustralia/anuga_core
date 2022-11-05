@@ -4,7 +4,6 @@
 from __future__ import division
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import unittest
 from math import sqrt, pi
 
@@ -293,7 +292,7 @@ class Test_General_Mesh(unittest.TestCase):
             for index in domain.vertex_value_indices:
                 k += 1
                 
-                triangle = old_div(index, 3)
+                triangle = index//3
                 vertex = index % 3
 
                 assert domain.triangles[triangle, vertex] == current_node

@@ -4,9 +4,7 @@
 # This file was reverted from changeset:5484 to changeset:5470 on 10th July 
 # by Ole.
 
-from __future__ import division
-from builtins import str
-from past.utils import old_div
+
 import unittest
 import copy
 import os
@@ -58,8 +56,8 @@ class Test_read_sww(unittest.TestCase):
         
         inc = 0.05 # Elevation increment
 
-        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)), 
-                                                       int(old_div(width,dy)),
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
                                                        len1=length, 
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
@@ -149,8 +147,8 @@ class Test_read_sww(unittest.TestCase):
         #-----------------------------------------
         sww_file.read_quantities(last_frame_number-1)
 
-        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)), 
-                                                       int(old_div(width,dy)),
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
                                                        len1=length, 
                                                        len2=width)
         new_domain = Domain(points, vertices, boundary)
@@ -214,8 +212,8 @@ class Test_read_sww(unittest.TestCase):
         
         inc = 0.05 # Elevation increment
 
-        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)), 
-                                                       int(old_div(width,dy)),
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
                                                        len1=length, 
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
@@ -305,8 +303,8 @@ class Test_read_sww(unittest.TestCase):
         #-----------------------------------------
         sww_file.read_quantities(last_frame_number-1)
 
-        points, vertices, boundary = rectangular_cross(int(old_div(length,dx)), 
-                                                       int(old_div(width,dy)),
+        points, vertices, boundary = rectangular_cross(int(length/dx), 
+                                                       int(width/dy),
                                                        len1=length, 
                                                        len2=width)
         new_domain = Domain(points, vertices, boundary)

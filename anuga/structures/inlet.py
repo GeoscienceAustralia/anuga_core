@@ -1,6 +1,5 @@
 from __future__ import division
 from builtins import object
-from past.utils import old_div
 from future.utils import raise_
 import anuga.geometry.polygon
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
@@ -23,7 +22,7 @@ class Inlet(object):
         self.verbose = verbose
         
         
-        # poly can be either a line, polygon or a regions
+        # poly can be either a line, polygon or a region
         if isinstance(poly,Region):
             self.region = poly
         else:
@@ -76,7 +75,7 @@ class Inlet(object):
         
     def get_average_stage(self):
 
-        return old_div(num.sum(self.get_stages()*self.get_areas()),self.area)
+        return num.sum(self.get_stages()*self.get_areas())/self.area
         
     def get_elevations(self):    
         
@@ -220,7 +219,7 @@ class Inlet(object):
         index = num.nonzero(summed_volume<=volume)[0][-1]
 
         # calculate stage needed to fill chosen cells with given volume of water
-        depth = old_div((volume - summed_volume[index]),summed_areas[index])
+        depth = (volume - summed_volume[index])/summed_areas[index]
         stages[stages_order[0:index+1]] = stages[stages_order[index]]+depth
 
         #print('stages')
@@ -235,6 +234,6 @@ class Inlet(object):
         cells with equal depth of water
         """
 	    
-        new_depth = self.get_average_depth() + (old_div(volume,self.get_area()))
+        new_depth = self.get_average_depth() + (volume/self.get_area())
         self.set_depths(new_depth)
 

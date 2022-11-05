@@ -18,23 +18,7 @@ components such as visualisation.
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004
 """
-from __future__ import absolute_import
-from __future__ import division
 
-
-#import logging, logging.config
-#logger = logging.getLogger('advection')
-#logger.setLevel(logging.WARNING)
-#
-#try:
-#    logging.config.fileConfig('log.ini')
-#except:
-#    pass
-
-
-from builtins import str
-from builtins import range
-from past.utils import old_div
 from anuga.abstract_2d_finite_volumes.generic_domain \
                 import Generic_Domain
 import anuga.utilities.log as log
@@ -288,7 +272,7 @@ class Advection_Domain(Generic_Domain):
                 #Update optimal_timestep
                 if  self.tri_full_flag[k] == 1 :
                     try:
-                        optimal_timestep = min(optimal_timestep, old_div(radii[k],max_speed))
+                        optimal_timestep = min(optimal_timestep, radii[k]/max_speed)
                     except ZeroDivisionError:
                         pass
 

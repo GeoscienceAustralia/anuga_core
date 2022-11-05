@@ -8,13 +8,7 @@ ModifiedBy:
 
 """
 
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
-from future.utils import raise_
 from warnings import warn
 import numpy as num
 from copy import copy
@@ -322,7 +316,7 @@ class General_forcing(object):
             N = 100
             periphery_points = []
             for i in range(N):
-                theta = old_div(2*pi*i,100)
+                theta = 2*pi*i/100
 
                 x = center[0] + radius*cos(theta)
                 y = center[1] + radius*sin(theta)
@@ -678,9 +672,9 @@ class Inflow(General_forcing):
         """
 
         if callable(self.rate):
-            _rate = old_div(self.rate(t),self.exchange_area)
+            _rate = self.rate(t)/self.exchange_area
         else:
-            _rate = old_div(self.rate,self.exchange_area)
+            _rate = self.rate/self.exchange_area
 
         return _rate
 
@@ -803,13 +797,13 @@ class Cross_section(object):
             # Average velocity across this segment
             if h[i] > epsilon:
                 # Use protection against degenerate velocities
-                u = old_div(uh[i],(h[i] + old_div(h0,h[i])))
-                v = old_div(vh[i],(h[i] + old_div(h0,h[i])))
+                u = uh[i]/(h[i] + h0/h[i])
+                v = vh[i]/(h[i] + h0/h[i])
             else:
                 u = v = 0.0
 
             speed_squared = u*u + v*v
-            kinetic_energy = old_div(0.5*speed_squared,g)
+            kinetic_energy = 0.5*speed_squared/g
 
             if kind == 'specific':
                 segment_energy = h[i] + kinetic_energy
@@ -820,7 +814,7 @@ class Cross_section(object):
                 msg += ' I got %s' %kind
 
             # Add to weighted average
-            weigth = old_div(self.segments[i].length,total_line_length)
+            weigth = self.segments[i].length/total_line_length
             average_energy += segment_energy*weigth
 
         return average_energy
@@ -966,8 +960,8 @@ def assign_pressure_field_values(height, pressure, x, triangles,
 
         px,py=gradient(x0, y0, x1, y1, x2, y2, p0, p1, p2)
 
-        xmom_update[k] += old_div(height[k]*px,rho_w)
-        ymom_update[k] += old_div(height[k]*py,rho_w)
+        xmom_update[k] += height[k]*px/rho_w
+        ymom_update[k] += height[k]*py/rho_w
 
 
 class Barometric_pressure_fast(object):
@@ -1075,7 +1069,7 @@ class Barometric_pressure_fast(object):
 
             msg = 'No pressure values exist for times greater than domain.starttime'
             if (self.file_time[-2]<domain.starttime and self.file_time[-1]>domain.starttime):
-                raise_(Exception, msg)
+                raise Exception(msg)
 
             # FIXME(JJ): How do we check that evolve 
             # finaltime  < pressure_file.finaltime      
@@ -1114,7 +1108,7 @@ class Barometric_pressure_fast(object):
                 self.update_stored_pressure_values(domain)
 
                 # Linear temporal interpolation of pressure values
-                ratio = old_div((t - self.file_time[self.index]), (self.file_time[self.index+1]-self.file_time[self.index]))
+                ratio = (t - self.file_time[self.index])/ (self.file_time[self.index+1]-self.file_time[self.index])
                 self.p_vec = self.prev_pressure_vertex_values + ratio*(self.next_pressure_vertex_values - self.prev_pressure_vertex_values)
 
         else:
@@ -1279,7 +1273,7 @@ class Wind_stress_fast(object):
         self.s_vec=num.empty(N,float)
         self.phi_vec=num.empty(N,float)
 
-        self.const = old_div(eta_w*rho_a,rho_w)
+        self.const = eta_w*rho_a/rho_w
 
     def __call__(self, domain):
         """Evaluate windfield based on values found in domain"""
@@ -1301,7 +1295,7 @@ class Wind_stress_fast(object):
                 if t==self.file_time[self.index]:
                     ratio = 0.
                 else:
-                    ratio = (old_div((t - self.file_time[self.index]), (self.file_time[self.index+1]-self.file_time[self.index])))
+                    ratio = ((t - self.file_time[self.index])/ (self.file_time[self.index+1]-self.file_time[self.index]))
                 self.s_vec = self.prev_windspeed_centroid_values + ratio*(self.next_windspeed_centroid_values - self.prev_windspeed_centroid_values)
         else:
             # Assume s is a scalar
@@ -1322,7 +1316,7 @@ class Wind_stress_fast(object):
                 if t==self.file_time[self.index]:
                     ratio = 0.
                 else:
-                    ratio = (old_div((t - self.file_time[self.index]), (self.file_time[self.index+1]-self.file_time[self.index])))
+                    ratio = ((t - self.file_time[self.index])/(self.file_time[self.index+1]-self.file_time[self.index]))
                 self.phi_vec = self.prev_windangle_centroid_values + ratio*(self.next_windangle_centroid_values - self.prev_windangle_centroid_values)
         else:
             # Assume phi is a scalar

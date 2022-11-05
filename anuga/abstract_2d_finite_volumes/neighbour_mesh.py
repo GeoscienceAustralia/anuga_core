@@ -6,13 +6,7 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia, 2004
 """
-from __future__ import absolute_import
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
 from .general_mesh import General_mesh
 from anuga.caching import cache
 import anuga.utilities.log as log
@@ -217,7 +211,7 @@ class Mesh(General_mesh):
         a = num.sqrt((x0-x1)**2+(y0-y1)**2)
         b = num.sqrt((x1-x2)**2+(y1-y2)**2)
         c = num.sqrt((x2-x0)**2+(y2-y0)**2)
-        ratio = old_div(old_rad,self.radii[i])
+        ratio = old_rad/self.radii[i]
         max_ratio = ratio
         min_ratio = ratio
 
@@ -229,8 +223,8 @@ class Mesh(General_mesh):
             a = num.sqrt((x0-x1)**2+(y0-y1)**2)
             b = num.sqrt((x1-x2)**2+(y1-y2)**2)
             c = num.sqrt((x2-x0)**2+(y2-y0)**2)
-            self.radii[i]=old_div(self.areas[i],(2*(a+b+c)))*safety_factor
-            ratio = old_div(old_rad,self.radii[i])
+            self.radii[i]=self.areas[i]/(2*(a+b+c))*safety_factor
+            ratio = old_rad/self.radii[i]
             if ratio >= max_ratio: max_ratio = ratio
             if ratio <= min_ratio: min_ratio = ratio
         return max_ratio,min_ratio
@@ -642,7 +636,7 @@ class Mesh(General_mesh):
 
                 if verbose is True:
                     log.critical('  Best candidate %s, angle %f'
-                                 % (p1, old_div(minimum_angle*180,pi)))
+                                 % (p1, minimum_angle*180/pi))
             else:
                 p1 = candidate_list[0]
 
@@ -755,10 +749,10 @@ class Mesh(General_mesh):
         #print 'check areas'
         area = self.areas
 
-        ref = old_div(-((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0)),2)
+        ref = -((x1*y0-x0*y1)+(x2*y1-x1*y2)+(x0*y2-x2*y0))/2
 
 
-        assert num.sum(num.abs(old_div((area - ref),area))) < epsilon, 'Error in areas'
+        assert num.sum(num.abs((area - ref)/area)) < epsilon, 'Error in areas'
 
         assert num.all(area > 0.0), 'A negative area'
 
@@ -768,21 +762,21 @@ class Mesh(General_mesh):
         a0  = num.sqrt(tx0**2 + ty0**2)
 
 
-        tx0 = old_div(tx0,a0)
-        ty0 = old_div(ty0,a0)
+        tx0 = tx0/a0
+        ty0 = ty0/a0
 
 
         tx1 = x0 - x2
         ty1 = y0 - y2
         a1  = num.sqrt(tx1**2 + ty1**2)
-        tx1 = old_div(tx1,a1)
-        ty1 = old_div(ty1,a1)
+        tx1 = tx1/a1
+        ty1 = ty1/a1
 
         tx2 = x1 - x0
         ty2 = y1 - y0
         a2  = num.sqrt(tx2**2 + ty2**2)
-        tx2 = old_div(tx2,a2)
-        ty2 = old_div(ty2,a2)
+        tx2 = tx2/a2
+        ty2 = ty2/a2
 
         nx0 = self.normals[:,0]
         ny0 = self.normals[:,1]
@@ -1035,14 +1029,14 @@ class Mesh(General_mesh):
 
         N = len(areas)
         if N > 10:
-            str += '    Percentiles (%g percent):\n' % (old_div(100,nbins))
+            str += '    Percentiles (%g percent):\n' % 100//nbins
             areas = areas.tolist()
             areas.sort()
 
             k = 0
             lower = num.min(areas)
             for i, a in enumerate(areas):
-                if i % (old_div(N,10)) == 0 and i != 0: #For every 10% of the sorted areas
+                if i % (N//10) == 0 and i != 0: #For every 10% of the sorted areas
                     str += '      %d triangles in [%8.5e, %8.5e]\n' %(i-k, lower, a)
                     lower = a
                     k = i
@@ -1382,7 +1376,7 @@ def _get_intersecting_segments(V, N, line,
             # Right hand side relative to line direction
             vector = num.array([x1 - x0, y1 - y0], float) # Segment vector
             length = num.sqrt(num.sum(vector**2))      # Segment length
-            normal = old_div(num.array([vector[1], -vector[0]], float),length)
+            normal = num.array([vector[1], -vector[0]], float)/length
 
 
             segment = ((x0,y0), (x1, y1))
@@ -1462,7 +1456,7 @@ def segment_midpoints(segments):
     for segment in segments:
         assert isinstance(segment, Triangle_intersection), msg
 
-        midpoint = old_div(num.sum(num.array(segment.segment, float), axis=0),2)
+        midpoint = num.sum(num.array(segment.segment, float), axis=0)/2
         midpoints.append(midpoint)
 
     return midpoints

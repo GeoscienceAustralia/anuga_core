@@ -1,7 +1,5 @@
 from __future__ import division
 from builtins import range
-from past.utils import old_div
-import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 from pylab import *
@@ -73,7 +71,7 @@ def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
     stage = domain.get_quantity(quantity)
     actual_data = stage.centroid_values[:n_triangles]
     adiff = num.fabs((actual_data - local_control_data))
-    rdiff = old_div(adiff,num.fabs(local_control_data))
+    rdiff = adiff/num.fabs(local_control_data)
 
     # Compute masks for error (err_mask) and non-error (acc_mask) vertex indices based on thresholds
     vertices = domain.get_vertex_coordinates()
@@ -105,7 +103,7 @@ def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
 
         # Plot non-error triangles in green
         for i in range(0,size()):
-            n = int(old_div(len(fx[i]),3))
+            n = int(len(fx[i])//3)
             triang = num.array(list(range(0,3*n)))
             triang.shape = (n, 3)
 
@@ -114,7 +112,7 @@ def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
 
         # Plot error triangles in blue
         for i in range(0,size()):
-            n = int(old_div(len(gx[i]),3))
+            n = int(len(gx[i])//3)
                             
             triang = num.array(list(range(0,3*n)))
             triang.shape = (n, 3)

@@ -1,6 +1,4 @@
-from __future__ import division
-from builtins import str
-from past.utils import old_div
+
 import anuga
 import math
 
@@ -112,25 +110,25 @@ class Boyd_box_operator(anuga.Structure_operator):
                 # Inlet Unsubmerged
                 self.case = 'Inlet unsubmerged Box Acts as Weir'
                 Q_inlet = 0.544*anuga.g**0.5*width*self.driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged
-                V_inlet = old_div(Q_inlet,(width*self.driving_energy))
+                V_inlet = Q_inlet/(width*self.driving_energy)
             elif (self.driving_energy > height) and (self.driving_energy < 1.93*height):
                 # Inlet in Transition Zone by Boyd  New equation
                 self.case = 'Inlet in Transition between Weir & Orifice'
                 Q_inlet = 0.54286*anuga.g**0.5*width*height**0.5*self.driving_energy
-                dcrit = (old_div(old_div(Q_inlet**2,anuga.g),width**2))**0.333333 # Based on Inlet Control
+                dcrit = (Q_inlet**2/anuga.g/width**2)**0.333333 # Based on Inlet Control
                 if dcrit < height:
-                    V_inlet = old_div(Q_inlet,(width*dcrit)) # Full Box Velocity
+                    V_inlet = Q_inlet/(width*dcrit) # Full Box Velocity
                 else:
-                    V_inlet = old_div(Q_inlet,(width*height)) # Full Box Velocity
+                    V_inlet = Q_inlet/(width*height) # Full Box Velocity
                 
             else:
                 # Inlet Submerged
                 self.case = 'Inlet Submerged Box Acts as Orifice'
                 Q_inlet = 0.702*anuga.g**0.5*width*height**0.89*self.driving_energy**0.61  # Flow based on Inlet Ctrl Inlet Submerged
-                V_inlet = old_div(Q_inlet,(width*height)) # Full Box Velocity
+                V_inlet = Q_inlet/(width*height) # Full Box Velocity
             
             Q = Q_inlet
-            dcrit = (old_div(old_div(Q**2,anuga.g),width**2))**0.333333 # Based on Inlet Control
+            dcrit = (Q**2/anuga.g/width**2)**0.333333 # Based on Inlet Control
             # 
             # May not need this .... check if same is done above  Might move this block Yet ???
             outlet_culvert_depth = dcrit
@@ -146,7 +144,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                 self.case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
             # Initial Estimate of Flow for Outlet Control using energy slope 
             #( may need to include Culvert Bed Slope Comparison)
-            hyd_rad = old_div(flow_area,perimeter)
+            hyd_rad = flow_area/perimeter
             
             
             # NEED TO DETERMINE INTERNAL BARREL VELOCITY  Could you Direct Step Method or Standard Step to compute Profile & Friction loss more accurately
@@ -163,8 +161,8 @@ class Boyd_box_operator(anuga.Structure_operator):
                 for i in numpy.arange(0.01, self.get_culvert_height(), 0.01):
                     partfull_Area= partfull_depth*width
                     partfull_Perimeter= width+2*partfull_depth
-                    partfull_Hyd_Rad = old_div(partfull_Area,Partfull_Perimeter)
-                    Vpartfull = old_div(Partfull_Hyd_Rad**(old_div(2,3))*slope**0.5,self.manning)
+                    partfull_Hyd_Rad = partfull_Area/Partfull_Perimeter
+                    Vpartfull = Partfull_Hyd_Rad**(2/3)*slope**0.5/self.manning
                     Qpartfull = Vpartfull*partfull_Area
                     if partfull_depth < dcrit:
                         flow_type = 'Super-critical in Barrel'
@@ -187,7 +185,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                     perimeter=2.0*(width+height)
                     self.case = 'Outlet submerged Culvert Flowing Full'
                 else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
-                    dcrit = (old_div(old_div(Q**2,anuga.g),width**2))**0.333333
+                    dcrit = (Q**2/anuga.g/width**2)**0.333333
                     outlet_culvert_depth=dcrit   # For purpose of calculation assume the outlet depth = Critical Depth
                     if outlet_culvert_depth > height:
                         outlet_culvert_depth=height
@@ -199,12 +197,12 @@ class Boyd_box_operator(anuga.Structure_operator):
                         perimeter=(width+2.0*outlet_culvert_depth)
                         self.case = 'Outlet is open channel flow'
 
-                hyd_rad = old_div(flow_area,perimeter)
+                hyd_rad = flow_area/perimeter
 
 
 
                 # Rename this next one  V_outlet
-                culvert_velocity = math.sqrt(old_div(self.delta_total_energy,((old_div(old_div(self.sum_loss,2),anuga.g))+old_div((self.manning**2*self.culvert_length),hyd_rad**1.33333))))
+                culvert_velocity = math.sqrt(self.delta_total_energy/((self.sum_loss/2/anuga.g)+(self.manning**2*self.culvert_length)/hyd_rad**1.33333))
                 Q_outlet_tailwater = flow_area * culvert_velocity
                 
                  # Final Outlet control velocity using tail water
@@ -212,11 +210,11 @@ class Boyd_box_operator(anuga.Structure_operator):
                 
 
                 #FIXME SR: Is this code used?
-                Inlet_Loss = old_div(Vinlet**2,(2*g))* Inlet_Loss_Coeff
-                Barrel_Loss = old_div(self.culvert.length*Vpartfull**2,(partfull_Hyd_Rad**(old_div(4,3))))
-                Bend_Loss = old_div(Vpartfull**2,(2*g))* Bend_Loss_Coeff
+                Inlet_Loss = Vinlet**2/(2*g)* Inlet_Loss_Coeff
+                Barrel_Loss = self.culvert.length*Vpartfull**2/(partfull_Hyd_Rad**(4/3))
+                Bend_Loss = Vpartfull**2/(2*g)* Bend_Loss_Coeff
                 #Other_Loss ???
-                Exit_Loss = old_div(culvert_velocity**2,(2*g))*Exit_Loss_Coeff
+                Exit_Loss = culvert_velocity**2/(2*g)*Exit_Loss_Coeff
                 Total_Loss = Inlet_Loss+Barrel_Loss+Bend_Loss+Exit_Loss
 
  
@@ -225,7 +223,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                 pass
                 #FIXME(Ole): What about inlet control?
 
-            culv_froude=math.sqrt(old_div(Q**2*flow_width,(anuga.g*flow_area**3)))
+            culv_froude=math.sqrt(Q**2*flow_width/(anuga.g*flow_area**3))
             if local_debug =='true':
                 anuga.log.critical('FLOW AREA = %s' % str(flow_area))
                 anuga.log.critical('PERIMETER = %s' % str(perimeter))
@@ -233,7 +231,7 @@ class Boyd_box_operator(anuga.Structure_operator):
                 anuga.log.critical('FROUDE = %s' % str(culv_froude))
 
             # Determine momentum at the outlet
-            barrel_velocity = old_div(Q,(flow_area + old_div(anuga.velocity_protection,flow_area)))
+            barrel_velocity = Q/(flow_area + anuga.velocity_protection/flow_area)
 
         # END CODE BLOCK for DEPTH  > Required depth for CULVERT Flow
 

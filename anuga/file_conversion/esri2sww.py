@@ -1,9 +1,10 @@
-from __future__ import division
 
 
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+class DataMissingValuesError(Exception):
+    pass
+
+
+
 def esri2sww(bath_dir,
                   elevation_dir,
                   ucur_dir,
@@ -258,12 +259,12 @@ def esri2sww(bath_dir,
             if fail_on_NaN:
                 msg = 'File %s contains missing values' \
                       % (elevation_files[j])
-                raise_(DataMissingValuesError, msg)
+                raise(DataMissingValuesError, msg)
             else:
                 elevation_grid = elevation_grid*(missing==0) \
                                  + missing*elevation_NaN_filler
 
-        if verbose and j % (old_div((n+10),10)) == 0: log.critical('  Doing %d of %d'
+        if verbose and j % ((n+10)//10) == 0: log.critical('  Doing %d of %d'
                                                           % (j, n))
 
         i = 0

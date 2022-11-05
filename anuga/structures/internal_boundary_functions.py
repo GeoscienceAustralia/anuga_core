@@ -1,9 +1,4 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
+
 import numpy
 import scipy
 from scipy.interpolate import interp1d
@@ -312,7 +307,7 @@ class hecras_internal_boundary_function(object):
                 # Use free flow curve.
                 upper_curve_Q = self.free_flow_curve(hw)
 
-            Q = old_div((w0 * upper_curve_Q + w1 * lower_curve_Q), (w0 + w1))
+            Q = (w0 * upper_curve_Q + w1 * lower_curve_Q)/ (w0 + w1)
 
         #print 'Q: ', Q , ' HW: ', hw, ' TW:', tw
 

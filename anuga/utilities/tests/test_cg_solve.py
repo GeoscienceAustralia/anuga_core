@@ -13,7 +13,7 @@ except ImportError:
     import builtins as exceptions
 
 
-class TestError(exceptions.Exception):
+class CGError(exceptions.Exception):
     pass
 
 
@@ -63,7 +63,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError(msg)
+            raise CGError(msg)
 
     def test_solve_large(self):
         """Standard 1d laplacian """
@@ -192,7 +192,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError(msg)
+            raise CGError(msg)
 
     def test_sparse_solve_matrix(self):
         """Solve Small Sparse Matrix"""
@@ -249,7 +249,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError(msg)
+            raise CGError(msg)
 
     def test_solve_large_using_c_ext(self):
         """Standard 1d laplacian """
@@ -418,7 +418,7 @@ class Test_CG_Solve(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised exception'
-            raise TestError(msg)
+            raise CGError(msg)
 
     def test_solve_large_using_c_ext_with_jacobi(self):
         """Standard 1d laplacian """

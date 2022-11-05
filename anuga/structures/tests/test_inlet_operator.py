@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 
-from __future__ import division
-from past.utils import old_div
+
 import unittest
 import os.path
 import sys
@@ -44,7 +43,7 @@ class Test_inlet_operator(unittest.TestCase):
                             stage_0,
                             stage_1):
         
-        points, vertices, boundary = rectangular_cross(int(old_div(d_length,dx)), int(old_div(d_width,dy)),
+        points, vertices, boundary = rectangular_cross(int(d_length/dx), int(d_width/dy),
                                                         len1=d_length, len2=d_width)
         domain = Domain(points, vertices, boundary)   
         domain.set_name('Test_Outlet_Inlet')                 # Output name
@@ -66,7 +65,7 @@ class Test_inlet_operator(unittest.TestCase):
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = elevation_0
             
-            numpy.putmask(z, x > old_div(d_length,2), elevation_1)
+            numpy.putmask(z, x > d_length/2, elevation_1)
     
             return z
             
@@ -76,7 +75,7 @@ class Test_inlet_operator(unittest.TestCase):
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = stage_0
             
-            numpy.putmask(z, x > old_div(d_length,2), stage_1)
+            numpy.putmask(z, x > d_length/2, stage_1)
 
             return z
             

@@ -35,19 +35,16 @@ test() --       Conducts a basic test of the caching functionality.
 
 See doc strings of individual functions for detailed documentation.
 """
-from __future__ import division
+
 
 # -----------------------------------------------------------------------------
 # Initialisation code
 
 # Determine platform
 #
-from builtins import zip
-from builtins import input
-from builtins import str
-from builtins import range
+
 from past.builtins import basestring
-from past.utils import old_div
+
 from os import getenv
 import collections
 import inspect
@@ -735,7 +732,7 @@ def test(cachedir=None, verbose=False, compression=None):
   if T1 == T2:
     if t1 > t2:
       logtestOK('Performance test: relative time saved = %s pct' \
-              %str(round(old_div((t1-t2)*100,t1),2)))
+              %str(round((t1-t2)*100/t1,2)))
   else:       
     logtesterror('Basic caching failed for new problem')
             
@@ -2073,7 +2070,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             saving = cputime-loadtime
 
             if cputime != 0:
-              rel_saving = round(old_div(100.0*saving,cputime),2)
+              rel_saving = round(100.0*saving/cputime,2)
             else:
               #rel_saving = round(1.0*saving,2)
               rel_saving = 100.0 - round(1.0*saving,2)  # A bit of a hack
@@ -2123,7 +2120,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
       rec = Dict[key]
       for n in range(len(rec)):
         if n > 0:
-          rec[n] = round(old_div(1.0*rec[n],rec[0]),2)
+          rec[n] = round(1.0*rec[n]/rec[0],2)
       Dict[key] = rec
 
     # Sort and output

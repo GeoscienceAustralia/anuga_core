@@ -82,9 +82,7 @@ Version       1.00 October 2015
 							 highest was above angle of repose.
 =======
 """
-from __future__ import division
 
-from past.utils import old_div
 from anuga.operators.base_operator import Operator
 from anuga import Region
 
@@ -183,7 +181,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
             Tau_crit = self.Tau_crit
             Kd       = self.Kd
             Ra       = self.Ra
-            Rs       = math.tan(old_div(self.Ra*math.pi,180))    # Repose slope mV/mH
+            Rs       = math.tan(self.Ra*math.pi/180)    # Repose slope mV/mH
 
     
             #-------------------------------------------
@@ -213,10 +211,10 @@ class Sanddune_erosion_operator(Operator, Region)  :
             m2 = xmom_c_ind**2 + ymom_c_ind**2              # abs Momentum m2/sec vector
 
             # compute bed shear stress Pa
-            Tau_bed  = old_div((Wd*G*(n**2))*(m2),((d**2.333) + 0.000001))                 # refer Froelich 2002 vector
+            Tau_bed  = (Wd*G*(n**2))*(m2)/((d**2.333) + 0.000001)                 # refer Froelich 2002 vector
 
             # compute de (m) elevation change increment due to scour during timestep
-            de = (old_div(Kd,Sd)*dt)*(Tau_bed-Tau_crit)                                  # refer Froelich 2002 vector
+            de = (Kd/Sd*dt)*(Tau_bed-Tau_crit)                                  # refer Froelich 2002 vector
 
             # no scour though if Tau_bed < Tau_crit ie if de is <= 0
             de = num.where(de > 0.0, de, 0.0)                                    # de=de whenever de>0 vector
@@ -271,7 +269,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
             elev_c_ind  = self.elev_c[ind]
             
             with num.errstate(divide='ignore', invalid='ignore'):            
-                s = num.where(lxy>0.0, old_div((elev_c_ind- elev_c_n0ind),lxy), 0.0)   # positive if current is above lowest neighbour
+                s = num.where(lxy>0.0, (elev_c_ind- elev_c_n0ind)/lxy, 0.0)   # positive if current is above lowest neighbour
             # Lower the current triangle to be at the angle of repose from the lowest neighbour if s > repose but not below base
             self.elev_c[ind] = num.where(s > Rs, num.maximum(elev_c_n0ind+(Rs*lxy), base_ind), elev_c_ind)       
             

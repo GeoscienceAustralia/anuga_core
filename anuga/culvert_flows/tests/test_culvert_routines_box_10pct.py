@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-
-from __future__ import division
-from past.utils import old_div
 import unittest
 import os.path
 import sys
@@ -47,14 +44,14 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=10.0  # % Downward
         z_in = 10.0
-        z_out = old_div(-culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = -culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
 
         Q, v, d = boyd_generalised_culvert_model(inlet_depth,
                                                  outlet_depth,
@@ -99,11 +96,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = old_div(-culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = -culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
         Q, v, d = boyd_generalised_culvert_model(inlet_depth,
@@ -149,11 +146,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = old_div(-culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = -culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
         Q, v, d = boyd_generalised_culvert_model(inlet_depth,
@@ -200,11 +197,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -252,11 +249,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -305,11 +302,11 @@ class Test_culvert_routines_box_10pct(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 

@@ -16,13 +16,7 @@ ModifiedBy::
     Date: 2010-05-18 14:54:05 +1000 (Tue, 18 May 2010)
 
 """
-from __future__ import absolute_import
-from __future__ import division
 
-
-from builtins import str
-from past.utils import old_div
-from future.utils import raise_
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
      import Boundary, File_boundary
 import numpy as num
@@ -73,7 +67,7 @@ class Reflective_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for reflective boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         # Handy shorthands
         self.stage = domain.quantities['stage'].edge_values
@@ -203,11 +197,11 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         self.domain = domain
 
@@ -295,11 +289,11 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         self.domain = domain
         self.function = function
@@ -413,7 +407,7 @@ class Transmissive_stage_zero_momentum_boundary(Boundary):
         if domain is None:
             msg = ('Domain must be specified for '
                    'Transmissive_stage_zero_momentum boundary')
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         self.domain = domain
 
@@ -547,11 +541,11 @@ class Characteristic_stage_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         self.domain = domain
         self.function = function
@@ -748,7 +742,7 @@ class Dirichlet_discharge_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type of boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         if stage0 is None:
             raise Exception('Stage must be specified for this type of boundary')
@@ -797,7 +791,7 @@ class Inflow_boundary(Boundary):
         if domain is None:
             msg = 'Domain must be specified for '
             msg += 'Inflow boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         self.domain = domain
         
@@ -825,7 +819,7 @@ class Inflow_boundary(Boundary):
                     length += self.domain.mesh.get_edgelength(v_id, e_id)            
 
             self.length = length
-            self.average_momentum = old_div(self.rate,length)
+            self.average_momentum = self.rate/length
             
             
         # Average momentum has now been established across this boundary
@@ -852,7 +846,7 @@ class Inflow_boundary(Boundary):
         mannings_n = friction[edge_id]
 
         if slope > epsilon and mannings_n > epsilon:
-            depth = pow(old_div(self.average_momentum * mannings_n,math.sqrt(slope)), \
+            depth = pow(self.average_momentum * mannings_n/math.sqrt(slope), \
                         3.0/5) 
         else:
             depth = 1.0
@@ -1028,11 +1022,11 @@ class Flather_external_stage_zero_velocity_boundary(Boundary):
 
         if domain is None:
             msg = 'Domain must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         if function is None:
             msg = 'Function must be specified for this type boundary'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         self.domain = domain
         self.function = function

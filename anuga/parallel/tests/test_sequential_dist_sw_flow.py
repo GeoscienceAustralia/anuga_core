@@ -6,15 +6,10 @@ similar to a beach environment
 
 This is a very simple test of the parallel algorithm using the simplified parallel API
 """
-from __future__ import print_function
-from __future__ import division
-
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-from past.utils import old_div
-from future.utils import raise_
 import unittest
 import os
 import sys
@@ -67,7 +62,7 @@ new_parameters['ghost_layer_width'] = 2
 # Setup Functions
 #---------------------------------
 def topography(x,y): 
-    return old_div(-x,2)    
+    return -x/2    
 
 ###########################################################################
 # Setup Test
@@ -316,7 +311,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise_(AssertionError, msg)
+        raise (AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1: 

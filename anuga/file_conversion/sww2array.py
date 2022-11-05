@@ -1,15 +1,10 @@
 """
     Module to convert SWW to DEM files.
 """
-from __future__ import print_function
-from __future__ import absolute_import
-from __future__ import division
+
 
 # external modules
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
 import os
 import numpy as num
 
@@ -188,7 +183,7 @@ def sww2array(name_in,
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
                % (quantity, str(missing_vars), name_in))
-        raise_(Exception, msg)
+        raise(Exception, msg)
 
     # Create result array and start filling, block by block.
     result = num.zeros(number_of_points, float)
@@ -286,8 +281,8 @@ def sww2array(name_in,
     assert ymax >= ymin, msg
 
     if verbose: log.critical('Creating grid')
-    ncols = int(old_div((xmax-xmin),cellsize)) + 1
-    nrows = int(old_div((ymax-ymin),cellsize)) + 1
+    ncols = int((xmax-xmin)//cellsize) + 1
+    nrows = int((ymax-ymin)//cellsize) + 1
 
     # New absolute reference and coordinates
     newxllcorner = xmin + xllcorner

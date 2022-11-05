@@ -20,9 +20,6 @@ To get help on fabricate functions:
 
 """
 
-from __future__ import with_statement
-from __future__ import print_function
-from __future__ import division
 
 # fabricate version number
 import textwrap
@@ -38,12 +35,9 @@ import platform
 import os
 import optparse
 import atexit
-from builtins import object
-from past.utils import old_div
+
 from past.builtins import basestring
-from builtins import str
-from future import standard_library
-standard_library.install_aliases()
+
 __version__ = '1.24'
 
 # if version of .deps file has changed, we know to not use it
@@ -294,7 +288,7 @@ class AtimesRunner(Runner):
            initial.st_mtime-adjusted.st_mtime > FAT_mtime_resolution+NTFS_atime_resolution or \
            initial.st_atime == adjusted.st_atime or \
            initial.st_mtime == adjusted.st_mtime or \
-           not after.st_atime-old_div(FAT_atime_resolution, 2) > adjusted.st_atime:
+           not after.st_atime-FAT_atime_resolution/2 > adjusted.st_atime:
             return 0
 
         os.utime(filename, (
@@ -442,10 +436,10 @@ class AtimesRunner(Runner):
                 #       So we make sure they're > by at least 1/2 the
                 #       resolution.  This will work for anything with a
                 #       resolution better than FAT.
-                if afters[name][1]-old_div(mtime_resolution, 2) > befores[name][1]:
+                if afters[name][1]-mtime_resolution/2 > befores[name][1]:
                     if not self.ignore(name):
                         outputs.append(name)
-                elif afters[name][0]-old_div(atime_resolution, 2) > befores[name][0]:
+                elif afters[name][0]-atime_resolution/2 > befores[name][0]:
                     # otherwise add to deps if atime changed
                     if not self.ignore(name):
                         deps.append(name)
