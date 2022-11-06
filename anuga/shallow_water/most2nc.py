@@ -5,10 +5,7 @@ MOSTs output.
  $Author: Peter Row
  
 """
-from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 import sys
 from anuga.file.netcdf import NetCDFFile
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
@@ -70,10 +67,10 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     for in_line in in_depth_list:
         for string in in_line.split():
             #j = k/nx
-            out_depth_list[old_div((k-1), nx)].append(float(string)*up)
+            out_depth_list[(k-1)//nx].append(float(string)*up)
             if k == nx*ny:
                 break
-            if k-(old_div(k, nx))*nx == 0:
+            if k-(k//nx)*nx == 0:
                 out_depth_list.append([])
             k += 1
 

@@ -1,6 +1,4 @@
-from __future__ import division
-from past.utils import old_div
-import operator
+
 from anuga import Domain
 from anuga import Quantity
 from anuga import Dirichlet_boundary
@@ -106,13 +104,13 @@ class Test_kinematic_viscosity(unittest.TestCase):
         values = operator1.geo_structure_values
 
         assert num.allclose(indices, num.array([[1, 2, 3]]))
-        assert num.allclose(values, num.array([[-6.0, old_div(-6.0,sqrt(5)), old_div(-6.0,sqrt(5))]]))
+        assert num.allclose(values, num.array([[-6.0, -6.0/sqrt(5), -6.0/sqrt(5)]]))
 
         operator2 = self.operator2()
         indices = operator2.geo_structure_indices
         values = operator2.geo_structure_values
         assert num.allclose(indices, num.array([[1,2,3],[4,0,5]]))
-        assert num.allclose(values, num.array([[-3.0,old_div(-6.0,sqrt(5)),old_div(-6.0,sqrt(5))],[old_div(-6.0,sqrt(5)),-3.0,old_div(-6.0,sqrt(5))]]))
+        assert num.allclose(values, num.array([[-3.0,-6.0/sqrt(5),-6.0/sqrt(5)],[-6.0/sqrt(5),-3.0,-6.0/sqrt(5)]]))
 
     def test_elliptic_matrix_one_triangle(self):
 
@@ -153,11 +151,11 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
     
         A0 = num.array([[-3.0,3.0,0.0,0.0,0.0,0.0],
-                        [0.0,old_div(-6.0,sqrt(5.0)),0.0,0.0,6.0/sqrt(5.0),0.0]])
-        A1 = num.array([[old_div(-6.0,sqrt(5.0)),0.0,6.0/sqrt(5.0),0.0,0.0,0.0],\
+                        [0.0,-6.0/sqrt(5.0),0.0,0.0,6.0/sqrt(5.0),0.0]])
+        A1 = num.array([[-6.0/sqrt(5.0),0.0,6.0/sqrt(5.0),0.0,0.0,0.0],\
                         [3.0,-3.0,0.0,0.0,0.0,0.0]])
-        A2 = num.array([[old_div(-6.0,sqrt(5.0)),0.0,0.0,6.0/sqrt(5.0),0.0,0.0],\
-                        [0.0, old_div(-6.0,sqrt(5.0)), 0.0, 0.0, 0.0, 6.0/sqrt(5.0)]])
+        A2 = num.array([[-6.0/sqrt(5.0),0.0,0.0,6.0/sqrt(5.0),0.0,0.0],\
+                        [0.0, -6.0/sqrt(5.0), 0.0, 0.0, 0.0, 6.0/sqrt(5.0)]])
 
 
         assert num.allclose(A.todense(), A0+A1+A2)

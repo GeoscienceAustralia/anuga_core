@@ -1,9 +1,4 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import str
-from builtins import range
-from builtins import object
-from past.utils import old_div
+
 from future.utils import raise_
 import os
 from anuga import barrier, numprocs, myid
@@ -345,8 +340,8 @@ class RiverWall(object):
                 # except for very complex riverwalls]
                 
                 # Unit vector along segment
-                se_0=old_div(-(start[0]-end[0]),segLen)
-                se_1=old_div(-(start[1]-end[1]),segLen)
+                se_0=-(start[0]-end[0])/segLen
+                se_1=-(start[1]-end[1])/segLen
 
                 # Vector from 'start' to every point on mesh
                 # NOTE: We account for georeferencing
@@ -376,7 +371,7 @@ class RiverWall(object):
                 domain.edge_flux_type[onLevee]=1
      
                 # Get edge elevations as weighted averages of start/end elevations 
-                w0=old_div(pv_dot_se[onLevee],segLen)
+                w0=pv_dot_se[onLevee]/segLen
                 w0=w0*(w0>=0.0) # Enforce min of 0
                 w0=w0*(w0<=1.0) + 1.0*(w0>1.0) # Max of 1
                 riverwall_elevation[onLevee]= start[2]*(1.0-w0)+w0*end[2]

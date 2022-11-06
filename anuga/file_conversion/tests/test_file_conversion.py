@@ -1,8 +1,5 @@
-from __future__ import division
 
-from builtins import str
-from builtins import range
-from past.utils import old_div
+
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.file_conversion.ferret2sww import ferret2sww
 from anuga.utilities.numerical_tools import ensure_numeric, mean
@@ -282,10 +279,10 @@ class Test_File_Conversion(unittest.TestCase):
 
         #print ymomentum
 
-        assert num.allclose(stage[0,0], old_div(first_value,100))  #Meters
+        assert num.allclose(stage[0,0], first_value/100)  #Meters
 
         #Check fourth value
-        assert num.allclose(stage[0,3], old_div(fourth_value,100))  #Meters
+        assert num.allclose(stage[0,3], fourth_value/100)  #Meters
 
         fid.close()
 
@@ -328,8 +325,8 @@ class Test_File_Conversion(unittest.TestCase):
         xmomentum_1 = fid.variables['xmomentum'][:]
         ymomentum_1 = fid.variables['ymomentum'][:]
 
-        assert num.allclose(stage_1[0,0], old_div(first_value,100))  #Meters
-        assert num.allclose(stage_1[0,3], old_div(fourth_value,100))  #Meters
+        assert num.allclose(stage_1[0,0], first_value/100)  #Meters
+        assert num.allclose(stage_1[0,3], fourth_value/100)  #Meters
 
         fid.close()
 
@@ -348,8 +345,8 @@ class Test_File_Conversion(unittest.TestCase):
         ymomentum_5 = fid.variables['ymomentum'][:]
         elevation = fid.variables['elevation'][:]
 
-        assert num.allclose(stage_5[0,0], old_div(5*first_value,100))  #Meters
-        assert num.allclose(stage_5[0,3], old_div(5*fourth_value,100))  #Meters
+        assert num.allclose(stage_5[0,0], 5*first_value/100)  #Meters
+        assert num.allclose(stage_5[0,3], 5*fourth_value/100)  #Meters
 
         assert num.allclose(5*stage_1, stage_5)
 
@@ -363,7 +360,7 @@ class Test_File_Conversion(unittest.TestCase):
             for j in range(stage_1.shape[1]):
                 if depth_1[i,j] > epsilon:
 
-                    scale = old_div(depth_5[i,j],depth_1[i,j])
+                    scale = depth_5[i,j]/depth_1[i,j]
                     ref_xmomentum = xmomentum_1[i,j] * scale
                     ref_ymomentum = ymomentum_1[i,j] * scale
 
@@ -436,7 +433,7 @@ class Test_File_Conversion(unittest.TestCase):
         #Check test value
         stage = fid.variables['stage'][:]
 
-        assert num.allclose(stage[time_index, linear_point_index], old_div(test_value,100))
+        assert num.allclose(stage[time_index, linear_point_index], test_value/100)
 
         fid.close()
 
@@ -669,10 +666,10 @@ class Test_File_Conversion(unittest.TestCase):
         ymomentum = fid.variables['ymomentum'][:]
 
         #print ymomentum
-        first_height = old_div(first_amp,100) - first_elevation
-        third_height = old_div(third_amp,100) - third_elevation
-        first_momentum=old_div(first_speed*first_height,100)
-        third_momentum=old_div(third_speed*third_height,100)
+        first_height = first_amp/100 - first_elevation
+        third_height = third_amp/100 - third_elevation
+        first_momentum=first_speed*first_height/100
+        third_momentum=third_speed*third_height/100
 
         assert num.allclose(ymomentum[0][0],first_momentum)  #Meters
         assert num.allclose(ymomentum[0][2],third_momentum)  #Meters
@@ -832,10 +829,10 @@ class Test_File_Conversion(unittest.TestCase):
         ymomentum = fid.variables['ymomentum'][:]
 
         #print ymomentum
-        first_height = old_div(first_amp,100) - first_elevation
-        third_height = old_div(third_amp,100) - third_elevation
-        first_momentum=old_div(first_speed*first_height,100)
-        third_momentum=old_div(third_speed*third_height,100)
+        first_height = first_amp/100 - first_elevation
+        third_height = third_amp/100 - third_elevation
+        first_momentum=first_speed*first_height/100
+        third_momentum=third_speed*third_height/100
 
         assert num.allclose(ymomentum[0][0],first_momentum)  #Meters
         assert num.allclose(ymomentum[0][2],third_momentum)  #Meters
@@ -924,7 +921,7 @@ class Test_File_Conversion(unittest.TestCase):
 
         #Modify stage at second timestep
         stage = self.domain.quantities['stage'].vertex_values
-        self.domain.set_quantity('stage', old_div(stage,2))
+        self.domain.set_quantity('stage', stage/2)
 
         sww.store_timestep()
 

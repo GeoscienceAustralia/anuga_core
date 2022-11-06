@@ -1,10 +1,5 @@
 """  Test environmental forcing - rain, wind, etc.
 """
-from __future__ import print_function
-from __future__ import division
-from builtins import range
-from future.utils import raise_
-import operator
 
 import unittest, os
 import anuga
@@ -479,7 +474,7 @@ class Test_rate_operators(unittest.TestCase):
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
-                raise_(Modeltime_too_late, msg)
+                raise Modeltime_too_late(msg)
             else:
                 return 3.0 * t + 7.0
 

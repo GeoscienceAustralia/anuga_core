@@ -13,7 +13,6 @@ from __future__ import division
 from builtins import str
 from six import string_types
 from builtins import range
-from past.utils import old_div
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
@@ -63,8 +62,7 @@ def _quantities2csv(quantities, point_quantities, centroids, point_i):
                 if point_quantities[2] < 1.0e6:
                     momentum = sqrt(point_quantities[2]**2
                                     + point_quantities[3]**2)
-                    vel = old_div(momentum, (point_quantities[0]
-                                      - point_quantities[1]))
+                    vel = momentum/(point_quantities[0] - point_quantities[1])
                 else:
                     momentum = 0
                     vel = 0
@@ -615,7 +613,7 @@ def gauge_get_from_file(filename):
         if len(fields) > 2:
             elev.append(float(fields[elev_index]))
             loc = fields[name_index]
-            gaugelocation.append(loc.strip('\n'))
+            gaugelocation.append(loc.strip(r'\n'))
 
     return gauges, gaugelocation, elev
 
@@ -740,9 +738,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     if depth < 0.001:
                         vel = 0.0
                     else:
-                        vel = old_div(m, (depth + old_div(1.e-6,depth)))
+                        vel = m/ (depth + 1.e-6/depth)
                     bearing = calc_bearing(uh, vh)
-                    model_time[i,k,j] = old_div((t + starttime),scale) #t/60.0
+                    model_time[i,k,j] = (t + starttime)/scale #t/60.0
                     stages[i,k,j] = w
                     elevations[i,k,j] = z
                     xmom[i,k,j] = uh
@@ -828,17 +826,17 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
     elev_output = []
     if generate_fig is True:
-        depth_axis = axis([old_div(starttime,scale), old_div(time_max,scale), -0.1,
+        depth_axis = axis([starttime/scale, time_max/scale, -0.1,
                            max(max_depths)*1.1])
-        stage_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        stage_axis = axis([starttime/scale, time_max/scale,
                            min(min_stages), max(max_stages)*1.1])
-        vel_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        vel_axis = axis([starttime/scale, time_max/scale,
                          min(min_speeds), max(max_speeds)*1.1])
-        mom_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        mom_axis = axis([starttime/scale, time_max/scale,
                          min(min_momentums), max(max_momentums)*1.1])
-        xmom_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        xmom_axis = axis([starttime/scale, time_max/scale,
                           min(min_xmomentums), max(max_xmomentums)*1.1])
-        ymom_axis = axis([old_div(starttime,scale), old_div(time_max,scale),
+        ymom_axis = axis([starttime/scale, time_max/scale,
                           min(min_ymomentums), max(max_ymomentums)*1.1])
         cstr = ['g', 'r', 'b', 'c', 'm', 'y', 'k']
         nn = len(plot_quantity)
@@ -852,9 +850,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
             g = gauges[k]
             count1 = 0
             if report == True and len(label_id) > 1:
-                s = '\\begin{figure}[ht] \n' \
-                    '\\centering \n' \
-                    '\\begin{tabular}{cc} \n'
+                s = r'\\begin{figure}[ht] \n' \
+                    r'\\centering \n' \
+                    r'\\begin{tabular}{cc} \n'
                 fid.write(s)
             if len(label_id) > 1: graphname_report = []
 
@@ -867,9 +865,9 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 where2 = 0
                 word_quantity = ''
                 if report == True and len(label_id) == 1:
-                    s = '\\begin{figure}[hbt] \n' \
-                        '\\centering \n' \
-                        '\\begin{tabular}{cc} \n'
+                    s = r'\\begin{figure}[hbt] \n' \
+                        r'\\centering \n' \
+                        r'\\begin{tabular}{cc} \n'
                     fid.write(s)
 
                 for which_quantity in plot_quantity:
@@ -973,12 +971,12 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                                                     'report_figures' + altsep,
                                                 gaugeloc2, which_quantity,
                                                 label_id2)
-                            s = '\includegraphics' \
-                                '[width=0.49\linewidth, height=50mm]{%s%s}' % \
+                            s = r'\includegraphics' \
+                                r'[width=0.49\linewidth, height=50mm]{%s%s}' % \
                                 (graphname_report, '.png')
                             fid.write(s)
                             if where1 % 2 == 0:
-                                s = '\\\\ \n'
+                                s = r'\\\\ \n'
                                 where1 = 0
                             else:
                                 s = '& \n'
@@ -1027,13 +1025,13 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         elev_output.append([locations[k], east, north,
                                             elevations[0,k,j]])
                     label = '%sgauge%s' % (label_id2, gaugeloc2)
-                    s = '\end{tabular} \n' \
-                        '\\caption{%s} \n' \
-                        '\label{fig:%s} \n' \
-                        '\end{figure} \n \n' % (caption, label)
+                    s = r'\end{tabular} \n' \
+                        r'\\caption{%s} \n' \
+                        r'\label{fig:%s} \n' \
+                        r'\end{figure} \n \n' % (caption, label)
                     fid.write(s)
                     cc += 1
-                    if cc % 6 == 0: fid.write('\\clearpage \n')
+                    if cc % 6 == 0: fid.write(r'\\clearpage \n')
                     savefig(graphname_latex)
 
             if report == True and len(label_id) > 1:
@@ -1053,13 +1051,13 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                     index = j*len(plot_quantity)
                     for which_quantity in plot_quantity:
                         where1 += 1
-                        s = '\includegraphics' \
-                            '[width=0.49\linewidth, height=50mm]{%s%s}' % \
+                        s = r'\includegraphics' \
+                            r'[width=0.49\linewidth, height=50mm]{%s%s}' % \
                             (graphname_report[index], '.png')
                         index += 1
                         fid.write(s)
                         if where1 % 2 == 0:
-                            s = '\\\\ \n'
+                            s = r'\\\\ \n'
                             where1 = 0
                         else:
                             s = '& \n'
@@ -1080,13 +1078,13 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                         elev_output.append([locations[k], east, north,
                                             elevations[0,k,j]])
 
-                s = '\end{tabular} \n' \
-                    '\\caption{%s} \n' \
-                    '\label{fig:%s} \n' \
-                    '\end{figure} \n \n' % (caption, label)
+                s = r'\end{tabular} \n' \
+                    r'\\caption{%s} \n' \
+                    r'\label{fig:%s} \n' \
+                    r'\end{figure} \n \n' % (caption, label)
                 fid.write(s)
-                if float(old_div((k+1),div) - pp) == 0.:
-                    fid.write('\\clearpage \n')
+                if float((k+1)//div - pp) == 0.:
+                    fid.write(r'\\clearpage \n')
                     pp += 1
                 #### finished generating figures ###
 

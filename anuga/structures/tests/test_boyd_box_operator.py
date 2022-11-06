@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-
-from __future__ import print_function
-from __future__ import division
-from past.utils import old_div
 import unittest
 
 
@@ -42,7 +38,7 @@ class Test_boyd_box_operator(unittest.TestCase):
                             yvelocity_0 = 0.0,
                             yvelocity_1 = 0.0):
         
-        points, vertices, boundary = rectangular_cross(int(old_div(d_length,dx)), int(old_div(d_width,dy)),
+        points, vertices, boundary = rectangular_cross(int(d_length/dx), int(d_width/dy),
                                                         len1=d_length, len2=d_width)
         domain = Domain(points, vertices, boundary)   
         domain.set_name('Test_Outlet_Inlet')                 # Output name
@@ -64,7 +60,7 @@ class Test_boyd_box_operator(unittest.TestCase):
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = elevation_0
             
-            numpy.putmask(z, x > old_div(d_length,2), elevation_1)
+            numpy.putmask(z, x > d_length/2, elevation_1)
     
             return z
             
@@ -74,7 +70,7 @@ class Test_boyd_box_operator(unittest.TestCase):
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = stage_0
             
-            numpy.putmask(z, x > old_div(d_length,2), stage_1)
+            numpy.putmask(z, x > d_length/2, stage_1)
 
             return z
         
@@ -84,7 +80,7 @@ class Test_boyd_box_operator(unittest.TestCase):
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = xvelocity_0*(stage_0-elevation_0)
             
-            numpy.putmask(z, x > old_div(d_length,2), xvelocity_1*(stage_1-elevation_1) )
+            numpy.putmask(z, x > d_length/2, xvelocity_1*(stage_1-elevation_1) )
 
             return z
         
@@ -94,7 +90,7 @@ class Test_boyd_box_operator(unittest.TestCase):
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = yvelocity_0*(stage_0-elevation_0)
             
-            numpy.putmask(z, x > old_div(d_length,2), yvelocity_1*(stage_1-elevation_1) )
+            numpy.putmask(z, x > d_length/2, yvelocity_1*(stage_1-elevation_1) )
 
             return z
             
@@ -148,8 +144,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -224,11 +220,11 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        a = old_div(domain_length,2) - old_div(culvert_length,2)
-        b = old_div(domain_length,2) + old_div(culvert_length,2)
+        a = domain_length/2 - culvert_length/2
+        b = domain_length/2 + culvert_length/2
         
-        el0 = numpy.array([[a, 100.0 - old_div(culvert_width,2)], [a, 100.0 + old_div(culvert_width,2)]])
-        el1 = numpy.array([[b, 100.0 - old_div(culvert_width,2)], [b, 100.0 + old_div(culvert_width,2)]])
+        el0 = numpy.array([[a, 100.0 - culvert_width/2], [a, 100.0 + culvert_width/2]])
+        el1 = numpy.array([[b, 100.0 - culvert_width/2], [b, 100.0 + culvert_width/2]])
         
         culvert = Boyd_box_operator(domain,
                                     losses=culvert_losses,
@@ -299,11 +295,11 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        a = old_div(domain_length,2) - old_div(culvert_length,2)
-        b = old_div(domain_length,2) + old_div(culvert_length,2)
+        a = domain_length/2 - culvert_length/2
+        b = domain_length/2 + culvert_length/2
         
-        el0 = numpy.array([[a, 100.0 - old_div(culvert_width,2)], [a, 100.0 + old_div(culvert_width,2)]])
-        el1 = numpy.array([[b, 100.0 - old_div(culvert_width,2)], [b, 100.0 + old_div(culvert_width,2)]])
+        el0 = numpy.array([[a, 100.0 - culvert_width/2], [a, 100.0 + culvert_width/2]])
+        el1 = numpy.array([[b, 100.0 - culvert_width/2], [b, 100.0 + culvert_width/2]])
         
         enquiry_points = (numpy.array([85, 100]), numpy.array([115, 100]))
         
@@ -361,14 +357,14 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=10.0  # % Downward
         z_in = 10.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
 
 
         if verbose:
@@ -431,14 +427,14 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=10.0  # % Downward
         z_in = 10.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         
         
         elevation_0 = z_in
@@ -480,8 +476,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -541,11 +537,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
         Q_expected = 2.50
@@ -611,11 +607,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
       
@@ -658,8 +654,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -720,11 +716,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
 
@@ -794,11 +790,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
 
@@ -844,8 +840,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -908,11 +904,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
         
@@ -982,11 +978,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
         
@@ -1033,8 +1029,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -1091,11 +1087,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
     
         Q_expected = 2.961
@@ -1166,11 +1162,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
     
         Q_expected = 2.961
@@ -1215,8 +1211,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -1274,11 +1270,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
         Q_expected = 15.537
@@ -1347,11 +1343,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
         Q_expected = 15.537
@@ -1396,8 +1392,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -1453,14 +1449,14 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=1  # % Downward
         z_in = 10.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
 
 
         Q_expected = 0.5526
@@ -1536,14 +1532,14 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=1  # % Downward
         z_in = 10.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
 
 
         Q_expected = 0.5526
@@ -1588,8 +1584,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -1647,11 +1643,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
         
@@ -1728,11 +1724,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
         
         
@@ -1776,8 +1772,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -1834,11 +1830,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -1919,11 +1915,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 0.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -1968,8 +1964,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -2025,11 +2021,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2109,11 +2105,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2160,8 +2156,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -2217,11 +2213,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2300,11 +2296,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2350,8 +2346,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -2408,11 +2404,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2491,11 +2487,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2539,8 +2535,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -2595,11 +2591,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
         invert0 = 20.0
@@ -2650,8 +2646,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -2710,14 +2706,14 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=1  # % Downward
         z_in = 10.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
 
 
         Q_expected = 0.28
@@ -2793,14 +2789,14 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         culvert_slope=1  # % Downward
         z_in = 10.0
-        z_out = z_in-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = z_in-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
 
 
         Q_expected = 0.5526
@@ -2845,8 +2841,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -2903,11 +2899,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -2986,11 +2982,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
 
@@ -3034,8 +3030,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,
@@ -3090,11 +3086,11 @@ class Test_boyd_box_operator(unittest.TestCase):
         manning=0.013
         sum_loss=1.5
 
-        inlet_specific_energy=inlet_depth + old_div(0.5*inlet_velocity**2,g) 
+        inlet_specific_energy=inlet_depth + 0.5*inlet_velocity**2/g 
         z_in = 10.0
-        z_out = 10.0-old_div(culvert_length*culvert_slope,100)
-        E_in = z_in+inlet_depth + old_div(0.5*inlet_velocity**2,g)
-        E_out = z_out+outlet_depth + old_div(0.5*outlet_velocity**2,g)
+        z_out = 10.0-culvert_length*culvert_slope/100
+        E_in = z_in+inlet_depth + 0.5*inlet_velocity**2/g
+        E_out = z_out+outlet_depth + 0.5*outlet_velocity**2/g
         delta_total_energy = E_in-E_out
 
         invert0 = 20.0
@@ -3145,8 +3141,8 @@ class Test_boyd_box_operator(unittest.TestCase):
 
         #print 'Defining Structures'
         
-        ep0 = numpy.array([old_div(domain_length,2)-old_div(culvert_length,2), 100.0])
-        ep1 = numpy.array([old_div(domain_length,2)+old_div(culvert_length,2), 100.0])
+        ep0 = numpy.array([domain_length/2-culvert_length/2, 100.0])
+        ep1 = numpy.array([domain_length/2+culvert_length/2, 100.0])
         
         
         culvert = Boyd_box_operator(domain,

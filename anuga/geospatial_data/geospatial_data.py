@@ -2,14 +2,9 @@
 
 Manipulation of locations on the planet and associated attributes.
 """
-from __future__ import print_function
-from __future__ import division
 
-from builtins import str
-from builtins import range
 from past.builtins import basestring
-from builtins import object
-from past.utils import old_div
+
 from sys import maxsize
 from os import access, F_OK, R_OK, remove
 #from types import DictType
@@ -672,7 +667,7 @@ class Geospatial_data(object):
             random_list.append(remainder_list.pop(i))
             j += 1
             # prints progress
-            if verbose and round(old_div(random_num_len, 10)*k) == j:
+            if verbose and round(random_num_len/10*k) == j:
                 log.critical('(%s/%s)' % (j, random_num_len))
                 k += 1
 
@@ -727,10 +722,10 @@ class Geospatial_data(object):
             self.start_row = 0
             self.last_row = self.number_of_points
             self.show_verbose = 0
-            self.verbose_block_size = old_div((self.last_row + 10), 10)
+            self.verbose_block_size = (self.last_row + 10)//10
             self.block_number = 0
             self.number_of_blocks = int(
-                old_div(self.number_of_points, self.max_read_lines))
+                self.number_of_points/self.max_read_lines)
             # This computes the number of full blocks. The last block may be
             # smaller and won't be included in this estimate.
 
@@ -1525,7 +1520,7 @@ def find_optimal_smoothing_parameter(data_file,
 
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
-        normal_cov[i, :] = [alpha, old_div(ele_cov, sample_cov)]
+        normal_cov[i, :] = [alpha, ele_cov/sample_cov]
 
         if verbose:
             log.critical('Covariance for alpha %s=%s'
@@ -1729,7 +1724,7 @@ def old_find_optimal_smoothing_parameter(data_file,
 
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
-        normal_cov[i, :] = [alpha, old_div(ele_cov, sample_cov)]
+        normal_cov[i, :] = [alpha, ele_cov/sample_cov]
         log.critical('memory usage during compare: %s' % str(mem_usage()))
         if verbose:
             log.critical('cov %s = %s'

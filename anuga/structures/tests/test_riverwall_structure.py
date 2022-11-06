@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 
 
-from __future__ import print_function
-from __future__ import division
-from builtins import range
-from past.utils import old_div
 import unittest
 import os
 
@@ -313,7 +309,7 @@ class Test_riverwall_structure(unittest.TestCase):
         Q1=2./3.*H1*(2./3.*g*H1)**0.5
         Q2=2./3.*H2*(2./3.*g*H2)**0.5
 
-        theoretical_flux_vol=dt*L*Q1*(1.-old_div(Q2,Q1))**0.385
+        theoretical_flux_vol=dt*L*Q1*(1.-Q2/Q1)**0.385
 
         # Compute volume of water landward of riverwall
         FinalLandVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            
@@ -489,7 +485,7 @@ class Test_riverwall_structure(unittest.TestCase):
         Q1=2./3.*H1*(2./3.*g*H1)**0.5
         Q2=2./3.*H2*(2./3.*g*H2)**0.5
 
-        theoretical_flux_vol=dt*L*Q1*(1.-old_div(Q2,Q1))**0.385
+        theoretical_flux_vol=dt*L*Q1*(1.-Q2/Q1)**0.385
 
         # Compute volume of water landward of riverwall
         FinalLandVol=domain.quantities['height'].centroid_values[landInds]*domain.areas[landInds]            

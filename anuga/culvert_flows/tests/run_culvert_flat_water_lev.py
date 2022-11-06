@@ -10,11 +10,7 @@ Similarly the Outflow has MOMENTUM Not just Up welling as in the Horizontal Styl
 abstraction
 
 """
-from __future__ import print_function
-from __future__ import division
 
-from builtins import range
-from past.utils import old_div
 print('Starting.... Importing Modules...')
 
 #------------------------------------------------------------------------------
@@ -47,7 +43,7 @@ dx = dy = 1           # Resolution: Length of subdivisions on both axes
 #dx = dy = .5           # Resolution: Length of subdivisions on both axes
 #dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
-points, vertices, boundary = rectangular_cross(int(old_div(length,dx)), int(old_div(width,dy)),
+points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
                                                len1=length, len2=width)
 domain = Domain(points, vertices, boundary)   
 domain.set_name('Test_Culv_Flat_WL')                 # Output name
@@ -67,7 +63,7 @@ def topography(x, y):
     A culvert will connect either side
     """
     # General Slope of Topography
-    z=old_div(-x,1000)
+    z=-x/1000
     
     #       NOW Add bits and Pieces to topography
     N = len(x)
@@ -141,8 +137,8 @@ print('Setting Boundary Conditions')
 Bi = Dirichlet_boundary([0.0, 0.0, 0.0])          # Inflow based on Flow Depth and Approaching Momentum !!!
 Br = Reflective_boundary(domain)              # Solid reflective wall
 Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
-Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+num.sin(old_div(2*pi*(t-4),10))), 0.0, 0.0])
-Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+num.sin(old_div(2*pi*(t-4),20))), 0.0, 0.0])
+Btus = Time_boundary(domain, lambda t: [0.0+ 1.25*(1+num.sin(2*pi*(t-4)/10)), 0.0, 0.0])
+Btds = Time_boundary(domain, lambda t: [0.0+ 0.75*(1+num.sin(2*pi*(t-4)/20)), 0.0, 0.0])
 domain.set_boundary({'left': Btus, 'right': Btds, 'top': Br, 'bottom': Br})
 
 

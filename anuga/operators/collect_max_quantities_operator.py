@@ -3,10 +3,7 @@ Collect stage quantity stage info
 
 
 """
-from __future__ import division
 
-from builtins import str
-from past.utils import old_div
 __author__="gareth"
 __date__ ="$01/08/2014 4:46:39 PM$"
 
@@ -104,7 +101,7 @@ class collect_max_quantities_operator(Operator):
                 self.max_depth = num.maximum(self.max_depth,localDepth)
 
                 #velMax=(momNorm/(localDepth+velocity_protection/localDepth))*(localDepth>self.domain.minimum_allowed_height)
-                velMax=(old_div(momNorm,localDepth))*(localDepth>self.velocity_zero_height)
+                velMax=(momNorm/localDepth)*(localDepth>self.velocity_zero_height)
                 self.max_speed = num.maximum(self.max_speed, velMax)
 
                 self.counter=0

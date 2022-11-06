@@ -1,8 +1,6 @@
 """  Test environmental forcing - rain, wind, etc.
 """
-from __future__ import division
 
-from past.utils import old_div
 import unittest, os
 
 import anuga
@@ -100,7 +98,7 @@ class Test_DE1_domain(unittest.TestCase):
         dd = domain.quantities['stage'].centroid_values - domain.quantities['elevation'].centroid_values
         #dd_raw=1.0*dd
         dd = (dd)*(dd>1.0e-03)+1.0e-03
-        vv = ( (old_div(xx,dd))**2 + (old_div(yy,dd))**2)**0.5
+        vv = ((xx/dd)**2 + (yy/dd)**2)**0.5
 
         assert num.all(vv<2.0e-02)
 

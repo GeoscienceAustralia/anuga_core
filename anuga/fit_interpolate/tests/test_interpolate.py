@@ -5,14 +5,7 @@
 #import time, os
 
 
-from __future__ import print_function
-from __future__ import division
-from builtins import zip
-from builtins import map
-from builtins import next
-from builtins import str
-from builtins import range
-from past.utils import old_div
+
 import sys
 import os
 import unittest
@@ -482,7 +475,7 @@ class Test_Interpolate(unittest.TestCase):
         triangles = [[0,1,3],[1,0,2],[0,4,5], [0,5,2]] #abd bac aef afc
 
         #Data points
-        data = [ [-3., 2.0], [-2, 1], [0.0, 1], [0, 3], [2, 3], [old_div(-1.0,3),old_div(-4.,3)] ]
+        data = [ [-3., 2.0], [-2, 1], [0.0, 1], [0, 3], [2, 3], [-1.0/3,-4./3] ]
         interp = Interpolate(points, triangles)
 
         answer = [[0.0, 0.0, 0.0, 1.0, 0.0, 0.0],    #Affects point d
@@ -1160,18 +1153,18 @@ class Test_Interpolate(unittest.TestCase):
             assert num.allclose(I(time[i]), mean(Q[i,:]))
 
         #Midway    
-        assert num.allclose(I( old_div((time[0] + time[1]),2) ),
-                            old_div((I(time[0]) + I(time[1])),2) )
+        assert num.allclose(I( (time[0] + time[1])/2 ),
+                            (I(time[0]) + I(time[1]))/2 )
 
-        assert num.allclose(I( old_div((time[1] + time[2]),2) ),
-                            old_div((I(time[1]) + I(time[2])),2) )
+        assert num.allclose(I( (time[1] + time[2])/2 ),
+                            (I(time[1]) + I(time[2]))/2 )
 
-        assert num.allclose(I( old_div((time[0] + time[2]),2) ),
-                            old_div((I(time[0]) + I(time[2])),2) )                 
+        assert num.allclose(I( (time[0] + time[2])/2 ),
+                            (I(time[0]) + I(time[2]))/2 )                 
 
         #1/3
-        assert num.allclose(I( old_div((time[0] + time[2]),3) ),
-                            old_div((I(time[0]) + I(time[2])),3) )                         
+        assert num.allclose(I( (time[0] + time[2])/3 ),
+                            (I(time[0]) + I(time[2]))/3 )                         
 
 
         #Out of bounds checks

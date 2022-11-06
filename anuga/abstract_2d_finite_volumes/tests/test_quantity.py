@@ -6,7 +6,6 @@ from builtins import zip
 from builtins import map
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import unittest
 from math import sqrt, pi
 import tempfile
@@ -2512,7 +2511,7 @@ Parameters
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                old_div(num.sum(quantity.vertex_values[k, :]),3))
+                                num.sum(quantity.vertex_values[k, :])/3)
 
     def test_limit_vertices_by_all_neighbours(self):
         quantity = Quantity(self.mesh4)
@@ -2536,7 +2535,7 @@ Parameters
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                old_div(num.sum(quantity.vertex_values[k, :]),3))
+                                num.sum(quantity.vertex_values[k, :])/3)
 
     def test_limit_edges_by_all_neighbours(self):
         quantity = Quantity(self.mesh4)
@@ -2560,7 +2559,7 @@ Parameters
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                old_div(num.sum(quantity.vertex_values[k, :]),3))
+                                num.sum(quantity.vertex_values[k, :])/3)
 
     def test_limit_edges_by_neighbour(self):
         quantity = Quantity(self.mesh4)
@@ -2584,7 +2583,7 @@ Parameters
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                old_div(num.sum(quantity.vertex_values[k, :]),3))
+                                num.sum(quantity.vertex_values[k, :])/3)
 
     def test_limiter2(self):
         """Taken from test_shallow_water
@@ -2613,7 +2612,7 @@ Parameters
         #Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
-                                old_div(num.sum(quantity.vertex_values[k, :]),3))
+                                num.sum(quantity.vertex_values[k, :])/3)
 
     def test_distribute_first_order(self):
         quantity = Quantity(self.mesh4)
@@ -2701,10 +2700,10 @@ Parameters
         timestep = 0.1
         quantity.update(timestep)
 
-        sem = old_div(num.array([1., 1., 1., 1.]),num.array([1, 2, 3, 4]))
+        sem = num.array([1., 1., 1., 1.])/num.array([1, 2, 3, 4])
         denom = num.ones(4, float)-timestep*sem
 
-        x = old_div(num.array([1, 2, 3, 4]),denom)
+        x = num.array([1, 2, 3, 4])/denom
         assert num.allclose(quantity.centroid_values, x)
 
     def test_both_updates(self):
@@ -2724,7 +2723,7 @@ Parameters
         timestep = 0.1
         quantity.update(0.1)
 
-        sem = old_div(num.array([1., 1., 1., 1.]),num.array([1, 2, 3, 4]))
+        sem = num.array([1., 1., 1., 1.])/num.array([1, 2, 3, 4])
         denom = num.ones(4, float)-timestep*sem
 
         x = num.array([1., 2., 3., 4.])

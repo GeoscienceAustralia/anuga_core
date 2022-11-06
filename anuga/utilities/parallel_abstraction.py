@@ -8,7 +8,6 @@
 from __future__ import print_function
 from __future__ import division
 from builtins import range
-from past.utils import old_div
 from builtins import object
 import sys
 import os
@@ -211,13 +210,13 @@ else:
     if isinstance(x, str):
       scatterer = comm.scatter
       l = len(x)
-      n = old_div(l, comm.size)
+      n = l//comm.size
       sendobj = [x[i: i + n] for i in range(0, l, n)]
     elif isinstance(x, np.ndarray):
       scatterer = comm.Scatter
       sendobj = x
       if buffer is None:
-        buffer = np.empty(old_div(x.size, comm.size), dtype=x.dtype)
+        buffer = np.empty(x.size//comm.size, dtype=x.dtype)
     else:
       raise NotImplementedError(
         'Can only scatter strings and numpy arrays')

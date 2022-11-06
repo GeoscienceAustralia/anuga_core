@@ -1,9 +1,4 @@
-from __future__ import division
-# To change this template, choose Tools | Templates
-# and open the template in the editor.
 
-
-from past.utils import old_div
 __author__="steve"
 __date__ ="$11/11/2011 1:52:17 PM$"
 
@@ -49,7 +44,7 @@ class Mannings_operator(Operator):
         self.height_c[:] = self.stage_c - self.elev_c
 
         self.gamma_c[:] = -self.g * self.friction_c**2 * num.sqrt( self.xmom_c**2 + self.ymom_c**2 )
-        self.gamma_c[:] = num.where(self.height_c > 0.0, old_div(self.gamma_c,num.power(self.height_c,7.0/3.0)),-100.0)
+        self.gamma_c[:] = num.where(self.height_c > 0.0, self.gamma_c/num.power(self.height_c,7.0/3.0),-100.0)
 
         exp_gamma = num.exp(self.gamma_c*timestep)
 

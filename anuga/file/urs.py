@@ -1,7 +1,4 @@
-from __future__ import division
-from builtins import range
-from past.utils import old_div
-from builtins import object
+
 from struct import pack, unpack
 import array as p_array
 import numpy as num
@@ -295,19 +292,19 @@ def points_needed(seg, ll_lat, ll_long, grid_spacing,
     min_lat = min(seg_lat_long[0][0], seg_lat_long[1][0]) - buffer
     min_long = min(seg_lat_long[0][1], seg_lat_long[1][1]) - buffer
 
-    first_row = old_div((min_long - ll_long), grid_spacing)
+    first_row = (min_long - ll_long)/ grid_spacing
 
     # To round up
     first_row_long = int(round(first_row + 0.5))
 
-    last_row = old_div((max_long - ll_long), grid_spacing) # round down
+    last_row = (max_long - ll_long)/ grid_spacing # round down
     last_row_long = int(round(last_row))
 
-    first_row = old_div((min_lat - ll_lat), grid_spacing)
+    first_row = (min_lat - ll_lat)/ grid_spacing
     # To round up
     first_row_lat = int(round(first_row + 0.5))
 
-    last_row = old_div((max_lat - ll_lat), grid_spacing) # round down
+    last_row = (max_lat - ll_lat)/ grid_spacing # round down
     last_row_lat = int(round(last_row))
 
     max_distance = 157147.4112 * grid_spacing
@@ -352,7 +349,7 @@ def keep_point(lat, long, seg, max_distance):
     if sqrt(num) == 0 and abs(num) == 0:
         return True
     else:
-        d = old_div(abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1)),num)
+        d = abs((x2_1)*(y1-y0)-(x1-x0)*(y2_1))/num
         return d <= max_distance
 
 

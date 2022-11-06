@@ -10,17 +10,11 @@
    Will produce sww files with names domain_Pn_m.sww where m is number of processors and
    n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
-from __future__ import print_function
-from __future__ import division
+
 
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
-
-from builtins import str
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
 import os
 import sys
 import time
@@ -98,7 +92,7 @@ class Test_urs2sts_parallel(Test_Mux):
         times=num.arange(0., float(time_step_count*time_step), time_step)
         for i in range(n):
             #ha[i]+=num.sin(times)
-            ha[i]+=old_div(times,finaltime)
+            ha[i]+=times/finaltime
 
 
 
@@ -188,7 +182,7 @@ class Test_urs2sts_parallel(Test_Mux):
 
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
 
-        temp_fbound=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
+        temp_fbound=num.zeros(int(finaltime/yieldstep)+1,float)
         if verbose: print("Evolving domain with file boundary condition")
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -203,10 +197,10 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
         #Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
-        Bd = Time_boundary(domain=domain_drchlt, f=lambda t: [2.0+old_div(t,finaltime)+tide,220.+10.*tide+old_div(10.*t,finaltime),-220.-10.*tide-old_div(10.*t,finaltime)])
+        Bd = Time_boundary(domain=domain_drchlt, f=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
         #Bd = Time_boundary(domain=domain_drchlt,f=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-        temp_drchlt=num.zeros(int(old_div(finaltime,yieldstep))+1,float)
+        temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,float)
         
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
                                                    finaltime=finaltime, 
@@ -263,7 +257,7 @@ class Test_urs2sts_parallel(Test_Mux):
         times=num.arange(0, time_step_count*time_step, time_step)
         for i in range(n):
             #ha[i]+=num.sin(times)
-            ha[i]+=old_div(times,finaltime)
+            ha[i]+=times/finaltime
 
         #------------------------------------------------------------
         # Write mux data to file then convert to sts format
@@ -429,7 +423,7 @@ class Test_urs2sts_parallel(Test_Mux):
         domain_drchlt.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_drchlt)
         #Bd = Dirichlet_boundary([2.0+tide,220+10*tide,-220-10*tide])
-        Bd = Time_boundary(domain=domain_drchlt, function=lambda t: [2.0+old_div(t,finaltime)+tide,220.+10.*tide+old_div(10.*t,finaltime),-220.-10.*tide-old_div(10.*t,finaltime)])
+        Bd = Time_boundary(domain=domain_drchlt, function=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
         #Bd = Time_boundary(domain=domain_drchlt,function=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
        
@@ -487,7 +481,7 @@ class Test_urs2sts_parallel(Test_Mux):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise_(AssertionError, msg)
+        raise (AssertionError, msg)
 
 
 # Test an nprocs-way run of the shallow water equations

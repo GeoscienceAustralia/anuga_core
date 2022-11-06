@@ -1,14 +1,11 @@
 """
     Module to convert SWW to DEM files.
 """
-from __future__ import absolute_import
-from __future__ import division
+
 
 # external modules
 import sys
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
 import os
 import numpy as num
 
@@ -224,7 +221,7 @@ def sww2dem(name_in, name_out,
     if missing_vars:
         msg = ("In expression '%s', variables %s are not in the SWW file '%s'"
                % (quantity, str(missing_vars), name_in))
-        raise_(Exception, msg)
+        raise(Exception, msg)
 
     # Create result array and start filling, block by block.
 
@@ -302,8 +299,8 @@ def sww2dem(name_in, name_out,
     assert ymax >= ymin, msg
 
     if verbose: log.critical(u'Creating grid')
-    ncols = int(old_div((xmax-xmin),cellsize)) + 1
-    nrows = int(old_div((ymax-ymin),cellsize)) + 1
+    ncols = int((xmax-xmin)/cellsize) + 1
+    nrows = int((ymax-ymin)/cellsize) + 1
 
     # New absolute reference and coordinates
     newxllcorner = xmin + xllcorner
@@ -458,7 +455,7 @@ def sww2dem(name_in, name_out,
 
         format = '%.'+'%g' % number_of_decimal_places +'e'
         for i in range(nrows):
-            if verbose and i % (old_div((nrows+10),10)) == 0:
+            if verbose and i % ((nrows+10)//10) == 0:
                 print('Doing row %d of %d' % (i, nrows))
 
             base_index = (nrows-i-1)*ncols

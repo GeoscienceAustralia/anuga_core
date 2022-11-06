@@ -550,7 +550,7 @@ class TestCase(unittest.TestCase):
         # This one sticks outside bounding polygon - should fail
         interior_regions = [[poly_onslow, 50000], [poly_region, 50000],
                             [poly_coast, 100000], [poly_thevenard, 100000]]
-        boundary_tags = {'walls': [0,1], 'bom': [2]}
+        boundary_tags = {'walls': [0,1], 'bom': [2], 'exterior': [3,4,5,6]}
 
         try:
             m = create_mesh_from_regions(poly_all,

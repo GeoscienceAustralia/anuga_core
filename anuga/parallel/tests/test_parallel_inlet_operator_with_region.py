@@ -1,8 +1,4 @@
-from __future__ import print_function
-from __future__ import division
-from builtins import range
-from past.utils import old_div
-from future.utils import raise_
+
 import os.path
 import sys
 
@@ -69,7 +65,7 @@ def topography(x, y):
     A culvert will connect either side
     """
     # General Slope of Topography
-    z=old_div(-x,1000)
+    z=-x/1000
     
     N = len(x)
     for i in range(N):
@@ -284,7 +280,7 @@ class Test_parallel_frac_op(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise_(AssertionError, msg)
+        raise (AssertionError, msg)
 
 if __name__=="__main__":
     if numprocs == 1:

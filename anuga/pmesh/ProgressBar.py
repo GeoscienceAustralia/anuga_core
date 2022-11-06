@@ -3,14 +3,7 @@ A  basic widget for showing the progress
 being made in a task.
 
 """
-from __future__ import division
-
 from tkinter import *
-from past.utils import old_div
-from builtins import object
-from future import standard_library
-standard_library.install_aliases()
-
 
 class ProgressBar(object):
     def __init__(self, master=None, orientation="horizontal",
@@ -40,8 +33,8 @@ class ProgressBar(object):
                              highlightthickness=0, background=background)
         self.scale = self.canvas.create_rectangle(0, 0, width, height,
                                                   fill=fillColor)
-        self.label = self.canvas.create_text(old_div(self.canvas.winfo_reqwidth(), 2),
-                                             old_div(height, 2), text=labelText,
+        self.label = self.canvas.create_text(self.canvas.winfo_reqwidth()// 2,
+                                             height// 2, text=labelText,
                                              anchor="c", fill=labelColor,
                                              font=self.labelFont)
         self.update()

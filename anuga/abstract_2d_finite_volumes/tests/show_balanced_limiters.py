@@ -7,12 +7,12 @@ for use with the generic finite volume framework
 Conserved quantities are h, uh and vh stored as elements 0, 1 and 2 in the
 numerical vector named conserved_quantities.
 """
-from __future__ import division
+
 
 ######################
 # Module imports 
 #
-from past.utils import old_div
+
 from anuga.shallow_water import Domain,\
      Reflective_boundary, Dirichlet_boundary,\
      Transmissive_boundary, Time_boundary
@@ -30,7 +30,7 @@ N = 12
 
 log.critical('Creating domain')
 #Create basic mesh
-points, vertices, boundary = rectangular(N, old_div(N,2), len1=1.2,len2=0.6,
+points, vertices, boundary = rectangular(N, N//2, len1=1.2,len2=0.6,
                                          origin=(-0.07, 0))
 
 log.critical('Number of elements=%d' % len(vertices))
@@ -65,7 +65,7 @@ Bd = Dirichlet_boundary([inflow_stage, 0.0, 0.0])
 #Time dependent inflow
 from math import sin, pi
 Bw = Time_boundary(domain=domain,
-                   f=lambda x: [(1 + sin(old_div(x*pi,4)))*\
+                   f=lambda x: [(1 + sin(x*pi/4))*\
                                 (inflow_stage*(sin(2.5*x*pi)+0.7)),0,0])
 
 #Set boundary conditions

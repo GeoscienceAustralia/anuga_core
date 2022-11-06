@@ -5,7 +5,6 @@ from __future__ import print_function
 from __future__ import division
 from builtins import str
 from builtins import range
-from past.utils import old_div
 import unittest
 import time
 import tempfile
@@ -83,7 +82,7 @@ class Test_Util(unittest.TestCase):
         t = 0.0
         while t <= finaltime:
             t_string = time.strftime(time_format, time.gmtime(t+start))
-            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(old_div(t*pi,600))))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
             t += dt
 
         fid.close()
@@ -107,20 +106,20 @@ class Test_Util(unittest.TestCase):
             assert num.allclose(q[0], 2*t)
             if i%6 == 0:
                 assert num.allclose(q[1], t**2)
-                assert num.allclose(q[2], sin(old_div(t*pi,600)))
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t)
-        assert num.allclose( old_div((120**2 + 60**2),2), q[1] )
-        assert num.allclose( old_div((sin(old_div(120*pi,600)) + sin(old_div(60*pi,600))),2), q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t)
-        assert num.allclose( old_div(2*120**2,3) + old_div(60**2,3), q[1] )
-        assert num.allclose( old_div(2*sin(old_div(120*pi,600)),3) + old_div(sin(old_div(60*pi,600)),3), q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
         os.remove(filename + '.txt')
         os.remove(filename + '.tms')        
@@ -208,16 +207,16 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0 = old_div((D[0] + D[1]),2)
-        r1 = old_div((D[1] + D[2]),2)
-        r2 = old_div((D[2] + D[3]),2)
+        r0 = (D[0] + D[1])/2
+        r1 = (D[1] + D[2])/2
+        r2 = (D[2] + D[3])/2
 
         #And the midpoints are found now
         Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15], axis=0)
         Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15], axis=0)
 
         diag = num.concatenate( (Dx, Dy), axis=1)
-        d_midpoints = old_div((diag[1:] + diag[:-1]),2)
+        d_midpoints = (diag[1:] + diag[:-1])/2
 
         #Let us see if the file function can find the correct
         #values at the midpoints at the last timestep:
@@ -244,9 +243,9 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0 = old_div((D[0] + D[1]),2)
-        r1 = old_div((D[1] + D[2]),2)
-        r2 = old_div((D[2] + D[3]),2)
+        r0 = (D[0] + D[1])/2
+        r1 = (D[1] + D[2])/2
+        r2 = (D[2] + D[3])/2
 
         #Let us see if the file function can find the correct
         #values
@@ -266,9 +265,9 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0 = old_div((D[0] + D[1]),2)
-        r1 = old_div((D[1] + D[2]),2)
-        r2 = old_div((D[2] + D[3]),2)
+        r0 = (D[0] + D[1])/2
+        r1 = (D[1] + D[2])/2
+        r2 = (D[2] + D[3])/2
 
         q = f(timestep/10., point_id=0); assert num.allclose(r0, q)
         q = f(timestep/10., point_id=1); assert num.allclose(r1, q)
@@ -287,9 +286,9 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0_0 = old_div((D[0] + D[1]),2)
-        r1_0 = old_div((D[1] + D[2]),2)
-        r2_0 = old_div((D[2] + D[3]),2)
+        r0_0 = (D[0] + D[1])/2
+        r1_0 = (D[1] + D[2])/2
+        r2_0 = (D[2] + D[3])/2
 
         #
         timestep = 16
@@ -300,14 +299,14 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0_1 = old_div((D[0] + D[1]),2)
-        r1_1 = old_div((D[1] + D[2]),2)
-        r2_1 = old_div((D[2] + D[3]),2)
+        r0_1 = (D[0] + D[1])/2
+        r1_1 = (D[1] + D[2])/2
+        r2_1 = (D[2] + D[3])/2
 
         # The reference values are
-        r0 = old_div((r0_0 + r0_1),2)
-        r1 = old_div((r1_0 + r1_1),2)
-        r2 = old_div((r2_0 + r2_1),2)
+        r0 = (r0_0 + r0_1)/2
+        r1 = (r1_0 + r1_1)/2
+        r2 = (r2_0 + r2_1)/2
 
         q = f((timestep - 0.5)/10., point_id=0); assert num.allclose(r0, q)
         q = f((timestep - 0.5)/10., point_id=1); assert num.allclose(r1, q)
@@ -318,9 +317,9 @@ class Test_Util(unittest.TestCase):
         #between timestep 15 and 16
 
         # The reference values are
-        r0 = old_div((r0_0 + 2*r0_1),3)
-        r1 = old_div((r1_0 + 2*r1_1),3)
-        r2 = old_div((r2_0 + 2*r2_1),3)
+        r0 = (r0_0 + 2*r0_1)/3
+        r1 = (r1_0 + 2*r1_1)/3
+        r2 = (r2_0 + 2*r2_1)/3
 
         #And the file function gives
         q = f((timestep - 1.0/3)/10., point_id=0); assert num.allclose(r0, q)
@@ -415,16 +414,16 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0 = old_div((D[0] + D[1]),2)
-        r1 = old_div((D[1] + D[2]),2)
-        r2 = old_div((D[2] + D[3]),2)
+        r0 = (D[0] + D[1])/2
+        r1 = (D[1] + D[2])/2
+        r2 = (D[2] + D[3])/2
 
         #And the midpoints are found now
         Dx = num.take(num.reshape(x, (16,1)), [0,5,10,15], axis=0)
         Dy = num.take(num.reshape(y, (16,1)), [0,5,10,15], axis=0)
 
         diag = num.concatenate((Dx, Dy), axis=1)
-        d_midpoints = old_div((diag[1:] + diag[:-1]),2)
+        d_midpoints = (diag[1:] + diag[:-1])/2
 
 
         #Adjust for georef - make interpolation points absolute
@@ -471,9 +470,9 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0 = old_div((D[0] + D[1]),2)
-        r1 = old_div((D[1] + D[2]),2)
-        r2 = old_div((D[2] + D[3]),2)
+        r0 = (D[0] + D[1])/2
+        r1 = (D[1] + D[2])/2
+        r2 = (D[2] + D[3])/2
 
         #Let us see if the file function can find the correct
         #values
@@ -502,9 +501,9 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0 = old_div((D[0] + D[1]),2)
-        r1 = old_div((D[1] + D[2]),2)
-        r2 = old_div((D[2] + D[3]),2)
+        r0 = (D[0] + D[1])/2
+        r1 = (D[1] + D[2])/2
+        r2 = (D[2] + D[3])/2
 
         q = f(timestep/10., point_id=0); assert num.allclose(r0, q)
         q = f(timestep/10., point_id=1); assert num.allclose(r1, q)
@@ -532,9 +531,9 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0_0 = old_div((D[0] + D[1]),2)
-        r1_0 = old_div((D[1] + D[2]),2)
-        r2_0 = old_div((D[2] + D[3]),2)
+        r0_0 = (D[0] + D[1])/2
+        r1_0 = (D[1] + D[2])/2
+        r2_0 = (D[2] + D[3])/2
 
         #
         timestep = 16
@@ -554,14 +553,14 @@ class Test_Util(unittest.TestCase):
 
         #Reference interpolated values at midpoints on diagonal at
         #this timestep are
-        r0_1 = old_div((D[0] + D[1]),2)
-        r1_1 = old_div((D[1] + D[2]),2)
-        r2_1 = old_div((D[2] + D[3]),2)
+        r0_1 = (D[0] + D[1])/2
+        r1_1 = (D[1] + D[2])/2
+        r2_1 = (D[2] + D[3])/2
 
         # The reference values are
-        r0 = old_div((r0_0 + r0_1),2)
-        r1 = old_div((r1_0 + r1_1),2)
-        r2 = old_div((r2_0 + r2_1),2)
+        r0 = (r0_0 + r0_1)/2
+        r1 = (r1_0 + r1_1)/2
+        r2 = (r2_0 + r2_1)/2
 
         q = f((timestep - 0.5)/10., point_id=0); assert num.allclose(r0, q)
         q = f((timestep - 0.5)/10., point_id=1); assert num.allclose(r1, q)
@@ -572,9 +571,9 @@ class Test_Util(unittest.TestCase):
         #between timestep 15 and 16
 
         # The reference values are
-        r0 = old_div((r0_0 + 2*r0_1),3)
-        r1 = old_div((r1_0 + 2*r1_1),3)
-        r2 = old_div((r2_0 + 2*r2_1),3)
+        r0 = (r0_0 + 2*r0_1)/3
+        r1 = (r1_0 + 2*r1_1)/3
+        r2 = (r2_0 + 2*r2_1)/3
 
         #And the file function gives
         q = f((timestep - 1.0/3)/10., point_id=0); assert num.allclose(r0, q)
@@ -648,7 +647,7 @@ class Test_Util(unittest.TestCase):
             f2 = lambda x,y: x+y+t**2
             domain.set_quantity('xmomentum', f2)
 
-            f3 = lambda x,y: x**2 + y**2 * num.sin(old_div(t*num.pi,600))
+            f3 = lambda x,y: x**2 + y**2 * num.sin(t*num.pi/600)
             domain.set_quantity('ymomentum', f3)
 
             #Store and advance time
@@ -698,7 +697,7 @@ class Test_Util(unittest.TestCase):
                 if num.alltrue(q0 == NAN):
                     actual = q0
                 else:
-                    actual = old_div((k*q1 + (6-k)*q0),6)
+                    actual = (k*q1 + (6-k)*q0)/6
                 q = F(t, point_id=id)
                 #print i, k, t, q
                 #print ' ', q0
@@ -719,11 +718,11 @@ class Test_Util(unittest.TestCase):
 
             t = 90 #Halfway between 60 and 120
             q = F(t, point_id=id)
-            assert num.allclose( old_div((q120+q60),2), q )
+            assert num.allclose( (q120+q60)/2, q )
 
             t = 100 #Two thirds of the way between between 60 and 120
             q = F(t, point_id=id)
-            assert num.allclose(old_div(q60,3) + old_div(2*q120,3), q)
+            assert num.allclose(q60/3 + 2*q120/3, q)
 
 
 
@@ -753,7 +752,7 @@ class Test_Util(unittest.TestCase):
                     q1 = F(t+60-delta, point_id=id)
 
                 q = F(t-delta, point_id=id)
-                assert num.allclose(q, old_div((k*q1 + (6-k)*q0),6))
+                assert num.allclose(q, (k*q1 + (6-k)*q0)/6)
 
 
         os.remove(filename + '.sww')
@@ -813,7 +812,7 @@ class Test_Util(unittest.TestCase):
             f2 = lambda x,y: x+y+t**2
             domain.set_quantity('xmomentum', f2)
 
-            f3 = lambda x,y: x**2 + y**2 * num.sin(old_div(t*num.pi,600))
+            f3 = lambda x,y: x**2 + y**2 * num.sin(t*num.pi/600)
             domain.set_quantity('ymomentum', f3)
 
             #Store and advance time
@@ -868,7 +867,7 @@ class Test_Util(unittest.TestCase):
                 if q0 == NAN:
                     actual = q0
                 else:
-                    actual = old_div((k*q1 + (6-k)*q0),6)
+                    actual = (k*q1 + (6-k)*q0)/6
                 q = F(t, point_id=id)
                 #print i, k, t, q
                 #print ' ', q0
@@ -912,7 +911,7 @@ class Test_Util(unittest.TestCase):
                 if q0 == NAN:
                     actual = q0
                 else:
-                    actual = old_div((k*q1 + (6-k)*q0),6)
+                    actual = (k*q1 + (6-k)*q0)/6
                 q = F(t, point_id=id)
                 print("############")
                 print("id, x, y ", id, x, y) #k, t, q
@@ -935,11 +934,11 @@ class Test_Util(unittest.TestCase):
 
             t = 90 #Halfway between 60 and 120
             q = F(t, point_id=id)
-            assert num.allclose( old_div((q120+q60),2), q )
+            assert num.allclose( (q120+q60)/2, q )
 
             t = 100 #Two thirds of the way between between 60 and 120
             q = F(t, point_id=id)
-            assert num.allclose(old_div(q60,3) + old_div(2*q120,3), q)
+            assert num.allclose(q60/3 + 2*q120/3, q)
 
 
 
@@ -969,7 +968,7 @@ class Test_Util(unittest.TestCase):
                     q1 = F(t+60-delta, point_id=id)
 
                 q = F(t-delta, point_id=id)
-                assert num.allclose(q, old_div((k*q1 + (6-k)*q0),6))
+                assert num.allclose(q, (k*q1 + (6-k)*q0)/6)
 
 
         os.remove(filename + '.sww')
@@ -996,7 +995,7 @@ class Test_Util(unittest.TestCase):
         t = 0.0
         while t <= finaltime:
             t_string = time.strftime(time_format, time.gmtime(t+start))
-            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(old_div(t*pi,600))))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
             t += dt
 
         fid.close()
@@ -1058,20 +1057,20 @@ class Test_Util(unittest.TestCase):
             assert num.allclose(q[0], 2*t)
             if i%6 == 0:
                 assert num.allclose(q[1], t**2)
-                assert num.allclose(q[2], sin(old_div(t*pi,600)))
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t)
-        assert num.allclose( old_div((120**2 + 60**2),2), q[1] )
-        assert num.allclose( old_div((sin(old_div(120*pi,600)) + sin(old_div(60*pi,600))),2), q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t)
-        assert num.allclose( old_div(2*120**2,3) + old_div(60**2,3), q[1] )
-        assert num.allclose( old_div(2*sin(old_div(120*pi,600)),3) + old_div(sin(old_div(60*pi,600)),3), q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
         os.remove(filename + '.tms')
         os.remove(filename + '.txt')        
@@ -1097,7 +1096,7 @@ class Test_Util(unittest.TestCase):
         t = 0.0
         while t <= finaltime:
             t_string = time.strftime(time_format, time.gmtime(t+start))
-            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(old_div(t*pi,600))))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
             t += dt
 
         fid.close()
@@ -1137,20 +1136,20 @@ class Test_Util(unittest.TestCase):
             assert num.allclose(q[0], 2*t)
             if i%6 == 0:
                 assert num.allclose(q[1], t**2)
-                assert num.allclose(q[2], sin(old_div(t*pi,600)))
+                assert num.allclose(q[2], sin(t*pi/600))
 
         #Check non-exact
 
         t = 90 #Halfway between 60 and 120
         q = F(t-delta)
-        assert num.allclose( old_div((120**2 + 60**2),2), q[1] )
-        assert num.allclose( old_div((sin(old_div(120*pi,600)) + sin(old_div(60*pi,600))),2), q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 #Two thirds of the way between between 60 and 120
         q = F(t-delta)
-        assert num.allclose( old_div(2*120**2,3) + old_div(60**2,3), q[1] )
-        assert num.allclose( old_div(2*sin(old_div(120*pi,600)),3) + old_div(sin(old_div(60*pi,600)),3), q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
 
         os.remove(filename + '.tms')
@@ -1181,7 +1180,7 @@ class Test_Util(unittest.TestCase):
         t = 0.0
         while t <= finaltime:
             t_string = time.strftime(time_format, time.gmtime(t+start))
-            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(old_div(t*pi,600))))
+            fid.write('%s, %f %f %f\n' %(t_string, 2*t, t**2, sin(t*pi/600)))
             t += dt
 
         fid.close()
@@ -1222,19 +1221,19 @@ class Test_Util(unittest.TestCase):
             assert num.allclose(q[0], 2*t)
             if i%6 == 0:
                 assert num.allclose(q[1], t**2)
-                assert num.allclose(q[2], sin(old_div(t*pi,600)))
+                assert num.allclose(q[2], sin(t*pi/600))
 
         # Check non-exact
         t = 90 #Halfway between 60 and 120
         q = F(t-delta)
-        assert num.allclose( old_div((120**2 + 60**2),2), q[1] )
-        assert num.allclose( old_div((sin(old_div(120*pi,600)) + sin(old_div(60*pi,600))),2), q[2] )
+        assert num.allclose( (120**2 + 60**2)/2, q[1] )
+        assert num.allclose( (sin(120*pi/600) + sin(60*pi/600))/2, q[2] )
 
 
         t = 100 # Two thirds of the way between between 60 and 120
         q = F(t-delta)
-        assert num.allclose( old_div(2*120**2,3) + old_div(60**2,3), q[1] )
-        assert num.allclose( old_div(2*sin(old_div(120*pi,600)),3) + old_div(sin(old_div(60*pi,600)),3), q[2] )
+        assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
+        assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
 
         os.remove(filename + '.tms')
@@ -1266,7 +1265,7 @@ class Test_Util(unittest.TestCase):
 
         # test zero division is OK
         Z = apply_expression_to_dictionary('X/Y', D)
-        assert num.allclose(old_div(1,Z), old_div(1,(old_div(foo,bar)))) # can't compare inf to inf
+        assert num.allclose(1/Z, 1/(foo/bar)) # can't compare inf to inf
 
         # make an error for zero on zero
         # this is really an error in numeric, SciPy core can handle it
