@@ -1,7 +1,6 @@
 """  Test environmental forcing - rain, wind, etc.
 """
 
-from future.utils import raise_
 
 import unittest, os
 import anuga
@@ -382,7 +381,8 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
         assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas[indices]).sum())
 
-
+        import warnings
+        warnings.simplefilter("ignore")
 
         domain.set_time(1300.0)
         domain.timestep = 1.0
@@ -467,7 +467,7 @@ class Test_rate_operators(unittest.TestCase):
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
-                raise_(Modeltime_too_late, msg)
+                raise Modeltime_too_late(msg)
             else:
                 return 3.0 * t + 7.0
 
@@ -501,6 +501,8 @@ class Test_rate_operators(unittest.TestCase):
 
         domain.set_time(30.0)
         domain.timestep = 1.0
+        import warnings
+        warnings.simplefilter("ignore")
         operator()
 
         t = operator.get_time()
@@ -1227,6 +1229,6 @@ class Test_rate_operators(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_rate_operators, 'test_rate_operator_functions_rate_default_rate')
+    suite = unittest.makeSuite(Test_rate_operators, 'test_')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
