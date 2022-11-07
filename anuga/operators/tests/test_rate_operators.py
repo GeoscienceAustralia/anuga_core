@@ -1,7 +1,6 @@
 """  Test environmental forcing - rain, wind, etc.
 """
 
-
 import unittest, os
 import anuga
 import numpy
@@ -24,6 +23,15 @@ import warnings
 import time
 import os
 
+
+# Setup to skip test if xarray not available
+import sys
+try:
+    import xarray
+except ImportError:
+    pass
+
+import pytest
 
 warnings.simplefilter("ignore")
 
@@ -103,7 +111,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         assert num.allclose (float(rr[1]), 1.0)
         assert num.allclose (float(rr[2]), 60.0)
 
@@ -180,7 +188,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         assert num.allclose(float(rr[1]), -1.0)
         assert num.allclose(float(rr[2]), -60.0)
 
@@ -251,7 +259,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         assert num.allclose(float(rr[1]), -1.0)
         assert num.allclose(float(rr[2]), -80.0)
 
@@ -424,7 +432,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         assert num.allclose(float(rr[1]), 17.7)
         assert num.allclose(float(rr[2]), 106200.0)
 
@@ -527,7 +535,7 @@ class Test_rate_operators(unittest.TestCase):
 
 
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         if verbose:
             print('Operator Statistics: ',stats)
@@ -625,7 +633,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         assert num.allclose(float(rr[1]), 1.33333)
         assert num.allclose(float(rr[2]), 3.33333)
         assert num.allclose(float(rr[3]), 213.33333)
@@ -723,7 +731,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         assert num.allclose(float(rr[1]), 1.33333)
         assert num.allclose(float(rr[2]), 3.33333)
@@ -812,7 +820,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         assert num.allclose(float(rr[1]), 1.33333)
         assert num.allclose(float(rr[2]), 3.33333)
@@ -901,7 +909,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         assert num.allclose(float(rr[1]), 1.0)
         assert num.allclose(float(rr[2]), 1.0)
@@ -945,7 +953,6 @@ class Test_rate_operators(unittest.TestCase):
         factor = 10.0
 
 
-        from anuga import Quantity
         rate_array = numpy.ones((domain.number_of_triangles,))
 
         operator = Rate_operator(domain, rate=rate_array, factor=factor, \
@@ -988,11 +995,12 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         assert num.allclose(float(rr[1]), 1.0)
         assert num.allclose(float(rr[2]), 1.0)
         assert num.allclose(float(rr[3]), 60.0)
+     
 
     def test_rate_operator_rate_centroid_array_wrong_shape(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -1040,7 +1048,93 @@ class Test_rate_operators(unittest.TestCase):
         except AssertionError: # this is expected
             pass
 
+    @pytest.mark.skipif('xarray' not in sys.modules,
+                    reason="requires the xarray module")
+    def test_rate_operator_rate_xarray(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
 
+        import xarray, pandas
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0.0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        verbose = False
+
+        if verbose:
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
+
+        # Apply operator to these triangles
+        factor = 10.0
+
+
+        rate_array = numpy.ones((domain.number_of_triangles,))
+
+        operator = Rate_operator(domain, rate=rate_array, factor=factor)
+
+
+        # Apply Operator
+        domain.timestep = 2.0
+        operator()
+        rate = rate_array
+        t = operator.get_time()
+        Q = operator.get_Q()
+
+        rate = rate*factor
+        Q_ex = num.sum(domain.areas*rate)
+        d = operator.get_timestep()*rate + 1
+
+
+        #print "d"
+        #print d
+        #print Q_ex
+        #print Q
+        stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
+        stage_ex = d
+
+        verbose = False
+
+        if verbose:
+            print(domain.quantities['elevation'].centroid_values)
+            print(domain.quantities['stage'].centroid_values)
+            print(domain.quantities['xmomentum'].centroid_values)
+            print(domain.quantities['ymomentum'].centroid_values)
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
+        assert num.allclose(Q_ex, Q)
+        assert num.allclose(domain.fractional_step_volume_integral, ((d-1.)*domain.areas).sum())
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        import re
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+
+        assert num.allclose(float(rr[1]), 1.0)
+        assert num.allclose(float(rr[2]), 1.0)
+        assert num.allclose(float(rr[3]), 80.0)
 
 
     def test_rate_operator_functions_empty_indices(self):
@@ -1127,7 +1221,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         assert num.allclose(float(rr[1]), 0.0)
         assert num.allclose(float(rr[2]), 0.0)
@@ -1220,7 +1314,7 @@ class Test_rate_operators(unittest.TestCase):
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
         import re
-        rr = re.findall("[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
 
         assert num.allclose(float(rr[1]), 0.0)
         assert num.allclose(float(rr[2]), 0.0)
