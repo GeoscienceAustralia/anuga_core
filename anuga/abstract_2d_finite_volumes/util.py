@@ -9,7 +9,7 @@ from __future__ import division
 from builtins import map
 from builtins import str
 from builtins import range
-from past.builtins import basestring
+
 import os
 
 from os import remove, mkdir, access, F_OK, R_OK, W_OK, sep,getcwd
@@ -89,7 +89,7 @@ def apply_expression_to_dictionary(expression, dictionary):
     import types
     import re
 
-    assert isinstance(expression, basestring)
+    assert isinstance(expression, str)
     assert type(dictionary) == dict
 
     #Convert dictionary values to textual representations suitable for eval

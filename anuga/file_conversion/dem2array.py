@@ -1,6 +1,6 @@
 from __future__ import absolute_import
 # external modules
-from past.builtins import basestring
+
 import numpy as num
 
 # ANUGA modules
@@ -41,7 +41,7 @@ def dem2array(filename, variable_name='elevation',
 
 
     msg = 'Filename must be a text string'
-    assert isinstance(filename, basestring), msg
+    assert isinstance(filename, str), msg
     
 
         
@@ -49,7 +49,7 @@ def dem2array(filename, variable_name='elevation',
     assert os.path.splitext(filename)[1] in ['.dem'], msg
     
     msg = 'Variable name must be a text string'
-    assert isinstance(variable_name, basestring), msg
+    assert isinstance(variable_name, str), msg
      
 
 

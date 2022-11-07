@@ -57,17 +57,10 @@ The format for a Points dictionary is:
 #  Needs to be defined
 
 
-from builtins import str
-from builtins import range
-from future.utils import raise_
 #from string import find
 from os.path import splitext
 
-# Python 2.7 Hack
-try:
-    from exceptions import Exception
-except:
-    pass
+
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference, TITLE, \
     TitleError
@@ -102,11 +95,11 @@ def import_mesh_file(ofile):
             dict = _read_msh_file(ofile)
         else:
             msg = 'Extension .%s is unknown' % ofile[-4:]
-            raise_(IOError, msg)
+            raise IOError(msg)
     # FIXME No test for ValueError
     except (TitleError, SyntaxError, IndexError, ValueError):
         msg = 'File %s could not be opened' % ofile
-        raise_(IOError, msg)
+        raise IOError(msg)
 
     return dict
 
@@ -144,7 +137,7 @@ def export_mesh_file(ofile, mesh_dict):
         _write_msh_file(ofile, mesh_dict)
     else:
         msg = 'Unknown file type %s ' % ofile
-        raise_(IOError, msg)
+        raise IOError(msg)
 
 
 def _read_tsh_file(ofile):
@@ -394,7 +387,7 @@ def _write_ASCII_triangulation(fd, gen_dict):
         if vertices_attributes == [] or vertices_attributes[0] == []:
             vertices_attribute_titles = []
         else:
-            raise_(KeyError, e)
+            raise KeyError(e)
 
     triangles = gen_dict['triangles']
     triangles_attributes = gen_dict['triangle_tags']
@@ -641,7 +634,7 @@ def _write_msh_file(file_name, mesh):
         outfile = NetCDFFile(file_name, netcdf_mode_w)
     except IOError:
         msg = 'File %s could not be created' % file_name
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     # Create new file
     outfile.institution = 'Geoscience Australia'

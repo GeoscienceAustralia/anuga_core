@@ -6,8 +6,7 @@ Takes 1 or more ASC files and generates an output ASC file with
 an element-wise maximum.
 """
 
-from builtins import range
-from future.utils import raise_
+
 import sys
 import re
 
@@ -57,8 +56,7 @@ def MaxAsc(out_file, in_files):
             d = f[i]
             if d != line:
                 out_fd.close()
-                raise_(RuntimeError, \
-                      "File %s has the wrong header at line %d." % \
+                raise RuntimeError("File %s has the wrong header at line %d." % \
                       (in_files[j], i))
         out_fd.write(line)
 

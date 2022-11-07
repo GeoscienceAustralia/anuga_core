@@ -1,6 +1,4 @@
-from future import standard_library
-standard_library.install_aliases()
-from builtins import map
+
 from threading import Thread
 from queue import Queue
 from tkinter import Tk, Button, Frame, N, E, S, W

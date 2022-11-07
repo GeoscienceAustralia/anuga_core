@@ -2,7 +2,6 @@ from past.builtins import cmp
 from builtins import zip
 from builtins import range
 from builtins import object
-from future.utils import raise_
 import csv
 
 from anuga.anuga_exceptions import TitleValueError, \
@@ -91,7 +90,7 @@ class Exposure(object):
             except KeyError:
                 # maybe a warning..
                 msg = "Could not find location information."
-                raise_(TitleValueError, msg)
+                raise TitleValueError(msg)
             else:
                 self._geospatial = Geospatial_data(data_points=points)
 
@@ -191,7 +190,7 @@ class Exposure(object):
 
         if column_name not in self._attribute_dic:
             msg = 'There is no column called %s!' % column_name
-            raise_(TitleValueError, msg)
+            raise TitleValueError(msg)
 
         return self._attribute_dic[column_name]
 
@@ -235,13 +234,13 @@ class Exposure(object):
                 len(self._attribute_dic[list(self._title_index_dic.keys())[0]])
         if len(column_values) != value_row_count:
             msg = 'The number of column values must equal the number of rows.'
-            raise_(DataMissingValuesError, msg)
+            raise DataMissingValuesError(msg)
 
         # check new column name isn't already used, and we aren't overwriting
         if column_name in self._attribute_dic:
             if not overwrite:
                 msg = 'Column name %s already in use!' % column_name
-                raise_(TitleValueError, msg)
+                raise TitleValueError(msg)
         else:
             # New title.  Add it to the title index.
             self._title_index_dic[column_name] = len(self._title_index_dic)

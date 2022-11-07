@@ -15,7 +15,7 @@ have an undefined value.
 from builtins import str
 from six import string_types
 from builtins import range
-from past.builtins import basestring
+
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute

@@ -3,23 +3,12 @@
    Duncan Gray, Ole Nielsen, Jane Sexton, Nick Bartzis
    Geoscience Australia, 2006
 """
-from __future__ import absolute_import
-from builtins import zip
-from builtins import str
-from builtins import range
-from past.builtins import basestring
-from builtins import object
-from future.utils import raise_
+
 import os
 from math import sqrt
+from scipy.interpolate import interp1d
+scipy_available = True
 
-
-try:
-    from scipy.interpolate import interp1d
-    scipy_available = True
-except:
-    from Scientific.Functions.Interpolation import InterpolatingFunction
-    scipy_available = False
 
 from random import choice
 
@@ -82,7 +71,7 @@ def inundation_damage(sww_base_name, exposure_files_in,
     exposure_file_out_marker -  this string will be added to the input file
                                 name to get the output file name
     """
-    if isinstance(exposure_files_in, basestring):
+    if isinstance(exposure_files_in, str):
         exposure_files_in = [exposure_files_in]
 
 
@@ -175,7 +164,7 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     if len(interate_over) == 0:
         msg = 'No files of the base name %s.'\
               %(sww_base_name)
-        raise_(IOError, msg)
+        raise IOError(msg)
     from os import sep
 
     for this_sww_file in interate_over:

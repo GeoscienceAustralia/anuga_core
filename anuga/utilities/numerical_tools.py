@@ -250,7 +250,7 @@ def ensure_numeric(A, typecode=None):
     This function is necessary as array(A) can cause memory overflow.
     """
 
-#    if isinstance(A, basestring):
+#    if isinstance(A, str):
 #        msg = 'Sorry, cannot handle strings in ensure_numeric()'
 #        raise Exception, msg
 

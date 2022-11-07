@@ -21,10 +21,7 @@ NOTE: Once I found that the above failed, but the following worked:
 f2py -c --fcompiler=gnu95 okada_tsunami_fortran.f -m okada_tsunami_fortran
 
 """
-from __future__ import print_function
-from builtins import range
-from builtins import object
-from future.utils import raise_
+
 import numpy
 
 try:
@@ -164,7 +161,7 @@ def earthquake_source(
         try:
            lns = open(filename).readlines()
         except:
-           raise_(Exception, 'Cannot read okada file %s' % filename)
+           raise Exception('Cannot read okada file %s' % filename)
         # Pack into 'source'
         source = []
         for line in lns[1:]:

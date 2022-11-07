@@ -1,6 +1,6 @@
 
 
-from past.builtins import basestring
+
 
 
 import numpy as num
@@ -87,7 +87,7 @@ def urs2sts(basename_in, basename_out=None,
     NODATA = 99
 
     # Check that basename is a list of strings
-    if not reduce(__and__, [isinstance(z,basestring) for z in basename_in]):
+    if not reduce(__and__, [isinstance(z,str) for z in basename_in]):
         msg= 'basename_in must be a string or list of strings'
         raise(Exception, msg)
 

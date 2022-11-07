@@ -1,5 +1,4 @@
-from future import standard_library
-standard_library.install_aliases()
+
 from tkinter import *
 import string, time
 from os.path import join

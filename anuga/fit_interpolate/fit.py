@@ -33,7 +33,7 @@ from . import fitsmooth
 import sys
 from builtins import str
 from builtins import range
-from past.builtins import basestring
+
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
@@ -299,7 +299,7 @@ class Fit(FitInterpolate):
           z: Single 1d vector or array of data at the point_coordinates.
 
         """
-        if isinstance(point_coordinates_or_filename, basestring):
+        if isinstance(point_coordinates_or_filename, str):
             if point_coordinates_or_filename[-4:] != ".pts":
                 use_blocking_option2 = False
 
@@ -311,7 +311,7 @@ class Fit(FitInterpolate):
             print('Fit.fit: Initializing')
 
         # Use blocking to load in the point info
-        if isinstance(point_coordinates_or_filename, basestring):
+        if isinstance(point_coordinates_or_filename, str):
             msg = "Don't set a point origin when reading from a file"
             assert point_origin is None, msg
             filename = point_coordinates_or_filename
@@ -419,7 +419,7 @@ def fit_to_mesh(point_coordinates,
               }
 
     if use_cache is True:
-        if isinstance(point_coordinates, basestring):
+        if isinstance(point_coordinates, str):
             # We assume that point_coordinates is the name of a .csv/.txt
             # file which must be passed onto caching as a dependency
             # (in case it has changed on disk)

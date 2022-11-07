@@ -43,7 +43,7 @@ See doc strings of individual functions for detailed documentation.
 # Determine platform
 #
 
-from past.builtins import basestring
+
 
 from os import getenv
 import collections
@@ -62,8 +62,6 @@ import anuga.utilities.log as log
 from anuga.utilities import system_tools
 
 import numpy as num
-
-#from future
 
 cache_dir = '.python_cache'
 
@@ -306,13 +304,13 @@ def cache(my_F,
   CD = checkdir(cachedir,verbose)
 
   # Handle the case cache('clear')
-  if isinstance(my_F, basestring):
+  if isinstance(my_F, str):
     if my_F.lower() == 'clear':
       clear_cache(CD,verbose=verbose)
       return
 
   # Handle the case cache(my_F, 'clear')
-  if isinstance(args, basestring):
+  if isinstance(args, str):
     if args.lower() == 'clear':
       clear_cache(CD,my_F,verbose=verbose)
       return
@@ -1718,7 +1716,7 @@ def get_depstats(dependencies):
 
     
     for FN in expanded_dependencies:
-      if not isinstance(FN, basestring):
+      if not isinstance(FN, str):
         errmsg = 'ERROR (caching.py): Dependency must be a string.\n'
         errmsg += '                   Dependency given: %s' %FN
         raise Exception(errmsg)
@@ -2493,7 +2491,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
   WasTruncated = 0
 
   if not isinstance(args, (tuple, list, dict)):
-    if isinstance(args, basestring):
+    if isinstance(args, str):
       argstr = argstr + "'"+str(args)+"'"
     else:
       # Truncate large numeric arrays before using str()

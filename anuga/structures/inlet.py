@@ -1,6 +1,4 @@
-from __future__ import division
-from builtins import object
-from future.utils import raise_
+
 import anuga.geometry.polygon
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
@@ -40,7 +38,7 @@ class Inlet(object):
         if len(self.triangle_indices) == 0:
             region = 'Inlet line=%s' % (self.inlet_line)
             msg = 'No triangles have been identified in region '
-            raise_(Exception, msg)
+            raise Exception(msg)
         
 #        self.area = 0.0
 #        for j in self.triangle_indices:

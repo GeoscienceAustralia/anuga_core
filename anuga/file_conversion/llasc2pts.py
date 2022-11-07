@@ -1,5 +1,5 @@
 # external modules
-from future.utils import raise_
+
 import numpy as num
 import anuga.utilities.log as log
 from anuga.coordinate_transforms.redfearn import convert_from_latlon_to_utm
@@ -74,7 +74,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
         xllcorner = float(xref[1].strip()) # - 0.5*cellsize # Correct offset
     else:
         msg = 'Unknown keyword: %s' % xref[0].strip()
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     yref = lines[3].split()
     if yref[0].strip() == 'yllcorner':
@@ -83,7 +83,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
         yllcorner = float(yref[1].strip()) # - 0.5*cellsize # Correct offset
     else:
         msg = 'Unknown keyword: %s' % yref[0].strip()
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     NODATA_value = float(lines[5].split()[1].strip())
 

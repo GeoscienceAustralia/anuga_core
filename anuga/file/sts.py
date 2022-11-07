@@ -1,6 +1,4 @@
-from builtins import str
-from builtins import object
-from future.utils import raise_
+
 import numpy as num
 import anuga.utilities.log as log
 from anuga.file.netcdf import NetCDFFile
@@ -209,7 +207,7 @@ class Write_sts(object):
         for q in Write_sts.sts_quantities:
             if q not in quant:
                 msg = 'STS file can not write quantity %s' % q
-                raise_(Exception, msg)
+                raise Exception(msg)
             else:
                 q_values = quant[q]
                 outfile.variables[q][slice_index] = \

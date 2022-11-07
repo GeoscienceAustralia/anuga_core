@@ -1,6 +1,4 @@
-from future import standard_library
-standard_library.install_aliases()
-from builtins import range
+
 from feature import Feature
 from tkinter import Button
 from vtk import vtkFloatArray, vtkPoints, vtkPolyData, vtkPolyDataMapper

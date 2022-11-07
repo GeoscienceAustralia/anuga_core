@@ -1,5 +1,4 @@
 
-from future.utils import raise_
 import os
 from anuga import barrier, numprocs, myid
 import numpy
@@ -263,7 +262,7 @@ class RiverWall(object):
         for i in list(default_riverwallPar.keys()):
             if(i not in self.default_riverwallPar):
                 msg='Key ', i + ' in default_riverwallPar not recognized'
-                raise_(Exception, msg)
+                raise Exception(msg)
         # Final default river-wall parameters
         default_riverwallPar=self.default_riverwallPar
         
@@ -272,7 +271,7 @@ class RiverWall(object):
         for i in list(riverwallPar.keys()):
             if i not in riverwalls:
                 msg= 'Key ', i, ' in riverwallPar has no corresponding key in riverwall'
-                raise_(Exception, msg)
+                raise Exception(msg)
             #
             # Check that all hydraulic parameter names in riverwallPar correspond
             # to names in default_riverwallPar
@@ -281,7 +280,7 @@ class RiverWall(object):
                 if j not in default_riverwallPar:
                     msg = 'Hydraulic parameter named ', j ,\
                           ' not recognised in default_riverwallPar'
-                    raise_(Exception, msg)
+                    raise Exception(msg)
         
         if(verbose):
             print('Setting riverwall elevations (P'+str(myid)+')...')
@@ -326,7 +325,7 @@ class RiverWall(object):
 
                 if(len(start)!=3 | len(end)!=3):
                     msg='Each riverwall coordinate must have at exactly 3 values [xyz]'
-                    raise_(Exception, msg)
+                    raise Exception(msg)
 
                 # Find length
                 segLen=( (start[0]-end[0])**2+(start[1]-end[1])**2)**0.5
@@ -440,7 +439,7 @@ class RiverWall(object):
         for i in nw:
             if(hydraulicTmp[i,1]>= hydraulicTmp[i,2]):
                 msg = 's1 >= s2 on riverwall ' + nw_names[i] +'. This is not allowed' 
-                raise_(Exception, msg)
+                raise Exception(msg)
             if( (hydraulicTmp[i,1]<0.) or (hydraulicTmp[i,2] < 0.)):
                 raise Exception('s1 and s2 must be positive, with s1<s2')
 
@@ -448,7 +447,7 @@ class RiverWall(object):
         for i in nw:
             if(hydraulicTmp[i,3]>= hydraulicTmp[i,4]):
                 msg = 'h1 >= h2 on riverwall ' + nw_names[i] +'. This is not allowed' 
-                raise_(Exception, msg)
+                raise Exception(msg)
             if((hydraulicTmp[i,3]<0.) or (hydraulicTmp[i,4] < 0.)):
                 raise Exception('h1 and h2 must be positive, with h1<h2')
        
@@ -472,7 +471,7 @@ class RiverWall(object):
                     msg='Riverwall discontinuity -- possible round-off error in'+\
                          'finding edges on wall -- try increasing value of tol'
                     if(not connectedness[1]):
-                        raise_(Exception, msg)
+                        raise Exception(msg)
                 if domain.parallel : barrier()
         return 
     

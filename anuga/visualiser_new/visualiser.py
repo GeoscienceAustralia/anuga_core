@@ -1,7 +1,4 @@
-from __future__ import print_function
-from future import standard_library
-standard_library.install_aliases()
-from builtins import object
+
 from os.path import splitext
 from tkinter import Tk, Button, Frame, Label, Scale
 from tkinter import N, E, S, W, HORIZONTAL, VERTICAL

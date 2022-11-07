@@ -3,12 +3,7 @@
     
     As of June 2010 this module has a pylint quality rating of 8.85/10.
 """
-from __future__ import absolute_import
 
-from builtins import str
-from past.builtins import basestring
-from builtins import object
-from future.utils import raise_
 import anuga.utilities.log as log
 import numpy as num
 from .polygon import inside_polygon
@@ -60,22 +55,22 @@ class Polygon_function(object):
         except:
             msg = ('Polygon_function takes a list of pairs (polygon, value).'
                    'Got %s' % str(regions))
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         first_region = regions[0]
 
-        if isinstance(first_region, basestring):
+        if isinstance(first_region, str):
             msg = ('You passed in a list of text values into polygon_function '
                    'instead of a list of pairs (polygon, value): "%s"'
                    % str(first_region))
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         try:
             num_region_components = len(first_region)
         except:
             msg = ('Polygon_function takes a list of pairs (polygon, value). '
                    'Got %s' % str(num_region_components))
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         msg = ('Each entry in regions have two components: (polygon, value). '
                'I got %s' % str(num_region_components))

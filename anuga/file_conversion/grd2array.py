@@ -1,8 +1,7 @@
 """ Load a DEM file, decimate it, and resave it.
 """
 
-from past.builtins import basestring
-from future.utils import raise_
+
 import numpy as num
 import os
 
@@ -40,7 +39,7 @@ def grd2array(filename, verbose=False):
 
 
         msg = 'Filename must be a text string'
-        assert isinstance(filename, basestring), msg
+        assert isinstance(filename, str), msg
         
         msg = 'Extension should be .grd or asc'
         assert os.path.splitext(filename)[1] in ['.grd', '.asc'], msg
@@ -79,7 +78,7 @@ def grd2array(filename, verbose=False):
             xllcorner = float(xref[1].strip())
         else:
             msg = 'Unknown keyword: %s' % xref[0].strip()
-            raise_(Exception, msg)
+            raise Exception(msg)
     
         yref = lines[3].split()
         if yref[0].strip() == 'yllcorner':
@@ -88,7 +87,7 @@ def grd2array(filename, verbose=False):
             yllcorner = float(yref[1].strip())
         else:
             msg = 'Unknown keyword: %s' % yref[0].strip()
-            raise_(Exception, msg)
+            raise Exception(msg)
     
         NODATA_value = int(float(lines[5].split()[1].strip()))
     

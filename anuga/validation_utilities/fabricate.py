@@ -36,7 +36,7 @@ import os
 import optparse
 import atexit
 
-from past.builtins import basestring
+
 
 __version__ = '1.24'
 
@@ -130,7 +130,7 @@ def args_to_list(args):
         if hasattr(arg, '__iter__'):
             arglist.extend(args_to_list(arg))
         else:
-            if not isinstance(arg, basestring):
+            if not isinstance(arg, str):
                 arg = str(arg)
             arglist.append(arg)
     return arglist
@@ -1082,7 +1082,7 @@ class Builder(object):
 
             This function is for compatiblity with memoize.py and is
             deprecated. Use run() instead. """
-        if isinstance(command, basestring):
+        if isinstance(command, str):
             args = shlex.split(command)
         else:
             args = args_to_list(command)
@@ -1213,7 +1213,7 @@ class Builder(object):
         try:
             self.runner = self._runner_map[runner](self)
         except KeyError:
-            if isinstance(runner, basestring):
+            if isinstance(runner, str):
                 # For backwards compatibility, allow runner to be the
                 # name of a method in a derived class:
                 self.runner = getattr(self, runner)

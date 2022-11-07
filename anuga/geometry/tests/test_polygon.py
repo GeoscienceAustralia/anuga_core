@@ -2,9 +2,7 @@
 
 """ Test suite to test polygon functionality. """
 
-from builtins import str
-from builtins import range
-from future.utils import raise_
+
 import unittest
 import os
 import numpy as num
@@ -46,7 +44,7 @@ class Test_Polygon(unittest.TestCase):
             try:
                 compile(FN)
             except:
-                raise_(Exception, 'Could not compile %s' % FN)
+                raise Exception('Could not compile %s' % FN)
             else:
                 import anuga.geometry.polygon_ext as polygon_ext
 

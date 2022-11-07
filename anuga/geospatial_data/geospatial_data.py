@@ -3,7 +3,7 @@
 Manipulation of locations on the planet and associated attributes.
 """
 
-from past.builtins import basestring
+
 
 from sys import maxsize
 from os import access, F_OK, R_OK, remove
@@ -128,7 +128,7 @@ class Geospatial_data(object):
         verbose:
         """
 
-        if isinstance(data_points, basestring):
+        if isinstance(data_points, str):
             # assume data_points is really a file name
             file_name = data_points
 
@@ -1280,7 +1280,7 @@ def ensure_absolute(points, geo_reference=None):
     """
 
     # Input check
-    if isinstance(points, basestring):
+    if isinstance(points, str):
         # It's a string - assume it is a point file
         points = Geospatial_data(file_name=points)
 

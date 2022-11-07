@@ -1,5 +1,5 @@
 # external modules
-from future.utils import raise_
+
 import numpy as num
 import anuga.utilities.log as log
 
@@ -136,7 +136,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
         xllcorner = float(xref[1].strip())
     else:
         msg = 'Unknown keyword: %s' % xref[0].strip()
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     yref = lines[3].split()
     if yref[0].strip() == 'yllcorner':
@@ -145,7 +145,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
         yllcorner = float(yref[1].strip())
     else:
         msg = 'Unknown keyword: %s' % yref[0].strip()
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     NODATA_value = float(lines[5].split()[1].strip())
 
@@ -207,7 +207,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
 #        if len(fields) != ncols:
 #            msg = 'Wrong number of columns in file "%s" line %d\n' % (name_in, i)
 #            msg += 'I got %d elements, but there should have been %d\n' % (len(fields), ncols)
-#            raise Exception, msg
+#            raise Exception(msg)
 #
 #        elevation[i, :] = num.array([float(x) for x in fields])
 

@@ -7,8 +7,7 @@
 """
 
 #non ANUGA imports
-from builtins import range
-from future.utils import raise_
+
 from anuga.file.netcdf import NetCDFFile
 import numpy as num
 import os.path
@@ -137,13 +136,13 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
             msg = 'First field in file %s must be' % file_text
             msg += ' date-time with format %s.\n' % time_format
             msg += 'I got %s instead.' % fields[0]
-            raise_(DataTimeError, msg)
+            raise DataTimeError(msg)
     else:
         try:
             starttime = float(fields[0])
         except Exception:
             msg = "Bad time format"
-            raise_(DataTimeError, msg)
+            raise DataTimeError(msg)
 
     # Split values
     values = []

@@ -74,9 +74,7 @@ from __future__ import division
 # Decorator added for profiling
 #------------------------------
 
-#rom past.builtins import str
-from builtins import range
-from future.utils import raise_
+
 def profileit(name):
     def inner(func):
         def wrapper(*args, **kwargs):
@@ -1886,7 +1884,7 @@ class Domain(Generic_Domain):
         if not self.compute_fluxes_method=='DE':
             msg='Boundary flux integral only supported for DE fluxes '+\
                 '(because computation of boundary_flux_sum is only implemented there)'
-            raise_(Exception, msg)
+            raise Exception(msg)
 
         flux_integral = self.boundary_flux_integral.boundary_flux_integral[0]
 

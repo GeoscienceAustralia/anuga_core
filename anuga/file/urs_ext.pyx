@@ -40,7 +40,7 @@ def read_mux2(int numSrc,\
   assert muxFileNameArray != NULL, "ERROR: Memory for muxFileNameArray could not be allocated."
 
   for i in xrange(numSrc):
-    #assert isinstance(filenames[i], basestring), "filename not a string"  # Nor should it be ;-)
+    #assert isinstance(filenames[i], str), "filename not a string"  # Nor should it be ;-)
     #print(filenames[i], type(filenames[i]))
     muxFileNameArray[i] = filenames[i]
   

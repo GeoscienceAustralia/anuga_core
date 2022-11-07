@@ -1,9 +1,4 @@
-from __future__ import print_function
-from __future__ import absolute_import
-#from Numeric import array, Float, ravel, zeros
-from future import standard_library
-standard_library.install_aliases()
-from builtins import range
+
 import numpy as num
 from anuga.file.netcdf import NetCDFFile
 from tkinter import Button, E, Tk, W, Label, StringVar, Scale, HORIZONTAL

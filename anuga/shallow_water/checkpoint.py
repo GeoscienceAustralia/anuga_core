@@ -16,10 +16,6 @@ domain = load_last_checkpoint_file(domain_name, checkpoint_dir)
 
 """
 
-from future import standard_library
-standard_library.install_aliases()
-from builtins import str
-from builtins import range
 from anuga import send, receive, myid, numprocs, barrier
 from time import time as walltime
 

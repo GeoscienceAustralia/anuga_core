@@ -1,19 +1,13 @@
 #!/usr/bin/env python
 
-from __future__ import print_function
-from builtins import map
-from builtins import str
-from builtins import range
+
+
 from anuga.lib.maxasc import *
+
 import anuga.utilities.system_tools as aust
-
-try:
-    import exceptions
-except ImportError:
-    import builtins as exceptions
-
 from functools import reduce
-class TestError(exceptions.Exception): pass
+
+
 import unittest
 
 import sys

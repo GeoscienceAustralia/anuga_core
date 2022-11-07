@@ -1,6 +1,4 @@
-from builtins import map
-from builtins import range
-from future.utils import raise_
+
 import os
 from struct import pack, unpack
 import array as p_array
@@ -39,7 +37,7 @@ def urs2nc(basename_in='o', basename_out='urs'):
         if os.access(file_name, os.F_OK) == 0:
             if os.access(file_name + '.mux', os.F_OK) == 0 :
                 msg = 'File %s does not exist or is not accessible' % file_name
-                raise_(IOError, msg)
+                raise IOError(msg)
             else:
                files_in[i] += '.mux'
                log.critical("file_name %s" % file_name)
@@ -88,13 +86,13 @@ def _binary_c2nc(file_in, file_out, quantity):
     msg = "Bad data in the mux file."
     if points_num < 0:
         mux_file.close()
-        raise_(ANUGAError, msg)
+        raise ANUGAError(msg)
     if time_step_count < 0:
         mux_file.close()
-        raise_(ANUGAError, msg)
+        raise ANUGAError(msg)
     if time_step < 0:
         mux_file.close()
-        raise_(ANUGAError, msg)
+        raise ANUGAError(msg)
 
     lonlatdep = p_array.array('f')
     lonlatdep.read(mux_file, columns * points_num)
@@ -107,7 +105,7 @@ def _binary_c2nc(file_in, file_out, quantity):
 
     if not num.alltrue(lon == lon_sorted):
         msg = "Longitudes in mux file are not in ascending order"
-        raise_(IOError, msg)
+        raise IOError(msg)
 
     lat_sorted = list(lat)
     lat_sorted.sort()

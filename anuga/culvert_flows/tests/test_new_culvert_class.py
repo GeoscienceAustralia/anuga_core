@@ -26,6 +26,9 @@ def run_culvert_flow_problem(depth):
     """Run flow with culvert given depth
     """
 
+ 
+
+
     length = 40.
     width = 5.
 
@@ -147,7 +150,11 @@ class Test_Culvert(unittest.TestCase):
         # This not a porting problem, but should be looked into
 
         path = get_pathname_from_package('anuga.culvert_flows') 
-        path = os.path.join(path, 'tests', 'data')   
+        path = os.path.join(path, 'tests', 'data')  
+
+        # filter out negative cells warning
+        import warnings
+        warnings.filterwarnings('ignore') 
         
         length = 40.
         width = 5.
