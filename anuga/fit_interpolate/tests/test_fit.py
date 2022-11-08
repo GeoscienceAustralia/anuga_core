@@ -1134,7 +1134,7 @@ class Test_Fit(unittest.TestCase):
         fd.close()
 
         #This a deliberately illegal filename to invoke the error.
-        mesh_output_file = ".../\z\z:ya.tsh"
+        mesh_output_file = r".../\z\z:ya.tsh"
 
         try:
             fit_to_mesh_file(mesh_file, point_file,
