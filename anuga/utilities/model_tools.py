@@ -76,7 +76,7 @@ from anuga.utilities.model_tools import get_ROUGHNESS_polygon_value_list
 from anuga.utilities.model_tools import get_BUILDING_polygon_value_list
 """
 
-from past.builtins import execfile
+
 import os
 import glob
 import numpy
@@ -434,7 +434,7 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file):
     globals={}
     locals={}    
     
-    execfile(culvert_bridge_file, globals, locals)
+    exec(open(culvert_bridge_file).read(), globals, locals) 
     #print locals
     #if 'height' and 'z1' and 'z2' in locals:
     if 'z1' and 'z2' in locals:

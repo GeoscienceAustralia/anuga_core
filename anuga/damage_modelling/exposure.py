@@ -1,4 +1,4 @@
-from past.builtins import cmp
+
 from builtins import zip
 from builtins import range
 from builtins import object
@@ -17,7 +17,8 @@ LONG_TITLE = 'LONGITUDE'
 X_TITLE = 'x'
 Y_TITLE = 'y'
 
-
+def cmp_0(a, b):
+    return (a > b) - (a < b)
 
 class Exposure(object):
     """Class for National Exposure Database storage (NEXIS).
@@ -110,17 +111,17 @@ class Exposure(object):
 
         #check that 'other' is an instance of this class
         if isinstance(self, type(other)):
-            result = cmp(self._attribute_dic, other._attribute_dic)
+            result = cmp_0(self._attribute_dic, other._attribute_dic)
             if result != 0:
                 return result
 
             # The order of the columns is important. Therefore..
-            result = cmp(self._title_index_dic, other._title_index_dic)
+            result = cmp_0(self._title_index_dic, other._title_index_dic)
             if result != 0:
                 return result
             for self_ls, other_ls in zip(self._attribute_dic,
                                          other._attribute_dic):
-                result = cmp(self._attribute_dic[self_ls],
+                result = cmp_0(self._attribute_dic[self_ls],
                              other._attribute_dic[other_ls])
                 if result != 0:
                     return result
@@ -161,12 +162,12 @@ class Exposure(object):
             #    return result
 
             # The order of the columns is important. Therefore..
-            #result = cmp(self._title_index_dic, other._title_index_dic)
+            #result = cmp_0(self._title_index_dic, other._title_index_dic)
             #if result != 0:
             #    return result
             #for self_ls, other_ls in zip(self._attribute_dic,
             #                             other._attribute_dic):
-            #    result = cmp(self._attribute_dic[self_ls],
+            #    result = cmp_0(self._attribute_dic[self_ls],
             #                 other._attribute_dic[other_ls])
             #    if result != 0:
             #        return result
