@@ -7,7 +7,7 @@
 #------------------------------------------------------------------------------
 import anuga
 from anuga import Domain as Domain
-from numpy import zeros, float
+from numpy import zeros
 from anuga import myid, finalize, distribute
 
 

@@ -13,7 +13,7 @@ from anuga import Domain as Domain
 from anuga import myid, finalize, distribute
 
 from math import cos
-from numpy import zeros, float
+from numpy import zeros
 from time import localtime, strftime, gmtime
 
 
