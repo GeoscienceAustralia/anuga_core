@@ -199,7 +199,7 @@ class Test_parallel_sw_flow(unittest.TestCase):
 def assert_(condition, msg="Assertion Failed"):
     if condition == False:
         #pypar.finalize()
-        raise_(AssertionError, msg)
+        raise AssertionError(msg)
 
 if __name__=="__main__":
     if numprocs == 1:

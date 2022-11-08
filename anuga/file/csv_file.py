@@ -11,9 +11,6 @@
 """
 
 
-from builtins import next
-from builtins import str
-from future.utils import raise_
 import csv
 import numpy as num
 import anuga.utilities.log as log
@@ -63,7 +60,7 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
         for title_check in title_check_list:
             if title_check not in title_index_dic:
                 msg = 'Reading error. This row is not present %s' % title_check
-                raise_(IOError, msg)
+                raise IOError(msg)
 
 
     # Create a dictionary of column values, indexed by column title
@@ -72,7 +69,7 @@ def load_csv_as_dict(file_name, title_check_list=None, delimiter=',',
         if n < title_count:
             msg = 'Entry in file %s had %d columns ' % (file_name, n)
             msg += 'although there were %d headers' % title_count
-            raise_(IOError, msg)
+            raise IOError(msg)
         for i, val in enumerate(line[:title_count]):  # skip trailing data
             attribute_dic.setdefault(titles_stripped[i], []).append(d_type(val))
 
@@ -212,7 +209,7 @@ def store_parameters(verbose=False, **kwargs):
             file_header=header
         except:
             msg = 'cannot create new file: %s' % file
-            raise_(Exception, msg)
+            raise Exception(msg)
 
     # if header is same or this is a new file
     if file_header == str(header):
@@ -356,7 +353,7 @@ def load_csv_as_polygons(file_name,
         # Check for duplicate polygons
         if poly_id in past_ids:
             msg = 'Polygon %s was duplicated in line %d' % (id, i)
-            raise_(Exception, msg)
+            raise Exception(msg)
         
         if poly_id not in polygons:
             # Start new polygon

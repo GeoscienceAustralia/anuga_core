@@ -457,23 +457,23 @@ def inside_polygon(points, polygon, closed=True, verbose=False):
     try:
         points = ensure_absolute(points)
     except NameError as err:
-        raise_(NameError, err)
+        raise NameError(err)
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
         msg = 'Points could not be converted to numeric array'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     try:
         polygon = ensure_absolute(polygon)
     except NameError as e:
-        raise_(NameError, e)
+        raise NameError(e)
     except:
         # If this fails it is going to be because the points can't be
         # converted to a numeric array.
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -502,7 +502,7 @@ def is_outside_polygon(point, polygon, closed=True, verbose=False,
         return False
     else:
         msg = 'is_outside_polygon must be invoked with one point only'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
 
 def outside_polygon(points, polygon, closed=True, verbose=False):
@@ -518,18 +518,18 @@ def outside_polygon(points, polygon, closed=True, verbose=False):
     try:
         points = ensure_numeric(points, float)
     except NameError as e:
-        raise_(NameError, e)
+        raise NameError(e)
     except:
         msg = 'Points could not be converted to numeric array'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     try:
         polygon = ensure_numeric(polygon, float)
     except NameError as e:
-        raise_(NameError, e)
+        raise NameError(e)
     except:
         msg = 'Polygon could not be converted to numeric array'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -558,18 +558,18 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
     try:
         points = ensure_numeric(points, float)
     except NameError as e:
-        raise_(NameError, e)
+        raise NameError(e)
     except:
         msg = 'Points could not be converted to numeric array'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     try:
         polygon = ensure_numeric(polygon, float)
     except NameError as e:
-        raise_(NameError, e)
+        raise NameError(e)
     except:
         msg = 'Polygon could not be converted to numeric array'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     if len(points.shape) == 1:
         # Only one point was passed in. Convert to array of points
@@ -642,7 +642,7 @@ def separate_points_by_polygon(points, polygon,
         try:
             points = ensure_numeric(points, float)
         except NameError as e:
-            raise_(NameError, e)
+            raise NameError(e)
         except:
             msg = 'Points could not be converted to numeric array'
             raise Exception(msg)
@@ -830,11 +830,11 @@ def _poly_xy(polygon):
     try:
         polygon = ensure_numeric(polygon, float)
     except NameError as err:
-        raise_(NameError, err)
+        raise NameError(err)
     except:
         msg = ('Polygon %s could not be converted to numeric array'
                % (str(polygon)))
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     pts_x = num.concatenate((polygon[:, 0], [polygon[0, 0]]), axis=0)
     pts_y = num.concatenate((polygon[:, 1], [polygon[0, 1]]), axis=0)
@@ -876,7 +876,7 @@ def read_polygon(filename, delimiter=',', closed=True, verbose=False):
         msg += filename + '. A complex polygon will not '
         msg += 'necessarily break the algorithms within ANUGA, but it'
         msg += 'usually signifies pathological data. Please fix this file.'
-        raise_(Exception, msg)
+        raise Exception(msg)
 
     return polygon
 
@@ -1117,7 +1117,7 @@ def interpolate_polyline(data,
     if num_nodes == 1:
         assert_msg = 'Polyline contained only one point. I need more. '
         assert_msg += str(data)
-        raise_(Exception, assert_msg)
+        raise Exception(assert_msg)
     elif num_nodes > 1:
         _interpolate_polyline(data,
                               polyline_nodes,
