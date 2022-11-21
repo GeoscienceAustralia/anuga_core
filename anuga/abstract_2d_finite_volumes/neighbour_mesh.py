@@ -1029,7 +1029,7 @@ class Mesh(General_mesh):
 
         N = len(areas)
         if N > 10:
-            str += '    Percentiles (%g percent):\n' % 100//nbins
+            str += '    Percentiles (%g percent):\n' % (100//nbins)
             areas = areas.tolist()
             areas.sort()
 
