@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from builtins import str
 import numpy as num
 
 celltype_map = {'IEEE4ByteReal': num.float32, 'IEEE8ByteReal': num.float64}
@@ -170,7 +169,7 @@ def write_ermapper_data(grid, ofile, data_format=num.float32):
         pass
 
 
-    #if isinstance(data_format, basestring):
+    #if isinstance(data_format, str):
     #    #celltype_map is defined at top of code
     #    if celltype_map.has_key(data_format):
     #        data_format = celltype_map[data_format]

@@ -3,13 +3,6 @@
 It is also a clearing house for functions that may later earn a module
 of their own.
 """
-from __future__ import absolute_import
-from __future__ import division
-
-from builtins import map
-from builtins import str
-from builtins import range
-
 import os
 
 from os import remove, mkdir, access, F_OK, R_OK, W_OK, sep,getcwd

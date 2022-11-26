@@ -1,7 +1,4 @@
 
-from builtins import zip
-from builtins import range
-from builtins import object
 import csv
 
 from anuga.anuga_exceptions import TitleValueError, \

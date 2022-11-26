@@ -1,12 +1,8 @@
 """
 Proof of concept sparse matrix code
 """
-from __future__ import print_function
-from __future__ import absolute_import
 
 from .sparse_ext import csr_mv
-from builtins import range
-from builtins import object
 import numpy as num
 
 
@@ -220,7 +216,7 @@ class Sparse_CSR(object):
         Sparse_CSR(A) #creates csr sparse matrix from sparse matrix
         Matrices are not built using this format, since it's painful to
         add values to an existing sparse_CSR instance (hence there are no
-        objects to do this.)
+        methods to do this.)
 
         Rather, build a matrix, and convert it to this format for a speed
         increase.

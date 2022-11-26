@@ -3,8 +3,6 @@
 
 """
 
-from builtins import range
-from builtins import object
 import numpy as num
 
 from anuga import Domain

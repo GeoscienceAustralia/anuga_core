@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-
-from builtins import range
 import unittest
 import os.path
 import sys

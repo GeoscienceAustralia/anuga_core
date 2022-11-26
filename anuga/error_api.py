@@ -1,5 +1,4 @@
-from __future__ import division
-from builtins import range
+
 import matplotlib.pyplot as plt
 import matplotlib.tri as tri
 from pylab import *
