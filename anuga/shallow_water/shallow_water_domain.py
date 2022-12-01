@@ -1156,13 +1156,13 @@ class Domain(Generic_Domain):
     def set_starttime(self, timestamp=0.0):
         """Set the starttime for the evolution
         
-        :param time: Either a float or a datetime object
+        :param timestamp: Either a float or a datetime object
         
         Essentially we use unix time as our absolute time. So 
         time = 0 corresponds to Jan 1st 1970 UTC
 
         Use naive datetime which will be localized to the domain timezone or
-        or use pytz.timezone.localize to set timezone of datetime.
+        or use zoneinfo.ZoneInfo to set the timezone of datetime.
         Don't use the tzinfo argument of datetime to set timezone as this does not work!
         
         Example: 
@@ -1187,8 +1187,8 @@ class Domain(Generic_Domain):
             the `domain` timezone. Note the timestamp, which is time in seconds
             from 1st Jan 1970 UTC.
 
-        >>> from zoneinfo import ZoneInfo
         >>> import anuga
+        >>> from zoneinfo import ZoneInfo
         >>> from datetime import datetime
         >>> 
         >>> domain = anuga.rectangular_cross_domain(10,10)
@@ -1206,8 +1206,8 @@ class Domain(Generic_Domain):
             Note the timestamp, which is time in seconds from 1st Jan 1970 UTC is the same
             as teh previous example.
 
-        >>> from zoneinfo import ZoneInfo
         >>> import anuga
+        >>> from zoneinfo import ZoneInfo
         >>> from datetime import datetime
         >>> 
         >>> domain = anuga.rectangular_cross_domain(10,10)

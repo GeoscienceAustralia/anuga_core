@@ -119,7 +119,7 @@ directory to be used for data:
 
 
 In addition, the following statement could be used to state that
-quantities :code:`stage`, :code:`xmomentum` and :code:`ymomentum`` are
+quantities :code:`stage`, :code:`xmomentum` and :code:`ymomentum` are
 to be stored at every timestep and :code:`elevation` only once at
 the beginning of the simulation:
 
@@ -164,7 +164,7 @@ the plane.  It specifies that the bed slopes linearly in the
 :code:`x` direction, with slope :math:`-\frac{1}{2}`,  and is constant in
 the :code:`y` direction.
 
-Once the function :code:`topography`` is specified, the quantity
+Once the function :code:`topography` is specified, the quantity
 :code:`elevation` is assigned through the statement:
 
 .. code-block:: python
@@ -172,8 +172,9 @@ Once the function :code:`topography`` is specified, the quantity
     domain.set_quantity('elevation', topography)
 
 
-NOTE: If using function to set :code:`elevation` it must be vector
-compatible. For example, using square root will not work.
+.. note::
+    If using a function to set a quantity such as :code:`elevation` it must be vector
+    compatible. For example, using :code:`math.sqrt` will not work, but :code:`numpy.sqrt` will work. 
 
 Friction
 ~~~~~~~~
@@ -272,11 +273,11 @@ may find that the example given in Section \ref{sec:meshexample}
 helps to clarify the following discussion, even though that example
 is a *non-rectangular* mesh.):
 
-    * :code:`points`` stores a list of 2-tuples giving the
+    * :code:`points` stores a list of 2-tuples giving the
       coordinates of the mesh points.
     * :code:`vertices` stores a list of 3-tuples of
       numbers, representing vertices of triangles in the mesh. In this
-      list, the triangle whose vertices are :code:`points[i]},
+      list, the triangle whose vertices are :code:`points[i]`,
       :code:`points[j]`, :code:`points[k]` is represented by the 3-tuple :code:`(i, j, k)`.
     * The variable :code:`boundary` is a Python dictionary that
       not only stores the edges that make up the boundary but also assigns
