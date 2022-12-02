@@ -38,7 +38,7 @@ if myid == 0 and not os.path.isdir('DEM_bridges'):
 # Could not the find data directories
 #
 # You can download these directories using the data_download.py script.
-# This will download over 120 MB of data!
+# This will download over 86 MB of data!
 #
 ################################################################################
 """
@@ -277,12 +277,15 @@ else:
     domain = None
 
 barrier()
+
 if myid == 0 and verbose:
     print('DISTRIBUTING DOMAIN')
 
 domain = distribute(domain)
 
 barrier()
+
+domain.get_triangle_containing_point
 
 domain.quantities_to_be_stored = {'elevation': 2,
                                   'friction': 1,

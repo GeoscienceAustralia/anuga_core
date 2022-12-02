@@ -5,6 +5,7 @@ anuga_case_studies_data repository
 
 import shutil
 
-shutil.rmtree('DEM_bridges Forcing Model Validation')
+for dir in ['DEM_bridges',  'Forcing',  'Model',  'Validation']:
+    shutil.rmtree(dir)
 
 
