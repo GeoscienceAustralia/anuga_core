@@ -7,13 +7,8 @@ from anuga.utilities.cg_solve import *
 import numpy as num
 import os
 
-try:
-    import exceptions
-except ImportError:
-    import builtins as exceptions
 
-
-class CGError(exceptions.Exception):
+class CGError(Exception):
     pass
 
 
