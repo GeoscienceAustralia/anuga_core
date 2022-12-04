@@ -155,8 +155,8 @@ And finally check the new installation by running the unit tests via:
   python runtests.py -n 
 
 
-Installing on Ubuntu 20.04 and 22_04 using script
--------------------------------------------------
+Installing on Ubuntu 20.04 and 22_04 using script `install_ubuntu.sh`
+---------------------------------------------------------------------
 
 For Ubuntu 20.04 and 22.04 you can install ANUGA and its dependencies into a python virtual environment via 
 a simple `bash` script.
