@@ -3,8 +3,8 @@
 .. currentmodule:: anuga
 
 
-Welcome to ANUGA's documentation!
-=================================
+ANUGA documentation
+===================
 
 ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of the shallow water equation, 
 in particular it can be used to model tsunamis and floods.
@@ -17,10 +17,6 @@ at the Australian National University and volunteers.
 ANUGA was created in a collaboration by Geoscience Australia 
 and Mathematical Sciences Institute at the Australian National University. 
 It is now developed and maintained by a community of volunteers.
-
-.. note::
-
-   This project is under active development.
 
 
 .. toctree::
