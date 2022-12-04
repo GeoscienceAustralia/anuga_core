@@ -1,6 +1,6 @@
 """Given a .tsh, print an sww
 """
-from __future__ import print_function
+
 
 ######################
 # Module imports 

@@ -1,7 +1,7 @@
 """
     Validation tests
 """
-from __future__ import absolute_import
+
 
 from numpy._pytesttester import PytestTester
 test = PytestTester(__name__)

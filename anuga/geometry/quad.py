@@ -11,7 +11,7 @@ geometry intersections.
 As of June 2010 this module has a pylint quality rating of 10/10.
 
 """
-from __future__ import print_function
+
 
 from builtins import object
 import anuga.utilities.log as log

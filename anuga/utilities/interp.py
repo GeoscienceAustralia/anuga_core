@@ -6,7 +6,7 @@
 
    See function docstring for description.
 """
-from __future__ import absolute_import
+
 
 #-----------------------------------------------------------------------
 #                       Additional Documentation

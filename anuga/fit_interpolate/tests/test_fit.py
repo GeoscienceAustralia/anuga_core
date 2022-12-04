@@ -6,11 +6,7 @@ test_quantity.test_set_values_from_UTM_pts.
 """
 
 #TEST
-from builtins import zip
-from builtins import map
-from builtins import str
-from builtins import range
-import sys
+
 import unittest
 from math import sqrt
 import tempfile

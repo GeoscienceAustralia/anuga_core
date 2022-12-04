@@ -31,7 +31,7 @@ import os
 import sys
 import traceback
 import logging
-import datetime
+
 
 DefaultConsoleLogLevel = logging.CRITICAL
 DefaultFileLogLevel = logging.INFO
@@ -60,8 +60,11 @@ log_logging_level = DefaultFileLogLevel
 
 # The default name of the file to log to.
 
+def current_datetime():
+    from datetime import datetime
+    return datetime.now().strftime("%Y%m%d_%H%M%S%z")
 
-log_filename = os.path.join('.', 'anuga.log')
+log_filename = os.path.join('.', f'anuga_{current_datetime()}.log')
 
 # set module variables so users don't have to do 'import logging'.
 CRITICAL = logging.CRITICAL
@@ -296,10 +299,12 @@ def resource_usage(level=logging.INFO):
         log(msg, level)
 
 def CurrentDateTime():
-    return datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    from datetime import datetime
+    return datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
 
 def TimeStamp():
-    return datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    from datetime import datetime
+    return datetime.now().strftime('%Y%m%d_%H%M%S')
 
 
 def resource_usage_timing(level=logging.INFO, prefix =""):

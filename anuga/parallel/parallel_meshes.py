@@ -11,7 +11,7 @@ Geoscience Australia, 2005
 Modified by Linda Stals, March 2006, to include ghost boundaries
 
 """
-from __future__ import absolute_import
+
 
 
 from builtins import range

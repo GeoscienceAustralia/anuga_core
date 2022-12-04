@@ -52,7 +52,7 @@
     
     As of June 2010 this module has a pylint quality rating of 9.30/10.
 """
-from __future__ import print_function
+
 
 import sys
 import getopt

@@ -5,8 +5,8 @@
 
     mpi4py wrap added 20130503 by Roberto Vidmar rvidmar@inogs.it
 """
-from __future__ import print_function
-from __future__ import division
+
+
 from builtins import range
 from builtins import object
 import sys

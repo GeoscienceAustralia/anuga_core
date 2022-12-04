@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from __future__ import division
+
 from builtins import range
 import unittest
 from math import sqrt

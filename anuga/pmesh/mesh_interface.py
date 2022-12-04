@@ -1,7 +1,4 @@
-from __future__ import absolute_import
 
-from builtins import str
-from builtins import range
 from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZONE
 from anuga.geometry.polygon import point_in_polygon, populate_polygon
 from anuga.utilities.numerical_tools import ensure_numeric
@@ -19,12 +16,6 @@ try:
 except ImportError:
     from .mesh import Mesh
 
-# Python 2.7 Hack
-# FIXME (Ole): We can remove this now.
-try:
-    from exceptions import Exception
-except:
-    pass
 
 class PolygonError(Exception):
     pass

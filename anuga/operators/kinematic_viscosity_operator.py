@@ -1,6 +1,4 @@
-from __future__ import absolute_import
-from builtins import range
-from anuga import Domain
+
 from anuga import Quantity
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient

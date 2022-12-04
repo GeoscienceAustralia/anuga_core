@@ -259,7 +259,7 @@ def not_polygon_overlap(triangles, polygon, verbose=False):
 
 
 def line_intersect(triangles, line, verbose=False):
-    """Determine which of a list of trianglee intersect a line
+    """Determine which of a list of triangles intersect a line
 
     """
     line = ensure_numeric(line)

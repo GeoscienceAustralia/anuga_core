@@ -4,7 +4,7 @@ This is the public API to ANUGA_PARALLEL.
 Ideally, all tools needed to run parallel simulations should be
 imported from this module
 """
-from __future__ import absolute_import
+
 
 
 from numpy._pytesttester import PytestTester

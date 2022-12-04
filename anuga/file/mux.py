@@ -1,7 +1,7 @@
 """
     Read a mux2 file.
 """
-from __future__ import absolute_import
+
 
 from builtins import range
 from anuga.utilities.numerical_tools import ensure_numeric

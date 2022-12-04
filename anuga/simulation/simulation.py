@@ -1,7 +1,7 @@
 """
 Setting up a simulation class
 """
-from __future__ import print_function
+
 
 #------------------------------------------------------------------------------
 # IMPORT NECESSARY MODULES

@@ -6,7 +6,7 @@
 
 #FIXME (Ole): Maxe this test independent of anything that inherits from General_mesh (namely shallow_water)
 
-from __future__ import division
+
 from builtins import str
 from builtins import range
 import unittest

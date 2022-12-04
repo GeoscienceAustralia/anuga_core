@@ -7,8 +7,8 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou, James Hudson
    Geoscience Australia
 """
-from __future__ import absolute_import
-from __future__ import division
+
+
 
 from builtins import str
 from six import string_types

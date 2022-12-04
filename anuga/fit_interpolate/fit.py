@@ -25,14 +25,10 @@
       be passed in. (I don't know if this is feasible). If could
       save time/memory.
 """
-from __future__ import print_function
-from __future__ import absolute_import
-
 import numpy as num
 from . import fitsmooth
 import sys
-from builtins import str
-from builtins import range
+
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga.caching import cache
@@ -45,12 +41,6 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.cg_solve import conjugate_gradient
 from anuga.config import default_smoothing_parameter as DEFAULT_ALPHA
 import anuga.utilities.log as log
-
-# Python 2.7 Hack
-try:
-    from exceptions import Exception
-except:
-    pass
 
 
 class TooFewPointsError(Exception):
@@ -161,7 +151,7 @@ class Fit(FitInterpolate):
         # if this would be worthwhile.
 
     def _build_smoothing_matrix_D(self):
-        """Build m x m smoothing matrix, where
+        r"""Build m x m smoothing matrix, where
         m is the number of basis functions phi_k (one per vertex)
 
         The smoothing matrix is defined as

@@ -17,7 +17,7 @@ we have an intuitive description of what is called the alpha-shape.
 
 Author: Vanessa Robins, ANU
 """
-from __future__ import print_function
+
 
 from builtins import filter
 from builtins import range

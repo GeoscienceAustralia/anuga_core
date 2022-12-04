@@ -1,4 +1,4 @@
-from __future__ import absolute_import
+
 from builtins import range
 from anuga import Domain
 from anuga import Quantity

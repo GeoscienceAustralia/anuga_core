@@ -6,7 +6,7 @@
     If the function is called with identical parameters in the future, the
     cached result will be returned.
 """
-from __future__ import absolute_import
+
 
 from .caching import *
 

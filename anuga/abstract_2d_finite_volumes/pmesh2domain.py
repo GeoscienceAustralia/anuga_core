@@ -5,7 +5,7 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia
 """
-from __future__ import division
+
 
 from builtins import map
 from builtins import zip

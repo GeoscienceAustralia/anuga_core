@@ -2,7 +2,7 @@
 """
 boundary.py - Classes for implementing boundary conditions
 """
-from __future__ import division
+
 
 from builtins import str
 from builtins import object

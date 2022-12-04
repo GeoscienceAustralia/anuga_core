@@ -1,7 +1,7 @@
 #! /usr/bin/python
 
 
-from __future__ import print_function
+
 from builtins import str
 __author__="stephen"
 __date__ ="$20/08/2012 11:20:00 PM$"
