@@ -340,7 +340,7 @@ The final statement:
 .. code-block:: python
 
     for t in domain.evolve(yieldstep=0.1, duration=10.0):
-        print domain.timestepping_statistics()
+        domain.print_timestepping_statistics()
 
 
 causes :code:`domain` we have just setup to *evolve*, over a series of
