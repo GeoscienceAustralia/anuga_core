@@ -8,7 +8,7 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 from anuga.utilities import plot_utils as util
-import gdal
+import osgeo.gdal as gdal
 
 
 swwdir='MODEL_OUTPUTS/'
@@ -61,13 +61,13 @@ pyplot.savefig('Error_peakstage.png')
 try:
     tif_outdir='OUTPUT_TIFS'
     CellSize=5.0
-    print 'Making tifs'
+    print ('Making tifs')
     util.Make_Geotif(swwdir+swwname,
                       ['depth','velocity','depthIntegratedVelocity','elevation', 'friction'],'max',
                       CellSize=CellSize,EPSG_CODE=32756,output_dir=tif_outdir)
-    print 'Made tifs'
+    print ('Made tifs')
 except:
-    print 'Cannot make GIS plot -- perhaps GDAL etc are not installed?'
+    print ('Cannot make GIS plot -- perhaps GDAL etc are not installed?')
 
     
 # Plot depth raster with discrepency between model and data
