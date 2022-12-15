@@ -8,11 +8,11 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as pyplot
 from anuga.utilities import plot_utils as util
-import osgeo.gdal as gdal
+import gdal
 
 
 swwdir='MODEL_OUTPUTS/'
-swwname='Towradgi_historic_flood.sww' #'Aug98_hort_discontinous.sww' #'Towradgi_historic_flood.sww'
+swwname='Towradgi_historic_flood.sww' 
 
 p=util.get_output(swwdir+swwname)
 p2=util.get_centroids(p,velocity_extrapolation=True)
@@ -35,26 +35,28 @@ for i in range(len(modelled_level)):
 
     if(i==0):
         pyplot.clf()
-        pyplot.plot(p2.time,p2.stage[:, myInd],color='red')
-        pyplot.plot((pioneerLevel[:,0]-540.)*60., pioneerLevel[:,2],color='black')
-        pyplot.xlabel('Time')
-        pyplot.ylabel('Stage (m)')
-        pyplot.title('Pioneer Bridge Stage')
-        pyplot.savefig('Pioneer_Bridge_Stage.png')
+        pyplot.plot((pioneerLevel[:,0])/60., pioneerLevel[:,2],color='black', label="Recorded Stage")
+        pyplot.plot(p2.time/3600.,p2.stage[:, myInd],color='blue', label="ANUGA")
+        pyplot.legend(bbox_to_anchor=(1.05, 1), borderaxespad=0.)
+        pyplot.xlabel('Time (Hours)')
+        pyplot.ylabel('Stage (mAHD)')
+        pyplot.title('Pioneer Road Bridge Stage')
+        pyplot.savefig('Pioneer_Bridge_Stage_'+swwname[:-4]+'.png')
     
 
 pyplot.clf()
 pyplot.scatter(floodLevels[:,3],modelled_level)
-pyplot.xlabel('Observed flood level')
-pyplot.ylabel('Modelled flood level')
-pyplot.title('Modelled vs Observed flood levels, Towradgi 1998')
-pyplot.savefig('Modelled_vs_Observed_peakStage.png')
+print (floodLevels[:,2],modelled_level)
+pyplot.xlabel('Observed flood level (mAHD)')
+pyplot.ylabel('Modelled flood level (mAHD)')
+pyplot.title('Modelled vs Observed Flood Levels\nTowradgi Creek Historic Flood 1998')
+pyplot.savefig('Modelled_vs_Observed_peakStage_'+swwname[:-4]+'.png')
 
 pyplot.clf()
 pyplot.hist(floodLevels[:,3]-modelled_level)
 pyplot.xlabel('Observed minus Modelled flood level')
-pyplot.title('Difference in Modelled and Observed flood levels, Towradgi 1998')
-pyplot.savefig('Error_peakstage.png')
+pyplot.title('Difference in Modelled and Observed flood levels\nTowradgi Creek Historic Flood 1998')
+pyplot.savefig('Error_peakstage_'+swwname[:-4]+'.png')
 
 
 # Make a bunch of GIS outputs
@@ -91,5 +93,5 @@ pyplot.scatter(floodLevels[:,0], floodLevels[:,1], c=er1,s=20,cmap=pyplot.get_cm
 pyplot.colorbar().set_label(label='Field observation - Modelled Peak Stage (m)')
 pyplot.xlim([p.x.min()+p.xllcorner,p.x.max()+p.xllcorner])
 pyplot.ylim([p.y.min()+p.yllcorner,p.y.max()+p.yllcorner])
-pyplot.savefig('Spatial_Depth_and_Error.png')
+pyplot.savefig('Spatial_Depth_and_Error_'+swwname[:-4]+'.png')
 
