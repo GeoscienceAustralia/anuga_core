@@ -14,10 +14,6 @@ PYTHON_VERSION=${PYTHON_VERSION:-"3.10"}
 ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
-
-sudo apt-get update -q
-sudo apt-get install gfortran git
-
 # Deactivate the travis-provided virtual environment and setup a
 # conda-based environment instead
 deactivate || echo "deactivate failed"
@@ -28,8 +24,11 @@ chmod +x Miniforge3.sh && ./Miniforge3.sh -b
 
 export PATH=/home/travis/miniforge3/bin:$PATH 
 
-conda update --yes conda
 conda init bash
+
+source ~/.bashrc
+
+conda update --yes conda
 
 # Configure the conda environment
 conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill gitpython Pmw pymetis utm mpi4py
