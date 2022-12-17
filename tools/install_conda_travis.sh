@@ -26,7 +26,7 @@ deactivate || echo "deactivate failed"
 wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 chmod +x Miniforge3.sh && ./Miniforge3.sh -b
 
-export PATH=/home/travis/miniconda3/condabin:$PATH 
+export PATH=/home/travis/miniforge3/bin:$PATH 
 
 conda update --yes conda
 
