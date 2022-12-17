@@ -17,9 +17,6 @@ ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 sudo apt-get update -q
 sudo apt-get install gfortran git
-#sudo apt-get install -y libopenmpi-dev openmpi-bin;
-
-##########################################################
 
 # Deactivate the travis-provided virtual environment and setup a
 # conda-based environment instead
@@ -28,6 +25,8 @@ deactivate || echo "deactivate failed"
 # Use the miniforge installer
 wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 chmod +x Miniforge3.sh && ./Miniforge3.sh -b
+
+export PATH=/home/travis/miniconda2/bin:$PATH
 
 conda update --yes conda
 
