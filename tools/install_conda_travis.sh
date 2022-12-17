@@ -10,7 +10,7 @@
 set -e
 
 
-PYTHON_VERSION=${PYTHON_VERSION:-"3.9"}
+PYTHON_VERSION=${PYTHON_VERSION:-"3.10"}
 ANUGA_BITS=${ANUGA_BITS:-"64"}
 
 
@@ -26,12 +26,12 @@ deactivate || echo "deactivate failed"
 wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 chmod +x Miniforge3.sh && ./Miniforge3.sh -b
 
-export PATH=/home/travis/miniconda2/bin:$PATH
+export PATH=/home/travis/miniconda3/bin:$PATH 
 
 conda update --yes conda
 
 # Configure the conda environment
-conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill future gitpython backports.zoneinfo Pmw pymetis utm mpi4py
+conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill gitpython Pmw pymetis utm mpi4py
 conda activate anuga_env
 
 # Useful for debugging any issues with conda
