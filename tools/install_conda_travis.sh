@@ -29,6 +29,7 @@ chmod +x Miniforge3.sh && ./Miniforge3.sh -b
 export PATH=/home/travis/miniforge3/bin:$PATH 
 
 conda update --yes conda
+conda init bash
 
 # Configure the conda environment
 conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill gitpython Pmw pymetis utm mpi4py
