@@ -78,6 +78,7 @@ NOTSET = logging.NOTSET
 _new_python = (sys.version_info[0]*10 + sys.version_info[1] >= 25)      # 2.5.x.x
 
 
+
 ################################################################################
 # Module code.
 ################################################################################
@@ -158,7 +159,9 @@ def log(msg, level=None):
 
     # why are we here? ... Oh yes! Log the message!
     if _new_python:
-        logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
+        #FIXME SR: On 2022/12/20 got an error due to the extra argument
+        #logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
+        logging.log(level, msg)
     else:
         logging.log(level, msg)
 
