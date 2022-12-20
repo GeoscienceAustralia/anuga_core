@@ -420,6 +420,16 @@ Creating domain from scratch.
     domain = distribute(domain, verbose=verbose)
     
     barrier()
+
+    # -----------------------------------------------------------------------------
+    # Turn on checkpointing every 5 sec (just for testing, more reasonable to
+    # set to say 15 minutes = 15*60 sec)
+    # Only set this on process 0 ie within a if myid == 0: structure
+    # -----------------------------------------------------------------------------
+    if useCheckpointing:
+        domain.set_checkpointing(
+                    checkpoint_time=checkpoint_time, checkpoint_dir=checkpoint_dir)
+                    
     
     domain.quantities_to_be_stored = {'elevation': 2,
                                       'friction': 1,
@@ -892,23 +902,11 @@ Creating domain from scratch.
                              func(t)[0], 0.0, 0.0])
     
     domain.set_boundary({'west': Bd, 'south': Bd, 'north': Bd, 'east': Bw})
-
-
-
     
     if myid == 0:
         print('Start Evolve')
 
 
-    
-# -----------------------------------------------------------------------------
-# Turn on checkpointing every 5 sec (just for testing, more reasonable to
-# set to say 15 minutes = 15*60 sec)
-# Only set this on process 0 ie within a if myid == 0: structure
-# -----------------------------------------------------------------------------
-if useCheckpointing:
-    domain.set_checkpointing(
-                checkpoint_time=checkpoint_time, checkpoint_dir=checkpoint_dir)
 
 # ------------------------------------------------------------------------------
 # EVOLVE SYSTEM THROUGH TIME

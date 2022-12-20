@@ -1294,11 +1294,16 @@ class Domain(Generic_Domain):
 
 
         if checkpoint:
-            # create checkpoint directory if necessary
-            if not os.path.exists(checkpoint_dir):
-                os.mkdir(checkpoint_dir)
 
-            assert os.path.exists(checkpoint_dir)
+            from anuga import myid
+            # On processor 0 create checkpoint directory if necessary
+            if myid == 0:
+                if True:
+                    if not os.path.exists(checkpoint_dir):
+                        os.mkdir(checkpoint_dir)
+
+                    assert os.path.exists(checkpoint_dir)
+
             self.checkpoint_dir = checkpoint_dir
             if checkpoint_time is not None:
                 #import time
