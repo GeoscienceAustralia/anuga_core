@@ -114,8 +114,8 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
         self.case = 'N/A'
 
 
-        print(80*'=')
-        print("DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET")
+        #print(80*'=')
+        #print("DON'T USE BOYD PIPES AS ALGORITHM NOT VERIFIED YET")
 
 
         # May/June 2014 -- allow 'smoothing ' of driving_energy, delta total energy, and outflow_enq_depth

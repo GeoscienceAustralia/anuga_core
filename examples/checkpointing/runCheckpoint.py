@@ -141,6 +141,7 @@ except:
     # -----------------------------------------------------------------------------
     # Turn on checkpointing every 5 sec (just for testing, more reasonable to
     # set to say 15 minutes = 15*60 sec)
+    # Only set this on process 0, ie within a if myid == 0: structure
     # -----------------------------------------------------------------------------
     if useCheckpointing:
         domain.set_checkpointing(

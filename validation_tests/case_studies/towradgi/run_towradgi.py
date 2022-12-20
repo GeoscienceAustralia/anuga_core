@@ -129,7 +129,7 @@ Creating domain from scratch.
     CatchmentList = [
         [join('Model', 'Bdy', 'Catchment.csv'), scale*100.0],
         [join('Model', 'Bdy', 'FineCatchment.csv'), scale*36.0],
-        [join('Model', 'Bdy', 'CreekBanks.csv'), scale*8.0]
+        [join('Model', 'Bdy', 'CreekBanks.csv'), 8.0]
     ]
     
     # IMPORTANT -- The ORDER in ManningList matters: When there is overlap,
@@ -399,7 +399,16 @@ Creating domain from scratch.
         print('FITTING to domain')
         domain.set_quantity('elevation', elev_fun_wrapper, location='centroids')
     
-        # os.remove('DEM_bridges/towradgi.csv') # Clean up csv file
+        
+        # -----------------------------------------------------------------------------
+        # Turn on checkpointing every 5 sec (just for testing, more reasonable to
+        # set to say 15 minutes = 15*60 sec)
+        # Only set this on process 0 ie within a if myid == 0: structure
+        # -----------------------------------------------------------------------------
+        if useCheckpointing:
+            domain.set_checkpointing(
+                checkpoint_time=checkpoint_time, checkpoint_dir=checkpoint_dir)
+
     else:
         domain = None
     
@@ -412,21 +421,21 @@ Creating domain from scratch.
     
     barrier()
     
-    domain.get_triangle_containing_point
-    
     domain.quantities_to_be_stored = {'elevation': 2,
                                       'friction': 1,
                                       'stage': 2,
                                       'xmomentum': 2,
                                       'ymomentum': 2}
     
-    if myid == 0 and verbose:
+    if myid == 0:
         print('CREATING RIVERWALLS')
     
     domain.riverwallData.create_riverwalls(riverWalls)
     
     
-    if myid == 0 and verbose:
+    barrier()
+
+    if myid == 0:
         print('CREATING INLETS')
        
     #------------------------------------------------------------------------------
@@ -434,15 +443,14 @@ Creating domain from scratch.
     #------------------------------------------------------------------------------
     smoothTS=30. # Smoothing timescale for bridges
     
-    # Branch_2_Brooker_St_Culvert
+    if myid == 0: print ('Creating Boyd_pipe_operator at Branch_2_Brooker_St_Culvert') 
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305772.982,6193988.557] , [305772.378,6193987.823]])
     el1 = numpy.array([[305794.592,6193983.907] , [305793.988,6193983.173]])
-    
     ## Adjust el0, el1
     #elOffset=0.
     #el0M=0.5*(el0[0,:]+el0[1,:]) ; el1M=0.5*(el1[0,:]+el1[1,:]); n0=el0M-el1M; n0=n0/((n0*n0).sum())**0.5;
-    #el0 = el0    
+    #el0 = el0 
     culvert = Boyd_pipe_operator(domain,
                                 losses=losses,
                                 diameter=0.9, #actual culvert is a 1.8m diameter, was 75% blocked in 1998
@@ -456,7 +464,7 @@ Creating domain from scratch.
                                 label='Branch_2_Brooker_St_Culvert',
                                 verbose=False)    
     
-    # Branch_2_Meadow_St_Culvert
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_2_Meadow_St_Culvert')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305886.333,6193929.052] , [305883.172,6193922.986]])
     el1 = numpy.array([[305906.553,6193910.461] , [305903.393,6193904.395]])  
@@ -475,7 +483,7 @@ Creating domain from scratch.
                                 label='Branch_2_Meadow_St_Culvert',
                                 verbose=False)    
     
-    # Branch_2_Williams_St_Culvert
+    if myid == 0: print ('Creating Boyd_pipe_operator at Branch_2_Williams_St_Culvert') 
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305945.955,6193836.293] , [305945.125,6193835.387]])
     el1 = numpy.array([[306040.565,6193827.573] , [306039.735,6193826.667]])
@@ -492,7 +500,7 @@ Creating domain from scratch.
                                 label='Branch_2_Williams_St_Culvert',
                                 verbose=False)     
     
-    # Branch_Towradgi_Meadow_St_Culvert
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Meadow_St_Culvert')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305812.113,6193591.972] , [305809.390,6193588.820]])
     el1 = numpy.array([[305834.913,6193588.382] , [305832.190,6193585.230]])  
@@ -511,7 +519,7 @@ Creating domain from scratch.
                                 label='Branch_Towradgi_Meadow_St_Culvert',
                                 verbose=False)  
     
-    # Branch_5_Collins_St_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_5_Collins_St_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[306330.608,6194817.116] , [306320.768,6194805.884]])
     el1 = numpy.array([[306369.483,6194811.616] , [306359.643,6194800.384]])   
@@ -529,8 +537,8 @@ Creating domain from scratch.
                                 logging=False,
                                 label='Branch_5_Collins_St_Culverts',
                                 verbose=False)                                     
-                                        
-    # Branch_5_Northern_Distributor_Culverts
+
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_5_Northern_Distributor_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[306956.242,6194465.589] , [306950.446,6194457.411]])
     el1 = numpy.array([[307003.711,6194446.089] , [306997.916,6194437.911]])   
@@ -548,8 +556,8 @@ Creating domain from scratch.
                                 logging=False,
                                 label='Branch_5_Northern_Distributor_Culverts',
                                 verbose=False)                                      
-                                        
-    #Branch_5_Coke_Works_Culverts
+
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_5_Coke_Works_Culverts')                                   
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[307142.161,6194181.3065] , [307138.519,6194174.394]])
     el1 = numpy.array([[307160.521,6194164.8165] , [307156.879,6194157.904]])   
@@ -567,8 +575,8 @@ Creating domain from scratch.
                                 logging=False,
                                 label='Branch_5_Coke_Works_Culverts',
                                 verbose=False)                                      
-                                        
-    #Branch_6_Northern_Distributor_Culverts
+
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_6_Northern_Distributor_Culverts')            
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[306950.758,6193454.717] , [306947.804,6193453.283]])
     el1 = numpy.array([[306988.633,6193474.217] , [306985.679,6193472.783]])  
@@ -586,8 +594,8 @@ Creating domain from scratch.
                                 logging=False,
                                 label='Branch_6_Northern_Distributor_Culverts',
                                 verbose=False)                                      
-                                        
-    #Branch_6_Railway_Culverts
+
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_6_Railway_Culverts')                                
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[307139.134,6193474.458] , [307138.492,6193473.542]])
     el1 = numpy.array([[307150.884,6193469.458] , [307150.242,6193468.542]])
@@ -606,7 +614,7 @@ Creating domain from scratch.
                                 label='Branch_6_Railway_Culverts',
                                 verbose=False) 
     
-    #Branch_6_Colgong_St_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_6_Colgong_St_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[307200.610,6193476.765] , [307199.140,6193475.235]])
     el1 = numpy.array([[307224.610,6193475.765] , [307223.140,6193474.235]])
@@ -625,7 +633,7 @@ Creating domain from scratch.
                                 label='Branch_6_Colgong_St_Culverts',
                                 verbose=False)   
                                         
-    #Branch_3_Basin_Outlet_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_3_Basin_Outlet_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305629.639,6194408.883] , [305626.521,6194400.457]])
     el1 = numpy.array([[305665.889,6194347.183] , [305662.771,6194338.757]])
@@ -643,8 +651,8 @@ Creating domain from scratch.
                                 logging=False,
                                 label='Branch_3_Basin_Outlet_Culverts',
                                 verbose=False)                                      
-                                        
-    #Branch_3_Bellambi_Rd_Culverts
+
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_3_Bellambi_Rd_Culverts')                                    
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305777.182,6194305.377] , [305776.444,6194304.623]])
     el1 = numpy.array([[305873.807,6194303.377] , [305873.069,6194302.623]])
@@ -663,7 +671,7 @@ Creating domain from scratch.
                                 label='Branch_3_Bellambi_Rd_Culverts',
                                 verbose=False)    
     
-    #Branch_3_Meadow_St_Culverts
+    if myid == 0: print ('Creating Boyd_pipe_operator at Branch_3_Meadow_St_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305914.649,6194322.375] , [305913.477,6194321.625]])
     el1 = numpy.array([[305950.711,6194335.375] , [305949.539,6194334.625]])
@@ -681,7 +689,7 @@ Creating domain from scratch.
                                 label='Branch_3_Meadow_St_Culverts',
                                 verbose=False)     
     
-    #Branch_3_13_Meadow_St_Culverts
+    if myid == 0: print ('Creating Boyd_pipe_operator at Branch_3_13_Meadow_St_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[305911.280,6194359.203] , [305910.260,6194358.017]])
     el1 = numpy.array([[305946.090,6194353.573] , [305945.070,6194352.387]])
@@ -699,7 +707,7 @@ Creating domain from scratch.
                                 label='Branch_3_13_Meadow_St_Culverts', 
                                 verbose=False)     
     
-    #Branch_3_41_Angel_St_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_3_41_Angel_St_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[306196.779,6194028.193] , [306192.221,6194010.807]])
     el1 = numpy.array([[306200.154,6194018.693] , [306195.596,6194001.307]])
@@ -719,7 +727,7 @@ Creating domain from scratch.
                                 label='Branch_3_41_Angel_St_Culverts',
                                 verbose=False)        
     
-    #Branch_7_Carroll_St_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_7_Carroll_St_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[308002.045,6193820.163] , [308001.215,6193819.197]])
     el1 = numpy.array([[308021.965,6193816.883] , [308021.135,6193815.917]])
@@ -739,7 +747,7 @@ Creating domain from scratch.
                                 label='Branch_7_Carroll_St_Culverts',
                                 verbose=False)           
     
-    #Branch_7_Parker_Rd_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_7_Parker_Rd_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[308105.832,6193803.622] , [308103.648,6193801.118]])
     el1 = numpy.array([[308126.782,6193800.552] , [308124.598,6193798.048]])
@@ -759,7 +767,7 @@ Creating domain from scratch.
                                 label='Branch_7_Parker_Rd_Culverts',
                                 verbose=False)     
     
-    #Branch_7_Lake_Pde_Culverts
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_7_Lake_Pde_Culverts')
     losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
     el0 = numpy.array([[308251.257,6193614.658] , [308248.343,6193618.]])
     el1 = numpy.array([[308232.,6193593.] , [308225.,6193596.]])   
@@ -777,8 +785,8 @@ Creating domain from scratch.
                                 logging=False,
                                 label='Branch_7_Lake_Pde_Culverts',
                                 verbose=False)                                                                      
-    							
-    # Branch_Towradgi_Princes_Hwy_Bridge 
+
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Princes_Hwy_Bridge')							
     losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
     el0 = numpy.array([[306607.274,6193707.421] , [306602.635,6193695.720]]) 
     el1 = numpy.array([[306626.205,6193694.358] , [306622.068,6193683.138]])
@@ -797,7 +805,7 @@ Creating domain from scratch.
                                 label='Branch_Towradgi_Princes_Hwy_Bridge',
                                 verbose=False)  
     
-    # Branch_Towradgi_Pioneer_Rd_Bridge
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Pioneer_Rd_Bridge')
     losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
     el0 = numpy.array([[307623.,6193610.] , [307622.,6193607.]])
     el1 = numpy.array([[307610.,6193619.] , [307609., 6193616.]])  
@@ -816,7 +824,7 @@ Creating domain from scratch.
                                 label='Branch_Towradgi_Pioneer_Rd_Bridge',
                                 verbose=False)                           
     
-    # Branch_Towradgi_Northern_Distributor_Bridge
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Northern_Distributor_Bridge')
     losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
     el0 = numpy.array([[306985.,6193749.] , [306985.,6193736.]])
     el1 = numpy.array([[306950.,6193745.] , [306950.,6193732.]])
@@ -835,7 +843,7 @@ Creating domain from scratch.
                                 label='Branch_Towradgi_Northern_Distributor_Bridge',
                                 verbose=False)    
     
-    # Branch_Towradgi_Railway_Bridge
+    if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Railway_Bridge') 
     losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
     el0 = numpy.array([[307236.,6193737.] , [307235.,6193733.]])
     el1 = numpy.array([[307223.,6193738.] , [307222.,6193734.]]) 
@@ -885,17 +893,22 @@ Creating domain from scratch.
     
     domain.set_boundary({'west': Bd, 'south': Bd, 'north': Bd, 'east': Bw})
 
-    # -----------------------------------------------------------------------------
-    # Turn on checkpointing every 5 sec (just for testing, more reasonable to
-    # set to say 15 minutes = 15*60 sec)
-    # -----------------------------------------------------------------------------
-    if useCheckpointing:
-        domain.set_checkpointing(
-            checkpoint_time=checkpoint_time, checkpoint_dir=checkpoint_dir)
+
 
     
     if myid == 0:
         print('Start Evolve')
+
+
+    
+# -----------------------------------------------------------------------------
+# Turn on checkpointing every 5 sec (just for testing, more reasonable to
+# set to say 15 minutes = 15*60 sec)
+# Only set this on process 0 ie within a if myid == 0: structure
+# -----------------------------------------------------------------------------
+if useCheckpointing:
+    domain.set_checkpointing(
+                checkpoint_time=checkpoint_time, checkpoint_dir=checkpoint_dir)
 
 # ------------------------------------------------------------------------------
 # EVOLVE SYSTEM THROUGH TIME
