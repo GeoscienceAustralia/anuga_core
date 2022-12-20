@@ -4,6 +4,7 @@
 import tempfile
 import unittest
 import os
+import pytest
 
 from anuga.pmesh.mesh import importMeshFromFile
 from anuga.pmesh.mesh_interface import create_mesh_from_regions
@@ -20,6 +21,7 @@ class TestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
+    
     def test_create_mesh_from_regions(self):
         x=-500
         y=-1000
@@ -100,6 +102,7 @@ class TestCase(unittest.TestCase):
                                           closed=False),
                         'FAILED!')
 
+    
     def test_create_mesh_from_regions_with_caching(self):
         x=-500
         y=-1000
@@ -208,6 +211,7 @@ class TestCase(unittest.TestCase):
                                            verbose=False,
                                            use_cache=True)
 
+    
     def test_create_mesh_from_regions2(self):
         # These are the absolute values
         min_x = -10
@@ -249,7 +253,8 @@ class TestCase(unittest.TestCase):
         self.assertTrue(m.geo_reference.get_zone()==zone, 'FAILED!')
         self.assertTrue(m.geo_reference.get_xllcorner()==min_x, 'FAILED!')
         self.assertTrue(m.geo_reference.get_yllcorner()==min_y, 'FAILED!')		
-		
+
+    	
     def test_create_mesh_from_regions3(self):
         # These are the absolute values
         min_x = -10
@@ -290,6 +295,7 @@ class TestCase(unittest.TestCase):
         self.assertTrue(m.geo_reference.get_xllcorner() == min_x, 'FAILED!')
         self.assertTrue(m.geo_reference.get_yllcorner() == min_y, 'FAILED!')
 
+    
     def test_create_mesh_from_regions4(self):
         file_name = tempfile.mktemp('.tsh')
 
@@ -336,6 +342,7 @@ class TestCase(unittest.TestCase):
 
         os.remove(file_name)
 
+    
     def test_create_mesh_from_regions5(self):
         file_name = tempfile.mktemp('.tsh')
 
@@ -371,6 +378,7 @@ class TestCase(unittest.TestCase):
 
         os.remove(file_name)
 
+    
     def test_create_mesh_from_regions6(self):
         file_name = tempfile.mktemp('.tsh')
 
@@ -413,6 +421,7 @@ class TestCase(unittest.TestCase):
 
         os.remove(file_name)
 
+    
     def test_create_mesh_from_regions7(self):
         file_name = tempfile.mktemp('.tsh')
 
@@ -458,6 +467,7 @@ class TestCase(unittest.TestCase):
 
         os.remove(file_name)
 
+    
     def test_create_mesh_from_regions_interior_regions(self):
         '''Test that create_mesh_from_regions fails when an interior
         region is outside bounding polygon.
@@ -497,6 +507,7 @@ class TestCase(unittest.TestCase):
             msg += 'cause an Exception to be raised'
             raise Exception(msg)
 
+    
     def test_create_mesh_from_regions_interior_regions1(self):
         '''Test that create_mesh_from_regions fails
         when an interior region is outside bounding polygon.
@@ -564,6 +575,7 @@ class TestCase(unittest.TestCase):
             msg += 'cause an Exception to be raised'
             raise Exception(msg)
 
+    
     def FIXMEtest_create_mesh_with_multiply_tagged_segments(self):
         '''Test that create_mesh_from_regions fails when
         segments are listed repeatedly in boundary_tags.
@@ -634,7 +646,8 @@ class TestCase(unittest.TestCase):
             msg = 'Tags are listed repeatedly, but create mesh from regions '
             msg += 'does not cause an Exception to be raised'
             raise Exception(msg)
-            
+
+           
     def test_create_mesh_with_breaklines(self):
         # These are the absolute values
         polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]
@@ -651,7 +664,7 @@ class TestCase(unittest.TestCase):
         self.assertTrue(len(segs) == 5, 'FAILED!')
         self.assertTrue(len(m.userVertices) == 6, 'FAILED!')
 
-
+    
     def test_create_mesh_with_interior_holes(self):
         # These are the absolute values
         polygon = [[100,100], [1000,100], [1000,1000], [100,1000]]

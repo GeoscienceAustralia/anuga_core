@@ -29,4 +29,4 @@ build_script:
   - pip install -e .
 
 test_script:
-  - python runtests.py -n
+  - pytest --pyargs anuga
