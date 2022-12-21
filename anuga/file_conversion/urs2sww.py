@@ -35,7 +35,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
                       origin=None,
                       hole_points_UTM=None,
                       zscale=1):
-    """
+    r"""
     Convert URS C binary format for wave propagation to
     sww format native to abstract_2d_finite_volumes.
 

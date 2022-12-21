@@ -813,7 +813,7 @@ Reason_msg = ['OK',         # Verbose reasons for recomputation
 
 def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression, 
                 dependencies):
-  """Determine whether cached result exists and return info.
+  r"""Determine whether cached result exists and return info.
 
   USAGE:
     (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \  

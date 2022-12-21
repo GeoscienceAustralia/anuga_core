@@ -701,4 +701,16 @@ def check_lint(lint_args):
 
 
 if __name__ == "__main__":
+    print('#','=========================================================================== #')
+    print('#','We have moved over to using pytest to run the unittests. Use:               #')
+    print('#','                                                                            #')
+    print('#','pytest anuga                                                                #')
+    print('#','                                                                            #')
+    print('#','or                                                                          #')
+    print('#','                                                                            #')
+    print('#','pytest --pyargs anuga                                                       #')
+    print('#','                                                                            #')
+    print('#','Note: You can use the pytest arguments -q or -v to have less or more detail #')
+    print('#','in the pytest output.                                                       #')
+    print('#','=========================================================================== #')
     main(argv=sys.argv[1:])
