@@ -27,7 +27,7 @@ echo "# and then run unittests"
 echo "#==========================="
 
 pip install -e .
-python runtests.py -n
+pytest --pyargs anuga
 
 echo "#================================================"
 echo "# To use anuga you must activate the"

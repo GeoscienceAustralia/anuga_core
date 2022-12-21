@@ -132,8 +132,7 @@ Finally it is sensible to test the installation.
 
 .. code-block:: bash
 
-    # from directory anuga_core and with anuga_env activated
-    python runtests.py -n
+    pytest --pyargs anuga
 
 Updating
 ~~~~~~~~
@@ -152,7 +151,7 @@ And finally check the new installation by running the unit tests via:
 
 .. code-block:: bash
 
-  python runtests.py -n 
+  pytest --pyargs anuga 
 
 
 Installing on Ubuntu_20.04 and 22.04 using script `install_ubuntu.sh`
@@ -216,7 +215,7 @@ And finally check the new installation by running the unit tests via:
 
 .. code-block:: bash
 
-  python runtests.py -n 
+  pytest --pyargs anuga 
       
 
 Windows 10 Install using 'Ubuntu on Windows'

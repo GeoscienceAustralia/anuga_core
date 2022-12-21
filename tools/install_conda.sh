@@ -35,10 +35,6 @@ bash Miniforge3.sh
 
 #export PATH=/home/travis/miniconda2/bin:$PATH
 
-ls
-
-ls ..
-
 echo $PATH
 
 echo "#==========================="
@@ -64,4 +60,4 @@ echo "#==========================="
 
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
 pip install -e .
-python runtests.py -n
+pytest --pyargs anuga

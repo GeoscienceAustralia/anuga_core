@@ -34,6 +34,6 @@ echo "#==========================="
 
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
 pip install -e .
-python runtests.py -n
+pytest --pyargs anuga
 
 

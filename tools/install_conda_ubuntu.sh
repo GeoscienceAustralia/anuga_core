@@ -38,7 +38,7 @@ echo "#==========================="
 
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
 pip install -e .
-python runtests.py -n
+pytest --pyargs anuga
 
 echo "#================================================"
 echo "# To use anuga you must activate the conda"

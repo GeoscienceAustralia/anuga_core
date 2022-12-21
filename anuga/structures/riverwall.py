@@ -112,7 +112,7 @@ class RiverWall(object):
         self.domain=domain
 
         default_float=-9.0e+20
-        default_int=-9e+20
+        default_int=-1_000_000_000
         self.riverwall_elevation=numpy.array([default_float])
 
         self.hydraulic_properties_rowIndex=numpy.array([default_int]).astype(int)
