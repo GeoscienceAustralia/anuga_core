@@ -713,4 +713,4 @@ if __name__ == "__main__":
     print('#','Note: You can use the pytest arguments -q or -v to have less or more detail #')
     print('#','in the pytest output.                                                       #')
     print('#','=========================================================================== #')
-    main(argv=sys.argv[1:])
+    #main(argv=sys.argv[1:])
