@@ -57,6 +57,17 @@ validation_tests/case_studies/towradgi/Model
 validation_tests/case_studies/towradgi/PARTITIONS
 validation_tests/case_studies/towradgi/Validation
 
+validation_tests/case_studies/towradgi_simulation/*.pdf
+validation_tests/case_studies/towradgi_simulation/*.png
+validation_tests/case_studies/towradgi_simulation/robots.txt
+validation_tests/case_studies/towradgi_simulation/timing-*.md
+validation_tests/case_studies/towradgi_simulation/DEM_bridges
+validation_tests/case_studies/towradgi_simulation/Forcing
+validation_tests/case_studies/towradgi_simulation/Model
+validation_tests/case_studies/towradgi_simulation/PARTITIONS
+validation_tests/case_studies/towradgi_simulation/CHECKPOINTS
+validation_tests/case_studies/towradgi_simulation/Validation
+
 validation_tests/reports/validations_report_alg_DE1.pdf
 
 examples/cairns_excel/cairns_initialcond
