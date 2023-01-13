@@ -7,21 +7,21 @@ import os
 
 URL =  'https://sourceforge.net/projects/anuga/files/validation_data/towradgi-1.0/data.tgz'
 
+
 CMD = 'wget %s'% URL
-print CMD
+print(CMD)
 
 try:
     import wget
     wget.download(URL)
 except:
-    print 'wget failed. Perhaps need to install wget via "pip install wget"'
+    print('wget failed. Perhaps you need to install wget for python via "pip install wget"')
     import sys
     sys.exit()
 
-
 CMD = 'tar zxf data.tgz'
-print
-print CMD
+print()
+print(CMD)
 
 import tarfile
 tar = tarfile.open('data.tgz')
@@ -30,5 +30,5 @@ tar.close()
 
 
 CMD = 'rm data.tgz'
-print CMD
+print(CMD)
 os.remove('data.tgz')

@@ -8,9 +8,9 @@ from os.path import join
 # func = anuga.file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
 
 # And pickle doesn't like lambda functions so we define an explicit function with name
-def wrapped_file_function(t):
-    func = anuga.file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
-    return [func(t), 0.0, 0.0]
+#def wrapped_file_function(t):
+#    func = anuga.file_function(join('Forcing','Tide','Pioneer.tms'), quantities='rainfall')
+#    return [func(t), 0.0, 0.0]
 
 
 def setup_boundaries(simulation):

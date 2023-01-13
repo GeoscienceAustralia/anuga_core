@@ -1,10 +1,6 @@
 """ 
 Towradgi Creek 17 August 1998 Storm Event Calibration
 By Petar Milevski, some revisions by Gareth Davies
-Changed into first partition in sequential mode. Use 
-argumet np to specify the distribution
-
-Then use run_parallel_evolve in parallel to do the evolution
 """
 
 #------------------------------------------------------------------------------
@@ -17,11 +13,9 @@ import time
 import numpy
 import os
 
-
+from os.path import join, isdir
 
 from anuga import Polygon_function
-from anuga import create_mesh_from_regions
-from anuga import Domain
 
 
 def read_polygon_list(poly_list):
@@ -39,10 +33,28 @@ def read_polygon_list(poly_list):
 # Setup Domain
 #--------------------------------------------------------------------------
 def setup_domain(simulation):
+    """
+    Takes input from a simulation object which 
+    provides parameters and arguments, and returns a
+    sequential domain
+    """
     
     args = simulation.args
     verbose = args.verbose
     alg = args.alg
+
+    if not isdir('DEM_bridges'):
+        msg = """
+################################################################################
+#
+# Could not the find data directories
+#
+# You can download these directories using the data_download.py script.
+# This will download over 120 MB of data!
+#
+################################################################################
+"""
+        raise Exception(msg)
     
     N = args.N
     S = args.S
@@ -81,54 +93,50 @@ def setup_domain(simulation):
                 [[307613.328268998,6193623.19028621],
                  [307607.751123568,6193610.97704368]]]
 
-    # Make the mesh
-    create_mesh_from_regions(bounding_polygon, 
-        boundary_tags={'south': [0], 'east': [1], 'north': [2], 'west': [3]},
-        maximum_triangle_area=args.maximum_triangle_area,
-        interior_regions=interior_regions,
-        filename=args.meshname,
-        breaklines=breaklines,
-        use_cache=False,
-        verbose=True)
-    
     #---------------------------------------------------------------------------
     # SETUP COMPUTATIONAL DOMAIN
     #---------------------------------------------------------------------------
+    domain = anuga.create_domain_from_regions(bounding_polygon,
+                                      boundary_tags={'south': [0], 'east': [1],
+                                                     'north': [2], 'west': [3]},
+                                      maximum_triangle_area=args.maximum_triangle_area,
+                                      interior_regions=interior_regions,
+                                      breaklines=breaklines,
+                                      mesh_filename=args.meshname,
+                                      use_cache=False,
+                                      verbose=False)
     
-    domain = Domain(args.meshname, use_cache=False, verbose=True)
 
     domain.set_flow_algorithm(alg)
 
     if(not domain.get_using_discontinuous_elevation()):
-        raise Exception, 'This model run relies on a discontinuous elevation solver (because of how topography is set up)'
+        raise Exception('This model run relies on a discontinuous elevation solver (because of how topography is set up)')
 
     domain.set_datadir(args.model_output_dir)
     domain.set_name(args.outname)
         
-    print domain.statistics()
+    print (domain.statistics())
     
     #------------------------------------------------------------------------------
     # APPLY MANNING'S ROUGHNESSES
     #------------------------------------------------------------------------------
     
-    if verbose: print 'Calculating complicated polygon friction function'
+    if verbose: print ('Calculating complicated polygon friction function')
     friction_list = read_polygon_list(ManningList)
     domain.set_quantity('friction', Polygon_function(friction_list, default=args.base_friction, geo_reference=domain.geo_reference))
     
     # Set a Initial Water Level over the Domain
     domain.set_quantity('stage', 0)
-   
-    if verbose: print 'Setting up elevation interpolation function'
-    from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
-
-    if verbose: print 'READING %s' % args.basename+'.csv'
-    elev_xyz=numpy.genfromtxt(fname=args.basename+'.csv',delimiter=',')
+        
+    if verbose: print('READING %s' % args.basename+'.npy')
+    elev_xyz = numpy.load(args.basename+'.npy')
 
     # Use nearest-neighbour interpolation of elevation
-    if verbose: print 'CREATING nearest neighbour interpolator'  
-    elev_fun_wrapper=make_nearestNeighbour_quantity_function(elev_xyz,domain)
+    if verbose: print('CREATING nearest neighbour interpolator')
+    from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
+    elev_fun_wrapper = make_nearestNeighbour_quantity_function(elev_xyz, domain)
 
-    if verbose: print 'Applying elevation interpolation function'    
+    if verbose: print ('Applying elevation interpolation function')    
     domain.set_quantity('elevation', elev_fun_wrapper, location='centroids')
 
     

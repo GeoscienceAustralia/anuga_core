@@ -8,7 +8,7 @@ checkpoint_time = 30 # 30*60 # 30 minutes
 checkpointing = True
 verbose = True
 
-finaltime = 400.0
+finaltime = 30.0
 yieldstep = 10.0
 
 basename = join('DEM_bridges', 'towradgi')

@@ -118,6 +118,13 @@ class Simulation(object):
 #             print 'Broadcast time %.2f seconds'%domain.communication_broadcast_time
 
 
+        # --------------------------------------------------
+        # Merge the individual sww files into one file
+        # But don't delete the sub domain sww files
+        # --------------------------------------------------
+        domain.sww_merge()
+
+        
         finalize()
 
     def _setup_original_domain(self, np=None):

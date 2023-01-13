@@ -899,10 +899,11 @@ class Generic_Domain(object):
         # FIXME (Ole): Perhaps make method .is_parallel() returing True if numprocs > 1 and False if numprocs == 0
         if not self.parallel:
             allowed_tags = list(set(self.boundary.values())) # List of unique tags 
+            allowed_tags.append('ghost') # Sometimes we create parallel domains sequentially
             for key in boundary_map:
                 if key not in allowed_tags:
                     msg = f'Tag "{key}" provided does not exist in the domain. '
-                    msg += 'Allowed tags are: %s' % allowed_tags
+                    msg += 'Allowed tags are: %s' % allowed_tags.remove('ghost')
                     raise Exception(msg)
         
 
