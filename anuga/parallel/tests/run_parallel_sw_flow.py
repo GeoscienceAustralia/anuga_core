@@ -6,6 +6,7 @@
 # Import necessary modules
 # ------------------------
 from math import exp
+import anuga
 from anuga import rectangular_cross_domain
 from anuga import Reflective_boundary, Dirichlet_boundary
 from anuga import myid, distribute, barrier, numprocs, finalize
@@ -68,3 +69,4 @@ for t in domain.evolve(yieldstep=0.25, finaltime=1.0):
 #-------------------------------------
 domain.sww_merge(delete_old=True)
 finalize()
+
