@@ -21,6 +21,9 @@ build_script:
   - conda config --set always_yes yes
   - conda update conda
   - conda install -c conda-forge python=3.8 brotlipy numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm backports.zoneinfo pymetis mpi4py msmpi Pmw
+  # test python and gdal
+  - python --version
+  - python -c "import osgeo"
   # setup for mingw compiler 
   - conda install -c conda-forge libpython m2w64-toolchain
   # there seems to be a bug with distutil by not picking the mingw comiler for anuga
