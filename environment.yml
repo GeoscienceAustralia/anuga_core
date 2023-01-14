@@ -1,0 +1,23 @@
+name: anuga_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - openpyxl
+  - pybind11
+  - cython
+  - gdal
+  - pmw
+  - matplotlib
+  - netcdf4
+  - mpi4py
+  - pymetis
+  - pytest
+  - utm
+  - scipy
+  - dill
+  - numpy
+  - meshpy
+  - gitpython
+  - xarray
+  - wget
