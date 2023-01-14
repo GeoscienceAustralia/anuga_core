@@ -62,7 +62,7 @@ domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
 # Evolve system through time
 #---------------------------
 for t in domain.evolve(yieldstep=0.25, finaltime=1.0):
-    if myid == 0 and verbose: domain.write_time()
+    if myid == 0 and verbose: domain.print_timestepping_statistics()
 
 #-------------------------------------
 # Wrap up parallel matters if required
