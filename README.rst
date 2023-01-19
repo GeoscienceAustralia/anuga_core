@@ -11,8 +11,12 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest PyPi Version
 
-.. image:: https://pepy.tech/badge/autoviz
-    :target https://pepy.tech/project/autoviz
+.. image:: https://static.pepy.tech/personalized-badge/badge?period=month&units=international_system&left_color=black&right_color=orange&left_text=Downloads
+    :target: https://pepy.tech/project/badge
+
+
+.. image:: https://pepy.tech/badge/anuga/badge
+    :target https://pepy.tech/project/anuga
     :alt PyPi total downloads
 
 .. image:: https://img.shields.io/pypi/dm/anuga.svg
