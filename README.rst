@@ -11,6 +11,10 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest PyPi Version
 
+.. image:: https://pepy.tech/badge/autoviz
+    :target https://pepy.tech/project/autoviz
+    :alt PyPi total downloads
+
 .. image:: https://img.shields.io/pypi/dm/anuga.svg
     :target: https://pypistats.org/packages/anuga
     :alt: PyPi download statistics
