@@ -11,11 +11,15 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest PyPi Version
 
-.. image:: https://static.pepy.tech/personalized-badge/anuga?period=month&units=international_system&left_color=black&right_color=orange&left_text=Total PyPi Downloads
+.. image:: https://static.pepy.tech/personalized-badge/anuga?period=month&units=international_system&left_color=black&right_color=orange&left_text=Downloads/Month
     :target: https://pepy.tech/project/anuga
 
 
-.. image:: https://pepy.tech/badge/anuga
+.. image:: https://static.pepy.tech/personalized-badge/anuga?period=total&units=international_system&left_color=black&right_color=orange&left_text=Downloads
+ :target: https://pepy.tech/project/anuga
+
+
+.. image:: https://pepy.tech/badge/anuga/month
     :target https://pepy.tech/project/anuga
     :alt PyPi total downloads
 
