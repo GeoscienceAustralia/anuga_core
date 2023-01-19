@@ -11,14 +11,9 @@
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest PyPi Version
 
-.. image:: https://static.pepy.tech/personalized-badge/anuga?period=total&units=international_system&left_color=grey&right_color=green&left_text=PyPi/Downloads/Total
-    :target: https://pepy.tech/project/anuga
-    :alt: Total PyPi Downloads
-
-.. image:: https://static.pepy.tech/personalized-badge/anuga?period=month&units=international_system&left_color=grey&right_color=green&left_text=PyPi/Downloads/Monthly
-    :target: https://pepy.tech/project/anuga
-    :alt: Monthly PyPi Downloads
-
+.. image:: https://img.shields.io/pypi/dm/anuga.svg
+    :target: https://pypistats.org/packages/anuga
+    :alt: PyPi download statistics
 
 .. image:: https://img.shields.io/conda/vn/conda-forge/anuga.svg
     :target: https://anaconda.org/conda-forge/anuga
