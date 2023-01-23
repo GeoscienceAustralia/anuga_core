@@ -123,24 +123,11 @@ class Rate_operator(Operator):
         self.set_default_rate(default_rate)
         self.default_rate_invoked = False    # Flag
 
-        #-------------------------------
-        # Check if rate is actually an xarray. 
-        # Need xarray package installed
-        #-------------------------------
-        try:
-            import xarray
-        except:
-            pass
-        else:
-            if type(rate) is xarray.core.dataarray.DataArray:
-                self._prepare_xarray_rate(rate)
-
-
         # ----------------
         # Mass tracking
         #-----------------
         self.monitor = monitor
-        self.local_influx=0.
+        self.local_influx=0.0
 
     def __call__(self):
         """
@@ -288,7 +275,7 @@ class Rate_operator(Operator):
         """Set rate. Can change rate while running
 
 
-        Can be a scalar, or a function of t or x,y or x,y,t or a quantity
+        Can be a scalar, numpy array, or a function of t or x,y or x,y,t or a quantity
         """
 
         # Test if rate is a quantity

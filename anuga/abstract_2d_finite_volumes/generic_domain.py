@@ -902,8 +902,9 @@ class Generic_Domain(object):
             allowed_tags.append('ghost') # Sometimes we create parallel domains sequentially
             for key in boundary_map:
                 if key not in allowed_tags:
+                    allowed_tags.remove('ghost')
                     msg = f'Tag "{key}" provided does not exist in the domain. '
-                    msg += 'Allowed tags are: %s' % allowed_tags.remove('ghost')
+                    msg += 'Allowed tags are: %s' % allowed_tags
                     raise Exception(msg)
         
 
