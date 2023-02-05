@@ -593,6 +593,13 @@ class Generic_Domain(object):
 
         self.institution = institution
 
+    def set_proj(self, proj):
+        if not isinstance(proj, str):
+            msg= 'Excepted argument is str e.g., +proj=utm +zone=23K, +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"'
+            raise Exception(msg)
+        else:
+            self.proj= proj
+
     def get_datetime(self):
         """Return date time of current modeltime."""
 

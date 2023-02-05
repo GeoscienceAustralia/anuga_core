@@ -930,8 +930,11 @@ class Quantity(object):
             elif filename_ext in ['.asc', '.grd', '.dem']:
                 self.set_values_from_utm_grid_file(filename, location,
                       indices, verbose=verbose)
+            elif filename_ext in ['.tif']:
+                self.set_values_from_lat_long_tif_file(filename, location,
+                      indices, verbose=verbose, proj=self.domain.proj)
             else:
-                raise Exception('Extension should be .pts .dem, .csv, .txt, .asc or .grd')
+                raise Exception('Extension should be .pts .dem, .csv, .txt, .asc, .grd or .tif')
 
         elif raster is not None:
             self.set_values_from_utm_raster(raster,
@@ -1340,6 +1343,7 @@ class Quantity(object):
 
         from anuga.file_conversion.grd2array import grd2array
         from anuga.file_conversion.dem2array import dem2array
+        from anuga.file_conversion.tif2array import tif2array
 
         filename_ext = os.path.splitext(filename)[1]
 
@@ -1347,6 +1351,11 @@ class Quantity(object):
             x,y,Z = grd2array(filename)
         elif filename_ext == '.dem':
             x,y,Z = dem2array(filename)
+        elif filename_ext == '.tif':
+            x,y,Z= tif2array(filename)
+        else:
+            msg= 'The file extension is not suportted... Only .asc, .grd, .dem, .tif are supported.'
+            Exception(msg)
 
         if location == 'centroids':
             if indices is None:
@@ -1473,6 +1482,84 @@ class Quantity(object):
             # Cleanup centroid values
             self.interpolate()
 
+
+    def set_values_from_lat_long_tif_file(self,
+                                     filename,
+                                     location='centroids',
+                                    indices=None,
+                                    verbose=False,
+                                    proj=None):
+        
+        from anuga.file_conversion.tif2array_lat_long import tif2array_lat_long
+
+        filename_ext = os.path.splitext(filename)[1]
+
+        if location == 'centroids':
+            points = self.domain.centroid_coordinates
+
+        else:
+            points = self.domain.vertex_coordinates
+
+        from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
+
+        points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
+
+        from  anuga.fit_interpolate.interpolate2d import interpolate2d
+
+        #print points
+        #TODO use affine to retrieve value
+        # values = interpolate2d(x, y, Z, points, mode='constant', bounds_error=False)
+
+        # ===update date: 2020/06/08 by Allen
+        if filename_ext in ['.tif', '.asc']:
+                values = tif2array_lat_long(filename, proj=proj, points=points)
+        else:
+            msg= 'The file extension is not suportted... Only .asc and .tif are supported.'
+            Exception(msg)
+        # print values
+        # a = Affine.from_gdal(x[0],x[1]-x[0],0,y[0],0,y[1]-y[0])
+        # ilocs= num.array(~a * (points[:,0], points[:,1]))
+        # print ilocs.shape
+        
+        # rows, cols= ilocs.astype(int)[0,:], ilocs.astype(int)[1,:]
+        # print Z.shape, rows.max(), cols.max()
+        # values= Z[rows, cols]
+
+        #print values
+
+        # Call underlying method using array values
+        if verbose:
+            log.critical('Applying fitted data to quantity')
+
+
+        if location == 'centroids':
+            if indices is None:
+                msg = 'Number of values must match number of elements'
+                #assert values.shape[0] == N, msg
+
+                self.centroid_values[:] = values
+            else:
+                msg = 'Number of values must match number of indices'
+                assert values.shape[0] == indices.shape[0], msg
+
+                # Brute force
+                self.centroid_values[indices] = values
+        else:
+            if indices is None:
+                msg = 'Number of values must match number of elements'
+                #assert values.shape[0] == N, msg
+
+                #print values.shape
+                #print self.vertex_values.shape
+                self.vertex_values[:] = values.reshape((-1,3))
+            else:
+                msg = 'Number of values must match number of indices'
+                assert values.shape[0] == indices.shape[0], msg
+
+                # Brute force
+                self.vertex_values[indices] = values.reshape((-1,3))
+            # Cleanup centroid values
+            self.interpolate()
 
 
     def set_values_from_lat_long_grid_file(self,
