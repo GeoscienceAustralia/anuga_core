@@ -63,9 +63,11 @@ class Test_tif2(unittest.TestCase):
         import os
 
         # makes a file Point_Data_test_utm.tif
+        # which contains UTM easting, northing data for 
+        # WGS 84 / UTM zone 56 South
         make_a_utm_tif()
 
-        os.remove('Point_Data_test_utm')
+        os.remove('PointData_test_utm.tif')
 
 
     def test_tif_lat_lon(self):
@@ -73,9 +75,10 @@ class Test_tif2(unittest.TestCase):
         import os
 
         # makes a file Point_Data_test_ll.tif
+        # which contains lat lon data
         make_a_ll_tif()
 
-        os.remove('Point_Data_test_ll.tif')
+        os.remove('PointData_test_ll.tif')
 
 
 

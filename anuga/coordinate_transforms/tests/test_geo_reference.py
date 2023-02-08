@@ -470,10 +470,28 @@ class geo_referenceTestCase(unittest.TestCase):
             pass
         else:
             msg = 'Should have raised an exception'
-            raise Exception(msg)
+            raise Exception(msg)  
+
+
+    def test_set_hemisphere(self):
+        g1 = Geo_reference(56,2,5)
+
+        assert g1.hemisphere == 'undefined'
+
+        g1.set_hemisphere('southern')
+        assert g1.hemisphere == 'southern'
+
+        # Generate exception with invalid hemisphere value
+        try:
+            g1.set_hemisphere('bogus')
+        except:
+            pass
+        else:
+            msg = 'Should have raised an exception'                      
+           
   
     def test_bad_ASCII_title(self):      
- # create an text file
+        # create an text file
         point_file = tempfile.mktemp(".xxx")
         fd = open(point_file,'w')
         fd.write("# hey! \n")
