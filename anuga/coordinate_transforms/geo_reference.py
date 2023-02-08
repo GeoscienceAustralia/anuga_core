@@ -29,6 +29,7 @@ DEFAULT_DATUM = 'wgs84'
 DEFAULT_UNITS = 'm'
 DEFAULT_FALSE_EASTING = 500000
 DEFAULT_FALSE_NORTHING = 10000000    # Default for southern hemisphere
+DEFAULT_SOUTHERN_HEMISPHERE = 'True'
 
 TITLE = '#geo reference' + "\n" # this title is referred to in the test format
 
@@ -36,6 +37,7 @@ class Geo_reference(object):
     """
     Attributes of the Geo_reference class:
         .zone           The UTM zone (default is -1)
+        .southern_hemisphere       Whether southern hemisphere (Default True)
         .false_easting  ??
         .false_northing ??
         .datum          The Datum used (default is wgs84)
@@ -44,6 +46,7 @@ class Geo_reference(object):
         .xllcorner      The X coord of origin (default is 0.0 wrt UTM grid)
         .yllcorner      The y coord of origin (default is 0.0 wrt UTM grid)
         .is_absolute    ??
+    
 
     """
 
@@ -56,11 +59,13 @@ class Geo_reference(object):
                  units=DEFAULT_UNITS,
                  false_easting=DEFAULT_FALSE_EASTING,
                  false_northing=DEFAULT_FALSE_NORTHING,
+                 southern_hemisphere=DEFAULT_SOUTHERN_HEMISPHERE,
                  NetCDFObject=None,
                  ASCIIFile=None,
                  read_title=None):
         """
         zone            the UTM zone.
+        southern_hemisphere True if southern hemisphere
         xllcorner       X coord of origin of georef.
         yllcorner       Y coord of origin of georef.
         datum           ??
@@ -84,6 +89,7 @@ class Geo_reference(object):
 
         if zone is None:
             zone = DEFAULT_ZONE
+        self.southern_hemisphere=str(southern_hemisphere)
         self.false_easting = int(false_easting)
         self.false_northing = int(false_northing)
         self.datum = datum
@@ -115,6 +121,7 @@ class Geo_reference(object):
         if self.datum != other.datum: equal = False
         if self.projection != other.projection: equal = False
         if self.zone != other.zone: equal = False
+        if self.southern_hemisphere != other.southern_hemisphere: equal = False
         if self.units != other.units: equal = False
         if self.xllcorner != other.xllcorner: equal = False
         if self.yllcorner != other.yllcorner: equal = False
@@ -123,6 +130,7 @@ class Geo_reference(object):
         return(equal)
 
     def get_xllcorner(self):
+        """Get the X coordinate of the origin of this georef."""
         return self.xllcorner
 
     def get_yllcorner(self):
@@ -135,6 +143,11 @@ class Geo_reference(object):
 
         return self.zone
 
+    def get_southern_hemisphere(self):
+        """Check if this georef is in the southern hemisphere."""
+
+        return self.southern_hemisphere
+
     def write_NetCDF(self, outfile):
         """Write georef attributes to an open NetCDF file.
 
@@ -144,6 +157,7 @@ class Geo_reference(object):
         outfile.xllcorner = self.xllcorner
         outfile.yllcorner = self.yllcorner
         outfile.zone = self.zone
+        outfile.southern_hemisphere = self.southern_hemisphere
 
         outfile.false_easting = self.false_easting
         outfile.false_northing = self.false_northing
@@ -161,6 +175,10 @@ class Geo_reference(object):
         self.xllcorner = float(infile.xllcorner)
         self.yllcorner = float(infile.yllcorner)
         self.zone = int(infile.zone)
+        try:
+            self.southern_hemisphere = str(infile.southern_hemisphere)
+        except:
+            self.southern_hemisphere = DEFAULT_SOUTHERN_HEMISPHERE
 
         self.false_easting = int(infile.false_easting)
         self.false_northing = int(infile.false_northing)
