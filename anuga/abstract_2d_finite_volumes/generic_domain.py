@@ -589,16 +589,16 @@ class Generic_Domain(object):
 
         self.geo_reference.zone = zone
 
+
     def set_institution(self,institution):
 
         self.institution = institution
 
-    def set_proj(self, proj):
-        if not isinstance(proj, str):
-            msg= 'Excepted argument is str e.g., +proj=utm +zone=23K, +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs"'
-            raise Exception(msg)
-        else:
-            self.proj= proj
+
+    def set_hemisphere(self, hemisphere):
+
+        self.geo_reference.set_hemisphere(hemisphere)
+
 
     def get_datetime(self):
         """Return date time of current modeltime."""
