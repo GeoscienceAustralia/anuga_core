@@ -1482,14 +1482,13 @@ class Quantity(object):
             # Cleanup centroid values
             self.interpolate()
 
-
     def set_values_from_lat_long_tif_file(self,
-                                     filename,
-                                     location='centroids',
-                                    indices=None,
-                                    verbose=False,
-                                    proj=None):
-        
+                                          filename,
+                                          location='centroids',
+                                          indices=None,
+                                          verbose=False,
+                                          proj=None):
+
         from anuga.file_conversion.tif2array_lat_long import tif2array_lat_long
 
         filename_ext = os.path.splitext(filename)[1]
@@ -1511,10 +1510,10 @@ class Quantity(object):
         # values = interpolate2d(x, y, Z, points, mode='constant', bounds_error=False)
 
         # ===update date: 2020/06/08 by Allen
-        if filename_ext in ['.tif', '.asc']:
+        if filename_ext in ['.tif']:
                 values = tif2array_lat_long(filename, proj=proj, points=points)
         else:
-            msg= 'The file extension is not suportted... Only .asc and .tif are supported.'
+            msg= 'The file extension is not suportted... Only .tif are supported.'
             Exception(msg)
         # print values
         # a = Affine.from_gdal(x[0],x[1]-x[0],0,y[0],0,y[1]-y[0])

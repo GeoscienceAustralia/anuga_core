@@ -21,3 +21,6 @@ dependencies:
   - gitpython
   - xarray
   - wget
+  - pyproj
+  - affine
+  - xarray
