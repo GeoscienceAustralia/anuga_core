@@ -1,0 +1,41 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: ANUGA
+message: >-
+  If you use this software, please cite it using the
+  metadata from this file.
+type: software
+authors:
+  - given-names: Stephen
+    family-names: Roberts
+    email: stephen.roberts@anu.edu.au
+    affiliation: Australian National University
+    orcid: 'https://orcid.org/0000-0002-6730-3108'
+  - given-names: Gareth
+    family-names: Davies
+    affiliation: Geoscience Australia
+    email: gareth.davies@ga.gov.au
+  - given-names: Ole
+    family-names: Nielsen
+    email: ole.moller.nielsen@gmail.com
+repository-code: 'https://github.com/anuga-community/anuga_core'
+url: 'https://en.wikipedia.org/wiki/ANUGA_Hydro'
+abstract: >-
+  ANUGA is a free and open source software tool for
+  hydrodynamic modelling, suitable for predicting the
+  consequences of hydrological disasters such as riverine
+  flooding, storm surges and tsunamis. For example, ANUGA
+  can be used to create predicted inundation maps based on
+  hypothetical tsunami or flood scenarios. 
+keywords:
+  - flooding
+  - tsunami
+  - shallow water equations
+  - finite volume method
+license: GPL-2.0+
+commit: 564d7c88b06d7ae3b3a3a2862673d597b7a950bd
+version: 3.1.9
+date-released: '2022-06-26'
+
