@@ -220,7 +220,7 @@ class TestCase(unittest.TestCase):
 
         x_p = -10
         y_p = -40
-        zone = 808
+        zone = 23
         geo_ref_poly = Geo_reference(zone, x_p, y_p)
         polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
 
@@ -767,7 +767,7 @@ class TestCase(unittest.TestCase):
                             [4.0, 0.0]]
         x_p = -10
         y_p = -40
-        zone = 808
+        zone = 23
         geo_ref_poly = Geo_reference(zone, x_p, y_p)
         polygon = geo_ref_poly.change_points_geo_ref(polygon_absolute)
         boundary_tags = {'50': [0],

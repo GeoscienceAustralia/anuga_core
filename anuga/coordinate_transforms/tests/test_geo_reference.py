@@ -487,7 +487,50 @@ class geo_referenceTestCase(unittest.TestCase):
         except:
             pass
         else:
-            msg = 'Should have raised an exception'                      
+            msg = 'Should have raised an exception' 
+
+    def test_get_hemisphere(self):
+
+        g1 = Geo_reference(56,2,5)
+
+        assert g1.get_hemisphere() == 'undefined'
+
+        g2 = Geo_reference()
+        g2.set_hemisphere('southern')
+
+        assert g2.get_hemisphere() == 'southern'
+
+        assert g2.get_zone() == -1   
+
+    def test_set_zone(self):
+        g1 = Geo_reference(56,2,5)
+
+        assert g1.zone == 56
+
+        g1.set_zone('55')
+        assert g1.zone == 55
+
+        g1.set_zone(-1)
+        assert g1.zone == -1
+
+        # Generate exception with invalid zone value
+        try:
+            g1.set_zone(0)
+        except:
+            pass
+        else:
+            msg = 'Should have raised an exception'  
+
+    def test_get_zone(self):
+
+        g1 = Geo_reference(56,2,5)
+
+        assert g1.get_zone() == 56
+
+        g2 = Geo_reference()
+
+        assert g2.get_zone() == -1
+
            
   
     def test_bad_ASCII_title(self):      

@@ -90,13 +90,13 @@ class Geo_reference(object):
         if zone is None:
             zone = DEFAULT_ZONE
 
+        self.set_zone(zone)
         self.set_hemisphere(hemisphere)
-
         self.false_easting = int(false_easting)
         self.false_northing = int(false_northing)
         self.datum = datum
         self.projection = projection
-        self.zone = int(zone)
+    
         self.units = units
         self.xllcorner = float(xllcorner)
         self.yllcorner = float(yllcorner)
@@ -139,6 +139,15 @@ class Geo_reference(object):
         """Get the Y coordinate of the origin of this georef."""
 
         return self.yllcorner
+
+    def set_zone(self, zone):
+        """set zone as an integer in [1,60] or -1."""
+
+        zone = int(zone)
+
+        assert (zone == -1 or (zone >= 1 and zone <= 60)), f'zone {zone} not valid.'
+
+        self.zone = zone
 
     def get_zone(self):
         """Get the zone of this georef."""
@@ -500,16 +509,16 @@ class Geo_reference(object):
     #    return cmp
 
 
-def write_NetCDF_georeference(origin, outfile):
+def write_NetCDF_georeference(georef, outfile):
     """Write georeference info to a NetCDF file, usually a SWW file.
 
-    origin   a georef instance or parameters to create a georef instance
+    georef   a georef instance or parameters to create a georef instance
     outfile  path to file to write
 
     Returns the normalised georef.
     """
 
-    geo_ref = ensure_geo_reference(origin)
+    geo_ref = ensure_geo_reference(georef)
     geo_ref.write_NetCDF(outfile)
     return geo_ref
 
@@ -528,7 +537,15 @@ def ensure_geo_reference(origin):
     elif origin is None:
         geo_ref = None
     else:
-        geo_ref = Geo_reference(*origin)
+        if len(origin) == 1:
+            geo_ref = Geo_reference(zone = origin)
+        elif len(origin) == 2:
+            geo_ref = Geo_reference(zone = -1, xllcorner=origin[0], yllcorner=origin[1])
+        elif len(origin) == 3:
+            geo_ref = Geo_reference(zone = origin[0], xllcorner=origin[1], yllcorner=origin[2])
+        else:
+            raise Exception(f'excepted  zone, (xllcorner, yllcorner), or (zone, xllcorner, yllcorner), but received {origin}')
+
 
     return geo_ref
 
