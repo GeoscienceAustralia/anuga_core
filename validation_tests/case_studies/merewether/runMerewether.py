@@ -96,7 +96,7 @@ else:
 #------------------------------------------------------------------------------
 
 if myid == 0:
-    mesh = anuga.create_mesh_from_regions(
+    domain = anuga.create_domain_from_regions(
             project.bounding_polygon,
             boundary_tags={'bottom': [0],
                            'right': [1],
@@ -105,13 +105,11 @@ if myid == 0:
             maximum_triangle_area=remainder_res,
             interior_holes=holes,
             breaklines=breaklines,
-            filename=meshname,
+            mesh_filename=meshname,
             interior_regions=interior_regions,
             use_cache=use_cache,
             verbose=verbose)
 
-    domain = anuga.create_domain_from_file(meshname)
-    
     domain.set_zone(project.zone)
 
     domain.set_flow_algorithm(alg)
@@ -169,9 +167,6 @@ domain.set_name('merewether_1m') # Name of sww file
 domain.set_datadir('.') # Store sww output here
 #domain.set_minimum_storable_height(0.001) # Store only depth > 1cm
 
-
-
-
 #------------------------------------------------------------------------------
 # Setup boundary conditions
 #------------------------------------------------------------------------------
@@ -181,12 +176,19 @@ if myid == 0: print('Available boundary tags', domain.get_boundary_tags())
 Br = anuga.Reflective_boundary(domain)
 Bt = anuga.Transmissive_boundary(domain)
 
-domain.set_boundary({'interior': Br,
-                     'bottom':   Br,
+boundary_dict = {'bottom':   Br,
                      'right':    Bt, # outflow
                      'top':      Bt, # outflow
-                     'left':     Br})
+                     'left':     Br}
 
+if houses_as_holes:
+    boundary_dict['interior'] = Br
+
+domain.set_boundary(boundary_dict)
+
+#-------------------------------------------------------------------------------
+# Setup Inlet
+#-------------------------------------------------------------------------------
 #line0 = [[382300.0,6354280.], [382300.0,6354300.]]
 line0 = [[382275.0,6354270.], [382255.0,6354290.]]
 import math
