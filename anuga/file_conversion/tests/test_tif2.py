@@ -51,7 +51,7 @@ def make_a_ll_tif():
     fakeZ = (xG-min(xG))/(max(xG)-min(xG))+(yG - min(yG))/(max(yG)-min(yG))
     dataToGrid = numpy.vstack([xG, yG, fakeZ]).transpose()
     #
-    # print(dataToGrid.shape)
+    # Create file PointData_test_ll.tif
     util.Make_Geotif(dataToGrid, output_quantities=['test_ll'],
                      EPSG_CODE=4326, output_dir='.', CellSize=0.0001)
 
@@ -127,7 +127,7 @@ class Test_tif2(unittest.TestCase):
         os.remove('PointData_test_utm.tif')
 
         
-    def test_tif_lat_lon(self):
+    def test_tif2point_values_ll(self):
 
         import os
         import numpy
