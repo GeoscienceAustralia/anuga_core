@@ -544,7 +544,7 @@ def ensure_geo_reference(origin):
         elif len(origin) == 3:
             geo_ref = Geo_reference(zone = origin[0], xllcorner=origin[1], yllcorner=origin[2])
         else:
-            raise Exception(f'excepted  zone, (xllcorner, yllcorner), or (zone, xllcorner, yllcorner), but received {origin}')
+            raise Exception(f'Invalid input {origin}, expected (zone), (xllcorner, yllcorner), or (zone, xllcorner, yllcorner).')
 
 
     return geo_ref

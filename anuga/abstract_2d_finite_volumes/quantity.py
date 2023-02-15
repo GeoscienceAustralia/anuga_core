@@ -928,11 +928,9 @@ class Quantity(object):
                                       use_cache=use_cache)
             # dem file in the format of .asc, .grd or .dem
             elif filename_ext in ['.asc', '.grd', '.dem']:
-                self.set_values_from_utm_grid_file(filename, location,
-                      indices, verbose=verbose)
+                self.set_values_from_utm_grid_file(filename, location, indices, verbose=verbose)
             elif filename_ext in ['.tif']:
-                self.set_values_from_lat_long_tif_file(filename, location,
-                      indices, verbose=verbose, proj=self.domain.proj)
+                self.set_values_from_tif_file(filename, location, indices, verbose=verbose)
             else:
                 raise Exception('Extension should be .pts .dem, .csv, .txt, .asc, .grd or .tif')
 
@@ -1482,16 +1480,27 @@ class Quantity(object):
             # Cleanup centroid values
             self.interpolate()
 
-    def set_values_from_lat_long_tif_file(self,
-                                          filename,
-                                          location='centroids',
-                                          indices=None,
-                                          verbose=False,
-                                          proj=None):
+    def set_values_from_tif_file(self,
+                                 filename,
+                                 location='centroids',
+                                 indices=None,
+                                 verbose=False):
 
-        from anuga.file_conversion.tif2array_lat_long import tif2array_lat_long
+        from anuga.file_conversion.tif2point_values import tif2point_values
 
         filename_ext = os.path.splitext(filename)[1]
+
+        zone = self.domain.get_zone()
+        if zone == -1:
+            msg = 'UTM zone needed for this calculation.\nUse domain.set_zone to set the UTM zone of your simulation'
+            raise Exception(msg)
+        
+        hemisphere = self.domain.get_hemisphere()
+
+        # Default hemisphere is south. If hemisphere undefined assume south = True
+        south = True
+        if hemisphere == 'northern':
+            south = False
 
         if location == 'centroids':
             points = self.domain.centroid_coordinates
@@ -1503,28 +1512,18 @@ class Quantity(object):
 
         points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
 
-        from  anuga.fit_interpolate.interpolate2d import interpolate2d
 
-        #print points
-        #TODO use affine to retrieve value
-        # values = interpolate2d(x, y, Z, points, mode='constant', bounds_error=False)
+        from pprint import pprint
 
-        # ===update date: 2020/06/08 by Allen
+        #pprint(points)
+
         if filename_ext in ['.tif']:
-                values = tif2array_lat_long(filename, proj=proj, points=points)
+                values = tif2point_values(filename, zone=zone, south=south, points=points)
         else:
             msg= 'The file extension is not suportted... Only .tif are supported.'
             Exception(msg)
-        # print values
-        # a = Affine.from_gdal(x[0],x[1]-x[0],0,y[0],0,y[1]-y[0])
-        # ilocs= num.array(~a * (points[:,0], points[:,1]))
-        # print ilocs.shape
-        
-        # rows, cols= ilocs.astype(int)[0,:], ilocs.astype(int)[1,:]
-        # print Z.shape, rows.max(), cols.max()
-        # values= Z[rows, cols]
 
-        #print values
+        #pprint(values)
 
         # Call underlying method using array values
         if verbose:

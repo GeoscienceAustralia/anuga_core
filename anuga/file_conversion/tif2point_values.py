@@ -8,7 +8,7 @@ from osgeo import gdal
 from pyproj import Proj, CRS, transform
 from affine import Affine
 
-def tif2point_values(filename, verbose=False, zone=None, south=True, points=None):
+def tif2point_values(filename, zone=None, south=True, points=None, verbose=False):
 
     raster= gdal.Open(filename)
     ncols= raster.RasterXSize
@@ -24,9 +24,20 @@ def tif2point_values(filename, verbose=False, zone=None, south=True, points=None
     src_georeference= CRS(raster.GetProjection())
     #print(src_georeference)
     
+    if zone == -1 :
+        raise Exception('Need to specify zone for domain')
+        
     UTM = CRS.from_dict({'proj': 'utm', 'zone': zone, 'south': south})
 
-    points_lons, points_lats= transform(UTM, src_georeference, points[:,0], points[:,1])
+    #points_lons, points_lats= transform(UTM, src_georeference, points[:,0], points[:,1])
+
+    from pyproj import Transformer
+    transformer = Transformer.from_crs(UTM, src_georeference)
+    points_lons, points_lats = transformer.transform(points[:,0], points[:,1])
+
+    import numpy
+    #assert numpy.allclose(points_lons,points_lons_1)
+    #assert numpy.allclose(points_lats,points_lats_1)
 
     transformer= Affine.from_gdal(*raster.GetGeoTransform())
     ilocs= np.array(~ transformer * (points_lats,points_lons))
