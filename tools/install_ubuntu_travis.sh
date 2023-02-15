@@ -72,15 +72,15 @@ echo "|  Using apt-get to install gdal                |"
 echo "+===============================================+"
 #sudo add-apt-repository -y ppa:ubuntugis/ppa
 #sudo apt-get update
-#sudo apt-get install -y gdal-bin libgdal-dev
+sudo apt-get install -y gdal-bin libgdal-dev
 
-sudo apt-get install -y libgdal1-dev
+#sudo apt-get install -y libgdal1-dev
 
 echo "+===============================================+"
 echo "|  GDAL version                                 |"
 echo "+===============================================+"
-#ogrinfo --version
-gdal-config --version
+ogrinfo --version
+#gdal-config --version
 #export CPLUS_INCLUDE_PATH=/usr/include/gdal
 #export C_INCLUDE_PATH=/usr/include/gdal
 
@@ -98,8 +98,9 @@ python -m pip  install -q matplotlib
 echo "+===============================================+"
 echo "|  Using pip to install gdal                    |"
 echo "+===============================================+"
-#python -m pip  install -q GDAL==3.0.4
-python -m pip  install -q pygdal==3.0.4.11
+python -m pip  install setuptools==58
+python -m pip  install -q GDAL==3.0.4
+#python -m pip  install -q pygdal==3.0.4.11
 
 echo "+===============================================+"
 echo "|  Using pip to install pytest                  |"
