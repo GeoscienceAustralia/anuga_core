@@ -135,7 +135,7 @@ python -m pip install -q gitpython
 echo "+===============================================+"
 echo "|  Using pip to install pyproj                  |"
 echo "+===============================================+"
-python -m pip  install -q pyproj, affine
+python -m pip  install -q pyproj affine
 
 echo "+===============================================+"
 echo "|  Using pip to install pymetis                 |"
