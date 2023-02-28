@@ -152,6 +152,11 @@ def redfearn(lat, lon, false_easting=None, false_northing=None,
     if zone is None:
         zone = int((lon - longitude_of_western_edge_zone0)/zone_width)
 
+        if zone > 60:
+            zone = zone - 60
+
+        assert (zone == -1 or (zone >= 1 and zone <= 60)), f'zone {zone} not valid.'
+
     # Central meridian
     if central_meridian is None:
         central_meridian = zone*zone_width+longitude_of_central_meridian_zone0

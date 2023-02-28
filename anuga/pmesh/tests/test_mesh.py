@@ -731,7 +731,7 @@ class meshTestCase(unittest.TestCase):
         s4 = Segment(a,e, tag = "20")
      
         r1 = Region(0.3, 0.3,tag = "1.3")
-        geo = Geo_reference(8.9,8.9,65)
+        geo = Geo_reference(55, 8.9,8.9)
         m = Mesh(userVertices=[a,d,f,e],
                  userSegments=[s1,s2,s3,s4],
                  regions=[r1],
@@ -774,7 +774,7 @@ class meshTestCase(unittest.TestCase):
         s4 = Segment(a,e, tag = "20")
      
         r1 = Region(0.3, 0.3,tag = "1.3")
-        geo = Geo_reference(65,8.9,8.9)
+        geo = Geo_reference(55,8.9,8.9)
         m = Mesh(userVertices=[a,d,f,e],
                  userSegments=[s1,s2,s3,s4],
                  regions=[r1],

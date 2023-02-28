@@ -28,7 +28,8 @@ DEFAULT_PROJECTION = 'UTM'
 DEFAULT_DATUM = 'wgs84'
 DEFAULT_UNITS = 'm'
 DEFAULT_FALSE_EASTING = 500000
-DEFAULT_FALSE_NORTHING = 10000000    # Default for southern hemisphere
+DEFAULT_FALSE_NORTHING = 10000000    
+DEFAULT_HEMISPHERE = 'undefined'
 
 TITLE = '#geo reference' + "\n" # this title is referred to in the test format
 
@@ -36,6 +37,7 @@ class Geo_reference(object):
     """
     Attributes of the Geo_reference class:
         .zone           The UTM zone (default is -1)
+        .hemisphere     southern, northern or undefined hemisphere
         .false_easting  ??
         .false_northing ??
         .datum          The Datum used (default is wgs84)
@@ -44,6 +46,7 @@ class Geo_reference(object):
         .xllcorner      The X coord of origin (default is 0.0 wrt UTM grid)
         .yllcorner      The y coord of origin (default is 0.0 wrt UTM grid)
         .is_absolute    ??
+    
 
     """
 
@@ -56,11 +59,13 @@ class Geo_reference(object):
                  units=DEFAULT_UNITS,
                  false_easting=DEFAULT_FALSE_EASTING,
                  false_northing=DEFAULT_FALSE_NORTHING,
+                 hemisphere=DEFAULT_HEMISPHERE,
                  NetCDFObject=None,
                  ASCIIFile=None,
                  read_title=None):
         """
         zone            the UTM zone.
+        hemisphere      southern or northern hemisphere
         xllcorner       X coord of origin of georef.
         yllcorner       Y coord of origin of georef.
         datum           ??
@@ -84,11 +89,14 @@ class Geo_reference(object):
 
         if zone is None:
             zone = DEFAULT_ZONE
+
+        self.set_zone(zone)
+        self.set_hemisphere(hemisphere)
         self.false_easting = int(false_easting)
         self.false_northing = int(false_northing)
         self.datum = datum
         self.projection = projection
-        self.zone = int(zone)
+    
         self.units = units
         self.xllcorner = float(xllcorner)
         self.yllcorner = float(yllcorner)
@@ -115,6 +123,7 @@ class Geo_reference(object):
         if self.datum != other.datum: equal = False
         if self.projection != other.projection: equal = False
         if self.zone != other.zone: equal = False
+        if self.hemisphere != other.hemisphere: equal = False
         if self.units != other.units: equal = False
         if self.xllcorner != other.xllcorner: equal = False
         if self.yllcorner != other.yllcorner: equal = False
@@ -123,6 +132,7 @@ class Geo_reference(object):
         return(equal)
 
     def get_xllcorner(self):
+        """Get the X coordinate of the origin of this georef."""
         return self.xllcorner
 
     def get_yllcorner(self):
@@ -130,10 +140,31 @@ class Geo_reference(object):
 
         return self.yllcorner
 
+    def set_zone(self, zone):
+        """set zone as an integer in [1,60] or -1."""
+
+        zone = int(zone)
+
+        assert (zone == -1 or (zone >= 1 and zone <= 60)), f'zone {zone} not valid.'
+
+        self.zone = zone
+
     def get_zone(self):
         """Get the zone of this georef."""
 
         return self.zone
+
+    def get_hemisphere(self):
+        """Check if this georef has a defined hemisphere."""
+
+        return self.hemisphere
+
+    def set_hemisphere(self, hemisphere):
+
+        msg = f"'{hemisphere}' not corresponding to allowed hemisphere values 'southern', 'northern' or 'undefined'" 
+        assert hemisphere in ['southern', 'northern', 'undefined'], msg
+
+        self.hemisphere=str(hemisphere)
 
     def write_NetCDF(self, outfile):
         """Write georef attributes to an open NetCDF file.
@@ -144,6 +175,7 @@ class Geo_reference(object):
         outfile.xllcorner = self.xllcorner
         outfile.yllcorner = self.yllcorner
         outfile.zone = self.zone
+        outfile.hemisphere = self.hemisphere
 
         outfile.false_easting = self.false_easting
         outfile.false_northing = self.false_northing
@@ -161,6 +193,10 @@ class Geo_reference(object):
         self.xllcorner = float(infile.xllcorner)
         self.yllcorner = float(infile.yllcorner)
         self.zone = int(infile.zone)
+        try:
+            self.hemisphere = str(infile.hemisphere)
+        except:
+            self.hemisphere = DEFAULT_HEMISPHERE
 
         self.false_easting = int(infile.false_easting)
         self.false_northing = int(infile.false_northing)
@@ -420,6 +456,19 @@ class Geo_reference(object):
                    % (self.zone, other.zone))
             raise ANUGAError(msg)
 
+        # Should also reconcile hemisphere
+        if (self.hemisphere == other.hemisphere):
+            pass        
+        elif self.hemisphere == DEFAULT_HEMISPHERE:
+            self.hemisphere = other.hemisphere
+        elif other.hemisphere == DEFAULT_HEMISPHERE:
+            other.hemisphere = self.hemisphere
+        else:
+            msg = ('Geospatial data must be in the same '
+                   'HEMISPHERE to allow reconciliation. I got hemisphere %d and %d'
+                   % (self.hemisphere, other.hemisphere))
+            raise ANUGAError(msg)        
+
     # FIXME (Ole): Do we need this back?    
     #def easting_northing2geo_reffed_point(self, x, y):
     #    return [x-self.xllcorner, y - self.xllcorner]
@@ -433,8 +482,8 @@ class Geo_reference(object):
         return (self.zone, self.xllcorner, self.yllcorner)
 
     def __repr__(self):
-        return ('(zone=%i easting=%f, northing=%f)'
-                % (self.zone, self.xllcorner, self.yllcorner))
+        return ('(zone=%i, easting=%f, northing=%f, hemisphere=%s)'
+                % (self.zone, self.xllcorner, self.yllcorner, self.hemisphere))
 
     #def __cmp__(self, other):
     #    """Compare two geo_reference instances.#
@@ -460,16 +509,16 @@ class Geo_reference(object):
     #    return cmp
 
 
-def write_NetCDF_georeference(origin, outfile):
+def write_NetCDF_georeference(georef, outfile):
     """Write georeference info to a NetCDF file, usually a SWW file.
 
-    origin   a georef instance or parameters to create a georef instance
+    georef   a georef instance or parameters to create a georef instance
     outfile  path to file to write
 
     Returns the normalised georef.
     """
 
-    geo_ref = ensure_geo_reference(origin)
+    geo_ref = ensure_geo_reference(georef)
     geo_ref.write_NetCDF(outfile)
     return geo_ref
 
@@ -488,7 +537,15 @@ def ensure_geo_reference(origin):
     elif origin is None:
         geo_ref = None
     else:
-        geo_ref = Geo_reference(*origin)
+        if len(origin) == 1:
+            geo_ref = Geo_reference(zone = origin)
+        elif len(origin) == 2:
+            geo_ref = Geo_reference(zone = -1, xllcorner=origin[0], yllcorner=origin[1])
+        elif len(origin) == 3:
+            geo_ref = Geo_reference(zone = origin[0], xllcorner=origin[1], yllcorner=origin[2])
+        else:
+            raise Exception(f'Invalid input {origin}, expected (zone), (xllcorner, yllcorner), or (zone, xllcorner, yllcorner).')
+
 
     return geo_ref
 

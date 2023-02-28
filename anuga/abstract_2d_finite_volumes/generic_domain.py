@@ -587,11 +587,27 @@ class Generic_Domain(object):
     def set_zone(self, zone):
         """Set zone for domain."""
 
-        self.geo_reference.zone = zone
+        self.geo_reference.set_zone(zone)
+
+    def get_zone(self):
+        """get zone for domain Geo_reference"""
+
+        return self.geo_reference.get_zone()
+
 
     def set_institution(self,institution):
 
         self.institution = institution
+
+
+    def set_hemisphere(self, hemisphere):
+
+        self.geo_reference.set_hemisphere(hemisphere)
+
+    def get_hemisphere(self):
+
+        return self.geo_reference.get_hemisphere()
+
 
     def get_datetime(self):
         """Return date time of current modeltime."""
