@@ -202,7 +202,7 @@ class Test_Distribute_Mesh(unittest.TestCase):
                                             [8, 12,  7],
                                             [5, 12,  8]])
 
-        true_triangles_meshpy_2022_1_3_win = array([[0,  9,  1],
+        true_triangles_meshpy_2022_1_3_win_1 = array([[0,  9,  1],
                                                     [3,  9,  0],
                                                     [4,  9,  3],
                                                     [1,  9,  4],
@@ -218,6 +218,24 @@ class Test_Distribute_Mesh(unittest.TestCase):
                                                     [7, 12,  4],
                                                     [8, 12,  7],
                                                     [5, 12,  8]])
+
+        true_triangles_meshpy_2022_1_3_win_2 = array([[4,  9,  3],
+                                                      [1,  9,  4],
+                                                      [4, 10,  1],
+                                                      [5, 10,  4],
+                                                      [3, 11,  4],
+                                                      [6, 11,  3],
+                                                      [7, 11,  6],
+                                                      [4, 11,  7],
+                                                      [7, 12,  4],
+                                                      [0,  9,  1],
+                                                      [3,  9,  0],
+                                                      [1, 10,  2],
+                                                      [2, 10,  5],
+                                                      [4, 12,  5],
+                                                      [8, 12,  7],
+                                                      [5, 12,  8]])
+
 
         true_triangles_meshpy_2022_1_3 = array([[0,  9,  1],
                                                 [3,  9,  0],
@@ -245,8 +263,9 @@ class Test_Distribute_Mesh(unittest.TestCase):
             num.allclose(triangles, true_triangles_win_4) or \
             num.allclose(triangles, true_triangles_5_part_mesh) or \
             num.allclose(triangles, true_triangles_meshpy_2022_1_3) or \
-            num.allclose(triangles, true_triangles_meshpy_2022_1_3_win)
-
+            num.allclose(triangles, true_triangles_meshpy_2022_1_3_win_1) or \
+            num.allclose(triangles, true_triangles_meshpy_2022_1_3_win_2)
+            
         print(triangles_per_proc)
         assert num.allclose(triangles_per_proc,[8,8]) or num.allclose(triangles_per_proc,[9,7])
 
