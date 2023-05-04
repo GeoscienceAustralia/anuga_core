@@ -2140,7 +2140,7 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            from .swDE1_domain_ext import compute_fluxes_ext_central \
+            from .swDE_domain_ext import compute_fluxes_ext_central \
                                       as compute_fluxes_ext
 
             timestep = self.evolve_max_timestep
@@ -2222,7 +2222,7 @@ class Domain(Generic_Domain):
             # Do protection step
             self.protect_against_infinitesimal_and_negative_heights()
             # Do extrapolation step
-            from .swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+            from .swDE_domain_ext import extrapolate_second_order_edge_sw as extrapol2
             extrapol2(self)
 
         else:
@@ -2355,7 +2355,7 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'DE':
 
-            from .swDE1_domain_ext import protect_new
+            from .swDE_domain_ext import protect_new
 
 
             mass_error = protect_new(self)
@@ -3060,7 +3060,7 @@ class Domain(Generic_Domain):
             Update the 'flux_update_frequency' and 'update_extrapolate' variables
             Used to control updating of fluxes / extrapolation for 'local-time-stepping'
         """
-        from .swDE1_domain_ext import compute_flux_update_frequency \
+        from .swDE_domain_ext import compute_flux_update_frequency \
                                   as compute_flux_update_frequency_ext
 
         compute_flux_update_frequency_ext(self, self.timestep)

@@ -30,8 +30,8 @@ def configuration(parent_package='',top_path=None):
                          sources=['swb2_domain_ext.pyx'],
                          include_dirs=[util_dir])
 
-    config.add_extension('swDE1_domain_ext',
-                         sources=['swDE1_domain_ext.pyx'],
+    config.add_extension('swDE_domain_ext',
+                         sources=['swDE_domain_ext.pyx'],
                          include_dirs=[util_dir])
 
     config.ext_modules = cythonize(config.ext_modules, annotate=True)
