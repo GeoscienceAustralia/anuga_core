@@ -82,6 +82,7 @@ cdef extern from "swDE_domain.c" nogil:
 
 	int _compute_flux_update_frequency(domain* D, double timestep)
 	double _compute_fluxes_central(domain* D, double timestep)
+	double _compute_fluxes_central_openmp(domain* D, double timestep)
 	double _protect_new(domain* D)
 	int _extrapolate_second_order_edge_sw(domain* D)
 
@@ -331,7 +332,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		timestep = _compute_fluxes_central(&D, timestep)
+		timestep = _compute_fluxes_central_openmp(&D, timestep)
 
 	return timestep
 
