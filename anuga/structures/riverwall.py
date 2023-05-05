@@ -18,38 +18,39 @@ class RiverWall(object):
     As of 22/04/2014, they are only implemented for DE algorithms [the shallow water
     component would be more difficult to implement with other algorithms]
         
-    How the flux over the riverwall is computed:
-    # We have a riverwall, which is treated as a weir.
-    #
-    # Say the headwater-head is the upstream water depth above the weir elevation (min 0), and 
-    #   the tailwater head is the downstream water depth above the weir elevation (min 0).
-    #   By definition headwater-head > tailwater-head.
-    #
-    # Let s = (headwater head) / (tailwater head), and h = (tailwater head)/(weir height)
-    #  where 'weir height' is the elevation of the weir crest above the minimum
-    #  of the left/right bed elevations
-    #
-    # Denote ID as the 'ideal' weir flow, computed from the hydraulic
-    # formula (including a submergence correction factor from Villemonte,
-    # 1947), 
-    #      Q1 = 2/3*headwater_head*sqrt(g*2/3*headwater_head)*Qfactor
-    #      Q2 = 2/3*tailwater_head*sqrt(g*2/3*tailwater_head)*Qfactor
-    #      ID = Q1*(1-Q2/Q1)**0.385
-    #
-    # Denote SW as the 'shallow-water' weir flux, computed from the approximate
-    # reimann solver, where the mid-edge-elevation is the weir crest elevation.
-    # This makes clear sense for DE0 and DE1. Cell centroid stage/height/bed_elevation
-    # are used in the flux computation
-    #
-    # Then the flux over the weir is computed from:
-    #   w1 = min( max(s-s1, 0.)/(s2-s1), 1.0) # Factor describing relative submergence
-    #   w1' = min( max(h-h1,0.)/(h2-h1), 1.0) # Factor describing absolute submergence
-    #  flux_over_weir = (w1*SW + (1-w1)*ID)*( 1-w1') + (w1')*SW 
-    # where s1, s2, h1, h2 are user defined parameters
-    #
-    # The key idea is that if s<s1, h<h1, then the ideal weir solution is
-    # used. Otherwise, we linearly blend with the SW solution,
-    # and the SW solution is used completely if s>s2 or h>h2
+    Flux computation over the riverwall:
+
+    We have a riverwall, which is treated as a weir.
+    
+    Say the headwater-head is the upstream water depth above the weir elevation (min 0), and 
+      the tailwater head is the downstream water depth above the weir elevation (min 0).
+      By definition headwater-head > tailwater-head.
+    
+    Let s = (headwater head) / (tailwater head), and h = (tailwater head)/(weir height)
+     where 'weir height' is the elevation of the weir crest above the minimum
+     of the left/right bed elevations
+    
+    Denote ID as the 'ideal' weir flow, computed from the hydraulic
+    formula (including a submergence correction factor from Villemonte,
+    1947), 
+         Q1 = 2/3*headwater_head*sqrt(g*2/3*headwater_head)*Qfactor
+         Q2 = 2/3*tailwater_head*sqrt(g*2/3*tailwater_head)*Qfactor
+         ID = Q1*(1-Q2/Q1)**0.385
+    
+    Denote SW as the 'shallow-water' weir flux, computed from the approximate
+    Riemann solver, where the mid-edge-elevation is the weir crest elevation.
+    This makes clear sense for DE0 and DE1. Cell centroid stage/height/bed_elevation
+    are used in the flux computation
+    
+    Then the flux over the weir is computed from:
+      w1 = min( max(s-s1, 0.)/(s2-s1), 1.0) # Factor describing relative submergence
+      w1' = min( max(h-h1,0.)/(h2-h1), 1.0) # Factor describing absolute submergence
+     flux_over_weir = (w1*SW + (1-w1)*ID)*( 1-w1') + (w1')*SW 
+    where s1, s2, h1, h2 are user defined parameters
+    
+    The key idea is that if s<s1, h<h1, then the ideal weir solution is
+    used. Otherwise, we linearly blend with the SW solution,
+    and the SW solution is used completely if s>s2 or h>h2
 
     """
     
@@ -400,6 +401,12 @@ class RiverWall(object):
         # Record the names of the riverwalls
         self.names=nw_names
 
+        RiverWall_counter = 0
+        for k in range(domain.number_of_elements):
+            for i in range(3):
+                ki = 3*k+i
+                RiverWall_counter += 1
+                domain.edge_river_wall_counter[ki] = RiverWall_counter
        
         # Now create the hydraulic properties table
 

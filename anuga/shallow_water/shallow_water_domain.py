@@ -281,6 +281,7 @@ class Domain(Generic_Domain):
         # Set flow defaults
         #-------------------------------
         self.set_flow_algorithm()
+        self.use_openmp = True
 
         #-------------------------------
         # datetime and timezone
@@ -332,6 +333,7 @@ class Domain(Generic_Domain):
         #                   2 == ?
         #                   etc
         self.edge_flux_type=num.zeros(len(self.edge_coordinates[:,0])).astype(int)
+        self.edge_river_wall_counter=num.zeros(len(self.edge_coordinates[:,0])).astype(int)
 
         # Riverwalls -- initialise with dummy values
         # Presently only works with DE algorithms, will fail otherwise

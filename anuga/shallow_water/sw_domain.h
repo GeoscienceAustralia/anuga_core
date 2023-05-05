@@ -94,9 +94,12 @@ struct domain {
 
     long* allow_timestep_increase;
 
+    long* edge_river_wall_counter;
     double* riverwall_elevation;
     long* riverwall_rowIndex;
     double* riverwall_hydraulic_properties;
+
+    
 };
 
 
@@ -223,6 +226,7 @@ int print_domain_struct(struct domain *D) {
     printf("D->stage_explicit_update  %p \n", D->stage_explicit_update);
     printf("D->xmom_explicit_update   %p \n", D->xmom_explicit_update);
     printf("D->ymom_explicit_update   %p \n", D->ymom_explicit_update);
+    printf("D->edge_river_wall_counter   %p \n", D->edge_river_wall_counter);
 
 
     return 0;
