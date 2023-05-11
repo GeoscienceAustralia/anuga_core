@@ -281,7 +281,16 @@ class Domain(Generic_Domain):
         # Set flow defaults
         #-------------------------------
         self.set_flow_algorithm()
-        self.use_openmp = True
+
+        #-------------------------------
+        # Set swDE code while developing
+        # openmp flux code 
+        # 0. original without local timestep
+        # 1. calc flux looping thru all triangles (twice as much computation but parallel)
+        # 2. code 1 with openmp pragmas
+        # 3. calc flux looping thru all edges (not implemented)
+        #-------------------------------    
+        self.openmp_code = 0
 
         #-------------------------------
         # datetime and timezone

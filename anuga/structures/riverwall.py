@@ -401,12 +401,17 @@ class RiverWall(object):
         # Record the names of the riverwalls
         self.names=nw_names
 
+        # Setup domain.edge_river_wall_counter array (useful in flux calculation)
         RiverWall_counter = 0
         for k in range(domain.number_of_elements):
             for i in range(3):
                 ki = 3*k+i
-                RiverWall_counter += 1
-                domain.edge_river_wall_counter[ki] = RiverWall_counter
+                domain.edge_river_wall_counter[ki] = 0
+                if(domain.edge_flux_type[ki] == 1):
+                    # Update counter of riverwall edges 
+                    RiverWall_counter += 1
+                    domain.edge_river_wall_counter[ki] = RiverWall_counter
+
        
         # Now create the hydraulic properties table
 
@@ -466,6 +471,8 @@ class RiverWall(object):
         connectedness=self.check_riverwall_connectedness(verbose=verbose)
 
         self.export_riverwalls_to_text(output_dir=output_dir)
+
+
         
         # Pretty printing of riverwall information in parallel
         if(verbose): 

@@ -85,9 +85,60 @@ cdef extern from "swDE_domain.c" nogil:
 		pass
 
 	int _compute_flux_update_frequency(domain* D, double timestep)
-	double _compute_fluxes_central_original(domain* D, double timestep)
-	double _compute_fluxes_central_openmp(domain* D, double timestep)
+
+	double _openmp_compute_fluxes_central(int K, int KI, int KI2, int KI3, int B, int RW, int RW6, int SubSteps,
+                                      double *D_edgelengths,
+                                      double *D_normals,
+                                      double *D_edge_timestep,
+                                      double *D_radii,
+                                      double *D_areas,
+                                      long *D_tri_full_flag,
+
+                                      double *D_stage_explicit_update, 
+                                      double *D_xmom_explicit_update,
+                                      double *D_ymom_explicit_update,
+
+                                      double *D_stage_centroid_values,
+                                      double *D_height_centroid_values,
+                                      double *D_bed_centroid_values,
+
+                                      double *D_stage_edge_values,
+                                      double *D_xmom_edge_values,
+                                      double *D_ymom_edge_values,
+                                      double *D_bed_edge_values,
+                                      double *D_height_edge_values,
+
+                                      double *D_edge_flux_work,
+                                      double *D_pressuregrad_work,
+                                      double *D_max_speed,
+
+                                      double *D_stage_boundary_values,
+                                      double *D_xmom_boundary_values,
+                                      double *D_ymom_boundary_values,
+
+                                      double *D_boundary_flux_sum,                              
+
+                                      long *D_neighbours,
+                                      long *D_neighbour_edges,
+                                      long *D_edge_flux_type,
+                                      long *D_edge_river_wall_counter,
+
+                                      long *D_riverwall_rowIndex,
+                                      double *D_riverwall_elevation,
+                                      double *D_riverwall_hydraulic_properties,
+
+                                      domain *D,
+                                      double timestep)
+
+
+
+
+
+	double _xxx_compute_fluxes_central_original(domain* D, double timestep)
+	double _xxx_compute_fluxes_central_parallel_data_flow(domain* D, double timestep)
+
 	double _protect_new(domain* D)
+
 	int _extrapolate_second_order_edge_sw(domain* D)
 
 
@@ -337,15 +388,72 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 
 	cdef domain D
 
+	cdef int K = domain_object.number_of_elements
+	cdef int KI = domain_object.number_of_elements*3
+	cdef int KI2 = domain_object.number_of_elements*6
+	cdef int KI3 = domain_object.number_of_elements*9
+	cdef int B = 5
+	cdef int RW = 5
+	cdef int RW6 = 5
+	cdef int SubSteps= 3
+
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
 
-	if domain_object.use_openmp:
+	if domain_object.openmp_code == 0:
 		with nogil:
-			timestep =  _compute_fluxes_central_openmp(&D, timestep)
-		
+			timestep =  _xxx_compute_fluxes_central_original(&D, timestep)
+	elif domain_object.openmp_code == 1:
+		with nogil:
+			timestep =  _xxx_compute_fluxes_central_parallel_data_flow(&D, timestep)
+	elif domain_object.openmp_code == 2:
+		with nogil:
+			timestep =  _openmp_compute_fluxes_central(K, KI, KI2, KI3, B, RW, RW6, SubSteps,
+                                      D.edgelengths,
+                                      D.normals,
+                                      D.edge_timestep,
+                                      D.radii,
+                                      D.areas,
+                                      D.tri_full_flag,
+
+                                      D.stage_explicit_update, 
+                                      D.xmom_explicit_update,
+                                      D.ymom_explicit_update,
+
+                                      D.stage_centroid_values,
+                                      D.height_centroid_values,
+                                      D.bed_centroid_values,
+
+                                      D.stage_edge_values,
+                                      D.xmom_edge_values,
+                                      D.ymom_edge_values,
+                                      D.bed_edge_values,
+                                      D.height_edge_values,
+
+                                      D.edge_flux_work,
+                                      D.pressuregrad_work,
+                                      D.max_speed,
+
+                                      D.stage_boundary_values,
+                                      D.xmom_boundary_values,
+                                      D.ymom_boundary_values,
+
+                                      D.boundary_flux_sum,                              
+
+                                      D.neighbours,
+                                      D.neighbour_edges,
+                                      D.edge_flux_type,
+                                      D.edge_river_wall_counter,
+
+                                      D.riverwall_rowIndex,
+                                      D.riverwall_elevation,
+                                      D.riverwall_hydraulic_properties,
+
+                                      &D,
+                                      timestep)
 	else:
-			timestep =  _compute_fluxes_central_original(&D, timestep)
+		with nogil:
+			timestep =  _xxx_compute_fluxes_central_original(&D, timestep)
 
 	return timestep
 
