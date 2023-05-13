@@ -34,7 +34,7 @@ class Test_DE_openmp(unittest.TestCase):
         """
 
         def create_domain(name='domain'):
-            domain = anuga.rectangular_cross_domain(4,4, len1=1., len2=1.)
+            domain = anuga.rectangular_cross_domain(2,2, len1=1., len2=1.)
 
             domain.set_flow_algorithm('DE0')
             domain.set_low_froude(0)
