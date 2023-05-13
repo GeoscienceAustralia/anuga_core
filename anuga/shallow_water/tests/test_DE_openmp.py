@@ -34,7 +34,7 @@ class Test_DE_openmp(unittest.TestCase):
         """
 
         def create_domain(name='domain'):
-            domain = anuga.rectangular_cross_domain(20,20, len1=1., len2=1.)
+            domain = anuga.rectangular_cross_domain(4,4, len1=1., len2=1.)
 
             domain.set_flow_algorithm('DE0')
             domain.set_low_froude(0)
@@ -133,21 +133,30 @@ class Test_DE_openmp(unittest.TestCase):
         xmom2 = quantities2["xmomentum"]
         ymom2 = quantities2["ymomentum"]
 
-        print(num.allclose(stage1.explicit_update, stage2.explicit_update))
-        print(num.allclose(xmom1.explicit_update, xmom2.explicit_update))
-        print(num.allclose(ymom1.explicit_update, ymom2.explicit_update))
 
-        print(num.allclose(domain1.edge_timestep, domain2.edge_timestep))
+        print('stage explicit update ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
+        print('xmom  explicit update ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
+        print('ymom  explicit update ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+        print('edge timestep         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
+        print('max speed             ', num.linalg.norm(domain1.max_speed-domain2.max_speed))
+        print('pressure work         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
+        print('edge flux work  (inf) ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work,num.inf))
+        print('edge flux work  (L1)  ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work,1))
 
-        print(num.allclose(domain1.pressuregrad_work, domain2.pressuregrad_work))
 
+        ki3 = num.argmax(num.abs(domain1.edge_flux_work-domain2.edge_flux_work))
 
-        print(num.allclose(domain1.edge_timestep, domain2.edge_timestep))
+        ki = ki3//3
+        q = ki3%3
+        k = ki//3
+        e = ki%3
+
+        print('edge_flux_work ki,q,k,e ', ki, q, k, e)
 
         import pprint
 
-        pprint.pprint(domain1.edge_timestep)
-        pprint.pprint(domain2.edge_timestep)
+        #pprint.pprint(domain1.edge_flux_work)
+        pprint.pprint(domain2.edge_flux_work- domain1.edge_flux_work)
 
 
 
@@ -176,7 +185,7 @@ class Test_DE_openmp(unittest.TestCase):
               
             domain = anuga.create_domain_from_regions(bounding_polygon, 
                                            boundary_tags,
-                                           maximum_triangle_area = 0.2,
+                                           maximum_triangle_area = 0.4,
                                            breaklines = riverWalls.values())
 
             domain.set_name(name)
@@ -260,23 +269,20 @@ class Test_DE_openmp(unittest.TestCase):
         xmom2 = quantities2["xmomentum"]
         ymom2 = quantities2["ymomentum"]
 
-        print(num.allclose(stage1.explicit_update, stage2.explicit_update))
-        print(num.allclose(xmom1.explicit_update, xmom2.explicit_update))
-        print(num.allclose(ymom1.explicit_update, ymom2.explicit_update))
+        print('stage explicit update ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
+        print('xmom  explicit update ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
+        print('ymom  explicit update ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+        print('edge timestep         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
+        print('pressure work         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
+        print('edge flux work        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
 
-        print(num.allclose(domain1.edge_timestep, domain2.edge_timestep))
-
-        print(num.allclose(domain1.pressuregrad_work, domain2.pressuregrad_work))
-
-
-        print(num.allclose(domain1.edge_timestep, domain2.edge_timestep))
 
         import pprint
 
-        pprint.pprint(domain1.edge_timestep)
-        pprint.pprint(domain2.edge_timestep)    
+        #pprint.pprint(domain1.edge_timestep)
+        #pprint.pprint(domain2.edge_timestep)    
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_DE_openmp, 'test')
+    suite = unittest.makeSuite(Test_DE_openmp, 'test_runup')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

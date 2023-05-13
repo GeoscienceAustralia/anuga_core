@@ -10,6 +10,8 @@ cimport numpy as np
 cdef extern from "swDE_domain.c" nogil:
 	struct domain:
 		long number_of_elements
+		long boundary_length
+		long number_of_riverwall_edges
 		double epsilon
 		double H0
 		double g
@@ -86,7 +88,7 @@ cdef extern from "swDE_domain.c" nogil:
 
 	int _compute_flux_update_frequency(domain* D, double timestep)
 
-	double _openmp_compute_fluxes_central(int K, int KI, int KI2, int KI3, int B, int RW, int RW6, int SubSteps,
+	double _openmp_compute_fluxes_central(int K, int KI, int KI2, int KI3, int B, int RW, int RW5, int SubSteps,
                                       double *D_edgelengths,
                                       double *D_normals,
                                       double *D_edge_timestep,
@@ -132,7 +134,7 @@ cdef extern from "swDE_domain.c" nogil:
 
 
 
-
+	# double _openmp_compute_fluxes_central(domain* D, double timestep)
 
 	double _xxx_compute_fluxes_central_original(domain* D, double timestep)
 	double _xxx_compute_fluxes_central_parallel_data_flow(domain* D, double timestep)
@@ -148,6 +150,8 @@ cdef int parameter_flag = 0
 cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
 	D.number_of_elements = domain_object.number_of_elements
+	D.boundary_length = domain_object.boundary_length 
+	D.number_of_riverwall_edges = domain_object.number_of_riverwall_edges
 	D.epsilon = domain_object.epsilon
 	D.H0 = domain_object.H0
 	D.g = domain_object.g
@@ -392,9 +396,9 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 	cdef int KI = domain_object.number_of_elements*3
 	cdef int KI2 = domain_object.number_of_elements*6
 	cdef int KI3 = domain_object.number_of_elements*9
-	cdef int B = 5
-	cdef int RW = 5
-	cdef int RW6 = 5
+	cdef int B = domain_object.boundary_length 
+	cdef int RW = domain_object.number_of_riverwall_edges
+	cdef int RW5 = RW*5
 	cdef int SubSteps= 3
 
 	get_python_domain_parameters(&D, domain_object)
@@ -408,7 +412,9 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 			timestep =  _xxx_compute_fluxes_central_parallel_data_flow(&D, timestep)
 	elif domain_object.openmp_code == 2:
 		with nogil:
-			timestep =  _openmp_compute_fluxes_central(K, KI, KI2, KI3, B, RW, RW6, SubSteps,
+			#timestep = _openmp_compute_fluxes_central(&D, timestep)
+
+			timestep =  _openmp_compute_fluxes_central(K, KI, KI2, KI3, B, RW, RW5, SubSteps,
                                       D.edgelengths,
                                       D.normals,
                                       D.edge_timestep,
@@ -451,6 +457,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 
                                       &D,
                                       timestep)
+
 	else:
 		with nogil:
 			timestep =  _xxx_compute_fluxes_central_original(&D, timestep)

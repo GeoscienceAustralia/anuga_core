@@ -11,6 +11,8 @@
 struct domain {
     // Changing these don't change the data in python object
     long    number_of_elements;
+    long    boundary_length;
+    long    number_of_riverwall_edges;
     double  epsilon;
     double  H0;
     double  g;
@@ -174,6 +176,8 @@ int print_domain_struct(struct domain *D) {
 
 
     printf("D->number_of_elements     %ld  \n", D->number_of_elements);
+    printf("D->boundary_length        %ld  \n", D->boundary_length);
+    printf("D->number_of_riverwall_edges %ld  \n", D->number_of_riverwall_edges);
     printf("D->epsilon                %g \n", D->epsilon);
     printf("D->H0                     %g \n", D->H0);
     printf("D->g                      %g \n", D->g);

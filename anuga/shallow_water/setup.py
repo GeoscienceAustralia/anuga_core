@@ -31,15 +31,17 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=[util_dir])
     
     if sys.platform == 'darwin':
-        extra_args = None
+        extra_compiler_args = None
+        extra_link_args = None
     else:
-        extra_args = ['-fopenmp']
+        extra_compiler_args = ['-fopenmp -g']
+        extra_link_args = ['-fopenmp']
 
     config.add_extension('swDE_domain_ext',
                          sources=['swDE_domain_ext.pyx'],
                          include_dirs=[util_dir],
-                         extra_compile_args=extra_args,
-                         extra_link_args=extra_args)
+                         extra_compile_args=extra_compiler_args,
+                         extra_link_args=extra_link_args)
 
     config.ext_modules = cythonize(config.ext_modules, annotate=True)
 

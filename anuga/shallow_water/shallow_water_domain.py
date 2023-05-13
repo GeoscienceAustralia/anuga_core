@@ -343,6 +343,7 @@ class Domain(Generic_Domain):
         #                   etc
         self.edge_flux_type=num.zeros(len(self.edge_coordinates[:,0])).astype(int)
         self.edge_river_wall_counter=num.zeros(len(self.edge_coordinates[:,0])).astype(int)
+        self.number_of_riverwall_edges = 0
 
         # Riverwalls -- initialise with dummy values
         # Presently only works with DE algorithms, will fail otherwise
