@@ -34,7 +34,7 @@ def configuration(parent_package='',top_path=None):
         extra_compiler_args = None
         extra_link_args = None
     else:
-        extra_compiler_args = ['-fopenmp -g']
+        extra_compiler_args = ['-fopenmp']
         extra_link_args = ['-fopenmp']
 
     config.add_extension('swDE_domain_ext',
