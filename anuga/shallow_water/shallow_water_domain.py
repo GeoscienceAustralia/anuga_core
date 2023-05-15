@@ -290,7 +290,7 @@ class Domain(Generic_Domain):
         # 2. code 1 with openmp pragmas
         # 3. calc flux looping thru all edges (not implemented)
         #-------------------------------    
-        self.openmp_code = 2
+        self.openmp_code = 0
 
         #-------------------------------
         # datetime and timezone
