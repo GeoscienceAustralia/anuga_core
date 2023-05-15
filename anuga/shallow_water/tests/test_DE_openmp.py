@@ -13,6 +13,7 @@ from anuga import Domain
 import numpy as num
 import warnings
 import time
+import math
 
 
 
@@ -122,6 +123,9 @@ class Test_DE_openmp(unittest.TestCase):
         print(timestep1)
         print(timestep2)
 
+        print('domain1 timestep ', timestep1)
+        print('domain2 timestep ', timestep2)
+
         quantities1 = domain1.quantities
         stage1 = quantities1["stage"]
         xmom1 = quantities1["xmomentum"]
@@ -134,29 +138,45 @@ class Test_DE_openmp(unittest.TestCase):
         ymom2 = quantities2["ymomentum"]
 
 
-        print('stage explicit update ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
-        print('xmom  explicit update ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
-        print('ymom  explicit update ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
-        print('edge timestep         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
-        print('max speed             ', num.linalg.norm(domain1.max_speed-domain2.max_speed))
-        print('pressure work         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
-        print('edge flux work  (inf) ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work,num.inf))
-        print('edge flux work  (L1)  ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work,1))
+        print('timestep error              ', abs(timestep1-timestep2))
+        print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
+        print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
+        print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+        print('edge timestep error         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
+        print('pressure work error         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
+        print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
 
 
-        ki3 = num.argmax(num.abs(domain1.edge_flux_work-domain2.edge_flux_work))
 
-        ki = ki3//3
-        q = ki3%3
-        k = ki//3
-        e = ki%3
+        assert num.allclose(timestep1,timestep2)
+        assert num.allclose(stage1.explicit_update,stage2.explicit_update)
+        assert num.allclose(xmom1.explicit_update,xmom2.explicit_update)
+        assert num.allclose(ymom1.explicit_update,ymom2.explicit_update)
+        assert num.allclose(domain1.edge_timestep,domain2.edge_timestep)
+        assert num.allclose(domain1.pressuregrad_work,domain2.pressuregrad_work)
+        assert num.allclose(domain1.edge_flux_work,domain2.edge_flux_work)
 
-        print('edge_flux_work ki,q,k,e ', ki, q, k, e)
+        # ki3 = num.argmax(num.abs(domain1.edge_flux_work-domain2.edge_flux_work))
 
-        import pprint
+        # ki = ki3//3
+        # q = ki3%3
+        # k = ki//3
+        # e = ki%3
 
-        #pprint.pprint(domain1.edge_flux_work)
-        pprint.pprint(domain2.edge_flux_work- domain1.edge_flux_work)
+        # print('edge_flux_work ki,q,k,e ', ki, q, k, e)
+
+        # import pprint
+
+        # #pprint.pprint(domain1.edge_flux_work)
+        # edge_flux_diff = domain2.edge_flux_work- domain1.edge_flux_work
+        # edge_timestep_diff =  domain2.edge_timestep- domain1.edge_timestep
+        # #pprint.pprint(domain2.edge_flux_work- domain1.edge_flux_work)
+
+        # for k in range(domain2.number_of_elements):
+        #     for i in range(3):
+        #         ki = 3*k+i
+        #         ki3 = 3*ki
+        #         print(k,i, domain2.neighbours[k,i], edge_timestep_diff[ki], edge_flux_diff[ki3],edge_flux_diff[ki3+1],edge_flux_diff[ki3+2])
 
 
 
@@ -254,9 +274,9 @@ class Test_DE_openmp(unittest.TestCase):
 
         # Compare update arrays and timestep
 
-
-        print(timestep1)
-        print(timestep2)
+        print('domain1 timestep ', timestep1)
+        print('domain2 timestep ', timestep2)
+        
 
         quantities1 = domain1.quantities
         stage1 = quantities1["stage"]
@@ -269,13 +289,22 @@ class Test_DE_openmp(unittest.TestCase):
         xmom2 = quantities2["xmomentum"]
         ymom2 = quantities2["ymomentum"]
 
-        print('stage explicit update ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
-        print('xmom  explicit update ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
-        print('ymom  explicit update ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
-        print('edge timestep         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
-        print('pressure work         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
-        print('edge flux work        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
+        print('timestep error              ', abs(timestep1-timestep2))
+        print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
+        print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
+        print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+        print('edge timestep error         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
+        print('pressure work error         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
+        print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
 
+
+        assert num.allclose(timestep1,timestep2)
+        assert num.allclose(stage1.explicit_update,stage2.explicit_update)
+        assert num.allclose(xmom1.explicit_update,xmom2.explicit_update)
+        assert num.allclose(ymom1.explicit_update,ymom2.explicit_update)
+        assert num.allclose(domain1.edge_timestep,domain2.edge_timestep)
+        assert num.allclose(domain1.pressuregrad_work,domain2.pressuregrad_work)
+        assert num.allclose(domain1.edge_flux_work,domain2.edge_flux_work)
 
         import pprint
 
@@ -283,6 +312,6 @@ class Test_DE_openmp(unittest.TestCase):
         #pprint.pprint(domain2.edge_timestep)    
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_DE_openmp, 'test_runup')
+    suite = unittest.makeSuite(Test_DE_openmp, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

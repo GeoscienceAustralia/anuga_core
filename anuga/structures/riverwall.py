@@ -401,6 +401,8 @@ class RiverWall(object):
         # Record the names of the riverwalls
         self.names=nw_names
 
+        domain.number_of_riverwall_edges = len(riverwallInds)
+
         # Setup domain.edge_river_wall_counter array (useful in flux calculation)
         RiverWall_counter = 0
         for k in range(domain.number_of_elements):
