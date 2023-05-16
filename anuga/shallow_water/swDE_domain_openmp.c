@@ -479,12 +479,12 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2;
   double pressure_flux, hc, hc_n, tmp;
   double h_left_tmp, h_right_tmp;
-  double speed_max_last, weir_height, edge_timestep;
+  double speed_max_last, weir_height;
   long RiverWall_count;
 
   //
   int k, i, m, n, ii;
-  int ki, nm = 0, ki2, ki3, nm3; // Index shorthands
+  int ki, nm = 0, ki2, ki3; // Index shorthands
 
   static long call = 0; // Static local variable flagging already computed flux
   static long timestep_fluxcalls = 1;
@@ -515,20 +515,17 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double local_timestep = 1.0e+100;
 
 // For all triangles
-#pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, nm3, ii,                                                 \
+#pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
                                      h_left, h_right,                                                                   \
                                      z_half, ql,                                                                        \
                                      qr, edgeflux, bedslope_work, normal_x, normal_y,                                   \
                                      hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n, tmp,         \
-                                     h_left_tmp, h_right_tmp, speed_max_last, weir_height, edge_timestep,               \
+                                     h_left_tmp, h_right_tmp, speed_max_last, weir_height,                              \
                                      RiverWall_count) reduction(min : local_timestep)
   for (k = 0; k < K; k++)
   {
-    // if (k > kmax) kmax=k;
-    // if (k < kmin) kmin=k;
     speed_max_last = 0.0;
-    int ID = omp_get_thread_num();
 
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++)
@@ -571,7 +568,6 @@ double _openmp_compute_fluxes_central(struct domain *D,
 
         m = D->neighbour_edges[ki];
         nm = n * 3 + m; // Linear index (triangle n, edge m)
-        nm3 = nm * 3;
 
         qr[0] = D->stage_edge_values[nm];
         qr[1] = D->xmom_edge_values[nm];
@@ -716,33 +712,14 @@ double _openmp_compute_fluxes_central(struct domain *D,
 
   } // End triangle k
 
-  // printf("%d local_timestep_inner %e\n", ID, local_timestep_inner);
-  //  printf("kmin kmax %d %d\n", kmin, kmax);
-
-  // local_timestep_array[ID] = local_timestep_inner;
-
-  //} // end of omp parallel
-
-  int ID = omp_get_thread_num();
-
-  // for (int j = 0; j < 8; j++)
-  //{
-  // printf("local_timestep_array[%d] = %e\n", j, local_timestep_array[j]);
-  // local_timestep = fmin(local_timestep, local_timestep_array[j]);
-  //  }
-
-  // printf("%d local_timestep %e (outside parallel block)\n", ID, local_timestep);
-
-  // Now add up stage, xmom, ymom explicit updates
-
   // variable to accumulate D->boundary_flux_sum[substep_count]
   double boundary_flux_sum_substep = 0.0;  
+
+  // Now add up stage, xmom, ymom explicit updates
 
 #pragma omp parallel for private(k, i, ki, ki2, ki3, n, inv_area) reduction(+:boundary_flux_sum_substep)
   for (k = 0; k < K; k++)
   {
-    double hc = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.);
-
     for (i = 0; i < 3; i++)
     {
       // FIXME: Make use of neighbours to efficiently set things
@@ -772,7 +749,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
 
     // Normalise triangle k by area and store for when all conserved
     // quantities get updated
-    double inv_area = 1.0 / D->areas[k];
+    inv_area = 1.0 / D->areas[k];
     D->stage_explicit_update[k] *= inv_area;
     D->xmom_explicit_update[k] *= inv_area;
     D->ymom_explicit_update[k] *= inv_area;
@@ -802,12 +779,12 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
   long low_froude = D->low_froude;
   //
   int k, i, m, n, ii;
-  int ki, nm = 0, ki2, ki3, nm3; // Index shorthands
+  int ki, nm = 0, ki2, ki3; // Index shorthands
   // Workspace (making them static actually made function slightly slower (Ole))
   double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
   double bedslope_work;
   static double local_timestep;
-  long RiverWall_count, RiverWall_count_old, substep_count;
+  long RiverWall_count, substep_count;
   double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2;
   double pressure_flux, hc, hc_n, tmp;
   double h_left_tmp, h_right_tmp;
@@ -920,7 +897,6 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
         zc_n = D->bed_centroid_values[n];
         m = D->neighbour_edges[ki];
         nm = n * 3 + m; // Linear index (triangle n, edge m)
-        nm3 = nm * 3;
 
         qr[0] = D->stage_edge_values[nm];
         qr[1] = D->xmom_edge_values[nm];
@@ -1143,7 +1119,7 @@ double _openmp_protect(struct domain *D)
 
   // Protect against inifintesimal and negative heights
   // if (maximum_allowed_speed < epsilon) {
-#pragma omp parallel private(k, hc, bmin, ) reduction(+ : mass_error)
+#pragma omp parallel private(k, hc, bmin, ) reduction(+ : mass_error) firstprivate (minimum_allowed_height)
   for (k = 0; k < D->number_of_elements; k++)
   {
     hc = wc[k] - zc[k];
@@ -1282,7 +1258,7 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   if (D->extrapolate_velocity_second_order == 1)
   {
 
-#pragma omp parallel for private(k, dk, dk_inv)
+#pragma omp parallel for private(k, dk, dk_inv) firstprivate(minimum_allowed_height)
     for (k = 0; k < number_of_elements; k++)
     {
       dk = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.0);

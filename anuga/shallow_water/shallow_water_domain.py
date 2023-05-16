@@ -287,7 +287,7 @@ class Domain(Generic_Domain):
         # 2. With openmp pragmas but calc flux looping thru all triangles (twice as much computation)
         # 3. calc flux looping thru all edges (not implemented)
         #-------------------------------    
-        self.multiprocessor_mode = 2
+        self.set_multiprocessor_mode(0)
 
         #-------------------------------
         # datetime and timezone
@@ -1637,6 +1637,20 @@ class Domain(Generic_Domain):
         self.quantities['ymomentum'].beta = beta_vh
 
 
+    def set_multiprocessor_mode(self, multiprocessor_mode= 0):
+        """
+        Set swDE multiprocessor mode 
+        
+        0. original
+        1. original with local timestep
+        2. With openmp pragmas but calc flux looping thru all triangles (twice as much computation)
+        3. calc flux looping thru all edges (not implemented)
+        """
+
+        if multiprocessor_mode in [0,1,2]:
+            self.multiprocessor_mode = multiprocessor_mode
+        else:
+            raise Exception('multiprocessor mode {multiprocessor_mode} not supported')
 
 
     def set_store_vertices_uniquely(self, flag=True, reduction=None):
