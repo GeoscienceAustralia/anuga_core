@@ -29,6 +29,14 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('swb2_domain_ext',
                          sources=['swb2_domain_ext.pyx'],
                          include_dirs=[util_dir])
+
+    config.add_extension('swDE_domain_original_ext',
+                         sources=['swDE_domain_original_ext.pyx'],
+                         include_dirs=[util_dir])
+
+    config.add_extension('swDE_domain_local_timestep_ext',
+                         sources=['swDE_domain_local_timestep_ext.pyx'],
+                         include_dirs=[util_dir])
     
     if sys.platform == 'darwin':
         extra_compiler_args = None
@@ -37,11 +45,14 @@ def configuration(parent_package='',top_path=None):
         extra_compiler_args = ['-fopenmp']
         extra_link_args = ['-fopenmp']
 
-    config.add_extension('swDE_domain_ext',
-                         sources=['swDE_domain_ext.pyx'],
+    
+    config.add_extension('swDE_domain_openmp_ext',
+                         sources=['swDE_domain_openmp_ext.pyx'],
                          include_dirs=[util_dir],
                          extra_compile_args=extra_compiler_args,
                          extra_link_args=extra_link_args)
+
+
 
     config.ext_modules = cythonize(config.ext_modules, annotate=True)
 

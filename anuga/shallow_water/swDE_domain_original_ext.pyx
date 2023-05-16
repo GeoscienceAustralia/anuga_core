@@ -1,13 +1,17 @@
-#cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
+#cython: wraparound=False, boundscheck=True, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
+
+#wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
 
-cdef extern from "swDE1_domain.c" nogil:
+cdef extern from "swDE_domain_original.c" nogil:
 	struct domain:
 		long number_of_elements
+		long boundary_length
+		long number_of_riverwall_edges
 		double epsilon
 		double H0
 		double g
@@ -76,9 +80,11 @@ cdef extern from "swDE1_domain.c" nogil:
 		double* riverwall_elevation
 		long* riverwall_rowIndex
 		double* riverwall_hydraulic_properties
+		long* edge_river_wall_counter
+
 
 	struct edge:
-		pass
+		pass	
 
 	int _compute_flux_update_frequency(domain* D, double timestep)
 	double _compute_fluxes_central(domain* D, double timestep)
@@ -92,6 +98,8 @@ cdef int parameter_flag = 0
 cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
 	D.number_of_elements = domain_object.number_of_elements
+	D.boundary_length = domain_object.boundary_length 
+	D.number_of_riverwall_edges = domain_object.number_of_riverwall_edges
 	D.epsilon = domain_object.epsilon
 	D.H0 = domain_object.H0
 	D.g = domain_object.g
@@ -141,6 +149,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 	cdef double[::1]   riverwall_elevation
 	cdef long[::1]     riverwall_rowIndex
 	cdef double[:,::1] riverwall_hydraulic_properties
+	cdef long[::1]     edge_river_wall_counter
 	cdef double[:,::1] edge_values
 	cdef double[::1]   centroid_values
 	cdef double[:,::1] vertex_values
@@ -227,6 +236,9 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 	boundary_flux_sum = domain_object.boundary_flux_sum
 	D.boundary_flux_sum = &boundary_flux_sum[0]
+
+	edge_river_wall_counter = domain_object.edge_river_wall_counter
+	D.edge_river_wall_counter  = &edge_river_wall_counter[0]
 
 	#------------------------------------------------------
 	# Quantity structures
@@ -321,6 +333,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 	D.riverwall_hydraulic_properties = &riverwall_hydraulic_properties[0,0]
 
 
+
 #===============================================================================
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
@@ -331,7 +344,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		timestep = _compute_fluxes_central(&D, timestep)
+		timestep =  _compute_fluxes_central(&D, timestep)
 
 	return timestep
 
@@ -352,7 +365,6 @@ def extrapolate_second_order_edge_sw(object domain_object):
 def protect_new(object domain_object):
 
 	cdef domain D
-
 	cdef double mass_error
 
 	get_python_domain_parameters(&D, domain_object)
@@ -365,12 +377,7 @@ def protect_new(object domain_object):
 
 def compute_flux_update_frequency(object domain_object, double timestep):
 
-	cdef domain D
+	pass
 
-	get_python_domain_parameters(&D, domain_object)
-	get_python_domain_pointers(&D, domain_object)
-
-	with nogil:
-		_compute_flux_update_frequency(&D, timestep)
 
 

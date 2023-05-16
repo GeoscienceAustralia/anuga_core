@@ -275,22 +275,19 @@ class Domain(Generic_Domain):
         self.fractional_step_operators = []
         self.kv_operator = None
 
-
-
         #-------------------------------
         # Set flow defaults
         #-------------------------------
         self.set_flow_algorithm()
 
         #-------------------------------
-        # Set swDE code while developing
-        # openmp flux code 
-        # 0. original without local timestep
-        # 1. calc flux looping thru all triangles (twice as much computation but parallel)
-        # 2. code 1 with openmp pragmas
+        # Set swDE multiprocessor mode 
+        # 0. original
+        # 1. original with local timestep
+        # 2. With openmp pragmas but calc flux looping thru all triangles (twice as much computation)
         # 3. calc flux looping thru all edges (not implemented)
         #-------------------------------    
-        self.openmp_code = 0
+        self.multiprocessor_mode = 2
 
         #-------------------------------
         # datetime and timezone
@@ -2152,13 +2149,17 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            from .swDE_domain_ext import compute_fluxes_ext_central \
-                                      as compute_fluxes_ext
+            if self.multiprocessor_mode == 0:
+                from .swDE_domain_original_ext import compute_fluxes_ext_central
+            elif self.multiprocessor_mode == 1:
+                from .swDE_domain_local_timestep_ext import compute_fluxes_ext_central
+            elif self.multiprocessor_mode == 2:
+                from .swDE_domain_openmp_ext import compute_fluxes_ext_central
+            else:
+                raise Exception('Not implemented')
 
             timestep = self.evolve_max_timestep
-
-            flux_timestep = compute_fluxes_ext(self, timestep)
-
+            flux_timestep = compute_fluxes_ext_central(self, timestep)
             self.flux_timestep = flux_timestep
 
         else:
@@ -2233,8 +2234,17 @@ class Domain(Generic_Domain):
 
             # Do protection step
             self.protect_against_infinitesimal_and_negative_heights()
+
             # Do extrapolation step
-            from .swDE_domain_ext import extrapolate_second_order_edge_sw as extrapol2
+            if self.multiprocessor_mode == 0:
+                from .swDE_domain_original_ext import extrapolate_second_order_edge_sw as extrapol2
+            elif self.multiprocessor_mode == 1:
+                from .swDE_domain_local_timestep_ext import extrapolate_second_order_edge_sw as extrapol2
+            elif self.multiprocessor_mode == 2:
+                from .swDE_domain_openmp_ext import extrapolate_second_order_edge_sw as extrapol2
+            else:
+                raise Exception('Not implemented')
+
             extrapol2(self)
 
         else:
@@ -2367,7 +2377,14 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'DE':
 
-            from .swDE_domain_ext import protect_new
+            if self.multiprocessor_mode == 0:
+                from .swDE_domain_original_ext import protect_new
+            elif self.multiprocessor_mode == 1:
+                from .swDE_domain_local_timestep_ext import protect_new
+            elif self.multiprocessor_mode == 2:
+                from .swDE_domain_openmp_ext import  protect_new
+            else:
+                raise Exception('Not implemented')
 
 
             mass_error = protect_new(self)
@@ -3072,10 +3089,18 @@ class Domain(Generic_Domain):
             Update the 'flux_update_frequency' and 'update_extrapolate' variables
             Used to control updating of fluxes / extrapolation for 'local-time-stepping'
         """
-        from .swDE_domain_ext import compute_flux_update_frequency \
-                                  as compute_flux_update_frequency_ext
 
-        compute_flux_update_frequency_ext(self, self.timestep)
+        if self.multiprocessor_mode == 0:
+            from .swDE_domain_original_ext import compute_flux_update_frequency
+        elif self.multiprocessor_mode == 1:
+            from .swDE_domain_local_timestep_ext import compute_flux_update_frequency
+        elif self.multiprocessor_mode == 2:
+            from .swDE_domain_openmp_ext import compute_flux_update_frequency
+        else:
+            raise Exception('Not implemented')
+        
+
+        compute_flux_update_frequency(self, self.timestep)
 
     def report_water_volume_statistics(self, verbose=True, returnStats=False):
         """

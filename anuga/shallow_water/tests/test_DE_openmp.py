@@ -77,23 +77,16 @@ class Test_DE_openmp(unittest.TestCase):
         print('Test Runup')
         print(70*'=')
 
-        domain0 = create_domain('domain_original')
-        domain0.openmp_code=0
 
-        domain1 = create_domain('domain_parallel_loop')
-        domain1.openmp_code=1
+        domain1 = create_domain('domain_original')
+        domain1.multiprocessor_mode=0
 
-        domain2 = create_domain('domain_parallel_loop')
-        domain2.openmp_code=1 # will change to 2 once burn in
+        domain2 = create_domain('domain_openmp')
+        domain2.multiprocessor_mode=0 # will change to 2 once burn in
 
         #------------------------------
         #Evolve the system through time
         #------------------------------
-
-        print('Evolve domain0')
-        for t in domain0.evolve(yieldstep=0.1,finaltime=0.1):
-            domain0.print_timestepping_statistics()
-
         print('Evolve domain1')
         for t in domain1.evolve(yieldstep=0.1,finaltime=0.1):
             domain1.print_timestepping_statistics()
@@ -105,23 +98,19 @@ class Test_DE_openmp(unittest.TestCase):
         #----------------------------------------
         # Now just run the openmp code on domain2
         #----------------------------------------
-        domain2.openmp_code = 2
+        domain2.multiprocessor_mode = 2
         timestep = 0.1
 
-        from anuga.shallow_water.swDE_domain_ext import extrapolate_second_order_edge_sw
-        from anuga.shallow_water.swDE_domain_ext import compute_fluxes_ext_central
+        domain1.distribute_to_vertices_and_edges()
+        domain1.compute_fluxes()
+        timestep1 = domain1.flux_timestep
 
-        extrapolate_second_order_edge_sw(domain1)
-        timestep1 = compute_fluxes_ext_central(domain1, timestep)
-
-        extrapolate_second_order_edge_sw(domain2)
-        timestep2 = compute_fluxes_ext_central(domain2, timestep)
+        domain2.distribute_to_vertices_and_edges()
+        domain2.compute_fluxes()
+        timestep2 = domain2.flux_timestep
 
         # Compare update arrays and timestep
 
-
-        print(timestep1)
-        print(timestep2)
 
         print('domain1 timestep ', timestep1)
         print('domain2 timestep ', timestep2)
@@ -232,22 +221,16 @@ class Test_DE_openmp(unittest.TestCase):
         print('Test Riverwall')
         print(70*'=')
 
-        domain0 = create_domain('domain_original')
-        domain0.openmp_code=0
 
-        domain1 = create_domain('domain_parallel_loop')
-        domain1.openmp_code=1
+        domain1 = create_domain('domain_original')
+        domain1.multiprocessor_mode=0
 
-        domain2 = create_domain('domain_parallel_loop')
-        domain2.openmp_code=1 # will change to 2 once burn in
+        domain2 = create_domain('domain_openmp')
+        domain2.multiprocessor_mode=0 # will change to 2 once burn in
 
         #------------------------------
         #Evolve the system through time
         #------------------------------
-
-        print('Evolve domain0')
-        for t in domain0.evolve(yieldstep=0.1,finaltime=0.1):
-            domain0.print_timestepping_statistics()
 
         print('Evolve domain1')
         for t in domain1.evolve(yieldstep=0.1,finaltime=0.1):
@@ -263,14 +246,13 @@ class Test_DE_openmp(unittest.TestCase):
         domain2.openmp_code = 2
         timestep = 0.1
 
-        from anuga.shallow_water.swDE_domain_ext import extrapolate_second_order_edge_sw
-        from anuga.shallow_water.swDE_domain_ext import compute_fluxes_ext_central
+        domain1.distribute_to_vertices_and_edges()
+        domain1.compute_fluxes()
+        timestep1 = domain1.flux_timestep
 
-        extrapolate_second_order_edge_sw(domain1)
-        timestep1 = compute_fluxes_ext_central(domain1, timestep)
-
-        extrapolate_second_order_edge_sw(domain2)
-        timestep2 = compute_fluxes_ext_central(domain2, timestep)
+        domain2.distribute_to_vertices_and_edges()
+        domain2.compute_fluxes()
+        timestep2 = domain2.flux_timestep
 
         # Compare update arrays and timestep
 

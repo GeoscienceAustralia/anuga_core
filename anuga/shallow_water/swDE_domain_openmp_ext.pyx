@@ -7,7 +7,7 @@ import cython
 import numpy as np
 cimport numpy as np
 
-cdef extern from "swDE_domain.c" nogil:
+cdef extern from "swDE_domain_openmp.c" nogil:
 	struct domain:
 		long number_of_elements
 		long boundary_length
@@ -86,17 +86,10 @@ cdef extern from "swDE_domain.c" nogil:
 	struct edge:
 		pass
 
-	int _compute_flux_update_frequency(domain* D, double timestep)
-
 	double _openmp_compute_fluxes_central(domain* D, double timestep)
-	double _xxx_compute_fluxes_central_original(domain* D, double timestep)
-	double _xxx_compute_fluxes_central_parallel_data_flow(domain* D, double timestep)
-
-	double _protect_new(domain* D)
 	double _openmp_protect(domain* D)
-
-	int _extrapolate_second_order_edge_sw(domain* D)
 	int _openmp_extrapolate_second_order_edge_sw(domain* D)
+
 
 
 cdef int pointer_flag = 0
@@ -347,30 +340,11 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 
 	cdef domain D
 
-	cdef int K = domain_object.number_of_elements
-	cdef int KI = domain_object.number_of_elements*3
-	cdef int KI2 = domain_object.number_of_elements*6
-	cdef int KI3 = domain_object.number_of_elements*9
-	cdef int B = domain_object.boundary_length 
-	cdef int RW = domain_object.number_of_riverwall_edges
-	cdef int RW5 = RW*5
-	cdef int SubSteps= 3
-
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
 
-	if domain_object.openmp_code == 0:
-		with nogil:
-			timestep =  _xxx_compute_fluxes_central_original(&D, timestep)
-	elif domain_object.openmp_code == 1:
-		with nogil:
-			timestep =  _xxx_compute_fluxes_central_parallel_data_flow(&D, timestep)
-	elif domain_object.openmp_code == 2:
-		with nogil:
-			timestep = _openmp_compute_fluxes_central(&D, timestep)
-	else:
-		with nogil:
-			timestep =  _xxx_compute_fluxes_central_original(&D, timestep)
+	with nogil:
+		timestep =  _openmp_compute_fluxes_central(&D, timestep)
 
 	return timestep
 
@@ -382,20 +356,8 @@ def extrapolate_second_order_edge_sw(object domain_object):
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
 
-	if domain_object.openmp_code == 0:
-		with nogil:
-			e = _extrapolate_second_order_edge_sw(&D)
-	elif domain_object.openmp_code == 1:
-		with nogil:
-			e = _extrapolate_second_order_edge_sw(&D)
-	elif domain_object.openmp_code == 2:
-		with nogil:
-			e = _openmp_extrapolate_second_order_edge_sw(&D)
-	else:
-		with nogil:
-			e = _extrapolate_second_order_edge_sw(&D)
-
-
+	with nogil:
+		e = _openmp_extrapolate_second_order_edge_sw(&D)
 
 	if e == -1:
 		return None
@@ -409,17 +371,9 @@ def protect_new(object domain_object):
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
 
-	if domain_object.openmp_code == 0:
-		with nogil:
-			mass_error = _protect_new(&D)
-	elif domain_object.openmp_code == 1:
-		with nogil:
-			mass_error = _protect_new(&D)
-	elif domain_object.openmp_code == 2:
-		with nogil:
-			mass_error=_openmp_protect(&D)
 	with nogil:
-		mass_error = _protect_new(&D)
+		mass_error = _openmp_protect(&D)
+
 
 	return mass_error
 
@@ -427,12 +381,5 @@ def compute_flux_update_frequency(object domain_object, double timestep):
 
 	pass
 
-	# cdef domain D
-
-	# get_python_domain_parameters(&D, domain_object)
-	# get_python_domain_pointers(&D, domain_object)
-
-	# with nogil:
-	# 	_compute_flux_update_frequency(&D, timestep)
 
 
