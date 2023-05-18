@@ -97,8 +97,8 @@ Once `Miniforge` is installed we can now create an environment to run ANUGA.
 Install ANUGA using MiniForge3 (Ubuntu)
 ---------------------------------------
 
-Once you have a working `Miniforge` installation (I.e. `conda activate` works) you are ready 
-to install ANUGA. 
+Once you have a working `Miniforge` installation (as described in the previous 
+section `Install MiniForge3`_  you are ready to install ANUGA. 
 
 .. note::
     If you intend to develop ANUGA code you should install ANUGA from source 
@@ -137,7 +137,7 @@ Install ANUGA from source under MiniForge (Ubuntu)
 --------------------------------------------------
 
 If you want to use the very latest version of ANUGA within a `conda` environment then we need
-to download the `github` version of ANUGA.
+to download ANUGA source from `github` and `pip`install ANUGA as "editable".
 
 First install the latest version of `Miniforge` as described in section `Install MiniForge3`_.
 
@@ -155,7 +155,7 @@ defined in the file `environment.yml`
 .. code-block:: bash
 
     cd anuga_core
-    conda create -n anuga_env -f environment.yml
+    conda env create -n anuga_env -f environment.yml
     conda activate anuga_env
 
 and finally install ANUGA
