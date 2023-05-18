@@ -104,6 +104,7 @@ use, for instance, `wget` to download the latest version via:
 
     wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
     bash Miniforge3.sh
+    conda update conda
 
 and now create and activate a `conda` environment with ANUGA's dependencies
 
