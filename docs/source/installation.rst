@@ -70,6 +70,7 @@ Once `Miniforge` is installed, we can now create an environment to run ANUGA.
 Make sure the conda binary is available on the search path. E.g. 
 
 .. code-block:: bash
+
     export PATH=$PATH:~/miniforge3/condabin
 
 Create a conda environment `anuga_env` (or what ever name you like):
