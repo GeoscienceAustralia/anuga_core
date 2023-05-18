@@ -66,7 +66,11 @@ If you don't have `wget` you can install it via:
     sudo apt-get install wget
     
 Once `Miniforge` is installed, we can now create an environment to run ANUGA. 
-    
+
+Make sure the conda binary is available on the search path. E.g. 
+.. code-block:: bash
+    export export PATH=$PATH:~/miniforge3/condabin
+
 Create a conda environment `anuga_env` (or what ever name you like):
 
 .. code-block:: bash
@@ -104,6 +108,12 @@ use, for instance, `wget` to download the latest version via:
 
     wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
     bash Miniforge3.sh
+
+Make sure the conda binary is available on the search path. E.g. 
+
+.. code-block:: bash
+
+    export export PATH=$PATH:~/miniforge3/condabin
 
 and now create and activate a `conda` environment with ANUGA's dependencies
 
