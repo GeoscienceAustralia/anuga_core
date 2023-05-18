@@ -67,7 +67,7 @@ versions will be available from the `anuga-community <https://github.com/anuga-c
 Installation
 ------------
 
-If you use `conda` to provide your `python` envirnment, then you can install `anuga` from the conda-forge channel
+If you use `conda` to provide your `python` environment, then you can install `anuga` from the conda-forge channel
 as follows. First setup the `conda-forge` channel:
 
 .. code-block::
