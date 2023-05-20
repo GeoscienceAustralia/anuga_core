@@ -19,15 +19,14 @@ ANUGA requires python 3.X (X>6) and the following python packages:
 .. code-block::
 
   numpy scipy matplotlib pytest cython netcdf4 dill future gdal \
-  pyproj pymetis Pmw mpi4py ipython meshpy Pmw pymetis utm
+  pyproj pymetis Pmw mpi4py ipython meshpy Pmw pymetis utm pyproj affine
 
-and 
+and if using `python <= 3.8`
 
 .. code-block::
   
   backport.zoneinfo 
 
-if using `python <= 3.8`.
 
 ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production environment using 
 `Miniconda` or `Miniforge` python environments. 
@@ -38,49 +37,54 @@ ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production envir
 Install MiniForge3 (Ubuntu)
 ---------------------------
 
-A clean way to install the dependencies for ANUGA is to use Anaconda, 
-or Miniconda Python distributions by Continuum Analytics. 
+A clean way to install the dependencies necessary for ANUGA is to use the Anaconda, 
+or the Miniconda Python distributions by Continuum Analytics. 
 
-Using a `conda` installation has the advantage of allowing you to create multiple 
+Using a `conda` installation has the advantage of allowing you to easily create multiple 
 python environments and is particularly 
 useful if you want to keep multiple versions of ANUGA
 
 Indeed the most stable install is via the `conda-forge` channel
 which is easily available using `Miniforge`. In particular the installation of 
-the `gdal` and `mpi4py` modules are more stable. 
+the `gdal` and `mpi4py` modules are more stable using `Miniforge`. We recommend  using `Miniforge`. 
 
 These conda environments do not require administrative rights 
 to your computer and do not interfere with the Python installed in your system. 
 
-Install the latest version of `Miniforge` from  https://github.com/conda-forge/miniforge or
+So first we should install the latest version of `Miniforge` from  https://github.com/conda-forge/miniforge or
 use, for instance, `wget` to download the latest version via:
 
 .. code-block:: bash
 
     wget -O Miniforge3.sh "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
 
-If you don't have `wget` you can install it via: 
 
-.. code-block:: bash
+.. note::
+    
+    If you don't have `wget` you can install it via: 
 
-    sudo apt-get update -q
-    sudo apt-get install wget
+    .. code-block:: bash
+
+        sudo apt-get update -q
+        sudo apt-get install wget
 
 
-Now install `Miniforge`. 
+Now to install `Miniforge`. 
 
 .. note::
 
     During the `Miniforge` installation you will be asked to accept the licence 
     (essentially apache 2.0) and whether to run `conda init` to change your `.bashrc` file to allow activation of the 
-    base conda environment when opening a new terminal 
+    base conda environment when opening a new terminal.
     
     If you choose otherwise you will need to 
-    manually change your `PATH` environment variable. 
+    manually change your `PATH` environment variable: 
 
     .. code-block:: bash
 
         export PATH=$PATH:~/miniforge3/bin
+
+
 
 Run the installation script:
 
@@ -97,15 +101,14 @@ Once `Miniforge` is installed we can now create an environment to run ANUGA.
 Install ANUGA using MiniForge3 (Ubuntu)
 ---------------------------------------
 
-Once you have a working `Miniforge` installation (as described in the previous 
-section `Install MiniForge3`_  you are ready to install a prebuilt `conda-forge`
-version of ANUGA. 
-
-
 .. note::
-    If you intend to develop ANUGA code you should install ANUGA from source 
-    (see section `Install ANUGA from source under MiniForge`_ )
+    If you want the most recent update of ANUGA or intend to develop ANUGA code you 
+    should install ANUGA from source 
+    (see section `Install ANUGA from source using MiniForge`_ )
 
+Once you have a working `Miniforge` installation (as described in the previous 
+section `Install MiniForge3`_ ) you are ready to install a prebuilt 
+version of ANUGA from `conda-forge`. 
 
 It is always recommended that you create a separate `conda` environment for 
 your ANUGA installation. 
@@ -133,13 +136,13 @@ You can test your installation via:
     pytest --pyargs anuga
 
 
-.. _Install ANUGA from source under MiniForge:
+.. _Install ANUGA from source using MiniForge:
 
-Install ANUGA from source under MiniForge (Ubuntu)
+Install ANUGA from source using MiniForge (Ubuntu)
 --------------------------------------------------
 
-If you want to use the very latest version of ANUGA within a `conda` environment then we need
-to download ANUGA source from `github` and `pip`install ANUGA as "editable".
+If you want to use the very latest version of ANUGA (or develop ANUGA code) then you need
+to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source.
 
 First install the latest version of `Miniforge` as described in section `Install MiniForge3`_.
 
@@ -160,20 +163,37 @@ defined in the file `environment.yml`
     conda env create -n anuga_env -f environment.yml
     conda activate anuga_env
 
-and finally install ANUGA
+and finally install ANUGA. Do a standard `pip` install
 
 .. code-block:: bash
 
-    pip install -e .
-
-This installs ANUGA to be "editable" so you should be able to develop code in 
-the `anuga_core` directories (at your own risk). 
+    pip install .
 
 Finally it is sensible to test the installation.
 
 .. code-block:: bash
 
     pytest --pyargs anuga
+
+
+.. note::
+
+    If you intend to develop ANUGA code then you should install ANUGA to be "editable". I.e.:
+
+    .. code-block:: bash
+
+        pip install -e .
+
+    In this case the installation is "inplace" and "editable". You will be able to change and 
+    develop code in the `anuga_core` directories. Note that if you change any `cython` or `C` 
+    code you will need to run `pip install -e .` again for your changes to take effect.
+
+    Be sure to test your installation via:
+
+    .. code-block:: bash
+
+        pytest --pyargs anuga
+
 
 Updating
 ~~~~~~~~
@@ -184,9 +204,10 @@ version and then reinstalling via the following commands:
  
 .. code-block:: bash
 
+  conda activate anuga_env
   cd anuga_core
   git pull
-  pip install -e .
+  pip install .
 
 And finally check the new installation by running the unit tests via:
 
