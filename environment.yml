@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.9
+  - gxx
   - openpyxl
   - pybind11
   - cython
