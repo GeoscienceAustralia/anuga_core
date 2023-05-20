@@ -98,7 +98,9 @@ Install ANUGA using MiniForge3 (Ubuntu)
 ---------------------------------------
 
 Once you have a working `Miniforge` installation (as described in the previous 
-section `Install MiniForge3`_  you are ready to install ANUGA. 
+section `Install MiniForge3`_  you are ready to install a prebuilt `conda-forge`
+version of ANUGA. 
+
 
 .. note::
     If you intend to develop ANUGA code you should install ANUGA from source 
