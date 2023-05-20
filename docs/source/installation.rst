@@ -138,7 +138,7 @@ You can test your installation via:
 
 .. _Install ANUGA from source using MiniForge:
 
-Install ANUGA from source using MiniForge (Ubuntu)
+Install ANUGA from source (e.g. as a developer) using MiniForge (Ubuntu)
 --------------------------------------------------
 
 If you want to use the very latest version of ANUGA (or develop ANUGA code) then you need
