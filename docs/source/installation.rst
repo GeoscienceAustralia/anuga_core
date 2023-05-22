@@ -32,10 +32,10 @@ ANUGA is developed on Ubuntu and so we recommend Ubuntu as your production envir
 `Miniconda` or `Miniforge` python environments. 
 (ANUGA can be installed on MacOS and Windows also using `Miniconda` or `MiniForge`) 
 
-.. _Install MiniForge3:
+.. _Install MiniForge:
 
-Install MiniForge3 (Ubuntu)
----------------------------
+Install MiniForge (Ubuntu)
+--------------------------
 
 A clean way to install the dependencies necessary for ANUGA is to use the Anaconda, 
 or the Miniconda Python distributions by Continuum Analytics. 
@@ -98,8 +98,8 @@ It is recommended to close and reopen your terminal for the `miniconda` installa
 Once `Miniforge` is installed we can now create an environment to run ANUGA. 
 
 
-Install ANUGA using MiniForge3 (Ubuntu)
----------------------------------------
+Install ANUGA using MiniForge (Ubuntu)
+--------------------------------------
 
 .. note::
     If you want the most recent update of ANUGA or intend to develop ANUGA code you 
@@ -107,7 +107,7 @@ Install ANUGA using MiniForge3 (Ubuntu)
     (see section `Install ANUGA from source using MiniForge`_ )
 
 Once you have a working `Miniforge` installation (as described in the previous 
-section `Install MiniForge3`_ ) you are ready to install a prebuilt 
+section `Install MiniForge`_ ) you are ready to install a prebuilt 
 version of ANUGA from `conda-forge`. 
 
 It is always recommended that you create a separate `conda` environment for 
