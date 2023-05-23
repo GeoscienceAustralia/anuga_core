@@ -45,6 +45,16 @@ def configuration(parent_package='',top_path=None):
                            sources=['quantity_ext.pyx'],
                            include_dirs=[util_dir])
 
+    extra_compiler_args = ['-fopenmp']
+    extra_link_args = ['-fopenmp']
+
+    config.add_extension('quantity_openmp_ext',
+                         sources=['quantity_openmp_ext.pyx'],
+                         include_dirs=[util_dir],
+                         extra_compile_args=extra_compiler_args,
+                         extra_link_args=extra_link_args)
+
+
     config.ext_modules = cythonize(config.ext_modules,annotate=True)
 
     return config

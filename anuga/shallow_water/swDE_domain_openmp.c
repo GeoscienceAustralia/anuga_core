@@ -1931,3 +1931,26 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
 
   return 0;
 }
+
+
+// Computational function for flux computation
+int _openmp_fix_negative_cells(struct domain *D)
+{
+  long k;
+  long tff;
+  int num_negative_cells = 0;
+
+  #pragma omp parallel for private(k, tff) reduction(+:num_negative_cells)
+  for (k = 0; k < D->number_of_elements; k++)
+  {
+    tff = D->tri_full_flag[k];
+    if ((D->stage_centroid_values[k] - D->bed_centroid_values[k] < 0.0) & (tff > 0)) 
+    {
+      num_negative_cells = num_negative_cells + 1;
+      D->stage_centroid_values[k] = D->bed_centroid_values[k];
+      D->xmom_centroid_values[k] = 0.0;
+      D->ymom_centroid_values[k] = 0.0;
+    }
+  }
+  return num_negative_cells;
+}

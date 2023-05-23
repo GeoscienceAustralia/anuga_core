@@ -85,6 +85,7 @@ class Generic_Domain(object):
 
         # FIXME SR: This is a bug
         # FIXME(Ole): Do you mean a hack?
+        # FIXME SR: Of course, a hack.
         number_of_full_nodes = None
         number_of_full_triangles = None
 
@@ -215,6 +216,15 @@ class Generic_Domain(object):
             self.ghost_recv_dict = {}
         else:
             self.ghost_recv_dict = ghost_recv_dict
+
+        #-------------------------------
+        # Set multiprocessor mode 
+        # 0. original
+        # 1. original with local timestep
+        # 2. Openmp
+        # 3. GPU (not implemented)
+        #-------------------------------    
+        self.set_multiprocessor_mode(0)
 
         self.processor = processor
         self.numproc = numproc
@@ -702,6 +712,22 @@ class Generic_Domain(object):
         Return boolean indicating whether algorithm is using dicontinuous elevation
         """
         return self.using_discontinuous_elevation
+
+
+    def set_multiprocessor_mode(self, multiprocessor_mode= 0):
+        """
+        Set multiprocessor mode 
+        
+        0. standard
+        1. standard with local timestep
+        2. openmp
+        3. gpu (not implemented)
+        """
+
+        if multiprocessor_mode in [0,1,2]:
+            self.multiprocessor_mode = multiprocessor_mode
+        else:
+            raise Exception('multiprocessor mode {multiprocessor_mode} not supported')
 
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.

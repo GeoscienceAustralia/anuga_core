@@ -89,6 +89,7 @@ cdef extern from "swDE_domain_openmp.c" nogil:
 	double _openmp_compute_fluxes_central(domain* D, double timestep)
 	double _openmp_protect(domain* D)
 	int _openmp_extrapolate_second_order_edge_sw(domain* D)
+	int _openmp_fix_negative_cells(domain* D)
 
 
 
@@ -380,6 +381,19 @@ def protect_new(object domain_object):
 def compute_flux_update_frequency(object domain_object, double timestep):
 
 	pass
+
+def fix_negative_cells(object domain_object):
+
+	cdef domain D
+	cdef int num_negative_cells
+
+	get_python_domain_parameters(&D, domain_object)
+	get_python_domain_pointers(&D, domain_object)
+
+	with nogil:
+		num_negative_cells = _openmp_fix_negative_cells(&D)
+
+	return num_negative_cells
 
 
 

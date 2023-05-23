@@ -2302,7 +2302,15 @@ class Quantity(object):
     def update(self, timestep):
         # Call correct module function
         # (either from this module or C-extension)
-        return update(self, timestep)
+
+        from .quantity_openmp_ext import update as update_openmp
+        from .quantity_ext import update
+
+        if self.domain.multiprocessor_mode == 2:
+            return update_openmp(self, timestep)
+        else:
+            return update(self, timestep)
+        
 
     def compute_gradients(self):
         # Call correct module function

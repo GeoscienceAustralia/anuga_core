@@ -281,11 +281,11 @@ class Domain(Generic_Domain):
         self.set_flow_algorithm()
 
         #-------------------------------
-        # Set swDE multiprocessor mode 
+        # Set multiprocessor mode 
         # 0. original
         # 1. original with local timestep
-        # 2. With openmp pragmas but calc flux looping thru all triangles (twice as much computation)
-        # 3. calc flux looping thru all edges (not implemented)
+        # 2. Openmp
+        # 3. GPU (not implemented)
         #-------------------------------    
         self.set_multiprocessor_mode(0)
 
@@ -1637,22 +1637,6 @@ class Domain(Generic_Domain):
         self.quantities['ymomentum'].beta = beta_vh
 
 
-    def set_multiprocessor_mode(self, multiprocessor_mode= 0):
-        """
-        Set swDE multiprocessor mode 
-        
-        0. original
-        1. original with local timestep
-        2. With openmp pragmas but calc flux looping thru all triangles (twice as much computation)
-        3. calc flux looping thru all edges (not implemented)
-        """
-
-        if multiprocessor_mode in [0,1,2]:
-            self.multiprocessor_mode = multiprocessor_mode
-        else:
-            raise Exception('multiprocessor mode {multiprocessor_mode} not supported')
-
-
     def set_store_vertices_uniquely(self, flag=True, reduction=None):
         """Decide whether vertex values should be stored uniquely as
         computed in the model (True) or whether they should be reduced to one
@@ -2499,21 +2483,27 @@ class Domain(Generic_Domain):
 
         if self.get_using_discontinuous_elevation():
 
-            tff = self.tri_full_flag
+            if self.multiprocessor_mode == 2:
+                from .swDE_domain_openmp_ext import fix_negative_cells
+                num_negative_ids = fix_negative_cells(self)
+            else:
+                tff = self.tri_full_flag
 
-            negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
+                negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
 
-            if len(negative_ids) > 0:
+                num_negative_ids = len(negative_ids)
+
+                if num_negative_ids > 0:
+                    Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
+                    Xmom.centroid_values[negative_ids] = 0.0
+                    Ymom.centroid_values[negative_ids] = 0.0
+
+            if num_negative_ids > 0:
                 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
                 import warnings
                 msg = 'Negative cells being set to zero depth, possible loss of conservation. \n' +\
                       'Consider using domain.report_water_volume_statistics() to check the extent of the problem'
                 warnings.warn(msg)
-
-                Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
-                Xmom.centroid_values[negative_ids] = 0.0
-                Ymom.centroid_values[negative_ids] = 0.0
-
 
 
 
