@@ -2024,7 +2024,10 @@ class Domain(Generic_Domain):
     def extrapolate_second_order_sw(self):
         """Fast version of extrapolation from centroids to edges"""
 
-        from .shallow_water_ext import extrapolate_second_order_sw as extrapol2
+        # FIXME (Ole): MIGRATE this to new C Code module
+        
+        #from .shallow_water_ext import extrapolate_second_order_sw as extrapol2
+        from .swDE1_domain_ext import extrapolate_second_order_sw as extrapol2
         extrapol2(self)
 
     #@profile
