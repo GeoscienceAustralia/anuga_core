@@ -498,253 +498,266 @@ double _openmp_compute_fluxes_central(struct domain *D,
     base_call = call;
   }
 
+  // Set explicit_update to zero for all conserved_quantities.
+  // This assumes compute_fluxes called before forcing terms
+
+#pragma omp parallel for private(k)
+  for (k = 0; k < K; k++)
+  {
+    D->stage_explicit_update[k] = 0.0;
+    D->xmom_explicit_update[k] = 0.0;
+    D->ymom_explicit_update[k] = 0.0;
+  }
+
   // Which substep of the timestepping method are we on?
   substep_count = (call - base_call) % D->timestep_fluxcalls;
 
   double local_timestep = 1.0e+100;
 
-  // variable to accumulate D->boundary_flux_sum[substep_count]
-  double boundary_flux_sum_substep = 0.0;
+// For all triangles
+#pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
+                                     max_speed_local, length, inv_area, zl, zr,                                         \
+                                     h_left, h_right,                                                                   \
+                                     z_half, ql,                                                                        \
+                                     qr, edgeflux, bedslope_work, normal_x, normal_y,                                   \
+                                     hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n, tmp,         \
+                                     h_left_tmp, h_right_tmp, speed_max_last, weir_height,                              \
+                                     RiverWall_count) reduction(min : local_timestep)
+  for (k = 0; k < K; k++)
+  {
+    speed_max_last = 0.0;
 
-  // Set explicit_update to zero for all conserved_quantities.
-  // This assumes compute_fluxes called before forcing terms
-
-#pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, ii,                                              \
-                                 max_speed_local, length, inv_area, zl, zr,                                 \
-                                 h_left, h_right,                                                           \
-                                 z_half, ql,                                                                \
-                                 qr, edgeflux, bedslope_work, normal_x, normal_y,                           \
-                                 hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n, tmp, \
-                                 h_left_tmp, h_right_tmp, speed_max_last, weir_height,                      \
-                                 RiverWall_count)  \
-                                 reduction(min : local_timestep) reduction(+ : boundary_flux_sum_substep)
-    for (k = 0; k < K; k++)
+    // Loop through neighbours and compute edge flux for each
+    for (i = 0; i < 3; i++)
     {
-      speed_max_last = 0.0;
-      D->stage_explicit_update[k] = 0.0;
-      D->xmom_explicit_update[k]  = 0.0;
-      D->ymom_explicit_update[k]  = 0.0;
+      ki = 3 * k + i; // Linear index to edge i of triangle k
+      ki2 = 2 * ki;   // k*6 + i*2
+      ki3 = 3 * ki;
 
-      // Loop through neighbours and compute edge flux for each
-      for (i = 0; i < 3; i++)
+      // Get left hand side values from triangle k, edge i
+      ql[0] = D->stage_edge_values[ki];
+      ql[1] = D->xmom_edge_values[ki];
+      ql[2] = D->ymom_edge_values[ki];
+      zl = D->bed_edge_values[ki];
+      hle = D->height_edge_values[ki];
+
+      hc = D->height_centroid_values[k];
+      zc = D->bed_centroid_values[k];
+
+      // Get right hand side values either from neighbouring triangle
+      // or from boundary array (Quantities at neighbour on nearest face).
+      n = D->neighbours[ki];
+      hc_n = hc;
+      zc_n = D->bed_centroid_values[k];
+      if (n < 0)
       {
-        ki = 3 * k + i; // Linear index to edge i of triangle k
-        ki2 = 2 * ki;   // k*6 + i*2
-        ki3 = 3 * ki;
+        // Neighbour is a boundary condition
+        m = -n - 1; // Convert negative flag to boundary index
 
-        // Get left hand side values from triangle k, edge i
-        ql[0] = D->stage_edge_values[ki];
-        ql[1] = D->xmom_edge_values[ki];
-        ql[2] = D->ymom_edge_values[ki];
-        zl = D->bed_edge_values[ki];
-        hle = D->height_edge_values[ki];
+        qr[0] = D->stage_boundary_values[m];
+        qr[1] = D->xmom_boundary_values[m];
+        qr[2] = D->ymom_boundary_values[m];
+        zr = zl;                   // Extend bed elevation to boundary
+        hre = fmax(qr[0] - zr, 0.0); // hle;
+      }
+      else
+      {
+        // Neighbour is a real triangle
+        hc_n = D->height_centroid_values[n];
+        zc_n = D->bed_centroid_values[n];
 
-        hc = D->height_centroid_values[k];
-        zc = D->bed_centroid_values[k];
+        m = D->neighbour_edges[ki];
+        nm = n * 3 + m; // Linear index (triangle n, edge m)
 
-        // Get right hand side values either from neighbouring triangle
-        // or from boundary array (Quantities at neighbour on nearest face).
-        n = D->neighbours[ki];
-        hc_n = hc;
-        zc_n = D->bed_centroid_values[k];
-        if (n < 0)
+        qr[0] = D->stage_edge_values[nm];
+        qr[1] = D->xmom_edge_values[nm];
+        qr[2] = D->ymom_edge_values[nm];
+        zr = D->bed_edge_values[nm];
+        hre = D->height_edge_values[nm];
+      }
+
+      // Audusse magic
+      z_half = fmax(zl, zr);
+
+      //// Account for riverwalls
+      if (D->edge_flux_type[ki] == 1)
+      {
+        RiverWall_count = D->edge_river_wall_counter[ki];
+
+        // Set central bed to riverwall elevation
+        z_half = fmax(D->riverwall_elevation[RiverWall_count - 1], z_half);
+      }
+
+      // Define h left/right for Audusse flux method
+      h_left = fmax(hle + zl - z_half, 0.);
+      h_right = fmax(hre + zr - z_half, 0.);
+
+      normal_x = D->normals[ki2];
+      normal_y = D->normals[ki2 + 1];
+
+      // Edge flux computation (triangle k, edge i)
+      __flux_function_central(ql, qr,
+                              h_left, h_right,
+                              hle, hre,
+                              normal_x, normal_y,
+                              epsilon, z_half, limiting_threshold, g,
+                              edgeflux, &max_speed_local, &pressure_flux,
+                              hc, hc_n, low_froude);
+
+      // Force weir discharge to match weir theory
+      if (D->edge_flux_type[ki] == 1)
+      {
+
+        RiverWall_count = D->edge_river_wall_counter[ki];
+
+        // printf("RiverWall_count %ld\n", RiverWall_count);
+
+        ii = D->riverwall_rowIndex[RiverWall_count - 1] * ncol_riverwall_hydraulic_properties;
+
+        // Get Qfactor index - multiply the idealised weir discharge by this constant factor
+        // Get s1, submergence ratio at which we start blending with the shallow water solution
+        // Get s2, submergence ratio at which we entirely use the shallow water solution
+        // Get h1, tailwater head / weir height at which we start blending with the shallow water solution
+        // Get h2, tailwater head / weir height at which we entirely use the shallow water solution
+        Qfactor = D->riverwall_hydraulic_properties[ii];
+        s1 = D->riverwall_hydraulic_properties[ii + 1];
+        s2 = D->riverwall_hydraulic_properties[ii + 2];
+        h1 = D->riverwall_hydraulic_properties[ii + 3];
+        h2 = D->riverwall_hydraulic_properties[ii + 4];
+
+        weir_height = fmax(D->riverwall_elevation[RiverWall_count - 1] - fmin(zl, zr), 0.); // Reference weir height
+
+        // Use first-order h's for weir -- as the 'upstream/downstream' heads are
+        //  measured away from the weir itself
+        h_left_tmp = fmax(D->stage_centroid_values[k] - z_half, 0.);
+
+        if (n >= 0)
         {
-          // Neighbour is a boundary condition
-          m = -n - 1; // Convert negative flag to boundary index
-
-          qr[0] = D->stage_boundary_values[m];
-          qr[1] = D->xmom_boundary_values[m];
-          qr[2] = D->ymom_boundary_values[m];
-          zr = zl;                     // Extend bed elevation to boundary
-          hre = fmax(qr[0] - zr, 0.0); // hle;
+          h_right_tmp = fmax(D->stage_centroid_values[n] - z_half, 0.);
         }
         else
         {
-          // Neighbour is a real triangle
-          hc_n = D->height_centroid_values[n];
-          zc_n = D->bed_centroid_values[n];
-
-          m = D->neighbour_edges[ki];
-          nm = n * 3 + m; // Linear index (triangle n, edge m)
-
-          qr[0] = D->stage_edge_values[nm];
-          qr[1] = D->xmom_edge_values[nm];
-          qr[2] = D->ymom_edge_values[nm];
-          zr = D->bed_edge_values[nm];
-          hre = D->height_edge_values[nm];
+          h_right_tmp = fmax(hc_n + zr - z_half, 0.);
         }
 
-        // Audusse magic
-        z_half = fmax(zl, zr);
-
-        //// Account for riverwalls
-        if (D->edge_flux_type[ki] == 1)
+        // If the weir is not higher than both neighbouring cells, then
+        // do not try to match the weir equation. If we do, it seems we
+        // can get mass conservation issues (caused by large weir
+        // fluxes in such situations)
+        if (D->riverwall_elevation[RiverWall_count - 1] > fmax(zc, zc_n))
         {
-          RiverWall_count = D->edge_river_wall_counter[ki];
-
-          // Set central bed to riverwall elevation
-          z_half = fmax(D->riverwall_elevation[RiverWall_count - 1], z_half);
+          // Weir flux adjustment
+          __adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, g,
+                                             weir_height, Qfactor,
+                                             s1, s2, h1, h2, &max_speed_local);
         }
+      }
 
-        // Define h left/right for Audusse flux method
-        h_left = fmax(hle + zl - z_half, 0.);
-        h_right = fmax(hre + zr - z_half, 0.);
+      // Multiply edgeflux by edgelength
+      length = D->edgelengths[ki];
+      edgeflux[0] *= length;
+      edgeflux[1] *= length;
+      edgeflux[2] *= length;
 
-        normal_x = D->normals[ki2];
-        normal_y = D->normals[ki2 + 1];
+      D->edge_flux_work[ki3 + 0] = -edgeflux[0];
+      D->edge_flux_work[ki3 + 1] = -edgeflux[1];
+      D->edge_flux_work[ki3 + 2] = -edgeflux[2];
 
-        // Edge flux computation (triangle k, edge i)
-        __flux_function_central(ql, qr,
-                                h_left, h_right,
-                                hle, hre,
-                                normal_x, normal_y,
-                                epsilon, z_half, limiting_threshold, g,
-                                edgeflux, &max_speed_local, &pressure_flux,
-                                hc, hc_n, low_froude);
+      // bedslope_work contains all gravity related terms
+      bedslope_work = length * (-g * 0.5 * (h_left * h_left - hle * hle - (hle + hc) * (zl - zc)) + pressure_flux);
 
-        // Force weir discharge to match weir theory
-        if (D->edge_flux_type[ki] == 1)
-        {
+      D->pressuregrad_work[ki] = bedslope_work;
 
-          RiverWall_count = D->edge_river_wall_counter[ki];
+      // Update timestep based on edge i and possibly neighbour n
+      // NOTE: We should only change the timestep on the 'first substep'
+      //  of the timestepping method [substep_count==0]
 
-          // printf("RiverWall_count %ld\n", RiverWall_count);
-
-          ii = D->riverwall_rowIndex[RiverWall_count - 1] * ncol_riverwall_hydraulic_properties;
-
-          // Get Qfactor index - multiply the idealised weir discharge by this constant factor
-          // Get s1, submergence ratio at which we start blending with the shallow water solution
-          // Get s2, submergence ratio at which we entirely use the shallow water solution
-          // Get h1, tailwater head / weir height at which we start blending with the shallow water solution
-          // Get h2, tailwater head / weir height at which we entirely use the shallow water solution
-          Qfactor = D->riverwall_hydraulic_properties[ii];
-          s1 = D->riverwall_hydraulic_properties[ii + 1];
-          s2 = D->riverwall_hydraulic_properties[ii + 2];
-          h1 = D->riverwall_hydraulic_properties[ii + 3];
-          h2 = D->riverwall_hydraulic_properties[ii + 4];
-
-          weir_height = fmax(D->riverwall_elevation[RiverWall_count - 1] - fmin(zl, zr), 0.); // Reference weir height
-
-          // Use first-order h's for weir -- as the 'upstream/downstream' heads are
-          //  measured away from the weir itself
-          h_left_tmp = fmax(D->stage_centroid_values[k] - z_half, 0.);
-
-          if (n >= 0)
-          {
-            h_right_tmp = fmax(D->stage_centroid_values[n] - z_half, 0.);
-          }
-          else
-          {
-            h_right_tmp = fmax(hc_n + zr - z_half, 0.);
-          }
-
-          // If the weir is not higher than both neighbouring cells, then
-          // do not try to match the weir equation. If we do, it seems we
-          // can get mass conservation issues (caused by large weir
-          // fluxes in such situations)
-          if (D->riverwall_elevation[RiverWall_count - 1] > fmax(zc, zc_n))
-          {
-            // Weir flux adjustment
-            __adjust_edgeflux_with_weir(edgeflux, h_left_tmp, h_right_tmp, g,
-                                        weir_height, Qfactor,
-                                        s1, s2, h1, h2, &max_speed_local);
-          }
-        }
-
-        // Multiply edgeflux by edgelength
-        length = D->edgelengths[ki];
-        edgeflux[0] *= length;
-        edgeflux[1] *= length;
-        edgeflux[2] *= length;
-
-        D->edge_flux_work[ki3 + 0] = -edgeflux[0];
-        D->edge_flux_work[ki3 + 1] = -edgeflux[1];
-        D->edge_flux_work[ki3 + 2] = -edgeflux[2];
-
-        // bedslope_work contains all gravity related terms
-        bedslope_work = length * (-g * 0.5 * (h_left * h_left - hle * hle - (hle + hc) * (zl - zc)) + pressure_flux);
-
-        D->pressuregrad_work[ki] = bedslope_work;
-
-        // Update timestep based on edge i and possibly neighbour n
-        // NOTE: We should only change the timestep on the 'first substep'
-        //  of the timestepping method [substep_count==0]
-
-        if (substep_count == 0)
-        {
-
-          // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
-          tmp = 1.0 / fmax(max_speed_local, epsilon);
-          D->edge_timestep[ki] = D->radii[k] * tmp;
-
-          // Update the timestep
-          if ((D->tri_full_flag[k] == 1))
-          {
-
-            if (max_speed_local > epsilon)
-            {
-              // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
-
-              // CFL for triangle k
-              local_timestep = fmin(local_timestep, D->edge_timestep[ki]);
-
-              speed_max_last = fmax(speed_max_last, max_speed_local);
-
-              // printf(" %d %d, %d local_timestep %f  %f\n", ID, k, i, local_timestep, D->edge_timestep[ki]);
-
-              // if (n >= 0) {
-              //     // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
-              //    local_timestep = fmin(local_timestep, D->edge_timestep[nm]);
-              // }
-            }
-          }
-        }
-
-      } // End edge i (and neighbour n)
-
-      // Keep track of maximal speeds
       if (substep_count == 0)
-        D->max_speed[k] = speed_max_last; // max_speed;
-
-      // accumulate explicit updates
-      for (i = 0; i < 3; i++)
       {
-        // FIXME: Make use of neighbours to efficiently set things
-        ki = 3 * k + i;
-        ki2 = ki * 2;
-        ki3 = ki * 3;
-        n = D->neighbours[ki];
 
-        D->stage_explicit_update[k] += D->edge_flux_work[ki3 + 0];
-        D->xmom_explicit_update[k] += D->edge_flux_work[ki3 + 1];
-        D->ymom_explicit_update[k] += D->edge_flux_work[ki3 + 2];
+        // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
+        tmp = 1.0 / fmax(max_speed_local, epsilon);
+        D->edge_timestep[ki] = D->radii[k] * tmp;
 
-        // If this cell is not a ghost, and the neighbour is a
-        // boundary condition OR a ghost cell, then add the flux to the
-        // boundary_flux_integral
-        if (((n < 0) & (D->tri_full_flag[k] == 1)) | ((n >= 0) && ((D->tri_full_flag[k] == 1) & (D->tri_full_flag[n] == 0))))
+        // Update the timestep
+        if ((D->tri_full_flag[k] == 1))
         {
-          // boundary_flux_sum is an array with length = timestep_fluxcalls
-          // For each sub-step, we put the boundary flux sum in.
-          boundary_flux_sum_substep += D->edge_flux_work[ki3];
+
+          if (max_speed_local > epsilon)
+          {
+            // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
+
+            // CFL for triangle k
+            local_timestep = fmin(local_timestep, D->edge_timestep[ki]);
+
+            speed_max_last = fmax(speed_max_last, max_speed_local);
+
+            // printf(" %d %d, %d local_timestep %f  %f\n", ID, k, i, local_timestep, D->edge_timestep[ki]);
+
+            // if (n >= 0) {
+            //     // Apply CFL condition for neigbour n (which is on the ith edge of triangle k)
+            //    local_timestep = fmin(local_timestep, D->edge_timestep[nm]);
+            // }
+          }
         }
+      }
 
-        D->xmom_explicit_update[k] -= D->normals[ki2] * D->pressuregrad_work[ki];
-        D->ymom_explicit_update[k] -= D->normals[ki2 + 1] * D->pressuregrad_work[ki];
+    } // End edge i (and neighbour n)
 
-      } // end edge i
+    // Keep track of maximal speeds
+    if (substep_count == 0)
+      D->max_speed[k] = speed_max_last; // max_speed;
 
-      // Normalise triangle k by area and store for when all conserved
-      // quantities get updated
-      inv_area = 1.0 / D->areas[k];
-      D->stage_explicit_update[k] *= inv_area;
-      D->xmom_explicit_update[k] *= inv_area;
-      D->ymom_explicit_update[k] *= inv_area;
+    // local_timestep_array[ID] = local_timestep_inner;
 
-    } // end cell k
+  } // End triangle k
 
   // variable to accumulate D->boundary_flux_sum[substep_count]
-  D->boundary_flux_sum[substep_count] = boundary_flux_sum_substep;
+  double boundary_flux_sum_substep = 0.0;  
+
+  // Now add up stage, xmom, ymom explicit updates
+
+#pragma omp parallel for private(k, i, ki, ki2, ki3, n, inv_area) reduction(+:boundary_flux_sum_substep)
+  for (k = 0; k < K; k++)
+  {
+    for (i = 0; i < 3; i++)
+    {
+      // FIXME: Make use of neighbours to efficiently set things
+      ki = 3 * k + i;
+      ki2 = ki * 2;
+      ki3 = ki * 3;
+      n = D->neighbours[ki];
+
+      D->stage_explicit_update[k] += D->edge_flux_work[ki3 + 0];
+      D->xmom_explicit_update[k] += D->edge_flux_work[ki3 + 1];
+      D->ymom_explicit_update[k] += D->edge_flux_work[ki3 + 2];
+
+      // If this cell is not a ghost, and the neighbour is a
+      // boundary condition OR a ghost cell, then add the flux to the
+      // boundary_flux_integral
+      if (((n < 0) & (D->tri_full_flag[k] == 1)) | ((n >= 0) && ((D->tri_full_flag[k] == 1) & (D->tri_full_flag[n] == 0))))
+      {
+        // boundary_flux_sum is an array with length = timestep_fluxcalls
+        // For each sub-step, we put the boundary flux sum in.
+        boundary_flux_sum_substep += D->edge_flux_work[ki3];
+      }
+
+      D->xmom_explicit_update[k] -= D->normals[ki2] * D->pressuregrad_work[ki];
+      D->ymom_explicit_update[k] -= D->normals[ki2 + 1] * D->pressuregrad_work[ki];
+
+    } // end edge i
+
+    // Normalise triangle k by area and store for when all conserved
+    // quantities get updated
+    inv_area = 1.0 / D->areas[k];
+    D->stage_explicit_update[k] *= inv_area;
+    D->xmom_explicit_update[k] *= inv_area;
+    D->ymom_explicit_update[k] *= inv_area;
+
+  } // end cell k
+
+  // variable to accumulate D->boundary_flux_sum[substep_count]
+  D->boundary_flux_sum[substep_count] = boundary_flux_sum_substep;  
 
   // Ensure we only update the timestep on the first call within each rk2/rk3 step
   if (substep_count == 0)
