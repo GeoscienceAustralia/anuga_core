@@ -509,42 +509,21 @@ double _openmp_compute_fluxes_central(struct domain *D,
   // Set explicit_update to zero for all conserved_quantities.
   // This assumes compute_fluxes called before forcing terms
 
-#pragma omp parallel private(k, i, ki, ki2, ki3, n, m, nm, ii,                                              \
+#pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, ii,                                              \
                                  max_speed_local, length, inv_area, zl, zr,                                 \
                                  h_left, h_right,                                                           \
                                  z_half, ql,                                                                \
                                  qr, edgeflux, bedslope_work, normal_x, normal_y,                           \
                                  hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n, tmp, \
                                  h_left_tmp, h_right_tmp, speed_max_last, weir_height,                      \
-                                 RiverWall_count)
-  {
-
-#pragma omp for schedule(dynamic)
-    for (k = 0; k < K; k++)
-    {
-      ki3 = 3*k;
-      D->stage_explicit_update[k] = 0.0;
-      D->xmom_explicit_update[k] = 0.0;
-      D->ymom_explicit_update[k] = 0.0;
-
-      for (i=0; i<3 ; i++)
-      {
-        ki = 3*k+i;
-        ki3 = 3 * ki;
-
-        D->edge_flux_work[ki3]   = 0.0;
-        D->edge_flux_work[ki3+1] = 0.0;
-        D->edge_flux_work[ki3+2] = 0.0;
-
-        D->pressuregrad_work[ki] = 0.0;
-      }
-    }
-
-// For all triangles
-#pragma omp for schedule(dynamic) reduction(min : local_timestep)
+                                 RiverWall_count)  \
+                                 reduction(min : local_timestep) reduction(+ : boundary_flux_sum_substep)
     for (k = 0; k < K; k++)
     {
       speed_max_last = 0.0;
+      D->stage_explicit_update[k] = 0.0;
+      D->xmom_explicit_update[k]  = 0.0;
+      D->ymom_explicit_update[k]  = 0.0;
 
       // Loop through neighbours and compute edge flux for each
       for (i = 0; i < 3; i++)
@@ -727,15 +706,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
       if (substep_count == 0)
         D->max_speed[k] = speed_max_last; // max_speed;
 
-      // local_timestep_array[ID] = local_timestep_inner;
-
-    } // End triangle k
-
-    // Now add up stage, xmom, ymom explicit updates
-
-#pragma omp for schedule(dynamic) reduction(+ : boundary_flux_sum_substep)
-    for (k = 0; k < K; k++)
-    {
+      // accumulate explicit updates
       for (i = 0; i < 3; i++)
       {
         // FIXME: Make use of neighbours to efficiently set things
@@ -771,8 +742,6 @@ double _openmp_compute_fluxes_central(struct domain *D,
       D->ymom_explicit_update[k] *= inv_area;
 
     } // end cell k
-
-  } // end of omp parallel
 
   // variable to accumulate D->boundary_flux_sum[substep_count]
   D->boundary_flux_sum[substep_count] = boundary_flux_sum_substep;
