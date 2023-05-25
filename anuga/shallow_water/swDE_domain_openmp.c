@@ -1085,31 +1085,110 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
 
 
 
+// // Protect against the water elevation falling below the triangle bed
+// double _openmp_protect(struct domain *D)
+// {
+
+//   int k, K;
+//   double hc, bmin;
+//   double mass_error = 0.;
+
+//   double *wc;
+//   double *zc;
+//   double *wv;
+//   double *xmomc;
+//   double *ymomc;
+//   double *areas;
+
+//   double minimum_allowed_height;
+
+//   minimum_allowed_height = D->minimum_allowed_height;
+
+//   K = D->number_of_elements;
+
+//   wc = D->stage_centroid_values;
+//   zc = D->bed_centroid_values;
+//   wv = D->stage_vertex_values;
+//   xmomc = D->xmom_centroid_values;
+//   ymomc = D->ymom_centroid_values;
+//   areas = D->areas;
+
+//   // This acts like minimum_allowed height, but scales with the vertical
+//   // distance between the bed_centroid_value and the max bed_edge_value of
+//   // every triangle.
+//   // double minimum_relative_height=0.05;
+//   // int mass_added = 0;
+
+//   // Protect against inifintesimal and negative heights
+//   // if (maximum_allowed_speed < epsilon) {
+// #pragma omp parallel private(k, hc, bmin ) reduction(+ : mass_error) firstprivate (minimum_allowed_height)
+//   for (k = 0; k < K; k++)
+//   {
+//     hc = wc[k] - zc[k];
+//     if (hc < minimum_allowed_height * 1.0)
+//     {
+//       // Set momentum to zero and ensure h is non negative
+//       xmomc[k] = 0.;
+//       ymomc[k] = 0.;
+//       if (hc <= 0.0)
+//       {
+//         bmin = zc[k];
+//         // Minimum allowed stage = bmin
+
+//         // WARNING: ADDING MASS if wc[k]<bmin
+//         if (wc[k] < bmin)
+//         {
+//           mass_error += (bmin - wc[k]) * areas[k];
+//           // mass_added = 1; //Flag to warn of added mass
+
+//           wc[k] = bmin;
+
+//           // FIXME: Set vertex values as well. Seems that this shouldn't be
+//           // needed. However, from memory this is important at the first
+//           // time step, for 'dry' areas where the designated stage is
+//           // less than the bed centroid value
+//           wv[3 * k] = bmin;     // min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
+//           wv[3 * k + 1] = bmin; // min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
+//           wv[3 * k + 2] = bmin; // min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
+//         }
+//       }
+//     }
+//   }
+
+//   // if(mass_added == 1){
+//   //   printf("Cumulative mass protection: %f m^3 \n", mass_error);
+//   // }
+
+//   return mass_error;
+// }
+
 // Protect against the water elevation falling below the triangle bed
 double _openmp_protect(struct domain *D)
 {
 
-  int k;
+  int k, k3, K;
   double hc, bmin;
   double mass_error = 0.;
 
-  double *wc;
-  double *zc;
-  double *wv;
-  double *xmomc;
-  double *ymomc;
-  double *areas;
+  // double *wc;
+  // double *zc;
+  // double *wv;
+  // double *xmomc;
+  // double *ymomc;
+  // double *areas;
 
   double minimum_allowed_height;
 
   minimum_allowed_height = D->minimum_allowed_height;
 
-  wc = D->stage_centroid_values;
-  zc = D->bed_centroid_values;
-  wv = D->stage_vertex_values;
-  xmomc = D->xmom_centroid_values;
-  ymomc = D->ymom_centroid_values;
-  areas = D->areas;
+  K = D->number_of_elements;
+
+  // wc = D->stage_centroid_values;
+  // zc = D->bed_centroid_values;
+  // wv = D->stage_vertex_values;
+  // xmomc = D->xmom_centroid_values;
+  // ymomc = D->xmom_centroid_values;
+  // areas = D->areas;
 
   // This acts like minimum_allowed height, but scales with the vertical
   // distance between the bed_centroid_value and the max bed_edge_value of
@@ -1119,35 +1198,36 @@ double _openmp_protect(struct domain *D)
 
   // Protect against inifintesimal and negative heights
   // if (maximum_allowed_speed < epsilon) {
-#pragma omp parallel private(k, hc, bmin, ) reduction(+ : mass_error) firstprivate (minimum_allowed_height)
-  for (k = 0; k < D->number_of_elements; k++)
+#pragma omp parallel private(k, k3, hc, bmin ) reduction(+ : mass_error) firstprivate (minimum_allowed_height)
+  for (k = 0; k < K; k++)
   {
-    hc = wc[k] - zc[k];
+    k3 = 3*k;
+    hc = D->stage_centroid_values[k] - D->bed_centroid_values[k];
     if (hc < minimum_allowed_height * 1.0)
     {
       // Set momentum to zero and ensure h is non negative
-      xmomc[k] = 0.;
-      ymomc[k] = 0.;
+      D->xmom_centroid_values[k] = 0.;
+      D->xmom_centroid_values[k] = 0.;
       if (hc <= 0.0)
       {
-        bmin = zc[k];
+        bmin = D->bed_centroid_values[k];
         // Minimum allowed stage = bmin
 
         // WARNING: ADDING MASS if wc[k]<bmin
-        if (wc[k] < bmin)
+        if (D->stage_centroid_values[k] < bmin)
         {
-          mass_error += (bmin - wc[k]) * areas[k];
+          mass_error += (bmin - D->stage_centroid_values[k]) * D->areas[k];
           // mass_added = 1; //Flag to warn of added mass
 
-          wc[k] = bmin;
+          D->stage_centroid_values[k] = bmin;
 
           // FIXME: Set vertex values as well. Seems that this shouldn't be
           // needed. However, from memory this is important at the first
           // time step, for 'dry' areas where the designated stage is
           // less than the bed centroid value
-          wv[3 * k] = bmin;     // min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
-          wv[3 * k + 1] = bmin; // min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
-          wv[3 * k + 2] = bmin; // min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
+          D->stage_vertex_values[k3] = bmin;     // min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
+          D->stage_vertex_values[k3 + 1] = bmin; // min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
+          D->stage_vertex_values[k3 + 2] = bmin; // min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
         }
       }
     }
@@ -1159,6 +1239,7 @@ double _openmp_protect(struct domain *D)
 
   return mass_error;
 }
+
 
 int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
                          double *qmin, double *qmax)
