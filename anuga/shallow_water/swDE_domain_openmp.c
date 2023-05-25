@@ -519,7 +519,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
                                  RiverWall_count)
   {
 
-#pragma omp for schedule(static)
+#pragma omp for schedule(dynamic)
     for (k = 0; k < K; k++)
     {
       ki3 = 3*k;
@@ -541,7 +541,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
     }
 
 // For all triangles
-#pragma omp for schedule(static) reduction(min : local_timestep)
+#pragma omp for schedule(dynamic) reduction(min : local_timestep)
     for (k = 0; k < K; k++)
     {
       speed_max_last = 0.0;
@@ -733,7 +733,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
 
     // Now add up stage, xmom, ymom explicit updates
 
-#pragma omp for schedule(static) reduction(+ : boundary_flux_sum_substep)
+#pragma omp for schedule(dynamic) reduction(+ : boundary_flux_sum_substep)
     for (k = 0; k < K; k++)
     {
       for (i = 0; i < 3; i++)
