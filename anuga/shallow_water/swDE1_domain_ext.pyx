@@ -84,6 +84,7 @@ cdef extern from "swDE1_domain.c" nogil:
         double _compute_fluxes_central(domain* D, double timestep)
         double _protect_new(domain* D)
         int _extrapolate_second_order_edge_sw(domain* D)
+        int _extrapolate_second_order_sw(domain* D)
 
 
 cdef int pointer_flag = 0
