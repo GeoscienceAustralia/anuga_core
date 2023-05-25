@@ -1198,7 +1198,7 @@ double _openmp_protect(struct domain *D)
 
   // Protect against inifintesimal and negative heights
   // if (maximum_allowed_speed < epsilon) {
-#pragma omp parallel private(k, k3, hc, bmin ) schedule(static) reduction(+ : mass_error) firstprivate (minimum_allowed_height)
+#pragma omp parallel for private(k, k3, hc, bmin ) schedule(static) reduction(+ : mass_error) firstprivate (minimum_allowed_height)
   for (k = 0; k < K; k++)
   {
     k3 = 3*k;
