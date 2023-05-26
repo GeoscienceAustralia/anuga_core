@@ -567,11 +567,13 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double boundary_flux_sum_substep = 0.0; 
 
 // For all triangles
-#pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
+#pragma omp parallel for default(none) shared(D, substep_count, K) \
+                                     firstprivate(ncol_riverwall_hydraulic_properties, epsilon, g, low_froude, limiting_threshold) \
+                                     private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
                                      h_left, h_right,                                                                   \
-                                     z_half, ql,                                                                        \
-                                     qr, edgeflux, edge_flux_work,bedslope_work, normal_x, normal_y,                                   \
+                                     z_half, ql,  pressuregrad_work,                                                                      \
+                                     qr, edgeflux, edge_flux_work, edge_timestep, bedslope_work, normal_x, normal_y,                                   \
                                      hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n, tmp,         \
                                      h_left_tmp, h_right_tmp, speed_max_last, weir_height, RiverWall_count)             \
                                      reduction(min : local_timestep) reduction(+:boundary_flux_sum_substep)
