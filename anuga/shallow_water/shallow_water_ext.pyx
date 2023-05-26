@@ -347,16 +347,6 @@ def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
 
 	return max_speed
 
-def extrapolate_second_order_sw(object domain_object):
-
-	cdef domain D
-	cdef int err
-
-	get_python_domain(&D, domain_object)
-
-	err = _extrapolate_second_order_sw(&D)
-
-	assert err == 0, "Internal neighbour not found"
 
 def compute_fluxes_ext_central_structure(object domain_object):
 
