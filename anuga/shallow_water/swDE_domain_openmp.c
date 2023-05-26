@@ -501,12 +501,23 @@ double _openmp_compute_fluxes_central(struct domain *D,
   // Set explicit_update to zero for all conserved_quantities.
   // This assumes compute_fluxes called before forcing terms
 
-#pragma omp parallel for private(k)
+#pragma omp parallel for private(k,i,ki,ki2,ki3)
   for (k = 0; k < K; k++)
   {
     D->stage_explicit_update[k] = 0.0;
     D->xmom_explicit_update[k] = 0.0;
     D->ymom_explicit_update[k] = 0.0;
+
+    for (i=0; i<3; i++){
+      ki = 3 * k + i;
+      ki2 = 2 * ki;
+      ki3 = 3 * ki;
+      D->edge_flux_work[ki3 + 0] = 1957.0;
+      D->edge_flux_work[ki3 + 1] = 1958.0;
+      D->edge_flux_work[ki3 + 2] = 1959.0;
+      D->neigh_work[ki2 + 0] = 1960.0;
+      D->neigh_work[ki2 + 1] = 1961.0;
+    }
   }
 
   // Which substep of the timestepping method are we on?

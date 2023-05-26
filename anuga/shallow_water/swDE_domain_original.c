@@ -663,6 +663,7 @@ double _compute_fluxes_central(struct domain *D, double timestep)
       ki = 3 * k + i;
       ki2 = ki * 2;
       ki3 = ki * 3;
+      
       n = D->neighbours[ki];
 
       D->stage_explicit_update[k] += D->edge_flux_work[ki3 + 0];

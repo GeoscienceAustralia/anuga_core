@@ -68,6 +68,7 @@ cdef extern from "shallow_water.c":
 		long* update_extrapolation
 		double* edge_timestep
 		double* edge_flux_work
+		double* neigh_work
 		double* pressuregrad_work
 		double* x_centroid_work
 		double* y_centroid_work
@@ -114,6 +115,7 @@ cdef inline get_python_domain(domain* D, object domain_object):
 	cdef np.ndarray[long, ndim=1, mode="c"] allow_timestep_increase
 	cdef np.ndarray[double, ndim=1, mode="c"] edge_timestep
 	cdef np.ndarray[double, ndim=1, mode="c"] edge_flux_work
+	cdef np.ndarray[double, ndim=1, mode="c"] neigh_work
 	cdef np.ndarray[double, ndim=1, mode="c"] pressuregrad_work
 	cdef np.ndarray[double, ndim=1, mode="c"] x_centroid_work
 	cdef np.ndarray[double, ndim=1, mode="c"] y_centroid_work
@@ -212,6 +214,9 @@ cdef inline get_python_domain(domain* D, object domain_object):
 
 	edge_flux_work = domain_object.edge_flux_work
 	D.edge_flux_work = &edge_flux_work[0]
+
+	neigh_work = domain_object.edge_flux_work
+	D.neigh_work = &neigh_work[0]
 
 	pressuregrad_work = domain_object.pressuregrad_work
 	D.pressuregrad_work = &pressuregrad_work[0]

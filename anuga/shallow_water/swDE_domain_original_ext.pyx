@@ -72,6 +72,7 @@ cdef extern from "swDE_domain_original.c" nogil:
 		long* update_extrapolation
 		double* edge_timestep
 		double* edge_flux_work
+		double* neigh_work
 		double* pressuregrad_work
 		double* x_centroid_work
 		double* y_centroid_work
@@ -142,6 +143,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 	cdef long[::1]     allow_timestep_increase
 	cdef double[::1]   edge_timestep
 	cdef double[::1]   edge_flux_work
+	cdef double[::1]   neigh_work
 	cdef double[::1]   pressuregrad_work
 	cdef double[::1]   x_centroid_work
 	cdef double[::1]   y_centroid_work
@@ -224,6 +226,9 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 	edge_flux_work = domain_object.edge_flux_work
 	D.edge_flux_work = &edge_flux_work[0]
+
+	neigh_work = domain_object.neigh_work
+	D.neigh_work = &neigh_work[0]
 
 	pressuregrad_work = domain_object.pressuregrad_work
 	D.pressuregrad_work = &pressuregrad_work[0]

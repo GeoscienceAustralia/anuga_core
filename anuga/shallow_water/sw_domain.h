@@ -89,6 +89,7 @@ struct domain {
     long* update_extrapolation;
     double* edge_timestep;
     double* edge_flux_work;
+    double* neigh_work;
     double* pressuregrad_work;
     double* x_centroid_work;
     double* y_centroid_work;
