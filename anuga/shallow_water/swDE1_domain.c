@@ -18,6 +18,9 @@
 #include "math.h"
 #include <stdio.h>
 #include <string.h> 
+
+// Shared code snippets
+#include "util_ext.h"
 #include "sw_domain.h"
 
 const double pi = 3.14159265358979;
