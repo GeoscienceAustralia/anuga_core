@@ -472,7 +472,10 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double ql[3];
   double qr[3];
   double edgeflux[3]; // Work array for summing up fluxes
+  double edge_flux_work[3];
   double bedslope_work;
+  double pressuregrad_work;
+  double edge_timestep;
   double normal_x, normal_y;
   // static double local_timestep;
 
@@ -501,79 +504,83 @@ double _openmp_compute_fluxes_central(struct domain *D,
   // Set explicit_update to zero for all conserved_quantities.
   // This assumes compute_fluxes called before forcing terms
 
-#pragma omp parallel for private(k,i,ki,ki2,ki3,n,nm,  \
-hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
-  for (k = 0; k < K; k++)
-  {
-    D->stage_explicit_update[k] = 0.0;
-    D->xmom_explicit_update[k] = 0.0;
-    D->ymom_explicit_update[k] = 0.0;
+// #pragma omp parallel for private(k,i,ki,ki2,ki3,n,nm,  \
+// hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
+//   for (k = 0; k < K; k++)
+//   {
+//     D->stage_explicit_update[k] = 0.0;
+//     D->xmom_explicit_update[k] = 0.0;
+//     D->ymom_explicit_update[k] = 0.0;
 
-    // for (i=0; i<3; i++){
-    //   ki = 3 * k + i;
-    //   ki2 = 2 * ki;
-    //   ki3 = 3 * ki;
+//     // for (i=0; i<3; i++){
+//     //   ki = 3 * k + i;
+//     //   ki2 = 2 * ki;
+//     //   ki3 = 3 * ki;
 
-    //   hc = D->height_centroid_values[k];
-    //   zc = D->bed_centroid_values[k];
-    //   zl = D->bed_edge_values[ki];
+//     //   hc = D->height_centroid_values[k];
+//     //   zc = D->bed_centroid_values[k];
+//     //   zl = D->bed_edge_values[ki];
 
-    //   n = D->neighbours[ki];
-    //   hc_n = hc;
-    //   zc_n = D->bed_centroid_values[k];
-    //   if (n < 0)
-    //   {
-    //     // Neighbour is a boundary condition
-    //     m = -n - 1; // Convert negative flag to boundary index
+//     //   n = D->neighbours[ki];
+//     //   hc_n = hc;
+//     //   zc_n = D->bed_centroid_values[k];
+//     //   if (n < 0)
+//     //   {
+//     //     // Neighbour is a boundary condition
+//     //     m = -n - 1; // Convert negative flag to boundary index
 
-    //     qr[0] = D->stage_boundary_values[m];
-    //     qr[1] = D->xmom_boundary_values[m];
-    //     qr[2] = D->ymom_boundary_values[m];
-    //     zr = zl;                   // Extend bed elevation to boundary
-    //     hre = fmax(qr[0] - zr, 0.0); // hle;
-    //   }
-    //   else
-    //   {
-    //     // Neighbour is a real triangle
-    //     hc_n = D->height_centroid_values[n];
-    //     zc_n = D->bed_centroid_values[n];
+//     //     qr[0] = D->stage_boundary_values[m];
+//     //     qr[1] = D->xmom_boundary_values[m];
+//     //     qr[2] = D->ymom_boundary_values[m];
+//     //     zr = zl;                   // Extend bed elevation to boundary
+//     //     hre = fmax(qr[0] - zr, 0.0); // hle;
+//     //   }
+//     //   else
+//     //   {
+//     //     // Neighbour is a real triangle
+//     //     hc_n = D->height_centroid_values[n];
+//     //     zc_n = D->bed_centroid_values[n];
 
-    //     m = D->neighbour_edges[ki];
-    //     nm = n * 3 + m; // Linear index (triangle n, edge m)
+//     //     m = D->neighbour_edges[ki];
+//     //     nm = n * 3 + m; // Linear index (triangle n, edge m)
 
-    //     qr[0] = D->stage_edge_values[nm];
-    //     qr[1] = D->xmom_edge_values[nm];
-    //     qr[2] = D->ymom_edge_values[nm];
-    //     zr = D->bed_edge_values[nm];
-    //     hre = D->height_edge_values[nm];
-    //   }
+//     //     qr[0] = D->stage_edge_values[nm];
+//     //     qr[1] = D->xmom_edge_values[nm];
+//     //     qr[2] = D->ymom_edge_values[nm];
+//     //     zr = D->bed_edge_values[nm];
+//     //     hre = D->height_edge_values[nm];
+//     //   }
 
-    //   D->edge_flux_work[ki3 + 0] = qr[0];
-    //   D->edge_flux_work[ki3 + 1] = qr[1];
-    //   D->edge_flux_work[ki3 + 2] = qr[2];
-    //   D->neigh_work[ki3 + 0] = zr;
-    //   D->neigh_work[ki3 + 1] = hre;
-    //   D->neigh_work[ki3 + 2] = hc_n;
-    // }
-  }
+//     //   D->edge_flux_work[ki3 + 0] = qr[0];
+//     //   D->edge_flux_work[ki3 + 1] = qr[1];
+//     //   D->edge_flux_work[ki3 + 2] = qr[2];
+//     //   D->neigh_work[ki3 + 0] = zr;
+//     //   D->neigh_work[ki3 + 1] = hre;
+//     //   D->neigh_work[ki3 + 2] = hc_n;
+//     // }
+//   }
 
   // Which substep of the timestepping method are we on?
   substep_count = (call - base_call) % D->timestep_fluxcalls;
 
   double local_timestep = 1.0e+100;
+  double boundary_flux_sum_substep = 0.0; 
 
 // For all triangles
 #pragma omp parallel for private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
                                      h_left, h_right,                                                                   \
                                      z_half, ql,                                                                        \
-                                     qr, edgeflux, bedslope_work, normal_x, normal_y,                                   \
+                                     qr, edgeflux, edge_flux_work,bedslope_work, normal_x, normal_y,                                   \
                                      hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n, tmp,         \
-                                     h_left_tmp, h_right_tmp, speed_max_last, weir_height,                              \
-                                     RiverWall_count) reduction(min : local_timestep)
+                                     h_left_tmp, h_right_tmp, speed_max_last, weir_height, RiverWall_count)             \
+                                     reduction(min : local_timestep) reduction(+:boundary_flux_sum_substep)
   for (k = 0; k < K; k++)
   {
     speed_max_last = 0.0;
+    D->stage_explicit_update[k] = 0.0;
+    D->xmom_explicit_update[k] = 0.0;
+    D->ymom_explicit_update[k] = 0.0;
 
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++)
@@ -714,14 +721,19 @@ hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
       edgeflux[1] *= length;
       edgeflux[2] *= length;
 
-      D->edge_flux_work[ki3 + 0] = -edgeflux[0];
-      D->edge_flux_work[ki3 + 1] = -edgeflux[1];
-      D->edge_flux_work[ki3 + 2] = -edgeflux[2];
+      // D->edge_flux_work[ki3 + 0] = -edgeflux[0];
+      // D->edge_flux_work[ki3 + 1] = -edgeflux[1];
+      // D->edge_flux_work[ki3 + 2] = -edgeflux[2];
+
+      edge_flux_work[0] = -edgeflux[0];
+      edge_flux_work[1] = -edgeflux[1];
+      edge_flux_work[2] = -edgeflux[2];
 
       // bedslope_work contains all gravity related terms
       bedslope_work = length * (-g * 0.5 * (h_left * h_left - hle * hle - (hle + hc) * (zl - zc)) + pressure_flux);
 
-      D->pressuregrad_work[ki] = bedslope_work;
+      //D->pressuregrad_work[ki] = bedslope_work;
+      pressuregrad_work = bedslope_work;
 
       // Update timestep based on edge i and possibly neighbour n
       // NOTE: We should only change the timestep on the 'first substep'
@@ -732,7 +744,8 @@ hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
 
         // Compute the 'edge-timesteps' (useful for setting flux_update_frequency)
         tmp = 1.0 / fmax(max_speed_local, epsilon);
-        D->edge_timestep[ki] = D->radii[k] * tmp;
+        //D->edge_timestep[ki] = D->radii[k] * tmp;
+        edge_timestep = D->radii[k] * tmp;
 
         // Update the timestep
         if ((D->tri_full_flag[k] == 1))
@@ -743,7 +756,7 @@ hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
             // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
 
             // CFL for triangle k
-            local_timestep = fmin(local_timestep, D->edge_timestep[ki]);
+            local_timestep = fmin(local_timestep, edge_timestep);
 
             speed_max_last = fmax(speed_max_last, max_speed_local);
 
@@ -757,35 +770,13 @@ hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
         }
       }
 
-    } // End edge i (and neighbour n)
+      // D->stage_explicit_update[k] += D->edge_flux_work[ki3 + 0];
+      // D->xmom_explicit_update[k] += D->edge_flux_work[ki3 + 1];
+      // D->ymom_explicit_update[k] += D->edge_flux_work[ki3 + 2];
 
-    // Keep track of maximal speeds
-    if (substep_count == 0)
-      D->max_speed[k] = speed_max_last; // max_speed;
-
-    // local_timestep_array[ID] = local_timestep_inner;
-
-  } // End triangle k
-
-  // variable to accumulate D->boundary_flux_sum[substep_count]
-  double boundary_flux_sum_substep = 0.0;  
-
-  // Now add up stage, xmom, ymom explicit updates
-
-#pragma omp parallel for private(k, i, ki, ki2, ki3, n, inv_area) reduction(+:boundary_flux_sum_substep)
-  for (k = 0; k < K; k++)
-  {
-    for (i = 0; i < 3; i++)
-    {
-      // FIXME: Make use of neighbours to efficiently set things
-      ki = 3 * k + i;
-      ki2 = ki * 2;
-      ki3 = ki * 3;
-      n = D->neighbours[ki];
-
-      D->stage_explicit_update[k] += D->edge_flux_work[ki3 + 0];
-      D->xmom_explicit_update[k] += D->edge_flux_work[ki3 + 1];
-      D->ymom_explicit_update[k] += D->edge_flux_work[ki3 + 2];
+      D->stage_explicit_update[k] += edge_flux_work[0];
+      D->xmom_explicit_update[k]  += edge_flux_work[1];
+      D->ymom_explicit_update[k]  += edge_flux_work[2];
 
       // If this cell is not a ghost, and the neighbour is a
       // boundary condition OR a ghost cell, then add the flux to the
@@ -794,22 +785,69 @@ hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
       {
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
-        boundary_flux_sum_substep += D->edge_flux_work[ki3];
+        boundary_flux_sum_substep += edge_flux_work[0];
       }
 
-      D->xmom_explicit_update[k] -= D->normals[ki2] * D->pressuregrad_work[ki];
-      D->ymom_explicit_update[k] -= D->normals[ki2 + 1] * D->pressuregrad_work[ki];
+      D->xmom_explicit_update[k] -= D->normals[ki2] * pressuregrad_work;
+      D->ymom_explicit_update[k] -= D->normals[ki2 + 1] * pressuregrad_work;
 
-    } // end edge i
+    } // End edge i (and neighbour n)
+
+    // Keep track of maximal speeds
+    if (substep_count == 0)
+      D->max_speed[k] = speed_max_last; // max_speed;
 
     // Normalise triangle k by area and store for when all conserved
     // quantities get updated
     inv_area = 1.0 / D->areas[k];
     D->stage_explicit_update[k] *= inv_area;
     D->xmom_explicit_update[k] *= inv_area;
-    D->ymom_explicit_update[k] *= inv_area;
+    D->ymom_explicit_update[k] *= inv_area;  
 
-  } // end cell k
+  } // End triangle k
+
+
+
+//   // Now add up stage, xmom, ymom explicit updates
+
+// #pragma omp parallel for private(k, i, ki, ki2, ki3, n, inv_area) reduction(+:boundary_flux_sum_substep)
+//   for (k = 0; k < K; k++)
+//   {
+//     for (i = 0; i < 3; i++)
+//     {
+//       // FIXME: Make use of neighbours to efficiently set things
+//       ki = 3 * k + i;
+//       ki2 = ki * 2;
+//       ki3 = ki * 3;
+//       n = D->neighbours[ki];
+
+//       D->stage_explicit_update[k] += D->edge_flux_work[ki3 + 0];
+//       D->xmom_explicit_update[k] += D->edge_flux_work[ki3 + 1];
+//       D->ymom_explicit_update[k] += D->edge_flux_work[ki3 + 2];
+
+//       // If this cell is not a ghost, and the neighbour is a
+//       // boundary condition OR a ghost cell, then add the flux to the
+//       // boundary_flux_integral
+//       if (((n < 0) & (D->tri_full_flag[k] == 1)) | ((n >= 0) && ((D->tri_full_flag[k] == 1) & (D->tri_full_flag[n] == 0))))
+//       {
+//         // boundary_flux_sum is an array with length = timestep_fluxcalls
+//         // For each sub-step, we put the boundary flux sum in.
+//         boundary_flux_sum_substep += D->edge_flux_work[ki3];
+//       }
+
+//       D->xmom_explicit_update[k] -= D->normals[ki2] * D->pressuregrad_work[ki];
+//       D->ymom_explicit_update[k] -= D->normals[ki2 + 1] * D->pressuregrad_work[ki];
+
+//     } // end edge i
+
+//     // Normalise triangle k by area and store for when all conserved
+//     // quantities get updated
+//     inv_area = 1.0 / D->areas[k];
+//     D->stage_explicit_update[k] *= inv_area;
+//     D->xmom_explicit_update[k] *= inv_area;
+//     D->ymom_explicit_update[k] *= inv_area;
+
+//   } // end cell k
 
   // variable to accumulate D->boundary_flux_sum[substep_count]
   D->boundary_flux_sum[substep_count] = boundary_flux_sum_substep;  
