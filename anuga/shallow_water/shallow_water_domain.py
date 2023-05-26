@@ -362,7 +362,7 @@ class Domain(Generic_Domain):
 
         # Work arrays [avoid allocate statements in compute_fluxes or extrapolate_second_order]
         self.edge_flux_work=num.zeros(len(self.edge_coordinates[:,0])*3) # Advective fluxes
-        self.neigh_work=num.zeros(len(self.edge_coordinates[:,0])*2) # Advective fluxes
+        self.neigh_work=num.zeros(len(self.edge_coordinates[:,0])*3) # Advective fluxes
         self.pressuregrad_work=num.zeros(len(self.edge_coordinates[:,0])) # Gravity related terms
         self.x_centroid_work=num.zeros(len(self.edge_coordinates[:,0])//3)
         self.y_centroid_work=num.zeros(len(self.edge_coordinates[:,0])//3)

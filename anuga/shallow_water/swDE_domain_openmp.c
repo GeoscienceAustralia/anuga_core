@@ -501,23 +501,60 @@ double _openmp_compute_fluxes_central(struct domain *D,
   // Set explicit_update to zero for all conserved_quantities.
   // This assumes compute_fluxes called before forcing terms
 
-#pragma omp parallel for private(k,i,ki,ki2,ki3)
+#pragma omp parallel for private(k,i,ki,ki2,ki3,n,nm,  \
+hc,hc_n,hre,zc_n,m,qr,zr,zl,zc) default(none) shared(K,D)
   for (k = 0; k < K; k++)
   {
     D->stage_explicit_update[k] = 0.0;
     D->xmom_explicit_update[k] = 0.0;
     D->ymom_explicit_update[k] = 0.0;
 
-    for (i=0; i<3; i++){
-      ki = 3 * k + i;
-      ki2 = 2 * ki;
-      ki3 = 3 * ki;
-      D->edge_flux_work[ki3 + 0] = 1957.0;
-      D->edge_flux_work[ki3 + 1] = 1958.0;
-      D->edge_flux_work[ki3 + 2] = 1959.0;
-      D->neigh_work[ki2 + 0] = 1960.0;
-      D->neigh_work[ki2 + 1] = 1961.0;
-    }
+    // for (i=0; i<3; i++){
+    //   ki = 3 * k + i;
+    //   ki2 = 2 * ki;
+    //   ki3 = 3 * ki;
+
+    //   hc = D->height_centroid_values[k];
+    //   zc = D->bed_centroid_values[k];
+    //   zl = D->bed_edge_values[ki];
+
+    //   n = D->neighbours[ki];
+    //   hc_n = hc;
+    //   zc_n = D->bed_centroid_values[k];
+    //   if (n < 0)
+    //   {
+    //     // Neighbour is a boundary condition
+    //     m = -n - 1; // Convert negative flag to boundary index
+
+    //     qr[0] = D->stage_boundary_values[m];
+    //     qr[1] = D->xmom_boundary_values[m];
+    //     qr[2] = D->ymom_boundary_values[m];
+    //     zr = zl;                   // Extend bed elevation to boundary
+    //     hre = fmax(qr[0] - zr, 0.0); // hle;
+    //   }
+    //   else
+    //   {
+    //     // Neighbour is a real triangle
+    //     hc_n = D->height_centroid_values[n];
+    //     zc_n = D->bed_centroid_values[n];
+
+    //     m = D->neighbour_edges[ki];
+    //     nm = n * 3 + m; // Linear index (triangle n, edge m)
+
+    //     qr[0] = D->stage_edge_values[nm];
+    //     qr[1] = D->xmom_edge_values[nm];
+    //     qr[2] = D->ymom_edge_values[nm];
+    //     zr = D->bed_edge_values[nm];
+    //     hre = D->height_edge_values[nm];
+    //   }
+
+    //   D->edge_flux_work[ki3 + 0] = qr[0];
+    //   D->edge_flux_work[ki3 + 1] = qr[1];
+    //   D->edge_flux_work[ki3 + 2] = qr[2];
+    //   D->neigh_work[ki3 + 0] = zr;
+    //   D->neigh_work[ki3 + 1] = hre;
+    //   D->neigh_work[ki3 + 2] = hc_n;
+    // }
   }
 
   // Which substep of the timestepping method are we on?
@@ -586,6 +623,13 @@ double _openmp_compute_fluxes_central(struct domain *D,
         zr = D->bed_edge_values[nm];
         hre = D->height_edge_values[nm];
       }
+
+      // qr[0] = D->edge_flux_work[ki3 + 0];
+      // qr[1] = D->edge_flux_work[ki3 + 1];
+      // qr[2] = D->edge_flux_work[ki3 + 2];
+      // zr   = D->neigh_work[ki3 + 0];
+      // hre  = D->neigh_work[ki3 + 1];
+      // hc_n = D->neigh_work[ki3 + 2];
 
       // Audusse magic
       z_half = fmax(zl, zr);
