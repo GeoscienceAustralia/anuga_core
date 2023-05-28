@@ -569,7 +569,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
 // For all triangles
 #pragma omp parallel for simd default(none) shared(D, substep_count, K) \
                                      firstprivate(ncol_riverwall_hydraulic_properties, epsilon, g, low_froude, limiting_threshold) \
-                                     private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
+                                     private(i, ki, ki2, ki3, n, m, nm, ii,                                                      \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
                                      h_left, h_right,                                                                   \
                                      z_half, ql,  pressuregrad_work,                                                                      \
