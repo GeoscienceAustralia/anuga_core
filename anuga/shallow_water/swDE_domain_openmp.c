@@ -567,7 +567,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double boundary_flux_sum_substep = 0.0; 
 
 // For all triangles
-#pragma omp parallel for default(none) shared(D, substep_count, K) \
+#pragma omp parallel for simd default(none) shared(D, substep_count, K) \
                                      firstprivate(ncol_riverwall_hydraulic_properties, epsilon, g, low_froude, limiting_threshold) \
                                      private(k, i, ki, ki2, ki3, n, m, nm, ii,                                                      \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
@@ -1510,8 +1510,10 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
     k3 = k * 3;
     k6 = k * 6;
 
+    
     if (D->number_of_boundaries[k] == 3)
     {
+      // Very unlikely
       // No neighbours, set gradient on the triangle to zero
 
       D->stage_edge_values[k3] = D->stage_centroid_values[k];
@@ -1621,6 +1623,7 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
         D->xmom_edge_values[k3] = D->xmom_centroid_values[k];
         D->xmom_edge_values[k3 + 1] = D->xmom_centroid_values[k];
         D->xmom_edge_values[k3 + 2] = D->xmom_centroid_values[k];
+        
         D->ymom_edge_values[k3] = D->ymom_centroid_values[k];
         D->ymom_edge_values[k3 + 1] = D->ymom_centroid_values[k];
         D->ymom_edge_values[k3 + 2] = D->ymom_centroid_values[k];
