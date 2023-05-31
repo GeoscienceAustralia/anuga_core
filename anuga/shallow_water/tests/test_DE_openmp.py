@@ -294,6 +294,6 @@ class Test_DE_openmp(unittest.TestCase):
         #pprint.pprint(domain2.edge_timestep)    
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_DE_openmp, 'test')
+    suite = unittest.makeSuite(Test_DE_openmp, 'test_runup')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
