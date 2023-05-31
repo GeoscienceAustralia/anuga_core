@@ -1368,7 +1368,7 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   // Need to have calculated height xmom and ymom centroid values for all neighbours 
   // before extrapolation and limiting
 
-#pragma omp parallel for simd shared(D) default(none) private(k, dk, dk_inv) firstprivate(number_of_elements, minimum_allowed_height, extrapolate_velocity_second_order)
+#pragma omp parallel for simd shared(D) default(none) private(dk, dk_inv) firstprivate(number_of_elements, minimum_allowed_height, extrapolate_velocity_second_order)
     for (k = 0; k < number_of_elements; k++)
     {
     dk = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.0);
@@ -1403,7 +1403,7 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
 
   // Begin extrapolation routine
 
-#pragma omp parallel for simd private(k, k0, k1, k2, k3, k6, coord_index, i, \
+#pragma omp parallel for simd private(k0, k1, k2, k3, k6, coord_index, i, \
                           dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, \
                           x_centroid_work, xmom_centroid_values, y_centroid_work, ymom_centroid_values, \
                           dq1, area2, inv_area2, \
@@ -1894,7 +1894,7 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   }   // for k=0 to number_of_elements-1
 
 // Fix xmom and ymom centroid values
-#pragma omp parallel for simd private(k, k3, i, dk) firstprivate(extrapolate_velocity_second_order)
+#pragma omp parallel for simd private(k3, i, dk) firstprivate(extrapolate_velocity_second_order)
   for (k = 0; k < D->number_of_elements; k++)
   {
     if (extrapolate_velocity_second_order == 1)
