@@ -1214,7 +1214,7 @@ class Domain(Generic_Domain):
 
             Setting timezone for the `domain`, and setting the timezone for the `datetime`. 
             Note the timestamp, which is time in seconds from 1st Jan 1970 UTC is the same
-            as teh previous example.
+            as the previous example.
 
         >>> import anuga
         >>> from zoneinfo import ZoneInfo

@@ -41,7 +41,7 @@ Run tests
 conda activate anuga38; python setup.py develop; python runtests.py
 conda activate anuga27; python setup.py develop; python runtests.py
 
-Remember to set PYTHONPATH to your root dir, e.g. PYTHONPATH = ~/Work/sandpit/anuga_core
+Remember to set PYTHONPATH to your root dir, e.g. PYTHONPATH=~/dev/anuga_core
 
 # On Windows
 Need to install mpi on windows. Checkout the commands on appveyor.yml
