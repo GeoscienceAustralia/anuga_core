@@ -69,22 +69,8 @@ use, for instance, `wget` to download the latest version via:
         sudo apt-get install wget
 
 
-Now to install `Miniforge`. 
-
-.. note::
-
-    During the `Miniforge` installation you will be asked to accept the licence 
-    (essentially apache 2.0) and whether to run `conda init` to change your `.bashrc` file to allow activation of the 
-    base conda environment when opening a new terminal.
-    
-    If you choose otherwise you will need to 
-    manually change your `PATH` environment variable: 
-
-    .. code-block:: bash
-
-        export PATH=$PATH:~/miniforge3/bin
-
-
+Install `Miniforge`
+~~~~~~~~~~~~~~~~~~~ 
 
 Run the installation script:
 
@@ -92,10 +78,27 @@ Run the installation script:
 
     bash Miniforge3.sh
 
-It is recommended to close and reopen your terminal for the `miniconda` installation to take effect.
+and then activate `miniconda` by running 
+
+.. code-block:: bash
+
+    source miniconda3/bin/activate
+
+.. note::
+
+    During the `Miniforge` installation you will be asked to accept the licence 
+    (essentially apache 2.0) and whether to run `conda init` to change your `.bashrc` file to allow activation of the 
+    base conda environment when opening a new terminal.
+    
+    If you choose not to run `conda init` you will need to run the 
+    following command every time to activate `miniforge`
+
+    .. code-block:: bash
+
+        source miniconda3/bin/activate 
 
 
-Once `Miniforge` is installed we can now create an environment to run ANUGA. 
+Once `Miniforge` is installed and activated we can now create an environment to run ANUGA. 
 
 
 Install ANUGA using MiniForge (Ubuntu)
@@ -139,12 +142,12 @@ You can test your installation via:
 .. _Install ANUGA from source using MiniForge:
 
 Install ANUGA from source (e.g. as a developer) using MiniForge (Ubuntu)
---------------------------------------------------
+------------------------------------------------------------------------
 
 If you want to use the very latest version of ANUGA (or develop ANUGA code) then you need
 to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source.
 
-First install the latest version of `Miniforge` as described in section `Install MiniForge3`_.
+First install the latest version of `Miniforge` as described in section `Install MiniForge`_.
 
 Now we need to download the ANUGA source code from `github`
 
@@ -168,6 +171,22 @@ and finally install ANUGA. Do a standard `pip` install
 .. code-block:: bash
 
     pip install .
+
+.. note::
+
+    You may need to install a compiler to complete the `pip install`. 
+    You can use the system compilers or use `conda` to install compilers as such (for Linux and OSX):
+
+    .. code-block:: bash
+
+        conda install compilers
+
+    or for win32:
+
+    .. code-block:: bash
+
+        conda install m2w64-gcc libpython 
+
 
 Finally it is sensible to test the installation.
 
@@ -324,7 +343,7 @@ You can test your installation via:
 
 .. code-block:: bash
 
-    python -c "import anuga; anuga.test()"
+    pytest --pyargs anuga
 
     
 Installing GDAL on Ubuntu using apt and pip
