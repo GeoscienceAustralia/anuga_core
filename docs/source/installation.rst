@@ -145,7 +145,8 @@ Install ANUGA from source (e.g. as a developer) using MiniForge (Ubuntu)
 ------------------------------------------------------------------------
 
 If you want to use the very latest version of ANUGA (or develop ANUGA code) then you need
-to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source.
+to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source. 
+
 
 First install the latest version of `Miniforge` as described in section `Install MiniForge`_.
 
@@ -156,6 +157,14 @@ Now we need to download the ANUGA source code from `github`
     git clone https://github.com/anuga-community/anuga_core.git
 
 This creates a directory `anuga_core`.
+
+
+If you want to also contribute to the code base, you must have a GitHub account and setup authentication from your developer workstation to GitHub as per these instructions: https://docs.github.com/en/authentication/managing-commit-signature-verification
+The command to clone ANUGA as a developer is then 
+
+.. code-block:: bash
+
+    git clone git@github.com:anuga-community/anuga_core.git
 
 Now create and activate a `conda` environment with ANUGA's current dependencies as 
 defined in the file `environment.yml`
