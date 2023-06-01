@@ -287,7 +287,7 @@ class Domain(Generic_Domain):
         # 2. Openmp
         # 3. GPU (not implemented)
         #-------------------------------    
-        self.set_multiprocessor_mode(2)
+        self.set_multiprocessor_mode(0)
 
         #-------------------------------
         # datetime and timezone

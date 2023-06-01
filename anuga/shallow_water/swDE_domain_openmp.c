@@ -1365,7 +1365,7 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   // Replace momentum centroid with velocity centroid to allow velocity
   // extrapolation This will be changed back at the end of the routine
 
-  // Need to have calculated height xmom and ymom centroid values for all neighbours 
+  // Need to calculate height xmom and ymom centroid values for all triangles 
   // before extrapolation and limiting
 
 #pragma omp parallel for simd shared(D) default(none) private(dk, dk_inv) firstprivate(number_of_elements, minimum_allowed_height, extrapolate_velocity_second_order)
