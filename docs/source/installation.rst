@@ -145,7 +145,7 @@ Install ANUGA from source (e.g. as a developer) using MiniForge (Ubuntu)
 ------------------------------------------------------------------------
 
 If you want to use the very latest version of ANUGA (or develop ANUGA code) then you need
-to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source. 
+to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source. These steps will require that the following packages are installed: git, pip, conda (via miniforge described at the beginning of this document).
 
 
 First install the latest version of `Miniforge` as described in section `Install MiniForge`_.
