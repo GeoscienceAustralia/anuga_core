@@ -159,8 +159,7 @@ Now we need to download the ANUGA source code from `github`
 This creates a directory `anuga_core`.
 
 
-If you want to also contribute to the code base, you must have a GitHub account and setup authentication from your developer workstation to GitHub as per these instructions: https://docs.github.com/en/authentication/managing-commit-signature-verification
-The command to clone ANUGA as a developer is then 
+If you want to also contribute to the code base, you must have a GitHub account and setup authentication from your developer workstation to GitHub as per these instructions: https://docs.github.com/en/authentication/managing-commit-signature-verification. The command to clone ANUGA as a developer is then 
 
 .. code-block:: bash
 
