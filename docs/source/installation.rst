@@ -158,12 +158,13 @@ Now we need to download the ANUGA source code from `github`
 
 This creates a directory `anuga_core`.
 
+.. note::
 
-If you want to also contribute to the code base, you must have a GitHub account and setup authentication from your developer workstation to GitHub as per these instructions: https://docs.github.com/en/authentication/managing-commit-signature-verification. The command to clone ANUGA as a developer is then 
+    If you want to also contribute to the code base, you must have a GitHub account and setup authentication from your developer workstation to GitHub as per these instructions:        https://docs.github.com/en/authentication/managing-commit-signature-verification. The command to clone ANUGA as a developer is then 
 
-.. code-block:: bash
+    .. code-block:: bash
 
-    git clone git@github.com:anuga-community/anuga_core.git
+        git clone git@github.com:anuga-community/anuga_core.git
 
 Now create and activate a `conda` environment with ANUGA's current dependencies as 
 defined in the file `environment.yml`
