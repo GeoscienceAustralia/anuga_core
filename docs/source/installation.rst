@@ -197,13 +197,6 @@ and finally install ANUGA. Do a standard `pip` install
         conda install m2w64-gcc libpython 
 
 
-Finally it is sensible to test the installation.
-
-.. code-block:: bash
-
-    pytest --pyargs anuga
-
-
 .. note::
 
     If you intend to develop ANUGA code then you should install ANUGA to be "editable". I.e.:
@@ -216,11 +209,12 @@ Finally it is sensible to test the installation.
     develop code in the `anuga_core` directories. Note that if you change any `cython` or `C` 
     code you will need to run `pip install -e .` again for your changes to take effect.
 
-    Be sure to test your installation via:
 
-    .. code-block:: bash
+Finally it is sensible to test the installation.
 
-        pytest --pyargs anuga
+.. code-block:: bash
+
+    pytest --pyargs anuga
 
 
 Updating
