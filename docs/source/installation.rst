@@ -183,6 +183,18 @@ and finally install ANUGA. Do a standard `pip` install
 
 .. note::
 
+    If you intend to develop ANUGA code then you should install ANUGA to be "editable". I.e.:
+
+    .. code-block:: bash
+
+        pip install -e .
+
+    In this case the installation is "inplace" and "editable". You will be able to change and 
+    develop code in the `anuga_core` directories. Note that if you change any `cython` or `C` 
+    code you will need to run `pip install -e .` again for your changes to take effect.
+
+.. note::
+
     You may need to install a compiler to complete the `pip install`. 
     You can use the system compilers or use `conda` to install compilers as such (for Linux and OSX):
 
@@ -195,20 +207,7 @@ and finally install ANUGA. Do a standard `pip` install
     .. code-block:: bash
 
         conda install m2w64-gcc libpython 
-
-
-.. note::
-
-    If you intend to develop ANUGA code then you should install ANUGA to be "editable". I.e.:
-
-    .. code-block:: bash
-
-        pip install -e .
-
-    In this case the installation is "inplace" and "editable". You will be able to change and 
-    develop code in the `anuga_core` directories. Note that if you change any `cython` or `C` 
-    code you will need to run `pip install -e .` again for your changes to take effect.
-
+ 
 
 Finally it is sensible to test the installation.
 
