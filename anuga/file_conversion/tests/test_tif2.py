@@ -5,6 +5,16 @@ import os
 import numpy as num
 from pprint import pprint
 
+# Check if osgeo is available and if 
+# not, skip subsequent tests
+import sys
+try:
+    import osgeo
+except ImportError:
+    pass
+
+import pytest
+
 
 from anuga.file_conversion.tif2array import tif2array
 from anuga.file_conversion.tif2point_values import tif2point_values
@@ -76,6 +86,9 @@ def make_a_ll_tif():
 
 class Test_tif2(unittest.TestCase):
 
+
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_tif2array_utm_south(self):
 
         import os
@@ -144,6 +157,8 @@ class Test_tif2(unittest.TestCase):
 
         os.remove('PointData_test_utm.tif')
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_tif2array_utm_north(self):
 
         import os
@@ -212,6 +227,8 @@ class Test_tif2(unittest.TestCase):
 
         os.remove('PointData_test_utm.tif')
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_tif2array_ll(self):
 
         import os
@@ -390,7 +407,9 @@ class Test_tif2(unittest.TestCase):
 
 
         os.remove('PointData_test_ll.tif')
-        
+
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module") 
     def test_tif2point_values_ll(self):
 
         import os
@@ -465,6 +484,8 @@ class Test_tif2(unittest.TestCase):
 
         #os.remove('PointData_test_ll.tif')
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_tif_lat_lon_too_small(self):
 
         import os
@@ -530,6 +551,8 @@ class Test_tif2(unittest.TestCase):
 
         os.remove('PointData_test_utm.tif')
 
+    @pytest.mark.skipif('osgeo' not in sys.modules,
+                    reason="requires the gdal module")
     def test_tif2point_values_utm_wrong_hemisphere(self):
 
         import os

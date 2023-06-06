@@ -112,9 +112,23 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
-import cupy.cuda.nvtx as nvtx
+def nvtx_RangePush(*arg):
+    pass
+def nvtx_RangePop(*arg):
+    pass
 
-#from pypar import size, rank, send, receive, barrier
+try:
+    from nvtx import range_push as nvtx_RangePush
+    from nvtx import range_pop  as nvtx_RangePop
+except:
+    pass
+
+try:
+    from cupy.cuda.nvtx import RangePush as nvtx_RangePush
+    from cupy.cuda.nvtx import RangePop  as nvtx_RangePop
+except:
+    pass
+
 
 class Domain(Generic_Domain):
     """Object which encapulates the shallow water model
@@ -2149,7 +2163,7 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            nvtx.RangePush("Compute Fluxes")
+            nvtx_RangePush("Compute Fluxes")
 
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import compute_fluxes_ext_central
@@ -2160,7 +2174,7 @@ class Domain(Generic_Domain):
             else:
                 raise Exception('Not implemented')
 
-            nvtx.RangePop()
+            nvtx_RangePop()
 
             timestep = self.evolve_max_timestep
             flux_timestep = compute_fluxes_ext_central(self, timestep)
@@ -2236,10 +2250,14 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method=='DE':
 
+
             # Do protection step
+            nvtx_RangePush('protect extrapolate')
             self.protect_against_infinitesimal_and_negative_heights()
+            nvtx_RangePush()
 
             # Do extrapolation step
+            nvtx_RangePush('extrapolate')
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 1:
@@ -2250,6 +2268,7 @@ class Domain(Generic_Domain):
                 raise Exception('Not implemented')
 
             extrapol2(self)
+            nvtx_RangePush()
 
         else:
             # Code for original method
@@ -2381,6 +2400,7 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'DE':
 
+            nvtx_RangePush('protect_new')
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import protect_new
             elif self.multiprocessor_mode == 1:
@@ -2392,6 +2412,7 @@ class Domain(Generic_Domain):
 
 
             mass_error = protect_new(self)
+            nvtx_RangePop()
 
 #             # shortcuts
 #             wc = self.quantities['stage'].centroid_values
@@ -2440,6 +2461,8 @@ class Domain(Generic_Domain):
         Wrapper for C implementation
         """
 
+        nvtx_RangePush('balance_deep_and_shallow')
+
         from .shallow_water_ext import balance_deep_and_shallow \
                                       as balance_deep_and_shallow_ext
 
@@ -2461,12 +2484,14 @@ class Domain(Generic_Domain):
                                    wc, zc, wv, zv, wc,
                                    xmomc, ymomc, xmomv, ymomv)
 
+        nvtx_RangePop()
 
     def update_conserved_quantities(self):
         """Update vectors of conserved quantities using previously
         computed fluxes and specified forcing functions.
         """
 
+        nvtx_RangePush('update_conserved_quantities')
 
         timestep = self.timestep
 
@@ -2511,7 +2536,7 @@ class Domain(Generic_Domain):
                       'Consider using domain.report_water_volume_statistics() to check the extent of the problem'
                 warnings.warn(msg)
 
-
+        nvtx_RangePop()
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities
@@ -2782,11 +2807,15 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
+        nvtx_RangePush('initialise_storage')
+
         # Initialise writer
         self.writer = SWW_file(self)
 
         # Store vertices and connectivity
         self.writer.store_connectivity()
+
+        nvtx_RangePop()
 
 
     def store_timestep(self):
@@ -2796,7 +2825,9 @@ class Domain(Generic_Domain):
            self.writer has been initialised
         """
 
+        nvtx_RangePush('store_timestep')
         self.writer.store_timestep()
+        nvtx_RangePop()
 
 
     def sww_merge(self,  *args, **kwargs):
