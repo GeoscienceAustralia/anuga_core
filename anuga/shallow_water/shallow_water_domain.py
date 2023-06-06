@@ -44,7 +44,7 @@ Description:
     v                          speed in the y direction [m/s]
     uh        xmomentum        momentum in the x direction [m^2/s]
     vh        ymomentum        momentum in the y direction [m^2/s]
-                             
+
     eta                        mannings friction coefficient [to appear]
     nu                         wind stress coefficient [to appear]
 
@@ -112,6 +112,7 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
+import cupy.cuda.nvtx as nvtx
 
 #from pypar import size, rank, send, receive, barrier
 
@@ -126,20 +127,20 @@ class Domain(Generic_Domain):
     Shallow Water Wave Equation
 
     .. math::
-    
+
         U_t + E_x + G_y = S
 
     where
 
     .. math::
-    
+
         U = [w, uh, vh]^T
 
     .. math::
 
         E = [uh, u^2h + gh^2/2, uvh]
 
-    .. math:: 
+    .. math::
 
         G = [vh, uvh, v^2h + gh^2/2]
 
@@ -166,7 +167,7 @@ class Domain(Generic_Domain):
           - horizontal distance from origin [m]
         * - y
           - y
-          - vertical distance from origin [m] 
+          - vertical distance from origin [m]
         * - z
           - elevation
           - elevation of bed on which flow is modelled [m]
@@ -180,7 +181,7 @@ class Domain(Generic_Domain):
           -
           - speed in the x direction [m/s]
         * - v
-          - 
+          -
           - speed in the y direction [m/s]
         * - uh
           - xmomentum
@@ -189,13 +190,13 @@ class Domain(Generic_Domain):
           - ymomentum
           - momentum in the y direction [m^2/s]
         * -
-          - 
+          -
           -
         * - eta
-          - 
+          -
           - mannings friction coefficient [to appear]
         * - nu
-          - 
+          -
           - wind stress coefficient [to appear]
 
     The conserved quantities are w, uh, vh
@@ -281,12 +282,12 @@ class Domain(Generic_Domain):
         self.set_flow_algorithm()
 
         #-------------------------------
-        # Set multiprocessor mode 
+        # Set multiprocessor mode
         # 0. original
         # 1. original with local timestep
         # 2. Openmp
         # 3. GPU (not implemented)
-        #-------------------------------    
+        #-------------------------------
         self.set_multiprocessor_mode(0)
 
         #-------------------------------
@@ -1099,10 +1100,10 @@ class Domain(Generic_Domain):
 
     def set_timezone(self, tz = None):
         """Set timezone for domain
-        
+
         :param tz: either a timezone object or string
-        
-        We recommend using the ZoneInfo provided by zoneinfo. 
+
+        We recommend using the ZoneInfo provided by zoneinfo.
         Default is ZoneInfo('UTC')
 
         Example: Set default timezone UTC
@@ -1135,7 +1136,7 @@ class Domain(Generic_Domain):
             msg = "Unknown timezone %s" % tz
             raise Exception(msg)
 
-        
+
         self.timezone = new_tz
 
     def get_timezone(self):
@@ -1145,9 +1146,9 @@ class Domain(Generic_Domain):
 
     def get_datetime(self, timestamp=None):
         """Retrieve datetime corresponding to current timestamp wrt to domain timezone
-        
+
         param: timestamp: return datetime corresponding to given timestamp"""
-        
+
         from datetime import datetime
 
         try:
@@ -1158,33 +1159,33 @@ class Domain(Generic_Domain):
 
         if timestamp is None:
             timestamp = self.get_time()
-        
+
         utc_datetime = datetime.utcfromtimestamp(timestamp).replace(tzinfo=ZoneInfo('UTC'))
         current_dt = utc_datetime.astimezone(self.timezone)
         return current_dt
 
     def set_starttime(self, timestamp=0.0):
         """Set the starttime for the evolution
-        
+
         :param timestamp: Either a float or a datetime object
-        
-        Essentially we use unix time as our absolute time. So 
+
+        Essentially we use unix time as our absolute time. So
         time = 0 corresponds to Jan 1st 1970 UTC
 
         Use naive datetime which will be localized to the domain timezone or
         or use zoneinfo.ZoneInfo to set the timezone of datetime.
         Don't use the tzinfo argument of datetime to set timezone as this does not work!
-        
-        Example: 
-        
+
+        Example:
+
             Without setting timezone for the `domain` and the `starttime` then time
             calculations are all based on UTC. Note the timestamp, which is time in seconds
             from 1st Jan 1970 UTC.
-        
+
         >>> import anuga
         >>> from zoneinfo import ZoneInfo
         >>> from datetime import datetime
-        >>> 
+        >>>
         >>> domain = anuga.rectangular_cross_domain(10,10)
         >>> dt = datetime(2021,3,21,18,30)
         >>> domain.set_starttime(dt)
@@ -1193,18 +1194,18 @@ class Domain(Generic_Domain):
 
         Example:
 
-            Setting timezone for the `domain`, then naive `datetime` will be localizes to 
+            Setting timezone for the `domain`, then naive `datetime` will be localizes to
             the `domain` timezone. Note the timestamp, which is time in seconds
             from 1st Jan 1970 UTC.
 
         >>> import anuga
         >>> from zoneinfo import ZoneInfo
         >>> from datetime import datetime
-        >>> 
+        >>>
         >>> domain = anuga.rectangular_cross_domain(10,10)
         >>> AEST = ZoneInfo('Australia/Sydney')
         >>> domain.set_timezone(AEST)
-        >>> 
+        >>>
         >>> dt = datetime(2021,3,21,18,30)
         >>> domain.set_starttime(dt)
         >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
@@ -1212,22 +1213,22 @@ class Domain(Generic_Domain):
 
         Example:
 
-            Setting timezone for the `domain`, and setting the timezone for the `datetime`. 
+            Setting timezone for the `domain`, and setting the timezone for the `datetime`.
             Note the timestamp, which is time in seconds from 1st Jan 1970 UTC is the same
             as the previous example.
 
         >>> import anuga
         >>> from zoneinfo import ZoneInfo
         >>> from datetime import datetime
-        >>> 
+        >>>
         >>> domain = anuga.rectangular_cross_domain(10,10)
-        >>> 
+        >>>
         >>> ACST = ZoneInfo('Australia/Adelaide')
         >>> domain.set_timezone(ACST)
-        >>> 
+        >>>
         >>> AEST = ZoneInfo('Australia/Sydney')
         >>> dt = datetime(2021,3,21,18,30, tzinfo=AEST)
-        >>> 
+        >>>
         >>> domain.set_starttime(dt)
         >>> print(domain.get_datetime(), 'TZ', domain.get_timezone(), 'Timestamp: ', domain.get_time())
         2021-03-21 18:00:00+10:30 TZ Australia/Adelaide Timestamp:  1616311800.0
@@ -1297,7 +1298,7 @@ class Domain(Generic_Domain):
         @param checkpoint: Default = True. Set to False will turn off checkpointing
         @param checkpoint_dir: Where to store checkpointing files
         @param checkpoint_step: Save checkpoint files after this many yieldsteps
-        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files 
+        @param checkpoint_time: If set, over-rides checkpoint_step. save checkpoint files
         after this amount of walltime
         """
 
@@ -1928,7 +1929,7 @@ class Domain(Generic_Domain):
         """Compute the integrated flows from fractional steps.
 
         This requires that the fractional step operators update the fractional_step_volume_integral.
-        
+
         Should work in parallel
         """
 
@@ -2148,6 +2149,8 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
+            nvtx.RangePush("Compute Fluxes")
+
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import compute_fluxes_ext_central
             elif self.multiprocessor_mode == 1:
@@ -2156,6 +2159,8 @@ class Domain(Generic_Domain):
                 from .swDE_domain_openmp_ext import compute_fluxes_ext_central
             else:
                 raise Exception('Not implemented')
+
+            nvtx.RangePop()
 
             timestep = self.evolve_max_timestep
             flux_timestep = compute_fluxes_ext_central(self, timestep)
@@ -2681,13 +2686,13 @@ class Domain(Generic_Domain):
 
 
         :param float yieldstep: yield every yieldstep time period
-        :param float outputstep: Output to sww file every outputstep time period. outputstep should be an integer multiple of yieldstep. 
+        :param float outputstep: Output to sww file every outputstep time period. outputstep should be an integer multiple of yieldstep.
         :param float finaltime: evolve until finaltime (can be a float (secs) or a datetime object)
         :param float duration: evolve for a time of length duration (secs)
-        :param  boolean skip_inital_step: Can be used to restart a simulation (not often used). 
+        :param  boolean skip_inital_step: Can be used to restart a simulation (not often used).
 
 
-        If outputstep is None, the output to sww file happens every yieldstep. 
+        If outputstep is None, the output to sww file happens every yieldstep.
         If yieldstep is None then simply evolve to finaltime or for a duration.
         """
 
@@ -2796,11 +2801,11 @@ class Domain(Generic_Domain):
 
     def sww_merge(self,  *args, **kwargs):
         '''Merge all the sub domain sww files into a global sww file
-        
+
         :param bool verbose: Flag to produce more output
         :param bool delete_old: Flag to delete sub domain sww files after
             creating global sww file
-            
+
         '''
 
         pass
@@ -2815,8 +2820,8 @@ class Domain(Generic_Domain):
 
         :param time_units: 'sec', 'min', 'hr', 'day'
         :param bool datetime: flag to use timestamp or datetime
-        :param track_speed: Optional boolean keyword track_speeds decides whether 
-                            to report location of smallest timestep as well as a 
+        :param track_speed: Optional boolean keyword track_speeds decides whether
+                            to report location of smallest timestep as well as a
                             histogram and percentile report.
         :param bool relative_time: Flag to report relative time instead of absolute time
         :param int triangle_id: Can be used to specify a particular
@@ -2951,8 +2956,8 @@ class Domain(Generic_Domain):
 
         :param time_units: 'sec', 'min', 'hr', 'day'
         :param bool datetime: flag to use timestamp or datetime
-        :param track_speed: Optional boolean keyword track_speeds decides whether 
-                            to report location of smallest timestep as well as a 
+        :param track_speed: Optional boolean keyword track_speeds decides whether
+                            to report location of smallest timestep as well as a
                             histogram and percentile report.
         :param bool relative_time: Flag to report relative time instead of absolute time
         :param int triangle_id: Can be used to specify a particular
@@ -3103,7 +3108,7 @@ class Domain(Generic_Domain):
             from .swDE_domain_openmp_ext import compute_flux_update_frequency
         else:
             raise Exception('Not implemented')
-        
+
 
         compute_flux_update_frequency(self, self.timestep)
 
