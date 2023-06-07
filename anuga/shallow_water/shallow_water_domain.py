@@ -2360,24 +2360,7 @@ class Domain(Generic_Domain):
 
             from .swDE1_domain_ext import protect_new
 
-
             mass_error = protect_new(self)
-
-            # FIXME (Ole): Delete
-#             # shortcuts
-#             wc = self.quantities['stage'].centroid_values
-#             wv = self.quantities['stage'].vertex_values
-#             zc = self.quantities['elevation'].centroid_values
-#             zv = self.quantities['elevation'].vertex_values
-#             xmomc = self.quantities['xmomentum'].centroid_values
-#             ymomc = self.quantities['ymomentum'].centroid_values
-#             areas = self.areas
-#             xc = self.centroid_coordinates[:,0]
-#             yc = self.centroid_coordinates[:,1]
-
-            #mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-            #       self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas, xc, yc)
-#
             if mass_error > 0.0 and self.verbose :
                 #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
                 # From https://stackoverflow.com/questions/22397261/cant-convert-float-object-to-str-implicitly
@@ -2494,9 +2477,9 @@ class Domain(Generic_Domain):
 
         # Make sure boundary values of conserved quantites
         # are consistent with value of functions at centroids
-        #self.distribute_to_vertices_and_edges()
         Z.set_boundary_values_from_edges()
 
+        # FIXME(Ole): Why are these not necessary?
         #W.set_boundary_values_from_edges()
         #UH.set_boundary_values_from_edges()
         #VH.set_boundary_values_from_edges()
@@ -2719,6 +2702,7 @@ class Domain(Generic_Domain):
         self.writer.store_timestep()
 
 
+    # FIXME (Ole): Unnecessary?
     def sww_merge(self,  *args, **kwargs):
         '''Merge all the sub domain sww files into a global sww file
 
@@ -2951,6 +2935,7 @@ class Domain(Generic_Domain):
         return boundary_flows, total_boundary_inflow, total_boundary_outflow
 
 
+    # FIXME (Ole): Is this doing anything?
     def compute_forcing_flows(self):
         """
         Compute flows in and out of domain due to forcing terms.
