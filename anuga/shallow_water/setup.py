@@ -38,19 +38,29 @@ def configuration(parent_package='',top_path=None):
                          sources=['swDE_domain_local_timestep_ext.pyx'],
                          include_dirs=[util_dir])
     
-    if sys.platform == 'darwin':
-        extra_compiler_args = None
-        extra_link_args = None
-    else:
-        extra_compiler_args = ['-fopenmp']
-        extra_link_args = ['-fopenmp']
+    # # FIXME SR: come back to getting Mac to run with openmp
+    # if sys.platform == 'darwin':
+    #     extra_compiler_args = None
+    #     extra_link_args = None
 
     
     config.add_extension('swDE_domain_openmp_ext',
                          sources=['swDE_domain_openmp_ext.pyx'],
                          include_dirs=[util_dir],
-                         extra_compile_args=extra_compiler_args,
-                         extra_link_args=extra_link_args)
+                         extra_compile_args=['-fopenmp'],
+                         extra_link_args=['-fopenmp'])
+
+    config.add_extension('swDE_domain_openacc_ext',
+                         sources=['swDE_domain_openacc_ext.pyx'],
+                         include_dirs=[util_dir],
+                         extra_compile_args=None,
+                         extra_link_args=None)
+
+    config.add_extension('swDE_domain_cuda_ext',
+                         sources=['swDE_domain_cuda_ext.pyx'],
+                         include_dirs=[util_dir],
+                         extra_compile_args=None,
+                         extra_link_args=None)
 
 
 

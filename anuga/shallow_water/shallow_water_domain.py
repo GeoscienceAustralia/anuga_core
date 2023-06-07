@@ -112,20 +112,20 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
-def nvtx_RangePush(*arg):
+def nvtxRangePush(*arg):
     pass
-def nvtx_RangePop(*arg):
+def nvtxRangePop(*arg):
     pass
 
 try:
-    from nvtx import range_push as nvtx_RangePush
-    from nvtx import range_pop  as nvtx_RangePop
+    from nvtx import range_push as nvtxRangePush
+    from nvtx import range_pop  as nvtxRangePop
 except:
     pass
 
 try:
-    from cupy.cuda.nvtx import RangePush as nvtx_RangePush
-    from cupy.cuda.nvtx import RangePop  as nvtx_RangePop
+    from cupy.cuda.nvtx import RangePush as nvtxRangePush
+    from cupy.cuda.nvtx import RangePop  as nvtxRangePop
 except:
     pass
 
@@ -300,7 +300,8 @@ class Domain(Generic_Domain):
         # 0. original
         # 1. original with local timestep
         # 2. Openmp
-        # 3. GPU (not implemented)
+        # 3. Openacc
+        # 4. Cuda
         #-------------------------------
         self.set_multiprocessor_mode(0)
 
@@ -2163,7 +2164,7 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            nvtx_RangePush("Compute Fluxes")
+            nvtxRangePush("Compute Fluxes")
 
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import compute_fluxes_ext_central
@@ -2171,14 +2172,20 @@ class Domain(Generic_Domain):
                 from .swDE_domain_local_timestep_ext import compute_fluxes_ext_central
             elif self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import compute_fluxes_ext_central
+            elif self.multiprocessor_mode == 3:
+                from .swDE_domain_openacc_ext import compute_fluxes_ext_central
+            elif self.multiprocessor_mode == 4:
+                from .swDE_domain_cuda_ext import compute_fluxes_ext_central
             else:
                 raise Exception('Not implemented')
 
-            nvtx_RangePop()
+
 
             timestep = self.evolve_max_timestep
             flux_timestep = compute_fluxes_ext_central(self, timestep)
             self.flux_timestep = flux_timestep
+
+            nvtxRangePop()
 
         else:
             raise Exception('unknown compute_fluxes_method')
@@ -2252,23 +2259,28 @@ class Domain(Generic_Domain):
 
 
             # Do protection step
-            nvtx_RangePush('protect extrapolate')
+            nvtxRangePush('protect extrapolate')
             self.protect_against_infinitesimal_and_negative_heights()
-            nvtx_RangePush()
+            nvtxRangePush()
 
             # Do extrapolation step
-            nvtx_RangePush('extrapolate')
+            nvtxRangePush('extrapolate')
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 1:
                 from .swDE_domain_local_timestep_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import extrapolate_second_order_edge_sw as extrapol2
+            elif self.multiprocessor_mode == 3:
+                from .swDE_domain_openacc_ext import extrapolate_second_order_edge_sw as extrapol2
+            elif self.multiprocessor_mode == 4:
+                from .swDE_domain_cuda_ext import extrapolate_second_order_edge_sw as extrapol2
             else:
                 raise Exception('Not implemented')
 
             extrapol2(self)
-            nvtx_RangePush()
+
+            nvtxRangePush()
 
         else:
             # Code for original method
@@ -2400,19 +2412,23 @@ class Domain(Generic_Domain):
 
         elif self.compute_fluxes_method == 'DE':
 
-            nvtx_RangePush('protect_new')
+            nvtxRangePush('protect_new')
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import protect_new
             elif self.multiprocessor_mode == 1:
                 from .swDE_domain_local_timestep_ext import protect_new
             elif self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import  protect_new
+            elif self.multiprocessor_mode == 3:
+                from .swDE_domain_openacc_ext import  protect_new
+            elif self.multiprocessor_mode == 4:
+                from .swDE_domain_cuda_ext import  protect_new
             else:
                 raise Exception('Not implemented')
 
 
             mass_error = protect_new(self)
-            nvtx_RangePop()
+            nvtxRangePop()
 
 #             # shortcuts
 #             wc = self.quantities['stage'].centroid_values
@@ -2461,7 +2477,7 @@ class Domain(Generic_Domain):
         Wrapper for C implementation
         """
 
-        nvtx_RangePush('balance_deep_and_shallow')
+        nvtxRangePush('balance_deep_and_shallow')
 
         from .shallow_water_ext import balance_deep_and_shallow \
                                       as balance_deep_and_shallow_ext
@@ -2484,14 +2500,14 @@ class Domain(Generic_Domain):
                                    wc, zc, wv, zv, wc,
                                    xmomc, ymomc, xmomv, ymomv)
 
-        nvtx_RangePop()
+        nvtxRangePop()
 
     def update_conserved_quantities(self):
         """Update vectors of conserved quantities using previously
         computed fluxes and specified forcing functions.
         """
 
-        nvtx_RangePush('update_conserved_quantities')
+        nvtxRangePush('update_conserved_quantities')
 
         timestep = self.timestep
 
@@ -2508,6 +2524,8 @@ class Domain(Generic_Domain):
         Xmom = self.quantities['xmomentum']
         Ymom = self.quantities['ymomentum']
 
+        # FIXME SR: Should pull this together with fix_negative_cells and implemented in 
+        # in swDE_domain_..._.c
         Stage.update(timestep)
         Xmom.update(timestep)
         Ymom.update(timestep)
@@ -2516,6 +2534,11 @@ class Domain(Generic_Domain):
 
             if self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import fix_negative_cells
+                num_negative_ids = fix_negative_cells(self)
+            elif self.multiprocessor_mode == 3:
+                from .swDE_domain_openacc_ext import fix_negative_cells
+            elif self.multiprocessor_mode == 4:
+                from .swDE_domain_cuda_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             else:
                 tff = self.tri_full_flag
@@ -2536,7 +2559,7 @@ class Domain(Generic_Domain):
                       'Consider using domain.report_water_volume_statistics() to check the extent of the problem'
                 warnings.warn(msg)
 
-        nvtx_RangePop()
+        nvtxRangePop()
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities
@@ -2807,7 +2830,7 @@ class Domain(Generic_Domain):
         Also, save x,y and bed elevation
         """
 
-        nvtx_RangePush('initialise_storage')
+        nvtxRangePush('initialise_storage')
 
         # Initialise writer
         self.writer = SWW_file(self)
@@ -2815,7 +2838,7 @@ class Domain(Generic_Domain):
         # Store vertices and connectivity
         self.writer.store_connectivity()
 
-        nvtx_RangePop()
+        nvtxRangePop()
 
 
     def store_timestep(self):
@@ -2825,9 +2848,9 @@ class Domain(Generic_Domain):
            self.writer has been initialised
         """
 
-        nvtx_RangePush('store_timestep')
+        nvtxRangePush('store_timestep')
         self.writer.store_timestep()
-        nvtx_RangePop()
+        nvtxRangePop()
 
 
     def sww_merge(self,  *args, **kwargs):
@@ -3131,17 +3154,24 @@ class Domain(Generic_Domain):
             Used to control updating of fluxes / extrapolation for 'local-time-stepping'
         """
 
+        nvtxRangePush('compute_flux_update_frequenc')
         if self.multiprocessor_mode == 0:
             from .swDE_domain_original_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 1:
             from .swDE_domain_local_timestep_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 2:
             from .swDE_domain_openmp_ext import compute_flux_update_frequency
+        elif self.multiprocessor_mode == 3:
+            from .swDE_domain_openacc_ext import compute_flux_update_frequency
+        elif self.multiprocessor_mode == 4:
+            from .swDE_domain_cuda_ext import compute_flux_update_frequency
         else:
             raise Exception('Not implemented')
 
 
         compute_flux_update_frequency(self, self.timestep)
+
+        nvtxRangePop()
 
     def report_water_volume_statistics(self, verbose=True, returnStats=False):
         """
