@@ -2222,6 +2222,7 @@ class Domain(Generic_Domain):
 
             # Do protection step
             self.protect_against_infinitesimal_and_negative_heights()
+
             # Do extrapolation step
             from .swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
             extrapol2(self)
@@ -2935,25 +2936,6 @@ class Domain(Generic_Domain):
         return boundary_flows, total_boundary_inflow, total_boundary_outflow
 
 
-    # FIXME (Ole): Is this doing anything?
-    def compute_forcing_flows(self):
-        """
-        Compute flows in and out of domain due to forcing terms.
-
-        Quantities computed are:
-
-           Total inflow through forcing terms
-           Total outflow through forcing terms
-           Current total volume in domain
-
-        """
-
-        #FIXME(Ole): We need to separate what part of explicit_update was
-        # due to the normal flux calculations and what is due to forcing terms.
-
-        pass
-
-
     def compute_total_volume(self):
         """
         Compute total volume (m^3) of water in entire domain
@@ -3019,12 +3001,13 @@ class Domain(Generic_Domain):
         from anuga import myid
 
         if(self.compute_fluxes_method != 'DE'):
-            if(myid==0):
+            if(myid == 0):
                 print('Water_volume_statistics only supported for DE algorithm ')
             return
 
         # Compute the volume
-        Vol=self.get_water_volume()
+        Vol = self.get_water_volume()
+
         # Compute the boundary flux integral
         fluxIntegral=self.get_boundary_flux_integral()
         fracIntegral=self.get_fractional_step_volume_integral()
