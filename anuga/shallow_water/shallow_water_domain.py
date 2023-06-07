@@ -2024,9 +2024,7 @@ class Domain(Generic_Domain):
     def extrapolate_second_order_sw(self):
         """Fast version of extrapolation from centroids to edges"""
 
-        # FIXME (Ole): MIGRATED this to new C Code module swDE1_domain_ext.c
-
-        #from .shallow_water_ext import extrapolate_second_order_sw as extrapol2
+        # FIXME (Ole): This might be an obsolute function (it was migrated from shallow_water_ext)
         from .swDE1_domain_ext import extrapolate_second_order_sw as extrapol2
         extrapol2(self)
 
@@ -2702,15 +2700,17 @@ class Domain(Generic_Domain):
         self.writer.store_timestep()
 
 
-    # FIXME (Ole): Unnecessary?
     def sww_merge(self,  *args, **kwargs):
-        '''Merge all the sub domain sww files into a global sww file
+        """Dummy function for sequential algorithms where the sww produced is the final products.
+
+        For parallel runs, a similarly named routine in parallel_shallow_water will merge all the
+        sub domain sww files into a global sww file
 
         :param bool verbose: Flag to produce more output
         :param bool delete_old: Flag to delete sub domain sww files after
             creating global sww file
 
-        '''
+        """
 
         pass
 
