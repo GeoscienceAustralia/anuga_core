@@ -506,7 +506,7 @@ double _openacc_compute_fluxes_central(struct domain *D,
   double boundary_flux_sum_substep = 0.0; 
 
 // For all triangles
-#pragma omp parallel for simd default(none) shared(D, substep_count, K) \
+#pragma acc  parallel loop \
                                      firstprivate(ncol_riverwall_hydraulic_properties, epsilon, g, low_froude, limiting_threshold) \
                                      private(i, ki, ki2, n, m, nm, ii,                                                  \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
@@ -516,6 +516,9 @@ double _openacc_compute_fluxes_central(struct domain *D,
                                      hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n,              \
                                      h_left_tmp, h_right_tmp, speed_max_last, weir_height, RiverWall_count)             \
                                      reduction(min : local_timestep) reduction(+:boundary_flux_sum_substep)
+
+
+ 
   for (k = 0; k < K; k++)
   {
     speed_max_last = 0.0;
