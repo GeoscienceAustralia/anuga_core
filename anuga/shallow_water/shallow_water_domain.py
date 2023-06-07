@@ -2164,7 +2164,7 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            nvtxRangePush("Compute Fluxes")
+            nvtxRangePush("Compute Fluxes Central")
 
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import compute_fluxes_ext_central
@@ -2259,9 +2259,9 @@ class Domain(Generic_Domain):
 
 
             # Do protection step
-            nvtxRangePush('protect extrapolate')
+            nvtxRangePush('protect_against_infinities')
             self.protect_against_infinitesimal_and_negative_heights()
-            nvtxRangePush()
+            nvtxRangePop()
 
             # Do extrapolation step
             nvtxRangePush('extrapolate')
@@ -2280,7 +2280,7 @@ class Domain(Generic_Domain):
 
             extrapol2(self)
 
-            nvtxRangePush()
+            nvtxRangePop()
 
         else:
             # Code for original method
@@ -2723,6 +2723,7 @@ class Domain(Generic_Domain):
         self.distribute_to_vertices_and_edges()
 
 
+    
 
     def evolve(self,
                yieldstep=None,
@@ -2781,6 +2782,11 @@ class Domain(Generic_Domain):
         if self.store is True and (self.get_relative_time() == 0.0 or self.evolved_called is False):
             self.initialise_storage()
 
+        
+    
+        #nvtx marker
+        nvtxRangePush('_evolve_base')
+
         # Call basic machinery from parent class
         for t in self._evolve_base(yieldstep=yieldstep,
                                    finaltime=finaltime, duration=duration,
@@ -2825,12 +2831,16 @@ class Domain(Generic_Domain):
 
             self.yieldstep_counter += 1
 
+        #nvtx marker
+        nvtxRangePop()
+
+
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.
         Also, save x,y and bed elevation
         """
 
-        nvtxRangePush('initialise_storage')
+        nvtxRangePush('SWW_file')
 
         # Initialise writer
         self.writer = SWW_file(self)
