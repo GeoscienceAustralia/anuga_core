@@ -2442,12 +2442,6 @@ class Domain(Generic_Domain):
 
 
         # Update conserved_quantities
-        #for name in self.conserved_quantities:
-        #    Q = self.quantities[name]
-        #    Q.update(timestep)
-
-        #print 'shallow water update conserved quantties'
-
         Elev = self.quantities['elevation']
         Stage = self.quantities['stage']
         Xmom = self.quantities['xmomentum']
@@ -2476,7 +2470,7 @@ class Domain(Generic_Domain):
 
 
 
-
+    # FIXME (Ole): Dead code
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities
         based on the new values of conserved quantities
@@ -3176,152 +3170,11 @@ class Domain(Generic_Domain):
 # End of class Shallow Water Domain
 ################################################################################
 
-#-----------------
-# Flux computation
-#-----------------
-
-#def compute_fluxes(domain):
-#    """Compute fluxes and timestep suitable for all volumes in domain.
-#
-#    Compute total flux for each conserved quantity using "flux_function"
-#
-#    Fluxes across each edge are scaled by edgelengths and summed up
-#    Resulting flux is then scaled by area and stored in
-#    explicit_update for each of the three conserved quantities
-#    stage, xmomentum and ymomentum
-#
-#    The maximal allowable speed computed by the flux_function for each volume
-#    is converted to a timestep that must not be exceeded. The minimum of
-#    those is computed as the next overall timestep.
-#
-#    Post conditions:
-#      domain.explicit_update is reset to computed flux values
-#      domain.timestep is set to the largest step satisfying all volumes.
-#
-#    This wrapper calls the underlying C version of compute fluxes
-#    """
-#
-#    import sys
-#    from shallow_water_ext import compute_fluxes_ext_central \
-#                                  as compute_fluxes_ext
-#
-#    # Shortcuts
-#    Stage = domain.quantities['stage']
-#    Xmom = domain.quantities['xmomentum']
-#    Ymom = domain.quantities['ymomentum']
-#    Bed = domain.quantities['elevation']
-#
-#
-#
-#    timestep = float(sys.maxint)
-#
-#    flux_timestep = compute_fluxes_ext(timestep,
-#                                       domain.epsilon,
-#                                       domain.H0,
-#                                       domain.g,
-#                                       domain.neighbours,
-#                                       domain.neighbour_edges,
-#                                       domain.normals,
-#                                       domain.edgelengths,
-#                                       domain.radii,
-#                                       domain.areas,
-#                                       domain.tri_full_flag,
-#                                       Stage.edge_values,
-#                                       Xmom.edge_values,
-#                                       Ymom.edge_values,
-#                                       Bed.edge_values,
-#                                       Stage.boundary_values,
-#                                       Xmom.boundary_values,
-#                                       Ymom.boundary_values,
-#                                       Stage.explicit_update,
-#                                       Xmom.explicit_update,
-#                                       Ymom.explicit_update,
-#                                       domain.already_computed_flux,
-#                                       domain.max_speed,
-#                                       domain.optimise_dry_cells)
-#
-#    domain.flux_timestep = flux_timestep
-#
-#
-#
-#def compute_fluxes_structure(domain):
-#    """Compute fluxes and timestep suitable for all volumes in domain.
-#
-#    Compute total flux for each conserved quantity using "flux_function"
-#
-#    Fluxes across each edge are scaled by edgelengths and summed up
-#    Resulting flux is then scaled by area and stored in
-#    explicit_update for each of the three conserved quantities
-#    stage, xmomentum and ymomentum
-#
-#    The maximal allowable speed computed by the flux_function for each volume
-#    is converted to a timestep that must not be exceeded. The minimum of
-#    those is computed as the next overall timestep.
-#
-#    Post conditions:
-#      domain.explicit_update is reset to computed flux values
-#      domain.flux_timestep is set to the largest step satisfying all volumes.
-#
-#    This wrapper calls the underlying C version of compute fluxes
-#    """
-#
-#
-#    from shallow_water_ext import compute_fluxes_ext_central_structure
-#
-#
-#    domain.flux_timestep = compute_fluxes_ext_central_structure(domain)
-#
 
 
 ################################################################################
 # Module functions for gradient limiting
 ################################################################################
-
-def Xextrapolate_second_order_sw_old(domain):
-    """Wrapper calling C version of extrapolate_second_order_sw.
-
-    domain  the domain to operate on
-
-    Note MH090605: The following method belongs to the shallow_water domain
-    class, see comments in the corresponding method in shallow_water_ext.c
-    """
-
-    from .shallow_water_ext import extrapolate_second_order_sw_old as extrapol2
-
-    # Shortcuts
-    Stage = domain.quantities['stage']
-    Xmom = domain.quantities['xmomentum']
-    Ymom = domain.quantities['ymomentum']
-    Elevation = domain.quantities['elevation']
-
-    extrapol2(domain,
-              domain.surrogate_neighbours,
-              domain.number_of_boundaries,
-              domain.centroid_coordinates,
-              Stage.centroid_values,
-              Xmom.centroid_values,
-              Ymom.centroid_values,
-              Elevation.centroid_values,
-              domain.vertex_coordinates,
-              Stage.vertex_values,
-              Xmom.vertex_values,
-              Ymom.vertex_values,
-              Elevation.vertex_values,
-              int(domain.optimise_dry_cells),
-              int(domain.extrapolate_velocity_second_order))
-
-
-#def extrapolate_second_order_sw(domain):
-#    """Wrapper calling C version of extrapolate_second_order_sw.
-#
-#    domain  the domain to operate on
-#
-#    Note MH090605: The following method belongs to the shallow_water domain
-#    class, see comments in the corresponding method in shallow_water_ext.c
-#    """
-#
-#    from shallow_water_ext import extrapolate_second_order_sw as extrapol2
-#    extrapol2(domain)
 
 
 def distribute_using_vertex_limiter(domain):
@@ -3380,61 +3233,6 @@ def distribute_using_vertex_limiter(domain):
     for name in domain.conserved_quantities:
         Q = domain.quantities[name]
         Q.interpolate_from_vertices_to_edges()
-
-#def distribute_using_edge_limiter(domain):
-#    """Distribution from centroids to edges specific to the SWW eqn.
-#
-#    It will ensure that h (w-z) is always non-negative even in the
-#    presence of steep bed-slopes by taking a weighted average between shallow
-#    and deep cases.
-#
-#    In addition, all conserved quantities get distributed as per either a
-#    constant (order==1) or a piecewise linear function (order==2).
-#
-#
-#    Precondition:
-#      All quantities defined at centroids and bed elevation defined at
-#      vertices.
-#
-#    Postcondition
-#      Conserved quantities defined at vertices
-#    """
-#
-#    # Remove very thin layers of water
-#    domain.protect_against_infinitesimal_and_negative_heights()
-#
-#    for name in domain.conserved_quantities:
-#        Q = domain.quantities[name]
-#        if domain._order_ == 1:
-#            Q.extrapolate_first_order()
-#        elif domain._order_ == 2:
-#            Q.extrapolate_second_order_and_limit_by_edge()
-#        else:
-#            raise Exception('Unknown order')
-#
-#    balance_deep_and_shallow(domain)
-#
-#    # Compute edge values by interpolation
-#    for name in domain.conserved_quantities:
-#        Q = domain.quantities[name]
-#        Q.interpolate_from_vertices_to_edges()
-#
-##def protect_against_infinitesimal_and_negative_heights(domain):
-##    """Protect against infinitesimal heights and associated high velocities"""
-##
-##    from shallow_water_ext import protect
-##
-##    # Shortcuts
-##    wc = domain.quantities['stage'].centroid_values
-##    zc = domain.quantities['elevation'].centroid_values
-##    xmomc = domain.quantities['xmomentum'].centroid_values
-##    ymomc = domain.quantities['ymomentum'].centroid_values
-##
-##    protect(domain.minimum_allowed_height, domain.maximum_allowed_speed,
-##            domain.epsilon, wc, zc, xmomc, ymomc)
-
-
-
 
 
 ################################################################################
