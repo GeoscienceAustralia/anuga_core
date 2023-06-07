@@ -2785,7 +2785,7 @@ class Domain(Generic_Domain):
         
     
         #nvtx marker
-        nvtx_RangePush('_evolve_base')
+        nvtxRangePush('_evolve_base')
 
         # Call basic machinery from parent class
         for t in self._evolve_base(yieldstep=yieldstep,
@@ -2832,7 +2832,7 @@ class Domain(Generic_Domain):
             self.yieldstep_counter += 1
 
         #nvtx marker
-        nvtx_RangePop()
+        nvtxRangePop()
 
 
     def initialise_storage(self):
