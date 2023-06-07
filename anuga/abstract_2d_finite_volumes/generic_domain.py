@@ -36,6 +36,28 @@ import anuga
 import numpy as num
 
 
+# ---------------- wrapper for nvtx marker
+
+def nvtxRangePush(*arg):
+    pass
+def nvtxRangePop(*arg):
+    pass
+
+try:
+    from nvtx import range_push as nvtxRangePush
+    from nvtx import range_pop  as nvtxRangePop
+except:
+    pass
+
+try:
+    from cupy.cuda.nvtx import RangePush as nvtxRangePush
+    from cupy.cuda.nvtx import RangePop  as nvtxRangePop
+except:
+    pass
+# ---------------- wrapper for nvtx marker
+
+
+
 class Generic_Domain(object):
     """Generic computational Domain constructor.
     """
@@ -1868,27 +1890,57 @@ class Generic_Domain(object):
         vertices and edges
         """
 
+        #nvtx marker
+        nvtxRangePush('distribute_to_vertices_and_edges')
+
         # From centroid values calculate edge and vertex values
         self.distribute_to_vertices_and_edges()
 
+        #nvtx marker
+        nvtxRangePop()
+
+        #nvtx marker
+        nvtxRangePush('update_boundary')
         # Apply boundary conditions
         self.update_boundary()
+        #nvtx marker
+        nvtxRangePop()
 
+        #nvtx marker
+        nvtxRangePush('compute_fluxes')
         # Compute fluxes across each element edge
         self.compute_fluxes()
+        #nvtx marker
+        nvtxRangePop()
 
+        #nvtx marker
+        nvtxRangePush('compute_forcing_terms')
         # Compute forcing terms
         self.compute_forcing_terms()
+        #nvtx marker
+        nvtxRangePop()
 
+        #nvtx marker
+        nvtxRangePush('update_timestep')
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
+        #nvtx marker
+        nvtxRangePop()
 
+        #nvtx marker
+        nvtxRangePush('compute_flux_update_frequency')
         if self.max_flux_update_frequency != 1:
             # Update flux_update_frequency using the new timestep
             self.compute_flux_update_frequency()
+        #nvtx marker
+        nvtxRangePop()
 
+        #nvtx marker
+        nvtxRangePush('update_conserved_quantities')
         # Update conserved quantities
         self.update_conserved_quantities()
+        #nvtx marker
+        nvtxRangePop()
 
     def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep
