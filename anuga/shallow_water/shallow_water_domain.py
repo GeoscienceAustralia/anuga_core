@@ -2261,7 +2261,7 @@ class Domain(Generic_Domain):
             # Do protection step
             nvtxRangePush('protect extrapolate')
             self.protect_against_infinitesimal_and_negative_heights()
-            nvtxRangePush()
+            nvtxRangePop()
 
             # Do extrapolation step
             nvtxRangePush('extrapolate')
@@ -2280,7 +2280,7 @@ class Domain(Generic_Domain):
 
             extrapol2(self)
 
-            nvtxRangePush()
+            nvtxRangePop()
 
         else:
             # Code for original method
@@ -2723,6 +2723,7 @@ class Domain(Generic_Domain):
         self.distribute_to_vertices_and_edges()
 
 
+    
 
     def evolve(self,
                yieldstep=None,
@@ -2781,6 +2782,11 @@ class Domain(Generic_Domain):
         if self.store is True and (self.get_relative_time() == 0.0 or self.evolved_called is False):
             self.initialise_storage()
 
+        
+    
+        #nvtx marker
+        nvtx_RangePush('initialise_storage')
+
         # Call basic machinery from parent class
         for t in self._evolve_base(yieldstep=yieldstep,
                                    finaltime=finaltime, duration=duration,
@@ -2824,6 +2830,10 @@ class Domain(Generic_Domain):
             yield(t)
 
             self.yieldstep_counter += 1
+
+        #nvtx marker
+        nvtx_RangePop()
+
 
     def initialise_storage(self):
         """Create and initialise self.writer object for storing data.
