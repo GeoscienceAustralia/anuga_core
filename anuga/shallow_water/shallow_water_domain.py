@@ -3277,7 +3277,7 @@ class Domain(Generic_Domain):
 # Module functions for gradient limiting
 ################################################################################
 
-def extrapolate_second_order_sw_old(domain):
+def Xextrapolate_second_order_sw_old(domain):
     """Wrapper calling C version of extrapolate_second_order_sw.
 
     domain  the domain to operate on
