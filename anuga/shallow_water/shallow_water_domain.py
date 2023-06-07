@@ -81,9 +81,10 @@ def profileit(name):
             import cProfile
             prof = cProfile.Profile()
             retval = prof.runcall(func, *args, **kwargs)
+
             # Note use of name from outer scope
-            print(str(args[1])+"_"+name)
-            prof.dump_stats(str(args[1])+"_"+name)
+            print(str(args[1])+'_'+name)
+            prof.dump_stats(str(args[1])+'_'+name)
             return retval
         return wrapper
     return inner
@@ -275,8 +276,6 @@ class Domain(Generic_Domain):
         self.fractional_step_operators = []
         self.kv_operator = None
 
-
-
         #-------------------------------
         # Set flow defaults
         #-------------------------------
@@ -368,8 +367,10 @@ class Domain(Generic_Domain):
         # flux_update_frequency. The edge flux terms are re-computed only when
         #    number_of_timesteps%flux_update_frequency[myEdge]==0
         self.flux_update_frequency=num.zeros(len(self.edge_coordinates[:,0])).astype(int)+1
+
         # Flag: should we update the flux on the next compute fluxes call?
         self.update_next_flux=num.zeros(len(self.edge_coordinates[:,0])).astype(int)+1
+
         # Flag: should we update the extrapolation on the next extrapolation call?
         # (Only do this if one or more of the fluxes on that triangle will be computed on
         # the next timestep, assuming only the flux computation uses edge/vertex values)
@@ -408,8 +409,6 @@ class Domain(Generic_Domain):
 
         self.set_minimum_allowed_height(minimum_allowed_height)
         self.maximum_allowed_speed = maximum_allowed_speed
-
-
 
         self.minimum_storable_height = minimum_storable_height
         self.g = g
@@ -648,7 +647,6 @@ class Domain(Generic_Domain):
         self.set_CFL(0.75)
         self.set_compute_fluxes_method('wb_2')
         self.set_extrapolate_velocity()
-
 
         if self.processor == 0 and self.verbose:
             print('##########################################################################')
@@ -2438,7 +2436,7 @@ class Domain(Generic_Domain):
 
             tff = self.tri_full_flag
 
-            negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
+            negative_ids = num.where(num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0))[0]
 
             if len(negative_ids) > 0:
                 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
@@ -3020,7 +3018,7 @@ class Domain(Generic_Domain):
             print('    V - BF - FS - InitialVolume :',  Vol- fluxIntegral -fracIntegral - self.volume_history[0])
             print(' ')
 
-        if(returnStats):
+        if returnStats:
             return [Vol, fluxIntegral, fracIntegral]
         else:
             return
@@ -3035,26 +3033,27 @@ class Domain(Generic_Domain):
         Useful in models
         with complex meshes, to find ways to speed up the model
         """
+
         from anuga.parallel import myid, numprocs
         from anuga.config import g, epsilon
 
-        if(threshold_depth is None):
+        if threshold_depth is None:
             threshold_depth=self.minimum_allowed_height
 
         uh = self.quantities['xmomentum'].centroid_values
         vh = self.quantities['ymomentum'].centroid_values
         d =  self.quantities['stage'].centroid_values - self.quantities['elevation'].centroid_values
         d = num.maximum(d, threshold_depth)
-        v = ( (uh)**2 + (vh)**2)**0.5/d
-        v = v*(d>threshold_depth)
+        v = ((uh)**2 + (vh)**2)**0.5/d
+        v = v * (d > threshold_depth)
 
         for i in range(numprocs):
-            if(myid==i):
+            if myid == i:
                 print('    Processor ', myid)
-                gravSpeed=(g*d)**0.5
-                waveSpeed = abs(v)+gravSpeed
-                localTS=self.radii/num.maximum(waveSpeed, epsilon)
-                controlling_pt_ind=localTS.argmin()
+                gravSpeed = (g * d)**0.5
+                waveSpeed = abs(v) + gravSpeed
+                localTS = self.radii / num.maximum(waveSpeed, epsilon)
+                controlling_pt_ind = localTS.argmin()
                 print('    * Smallest LocalTS is: ', localTS[controlling_pt_ind])
                 print('     -- Location: ', round(self.centroid_coordinates[controlling_pt_ind,0]+self.geo_reference.xllcorner,2),\
                                         round(self.centroid_coordinates[controlling_pt_ind,1]+self.geo_reference.yllcorner,2))
@@ -3136,7 +3135,7 @@ def distribute_using_vertex_limiter(domain):
         # perform the extrapolation and limiting on
         # all of the conserved quantities
 
-        if (domain._order_ == 1):
+        if domain._order_ == 1:
             for name in domain.conserved_quantities:
                 Q = domain.quantities[name]
                 Q.extrapolate_first_order()
@@ -3318,16 +3317,15 @@ def depth_dependent_friction(domain, default_friction,
 
         # Recompute friction values from depth for this element
 
-        if d_vals[i]   <= d1:
+        if d_vals[i] <= d1:
             ddf = n1
         elif d_vals[i] >= d2:
             ddf = n2
         else:
-            ddf = n1 + ((n2-n1)/(d2-d1))*(d_vals[i]-d1)
+            ddf = n1 + ((n2 - n1) / (d2 - d1)) * (d_vals[i] - d1)
 
-        # check sanity of result
-        if (ddf  < 0.010 or \
-                            ddf > 9999.0) :
+        # Check sanity of result
+        if ddf < 0.010 or ddf > 9999.0:
             log.critical('>>>> WARNING: computed depth_dependent friction '
                          'out of range, ddf%f, n1=%f, n2=%f'
                          % (ddf, n1, n2))
@@ -3338,7 +3336,7 @@ def depth_dependent_friction(domain, default_friction,
     # EHR add code to show range of 'friction across domain at this instant as
     # sanity check?????????
 
-    if verbose :
+    if verbose:
         # return array of domain nvals
         nvals = domain.get_quantity('friction').get_values(location='centroids')
         n_min = min(nvals)
@@ -3350,6 +3348,7 @@ def depth_dependent_friction(domain, default_friction,
 
     return wet_friction
 
+# FIXME (Ole): Does this do anything?
 def my_update_special_conditions(domain):
 
     pass
