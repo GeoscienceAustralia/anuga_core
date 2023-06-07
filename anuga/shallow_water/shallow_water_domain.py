@@ -2363,6 +2363,7 @@ class Domain(Generic_Domain):
 
             mass_error = protect_new(self)
 
+            # FIXME (Ole): Delete
 #             # shortcuts
 #             wc = self.quantities['stage'].centroid_values
 #             wv = self.quantities['stage'].vertex_values
