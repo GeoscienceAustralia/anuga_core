@@ -721,10 +721,11 @@ class Generic_Domain(object):
         0. standard
         1. standard with local timestep
         2. openmp
-        3. gpu (not implemented)
+        3. openacc (in development)
+        4. cuda (in development)
         """
 
-        if multiprocessor_mode in [0,1,2]:
+        if multiprocessor_mode in [0,1,2,3,4]:
             self.multiprocessor_mode = multiprocessor_mode
         else:
             raise Exception('multiprocessor mode {multiprocessor_mode} not supported')

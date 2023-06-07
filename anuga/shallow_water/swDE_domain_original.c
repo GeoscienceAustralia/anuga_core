@@ -678,6 +678,7 @@ double _compute_fluxes_central(struct domain *D, double timestep)
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
         D->boundary_flux_sum[substep_count] += D->edge_flux_work[ki3];
+
       }
 
       D->xmom_explicit_update[k] -= D->normals[ki2] * D->pressuregrad_work[ki];
@@ -697,6 +698,10 @@ double _compute_fluxes_central(struct domain *D, double timestep)
   // Ensure we only update the timestep on the first call within each rk2/rk3 step
   if (substep_count == 0)
     timestep = local_timestep;
+
+  //printf("original boundary_flux_sum_substep %f \n",D->boundary_flux_sum[substep_count]);
+  //printf("original local_timestep            %f \n",local_timestep);
+  //printf("original timestep                  %f \n",local_timestep);
 
   return timestep;
 }
