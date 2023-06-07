@@ -1867,27 +1867,57 @@ class Generic_Domain(object):
         vertices and edges
         """
 
+        #nvtx marker
+        nvtx_RangePush('distribute_to_vertices_and_edges')
+
         # From centroid values calculate edge and vertex values
         self.distribute_to_vertices_and_edges()
 
+        #nvtx marker
+        nvtx_RangePop()
+
+        #nvtx marker
+        nvtx_RangePush('update_boundary')
         # Apply boundary conditions
         self.update_boundary()
+        #nvtx marker
+        nvtx_RangePop()
 
+        #nvtx marker
+        nvtx_RangePush('compute_fluxes')
         # Compute fluxes across each element edge
         self.compute_fluxes()
+        #nvtx marker
+        nvtx_RangePop()
 
+        #nvtx marker
+        nvtx_RangePush('compute_forcing_terms')
         # Compute forcing terms
         self.compute_forcing_terms()
+        #nvtx marker
+        nvtx_RangePop()
 
+        #nvtx marker
+        nvtx_RangePush('update_timestep')
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
+        #nvtx marker
+        nvtx_RangePop()
 
+        #nvtx marker
+        nvtx_RangePush('compute_flux_update_frequency')
         if self.max_flux_update_frequency != 1:
             # Update flux_update_frequency using the new timestep
             self.compute_flux_update_frequency()
+        #nvtx marker
+        nvtx_RangePop()
 
+        #nvtx marker
+        nvtx_RangePush('update_conserved_quantities')
         # Update conserved quantities
         self.update_conserved_quantities()
+        #nvtx marker
+        nvtx_RangePop()
 
     def evolve_one_rk2_step(self, yieldstep, finaltime):
         """One 2nd order RK timestep
