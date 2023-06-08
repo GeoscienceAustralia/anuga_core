@@ -15,8 +15,8 @@
 // Gareth Davies, GA 2011
 
 //#include "math.h"
-//#include <stdio.h>
-//#include <string.h>
+#include <stdio.h>
+#include <string.h>
 //#include <assert.h>
 
 // #if defined(__APPLE__)
@@ -607,7 +607,7 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
             // CFL for triangle k
 
             //local_timestep[0] = fmin(local_timestep[0], edge_timestep);
-	    atomicMin_double(local_timestep, edge_timestep);
+	          atomicMin_double(local_timestep, edge_timestep);
 
             speed_max_last = fmax(speed_max_last, max_speed_local);
           }
@@ -626,7 +626,10 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
         //boundary_flux_sum[substep_count] += edgeflux[0];
-	atomicAdd(&(boundary_flux_sum[substep_count]), edgeflux[0]);
+
+        printf(" k = %ld  substep_count = %ld edge_flux %f bflux %f \n",k,substep_count, edge_flux[0], boundary_flux_sum[substep_count] );
+
+	      atomicAdd(&(boundary_flux_sum[substep_count]), edgeflux[0]);
 
         //printf('boundary_flux_sum_substep %e \n',boundary_flux_sum_substep);
         
