@@ -319,7 +319,7 @@ int _flux_function_central(double *q_left, double *q_right,
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
 
-  printf("Entering _flux_function_central with h_left = %f, h_right = %f\n", h_left, h_right);
+  //printf("Entering _flux_function_central with h_left = %f, h_right = %f\n", h_left, h_right);
 
   if(h_left==0. && h_right==0.){
     // Quick exit
@@ -480,7 +480,7 @@ int _flux_function_central(double *q_left, double *q_right,
     _rotate(edgeflux, n1, -n2);
   }
 
-  printf("Pressure flux = %f, s_max = %f, s_min = %f, h_left = %f, h_right = %f\n", *pressure_flux, s_max, s_min, h_left, h_right);
+  //printf("Pressure flux = %f, s_max = %f, s_min = %f, h_left = %f, h_right = %f\n", *pressure_flux, s_max, s_min, h_left, h_right);
 
 
   return 0;
