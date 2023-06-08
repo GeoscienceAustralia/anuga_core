@@ -86,9 +86,6 @@ cdef extern from "swDE1_domain.c" nogil:
         int _extrapolate_second_order_edge_sw(domain* D)
         int _extrapolate_second_order_sw(domain* D)
 
-	# Expose the innermost flux computation, e.g. for testing purposes
-        int _flux_function_central(double* q_left, double* q_right, double z_left, double z_right, double n1, double n2, double epsilon, double h0, double limiting_threshold, double g, double* edgeflux, double* max_speed)
-
 
 cdef int pointer_flag = 0
 cdef int parameter_flag = 0
@@ -327,38 +324,6 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 #===============================================================================
 
-# Compiler test
-#def hello_world(int i):
-#    cdef double x
-#    x = i * i
-#    return x
-
-
-# Commented out for now as causes an avalanche of compiler errors!
-"""
-# Migrated from shallow_water_ext.pyx to expose innermost flux calculation - e.g. for test purposes
-def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
-                          np.ndarray[double, ndim=1, mode="c"] ql not None,\
-                          np.ndarray[double, ndim=1, mode="c"] qr not None,\
-                          double zl,\
-                          double zr,\
-                          np.ndarray[double, ndim=1, mode="c"] edgeflux not None,\
-                          double epsilon,\
-                          double g,\
-                          double H0):
-
-        cdef double h0, limiting_threshold, max_speed
-        cdef int err
-
-        h0 = H0*H0
-        limiting_threshold = 10*H0
-
-        err = _flux_function_central(&ql[0], &qr[0], zl, zr, normal[0], normal[1], epsilon, h0, limiting_threshold, g, &edgeflux[0], &max_speed)
-
-        assert err >= 0, "Discontinuous Elevation"
-
-        return max_speed
-"""
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
 
