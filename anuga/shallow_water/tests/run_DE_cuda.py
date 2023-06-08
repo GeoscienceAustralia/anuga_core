@@ -93,11 +93,10 @@ domain1.compute_fluxes()
 timestep1 = domain1.flux_timestep
 boundary_flux1 = domain1.boundary_flux_sum[0]
 
-def compute_fluxes_ext_central_kernel(doamin,timestep):
+def compute_fluxes_ext_central_kernel(domain,timestep):
     
     substep_count
-    local_timestep = num.zeros((1,))     # InOut
-
+    local_timestep = num.zeros((1,), dtype=num.float)     # InOut
 
     #--------------------------------
     # create alias to domain variables
@@ -133,9 +132,7 @@ def compute_fluxes_ext_central_kernel(doamin,timestep):
     edge_flux_type = domain.edge_flux_type
     tri_full_flag = domain.tri_full_flag
 
-
     already_computed_flux = domain.already_computed_flux
-
 
     vertex_coordinates = domain.vertex_coordinates
     edge_coordinates = domain.edge_coordinates
@@ -155,9 +152,7 @@ def compute_fluxes_ext_central_kernel(doamin,timestep):
     boundary_flux_sum = domain.boundary_flux_sum
     edge_river_wall_counter = domain.edge_river_wall_counter
 
-    #------------------------------------------------------
     # Quantity structures
-    #------------------------------------------------------
     quantities = domain.quantities
     stage = quantities["stage"]
     xmomentum = quantities["xmomentum"]
@@ -198,6 +193,9 @@ def compute_fluxes_ext_central_kernel(doamin,timestep):
 
 
 
+    #-------------------------------------
+    # glue code
+    #-------------------------------------
     timestep_fluxcalls = 1
     call = 1
 
@@ -207,7 +205,7 @@ def compute_fluxes_ext_central_kernel(doamin,timestep):
     substep_count = (call - base_call) % domain.timestep_fluxcalls
 
     #------------------------------------
-    # creatre cupy arrays
+    # create cupy arrays
     #------------------------------------
     import cupy as cp
     
@@ -249,7 +247,9 @@ def compute_fluxes_ext_central_kernel(doamin,timestep):
     # create a Module object in python
     mod = cp.cuda.function.Module()
 
-    # load the cubin
+    # load the cubin created by comiling ../cuda_anuga.cu 
+    # with 
+    # nvcc -arch=sm_70 -cubin -o cuda_anuga.cubin cuda_anuga.cu
     mod.load_file("../cuda_anuga.cubin")
 
     # fetch the kernel to make it a Python function object
