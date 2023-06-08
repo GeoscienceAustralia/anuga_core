@@ -2164,7 +2164,7 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            nvtxRangePush("Compute Fluxes Central")
+            nvtxRangePush("Compute Fluxes (Domain)")
 
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import compute_fluxes_ext_central
