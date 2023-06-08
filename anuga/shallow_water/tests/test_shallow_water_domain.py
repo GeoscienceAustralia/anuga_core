@@ -50,7 +50,7 @@ from anuga.config import g
 from pprint import pprint
 
 # Get gateway to C implementation of flux function for direct testing
-from anuga.shallow_water.shallow_water_ext import flux_function_central as flux_function
+from anuga.shallow_water.swDE1_domain_ext import flux_function_central as flux_function
 from anuga.shallow_water.shallow_water_ext import rotate
 
 
@@ -294,23 +294,20 @@ class Test_Shallow_Water(unittest.TestCase):
 
     # Individual flux tests
     def test_flux_zero_case(self):
-
-        from anuga.shallow_water.swDE1_domain_ext import flux_function_central as flux_function
-        #.swDE1_domain_ext
-
         ql = num.zeros(3, float)
         qr = num.zeros(3, float)
         normal = num.zeros(2, float)
         edgeflux = num.zeros(3, float)
-        zl = zr = 0.
+        zl = zr = ze = 0.
         H0 = 1.0e-3 # As suggested in the manual
 
-        hle = hre = hc = hc_n = 0
+        h = hl = hr = hle = hre = hc = hc_n = 0.0
         low_froude = 1
 
-        max_speed = flux_function(normal, ql, qr, zl, zr, hle, hre, edgeflux, epsilon, g, H0, hc, hc_n, low_froude)
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
 
-        assert num.allclose(edgeflux, [0,0,0])
+        assert num.allclose(edgeflux, [0, 0, 0])
+        assert num.allclose(pressure_flux, 0.5*g*h**2)
         assert max_speed == 0.
 
     def test_flux_constants(self):
@@ -320,13 +317,19 @@ class Test_Shallow_Water(unittest.TestCase):
         ql = num.array([w, 0, 0])
         qr = num.array([w, 0, 0])
         edgeflux = num.zeros(3, float)
-        zl = zr = 0.
-        h = w - (zl+zr) / 2
+        zr = zl = ze = 0
+        hl = hr = h = w - (zl+zr) / 2
         H0 = 0.0
 
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)
-        assert num.allclose(edgeflux, [0., 0.5*g*h**2, 0.])
-        assert max_speed == num.sqrt(g*h)
+        hle = hre = hc = h
+        hc_n = 0
+
+        for low_froude in [1, 2]:
+            max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
+            assert max_speed == num.sqrt(g*h)
+            assert num.allclose(pressure_flux, 0.5*g*h**2)
+            assert num.allclose(edgeflux, [0., 0., 0.])
+
 
     #def test_flux_slope(self):
     #    #FIXME: TODO
@@ -348,16 +351,17 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = num.array([1., 0])
         ql = num.array([-0.2, 2, 3])
         qr = num.array([-0.2, 2, 3])
-        zl = zr = -0.5
-        edgeflux = num.zeros(3, float)
 
+        zl = zr = ze = -0.5
+        hc = hc_n = hl = hr = hle = hre = h = 0.3
+        low_froude = 2
         H0 = 0.0
+        edgeflux = num.zeros(3, float)
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
 
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux,
-                                  epsilon, g, H0)
-
-        assert num.allclose(edgeflux, [2., 13.77433333, 20.])
         assert num.allclose(max_speed, 8.38130948661)
+        assert num.allclose(edgeflux, [2., 13.3333333, 20.])
+
 
     def test_flux2(self):
         # Use data from previous version of abstract_2d_finite_volumes
@@ -421,7 +425,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         points = [a, b, c, d, e, f]
         #              bac,     bce,     ecf,     dbe
-        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
         domain.check_integrity()
@@ -871,7 +875,7 @@ class Test_Shallow_Water(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
-        domain.set_quantity('stage', [[2,2,2], [2,2,2], [2,2,2], [2,2,2]])
+        domain.set_quantity('stage', [[2,4,6], [4,3,2], [2,0,1], [1,2,3]])
         domain.check_integrity()
 
         assert num.allclose(domain.neighbours,
@@ -879,7 +883,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(domain.neighbour_edges,
                             [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
 
-        zl = zr = 0.     # Assume flat bed
+        ze = zl = zr = 0.     # Assume flat bed
 
         edgeflux = num.zeros(3, float)
         edgeflux0 = num.zeros(3, float)
@@ -891,58 +895,56 @@ class Test_Shallow_Water(unittest.TestCase):
         normal = domain.get_normal(1, 0)
         ql = domain.get_conserved_quantities(vol_id=1, edge=0)
         qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux0,
-                                  epsilon, g, H0)
+
+        print(ql, qr)
+        hl = hle = ql[0] - zl
+        hr = hre = qr[0] - zr
+        hc = hc_n = 2
+        low_froude = 1
+
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        assert(num.any(edgeflux0 != 0))
 
         # Check that flux seen from other triangles is inverse
         (ql, qr) = (qr, ql)
         normal = domain.get_normal(2, 2)
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux,
-                                  epsilon, g, H0)
 
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        assert(num.any(edgeflux != 0))
         assert num.allclose(edgeflux0 + edgeflux, 0.)
 
         # Flux across upper edge of volume 1
         normal = domain.get_normal(1, 1)
         ql = domain.get_conserved_quantities(vol_id=1, edge=1)
         qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux1,
-                                  epsilon, g, H0)
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        assert(num.any(edgeflux1 != 0))
 
         # Check that flux seen from other triangles is inverse
         (ql, qr) = (qr, ql)
         normal = domain.get_normal(3, 0)
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux,
-                                  epsilon, g, H0)
 
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        assert(num.any(edgeflux != 0))
         assert num.allclose(edgeflux1 + edgeflux, 0.)
 
         # Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1, 2)
         ql = domain.get_conserved_quantities(vol_id=1, edge=2)
         qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux2,
-                                  epsilon, g, H0)
+
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        assert(num.any(edgeflux2 != 0))
 
         # Check that flux seen from other triangles is inverse
         (ql, qr) = (qr, ql)
         normal = domain.get_normal(0, 1)
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux,
-                                  epsilon, g, H0)
+        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        assert(num.any(edgeflux != 0))
         assert num.allclose(edgeflux2 + edgeflux, 0.)
 
-        # Scale by edgelengths, add up anc check that total flux is zero
-        e0 = domain.edgelengths[1, 0]
-        e1 = domain.edgelengths[1, 1]
-        e2 = domain.edgelengths[1, 2]
-
-        assert num.allclose(e0*edgeflux0 + e1*edgeflux1 + e2*edgeflux2, 0.)
-
-
-        from anuga.shallow_water.shallow_water_ext import compute_fluxes_ext_central_structure as compute_fluxes
-        # Now check that compute_flux yields zeros as well
-        compute_fluxes(domain)
-
+        # Now check that compute_fluxes is correct as well
+        domain.compute_fluxes()
         for name in ['stage', 'xmomentum', 'ymomentum']:
             assert num.allclose(domain.quantities[name].explicit_update[1], 0)
 
@@ -9221,6 +9223,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_structure_0')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

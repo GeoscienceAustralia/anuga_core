@@ -341,12 +341,13 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
                           np.ndarray[double, ndim=1, mode="c"] ql not None,\
                           np.ndarray[double, ndim=1, mode="c"] qr not None,\
-                          double zl,\
-                          double zr,\
+                          double h_left,\
+                          double h_right,\
 			  double hle,\
 			  double hre,\
                           np.ndarray[double, ndim=1, mode="c"] edgeflux not None,\
                           double epsilon,\
+			  double ze,\
                           double g,\
                           double H0,\
 			  double hc,\
@@ -360,14 +361,14 @@ def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
         limiting_threshold = 10*H0
 
         err = _flux_function_central(&ql[0], &qr[0],
-	      			     zl, zr, hle, hre, normal[0], normal[1],
-				     epsilon, h0, limiting_threshold, g,
+	      			     h_left, h_right, hle, hre, normal[0], normal[1],
+				     epsilon, ze, limiting_threshold, g,
 				     &edgeflux[0], &max_speed, &pressure_flux,
 				     hc, hc_n, low_froude)
 
         assert err >= 0, "Discontinuous Elevation"
 
-        return max_speed
+        return max_speed, pressure_flux
 
 
 
