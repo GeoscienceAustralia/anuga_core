@@ -95,7 +95,7 @@ boundary_flux1 = domain1.boundary_flux_sum[0]
 
 def compute_fluxes_ext_central_kernel(domain,timestep):
     
-    local_timestep = num.zeros((1,), dtype=num.float)     # InOut
+    local_timestep = num.zeros((1,), dtype=float)     # InOut
 
     #--------------------------------
     # create alias to domain variables
