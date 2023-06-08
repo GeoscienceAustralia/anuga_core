@@ -265,7 +265,11 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
 
     #kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
     
-    mod  = cp.RawModule(code=code, options=('-arch=sm_70', ))
+    #mod  = cp.RawModule(code=code, options=('-arch=sm_70', ))
+
+    #kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
+
+    mod  = cp.RawModule(code, options=("--std=c++17",'-arch=sm_70'), name_expressions=("_cuda_compute_fluxes_loop_1",))
 
     kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
 
