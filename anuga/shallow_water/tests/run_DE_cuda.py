@@ -269,7 +269,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
 
     #kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
 
-    mod  = cp.RawModule(code, options=("--std=c++17",'-arch=sm_70'), name_expressions=("_cuda_compute_fluxes_loop_1",))
+    mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop_1",))
 
     kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
 
@@ -331,12 +331,12 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     # Recover values from gpu
     #-------------------------------------
 
-    local_timestep[:]        = cp.as_numpy(gpu_local_timestep)          #InOut
-    boundary_flux_sum[:]     = cp.as_numpy(gpu_boundary_flux_sum)       #InOut
-    max_speed[:]             = cp.as_numpy(gpu_max_speed)               #InOut
-    stage_explicit_update[:] = cp.as_numpy(gpu_stage_explicit_update)   #InOut
-    xmom_explicit_update[:]  = cp.as_numpy(gpu_xmom_explicit_update)    #InOut
-    ymom_explicit_update[:]  = cp.as_numpy(gpu_ymom_explicit_update)    #InOut
+    local_timestep[:]        = cp.asnumpy(gpu_local_timestep)          #InOut
+    boundary_flux_sum[:]     = cp.asnumpy(gpu_boundary_flux_sum)       #InOut
+    max_speed[:]             = cp.asnumpy(gpu_max_speed)               #InOut
+    stage_explicit_update[:] = cp.asnumpy(gpu_stage_explicit_update)   #InOut
+    xmom_explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
+    ymom_explicit_update[:]  = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
 
     return local_timestep[0]
