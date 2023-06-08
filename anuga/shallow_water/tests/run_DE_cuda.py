@@ -120,6 +120,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     beta_vh =  domain.beta_vh
     beta_vh_dry =  domain.beta_vh_dry
     max_flux_update_frequency =  domain.max_flux_update_frequency
+    limiting_threshold = domain.max_flux_update_frequency
 
     neighbours = domain.neighbours
     surrogate_neighbours = domain.surrogate_neighbours
