@@ -2537,6 +2537,7 @@ class Domain(Generic_Domain):
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 3:
                 from .swDE_domain_openacc_ext import fix_negative_cells
+                num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 4:
                 from .swDE_domain_cuda_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
