@@ -294,6 +294,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
     # Individual flux tests
     def test_flux_zero_case(self):
+
+        from anuga.shallow_water.swDE1_domain_ext import flux_function_central as flux_function
+        #.swDE1_domain_ext
+
         ql = num.zeros(3, float)
         qr = num.zeros(3, float)
         normal = num.zeros(2, float)
@@ -301,7 +305,10 @@ class Test_Shallow_Water(unittest.TestCase):
         zl = zr = 0.
         H0 = 1.0e-3 # As suggested in the manual
 
-        max_speed = flux_function(normal, ql, qr, zl, zr, edgeflux, epsilon, g, H0)
+        hle = hre = hc = hc_n = 0
+        low_froude = 1
+
+        max_speed = flux_function(normal, ql, qr, zl, zr, hle, hre, edgeflux, epsilon, g, H0, hc, hc_n, low_froude)
 
         assert num.allclose(edgeflux, [0,0,0])
         assert max_speed == 0.

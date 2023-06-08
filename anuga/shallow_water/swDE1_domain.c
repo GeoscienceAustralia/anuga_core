@@ -17,7 +17,7 @@
 
 #include "math.h"
 #include <stdio.h>
-#include <string.h> 
+#include <string.h>
 
 // Shared code snippets
 #include "util_ext.h"
@@ -305,6 +305,8 @@ int _flux_function_central(double *q_left, double *q_right,
     The implemented formula is given in equation (3.15) on page 714
 
     FIXME: Several variables in this interface are no longer used, clean up
+
+    low_froude is either 1 or 2 - see comment inline
   */
 
   int i;

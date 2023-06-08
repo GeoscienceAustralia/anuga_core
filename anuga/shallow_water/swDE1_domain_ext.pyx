@@ -86,6 +86,19 @@ cdef extern from "swDE1_domain.c" nogil:
         int _extrapolate_second_order_edge_sw(domain* D)
         int _extrapolate_second_order_sw(domain* D)
 
+        int _flux_function_central(double *q_left, double *q_right,
+                                   double h_left, double h_right,
+                           	   double hle, double hre,
+                           	   double n1, double n2,
+                           	   double epsilon,
+                           	   double ze,
+                           	   double limiting_threshold,
+                           	   double g,
+                           	   double *edgeflux, double *max_speed,
+                           	   double *pressure_flux, double hc,
+                           	   double hc_n,
+                           	   long low_froude)
+
 
 cdef int pointer_flag = 0
 cdef int parameter_flag = 0
@@ -323,6 +336,39 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 
 #===============================================================================
+
+
+def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
+                          np.ndarray[double, ndim=1, mode="c"] ql not None,\
+                          np.ndarray[double, ndim=1, mode="c"] qr not None,\
+                          double zl,\
+                          double zr,\
+			  double hle,\
+			  double hre,\
+                          np.ndarray[double, ndim=1, mode="c"] edgeflux not None,\
+                          double epsilon,\
+                          double g,\
+                          double H0,\
+			  double hc,\
+			  double hc_n,\
+			  long low_froude):
+
+        cdef double h0, limiting_threshold, max_speed, pressure_flux
+        cdef int err
+
+        h0 = H0*H0
+        limiting_threshold = 10*H0
+
+        err = _flux_function_central(&ql[0], &qr[0],
+	      			     zl, zr, hle, hre, normal[0], normal[1],
+				     epsilon, h0, limiting_threshold, g,
+				     &edgeflux[0], &max_speed, &pressure_flux,
+				     hc, hc_n, low_froude)
+
+        assert err >= 0, "Discontinuous Elevation"
+
+        return max_speed
+
 
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
