@@ -18,7 +18,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
-
 #if defined(__APPLE__)
 // clang doesn't have openmp
 #else
@@ -26,6 +25,9 @@
 #endif
 
 #include "sw_domain.h"
+
+// nvtx profile header file 
+#include <nvtx3/nvToolsExt.h>
 
 const double pi = 3.14159265358979;
 
@@ -843,6 +845,8 @@ int __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
 // Computational routine
 int _extrapolate_second_order_edge_sw(struct domain *D)
 {
+  //nvtx marker
+  nvtxRangePush("_extrapolate_second_order_edge_sw");
 
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
@@ -853,8 +857,10 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
   double hc, h0, h1, h2, beta_tmp, hfactor;
   double dk, dk_inv, a_tmp, b_tmp, c_tmp, d_tmp;
 
+  nvtxRangePush("_extrapolate_second_order_edge_sw_mem_alloc");
   memset((char *)D->x_centroid_work, 0, D->number_of_elements * sizeof(double));
   memset((char *)D->y_centroid_work, 0, D->number_of_elements * sizeof(double));
+  nvtxRangePop();
 
   // Parameters used to control how the limiter is forced to first-order near
   // wet-dry regions
@@ -865,6 +871,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
 
   // Replace momentum centroid with velocity centroid to allow velocity
   // extrapolation This will be changed back at the end of the routine
+  nvtxRangePush("_extrapolate_second_order_edge_sw_if_vel_order_1");
   if (D->extrapolate_velocity_second_order == 1)
   {
 
@@ -893,7 +900,9 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
       }
     }
   }
+  nvtxRangePop();
 
+  nvtxRangePush("_extrapolate_second_order_edge_sw_surr_dry_cell");
   // If a triangle is surrounded by dry cells (or dry cells + boundary
   // condition) set its momentum to zero too. This prevents 'pits' of
   // of water being trapped and unable to lose momentum, which can occur in
@@ -917,7 +926,12 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
       D->ymom_centroid_values[k] = 0.;
     }
   }
+  nvtxRangePop();
 
+
+
+
+  nvtxRangePush("_extrapolate_second_order_edge_sw_extrapolation_routine");
   // Begin extrapolation routine
   for (k = 0; k < D->number_of_elements; k++)
   {
@@ -1474,6 +1488,14 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
     } // else [number_of_boundaries==2]
   }   // for k=0 to number_of_elements-1
 
+  _extrapolate_second_order_edge_sw_extrapolation//nvtx marker
+  nvtxRangePop();
+
+
+
+
+
+  nvtxRangePush("_extrapolate_second_order_edge_sw_comput_ver_val_");
   // Compute vertex values of quantities
   for (k = 0; k < D->number_of_elements; k++)
   {
@@ -1525,6 +1547,12 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
     D->bed_vertex_values[k3 + 1] = D->bed_edge_values[k3] + D->bed_edge_values[k3 + 2] - D->bed_edge_values[k3 + 1];
     D->bed_vertex_values[k3 + 2] = D->bed_edge_values[k3] + D->bed_edge_values[k3 + 1] - D->bed_edge_values[k3 + 2];
   }
+  //nvtx marker
+  nvtxRangePop();
+
+
+  //nvtx marker
+  nvtxRangePop();
 
   return 0;
 }
