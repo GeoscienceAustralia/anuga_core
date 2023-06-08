@@ -15,8 +15,8 @@
 // Gareth Davies, GA 2011
 
 //#include "math.h"
-#include <stdio.h>
-#include <string.h>
+//#include <stdio.h>
+//#include <string.h>
 //#include <assert.h>
 
 // #if defined(__APPLE__)
