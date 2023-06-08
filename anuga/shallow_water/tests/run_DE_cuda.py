@@ -260,7 +260,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     with open('../cuda_anuga.cu') as f:
         code = f.read()
 
-    kernel = cp.RawKernel(code=code)
+    kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
 
 
     # call the function with a tuple of grid size, a tuple of block size, 
