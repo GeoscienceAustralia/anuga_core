@@ -244,15 +244,23 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     # Read in precompiled kernel function
     #----------------------------------------
     # create a Module object in python
-    mod = cp.cuda.function.Module()
+    #mod = cp.cuda.function.Module()
 
     # load the cubin created by comiling ../cuda_anuga.cu 
     # with 
     # nvcc -arch=sm_70 -cubin -o cuda_anuga.cubin cuda_anuga.cu
-    mod.load_file("../cuda_anuga.cubin")
+    #mod.load_file("../cuda_anuga.cubin")
+
 
     # fetch the kernel to make it a Python function object
-    _cuda_compute_fluxes_loop_1 = mod.get_function("_cuda_compute_fluxes_loop_1")
+    #_cuda_compute_fluxes_loop_1 = mod.get_function("_cuda_compute_fluxes_loop_1")
+
+
+
+    with open('../cuda_anuga.cu') as f:
+        code = f.read()
+
+    kernel = cp.RawKernel(code=code)
 
 
     # call the function with a tuple of grid size, a tuple of block size, 
@@ -266,7 +274,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     NO_OF_BLOCKS = int(math.ceil(number_of_elements/THREADS_PER_BLOCK))
 
 
-    _cuda_compute_fluxes_loop_1( (NO_OF_BLOCKS, 0, 0), 
+    kernel( (NO_OF_BLOCKS, 0, 0), 
                                  (THREADS_PER_BLOCK, 0, 0), 
                                   (
                                     gpu_local_timestep, 
