@@ -223,7 +223,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     gpu_height_edge_values    = cp.array(height_edge_values)
     gpu_height_centroid_values = cp.array(height_centroid_values)
     gpu_bed_centroid_values   = cp.array(bed_centroid_values)
-    gpu_stage_boundary_values = cp.array(stage_boundary_value)  
+    gpu_stage_boundary_values = cp.array(stage_boundary_values)  
     gpu_xmom_boundary_values  = cp.array(xmom_boundary_values) 
     gpu_ymom_boundary_values  = cp.array(ymom_boundary_values) 
     gpu_areas                 = cp.array(areas)
