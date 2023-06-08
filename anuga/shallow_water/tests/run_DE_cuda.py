@@ -263,8 +263,11 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
 
     print(code)
 
-    kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
+    #kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
+    
+    mod  = cp.RawModule(code, options=('-arch=sm_70'))
 
+    kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
 
     # call the function with a tuple of grid size, a tuple of block size, 
     # and a tuple of all arguments required by the kernel
