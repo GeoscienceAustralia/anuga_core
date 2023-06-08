@@ -147,6 +147,7 @@ class Test_DE_cuda(unittest.TestCase):
 
 
         assert num.allclose(timestep1,timestep2)
+        assert num.allclose(boundary_flux1,boundary_flux2)
         assert num.allclose(stage1.explicit_update,stage2.explicit_update)
         assert num.allclose(xmom1.explicit_update,xmom2.explicit_update)
         assert num.allclose(ymom1.explicit_update,ymom2.explicit_update)
@@ -249,7 +250,7 @@ class Test_DE_cuda(unittest.TestCase):
         for t in domain2.evolve(yieldstep=0.1,finaltime=0.1):
             domain2.print_timestepping_statistics()
 
-        #----------------------------------------
+       #----------------------------------------
         # Now just run the cuda code on domain2
         #----------------------------------------
         domain2.set_multiprocessor_mode(4)
@@ -258,16 +259,24 @@ class Test_DE_cuda(unittest.TestCase):
         domain1.distribute_to_vertices_and_edges()
         domain1.compute_fluxes()
         timestep1 = domain1.flux_timestep
+        boundary_flux1 = domain1.boundary_flux_sum[0]
 
         domain2.distribute_to_vertices_and_edges()
         domain2.compute_fluxes()
         timestep2 = domain2.flux_timestep
+        boundary_flux2 = domain2.boundary_flux_sum[0]
 
         # Compare update arrays and timestep
 
+
         print('domain1 timestep ', timestep1)
         print('domain2 timestep ', timestep2)
-        
+
+        print('domain1 boundary_flux ', boundary_flux1)
+        print('domain2 boundary_flux ', boundary_flux2)
+
+
+
 
         quantities1 = domain1.quantities
         stage1 = quantities1["stage"]
@@ -280,7 +289,9 @@ class Test_DE_cuda(unittest.TestCase):
         xmom2 = quantities2["xmomentum"]
         ymom2 = quantities2["ymomentum"]
 
+
         print('timestep error              ', abs(timestep1-timestep2))
+        print('boundary_flux error         ', abs(boundary_flux1-boundary_flux2))
         print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
         print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
         print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
@@ -289,13 +300,13 @@ class Test_DE_cuda(unittest.TestCase):
         #print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
 
 
+
         assert num.allclose(timestep1,timestep2)
+        assert num.allclose(boundary_flux1,boundary_flux2)
         assert num.allclose(stage1.explicit_update,stage2.explicit_update)
         assert num.allclose(xmom1.explicit_update,xmom2.explicit_update)
         assert num.allclose(ymom1.explicit_update,ymom2.explicit_update)
-        #assert num.allclose(domain1.edge_timestep,domain2.edge_timestep)
-        #assert num.allclose(domain1.pressuregrad_work,domain2.pressuregrad_work)
-        #assert num.allclose(domain1.edge_flux_work,domain2.edge_flux_work)
+
 
         import pprint
 
@@ -303,6 +314,6 @@ class Test_DE_cuda(unittest.TestCase):
         #pprint.pprint(domain2.edge_timestep)    
 
 if __name__ == "__main__":
-    suite = unittest.makeSuite(Test_DE_cuda, 'test_runup')
+    suite = unittest.makeSuite(Test_DE_cuda, 'test_')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
