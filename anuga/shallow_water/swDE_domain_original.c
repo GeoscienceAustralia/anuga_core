@@ -1488,7 +1488,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D)
     } // else [number_of_boundaries==2]
   }   // for k=0 to number_of_elements-1
 
-  _extrapolate_second_order_edge_sw_extrapolation//nvtx marker
+  //_extrapolate_second_order_edge_sw_extrapolation//nvtx marker
   nvtxRangePop();
 
 
