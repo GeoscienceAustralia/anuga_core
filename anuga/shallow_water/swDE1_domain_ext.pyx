@@ -86,6 +86,9 @@ cdef extern from "swDE1_domain.c" nogil:
         int _extrapolate_second_order_edge_sw(domain* D)
         int _extrapolate_second_order_sw(domain* D)
 
+	# Expose the innermost flux computation, e.g. for testing purposes
+        int _flux_function_central(double* q_left, double* q_right, double z_left, double z_right, double n1, double n2, double epsilon, double h0, double limiting_threshold, double g, double* edgeflux, double* max_speed)
+
 
 cdef int pointer_flag = 0
 cdef int parameter_flag = 0
@@ -110,7 +113,7 @@ cdef inline get_python_domain_parameters(domain *D, object domain_object):
         D.beta_vh = domain_object.beta_vh
         D.beta_vh_dry = domain_object.beta_vh_dry
         D.max_flux_update_frequency = domain_object.max_flux_update_frequency
-                
+
 
 cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
@@ -147,7 +150,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
         cdef double[:,::1] vertex_values
         cdef double[::1]   boundary_values
         cdef double[::1]   explicit_update
-        
+
         cdef object quantities
         cdef object riverwallData
 
@@ -156,7 +159,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
         #------------------------------------------------------
         neighbours = domain_object.neighbours
         D.neighbours = &neighbours[0,0]
-        
+
         surrogate_neighbours = domain_object.surrogate_neighbours
         D.surrogate_neighbours = &surrogate_neighbours[0,0]
 
@@ -324,6 +327,39 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 #===============================================================================
 
+# Compiler test
+#def hello_world(int i):
+#    cdef double x
+#    x = i * i
+#    return x
+
+
+# Commented out for now as causes an avalanche of compiler errors!
+"""
+# Migrated from shallow_water_ext.pyx to expose innermost flux calculation - e.g. for test purposes
+def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
+                          np.ndarray[double, ndim=1, mode="c"] ql not None,\
+                          np.ndarray[double, ndim=1, mode="c"] qr not None,\
+                          double zl,\
+                          double zr,\
+                          np.ndarray[double, ndim=1, mode="c"] edgeflux not None,\
+                          double epsilon,\
+                          double g,\
+                          double H0):
+
+        cdef double h0, limiting_threshold, max_speed
+        cdef int err
+
+        h0 = H0*H0
+        limiting_threshold = 10*H0
+
+        err = _flux_function_central(&ql[0], &qr[0], zl, zr, normal[0], normal[1], epsilon, h0, limiting_threshold, g, &edgeflux[0], &max_speed)
+
+        assert err >= 0, "Discontinuous Elevation"
+
+        return max_speed
+"""
+
 def compute_fluxes_ext_central(object domain_object, double timestep):
 
         cdef domain D
@@ -336,22 +372,22 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 
         return timestep
 
-# MIGRATED from shallow_water_ext.pyx   
+# MIGRATED from shallow_water_ext.pyx
 def extrapolate_second_order_sw(object domain_object):
 
         cdef domain D
         cdef int e
 
         get_python_domain_parameters(&D, domain_object)
-        get_python_domain_pointers(&D, domain_object)   
-        
+        get_python_domain_pointers(&D, domain_object)
+
         with nogil:
              e = _extrapolate_second_order_sw(&D)
 
         if e == -1:
-                return None          
-        
-# Existing code        
+                return None
+
+# Existing code
 def extrapolate_second_order_edge_sw(object domain_object):
 
         cdef domain D
@@ -389,5 +425,3 @@ def compute_flux_update_frequency(object domain_object, double timestep):
 
         with nogil:
                 _compute_flux_update_frequency(&D, timestep)
-
-

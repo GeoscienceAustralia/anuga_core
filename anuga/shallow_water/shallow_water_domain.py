@@ -2049,9 +2049,9 @@ class Domain(Generic_Domain):
         """
 
         if self.compute_fluxes_method == 'original':
+            # FIXME (Ole): Deprecate this (and the wb versions)
             from .shallow_water_ext import compute_fluxes_ext_central_structure
             from .shallow_water_ext import gravity as gravity_c
-
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
             gravity_c(self)
 
@@ -2139,14 +2139,10 @@ class Domain(Generic_Domain):
             # Flux calculation and gravity incorporated in same
             # procedure
 
-            from .swDE1_domain_ext import compute_fluxes_ext_central \
-                                      as compute_fluxes_ext
+            from .swDE1_domain_ext import compute_fluxes_ext_central
 
             timestep = self.evolve_max_timestep
-
-            flux_timestep = compute_fluxes_ext(self, timestep)
-
-            self.flux_timestep = flux_timestep
+            self.flux_timestep = compute_fluxes_ext_central(self, timestep)
 
         else:
             raise Exception('unknown compute_fluxes_method')

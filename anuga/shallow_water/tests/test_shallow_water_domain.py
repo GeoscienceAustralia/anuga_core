@@ -1304,7 +1304,7 @@ class Test_Shallow_Water(unittest.TestCase):
         for name in ['stage', 'xmomentum', 'ymomentum']:
             assert num.allclose(domain.quantities[name].explicit_update[1], 0)
 
-    def test_compute_fluxes_old_1(self):
+    def test_compute_fluxes_default_1(self):
         #Use values from previous version
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1406,7 +1406,10 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(domain.quantities['ymomentum'].explicit_update,
                             [-69.68888889, -35.93333333, 0., 69.68888889])
 
-    def test_compute_fluxes_old_2(self):
+    def test_compute_fluxes_DE_1(self):
+        # This is a reuse of test_compute_fluxes_old_2 which used the original (now deprecated algorithm).
+        # We changed the algorithm to DE and used those values to test it.
+
         #Random values, incl momentum
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1421,7 +1424,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain = Domain(points, vertices)
 
-        domain.set_compute_fluxes_method('original')
+        domain.set_compute_fluxes_method('original') # FIXME (Ole): Change to DE
 
         val0 = 2. + 2.0/3
         val1 = 4. + 4.0/3
@@ -1483,8 +1486,12 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_fluxes()
 
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
+            msg = 'Expected %f for %s but got %f' % ((domain.quantities[name].explicit_update[1]),
+                                                     name,
+                                                     total_flux[i])
+
             assert num.allclose(total_flux[i],
-                                domain.quantities[name].explicit_update[1])
+                                domain.quantities[name].explicit_update[1]), msg
 
     # FIXME (Ole): Need test like this for fluxes in very shallow water.
     def test_compute_fluxes_old_3(self):
@@ -4044,7 +4051,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
 
         # Import underlying routine locally.
-        # FIXME (Ole): This routine might have to be removed entirely as likely 
+        # FIXME (Ole): This routine might have to be removed entirely as likely
         # superseded by extrapolate_second_order_edge_sw
         from  anuga.shallow_water.swDE1_domain_ext import extrapolate_second_order_sw
 
@@ -4470,7 +4477,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        
+
         domain.set_time(0.5)
 
 
@@ -4480,9 +4487,9 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.05, outputstep=1.0, duration=5.0):
             tt += t
 
-        assert num.allclose(tt,252.5) 
+        assert num.allclose(tt,252.5)
 
-        os.remove(domain.get_name() + '.sww')       
+        os.remove(domain.get_name() + '.sww')
 
 
     def test_evolve_outputstep(self):
@@ -5624,7 +5631,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
 
-        domain.set_low_froude(0) 
+        domain.set_low_froude(0)
 
         domain.smooth = False
         domain.default_order = 2
@@ -7573,7 +7580,7 @@ friction  \n \
 
                 if verbose:
                     print(q, ref_flow)
-                
+
                 assert num.allclose(q, ref_flow)
 
         os.remove('Inflow_flowline_test.sww')

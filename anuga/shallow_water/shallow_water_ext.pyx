@@ -506,17 +506,3 @@ def manning_friction_sloped(double g,\
 							&eta[0],\
 							&xmom[0],\
 							&ymom[0])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
