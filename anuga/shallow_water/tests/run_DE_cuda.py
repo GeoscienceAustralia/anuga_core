@@ -261,6 +261,8 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     with open('../cuda_anuga.cu') as f:
         code = f.read()
 
+    print(code)
+
     kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
 
 
@@ -275,46 +277,46 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     NO_OF_BLOCKS = int(math.ceil(number_of_elements/THREADS_PER_BLOCK))
 
 
-    kernel( (NO_OF_BLOCKS, 0, 0), 
-                                 (THREADS_PER_BLOCK, 0, 0), 
-                                  (
-                                    gpu_local_timestep, 
-                                    gpu_boundary_flux_sum, 
-                                    gpu_max_speed, 
-                                    gpu_stage_explicit_update,
-                                    gpu_xmom_explicit_update,
-                                    gpu_ymom_explicit_update,
-                                    gpu_stage_centroid_values,
-                                    gpu_stage_edge_values,
-                                    gpu_xmom_edge_values,
-                                    gpu_ymom_edge_values,
-                                    gpu_bed_edge_values,
-                                    gpu_height_edge_values,
-                                    gpu_height_centroid_values,
-                                    gpu_bed_centroid_values,
-                                    gpu_stage_boundary_values, 
-                                    gpu_xmom_boundary_values, 
-                                    gpu_ymom_boundary_values, 
-                                    gpu_areas,
-                                    gpu_normals,
-                                    gpu_edgelengths,
-                                    gpu_radii,
-                                    gpu_tri_full_flag,
-                                    gpu_neighbours,
-                                    gpu_neighbour_edges,
-                                    gpu_edge_flux_type, 
-                                    gpu_edge_river_wall_counter,
-                                    gpu_riverwall_elevation,
-                                    gpu_riverwall_rowIndex,
-                                    gpu_riverwall_hydraulic_properties,
-                                    number_of_elements,
-                                    substep_count,
-                                    ncol_riverwall_hydraulic_properties,
-                                    epsilon,
-                                    g,
-                                    low_froude,
-                                    limiting_threshold  
-                                 )
+    kernel( (NO_OF_BLOCKS, 0, 0), \
+                                 (THREADS_PER_BLOCK, 0, 0), \
+                                  ( \
+                                    gpu_local_timestep, \
+                                    gpu_boundary_flux_sum, \
+                                    gpu_max_speed, \
+                                    gpu_stage_explicit_update,\
+                                    gpu_xmom_explicit_update,\
+                                    gpu_ymom_explicit_update,\
+                                    gpu_stage_centroid_values,\
+                                    gpu_stage_edge_values,\
+                                    gpu_xmom_edge_values, \
+                                    gpu_ymom_edge_values,\
+                                    gpu_bed_edge_values,\
+                                    gpu_height_edge_values,\
+                                    gpu_height_centroid_values,\
+                                    gpu_bed_centroid_values,\
+                                    gpu_stage_boundary_values, \
+                                    gpu_xmom_boundary_values, \
+                                    gpu_ymom_boundary_values, \
+                                    gpu_areas,\
+                                    gpu_normals,\
+                                    gpu_edgelengths,\
+                                    gpu_radii,\
+                                    gpu_tri_full_flag,\
+                                    gpu_neighbours,\
+                                    gpu_neighbour_edges,\
+                                    gpu_edge_flux_type, \
+                                    gpu_edge_river_wall_counter,\
+                                    gpu_riverwall_elevation,\
+                                    gpu_riverwall_rowIndex,\
+                                    gpu_riverwall_hydraulic_properties,\
+                                    number_of_elements,\
+                                    substep_count,\
+                                    ncol_riverwall_hydraulic_properties,\
+                                    epsilon,\
+                                    g,\
+                                    low_froude,\
+                                    limiting_threshold \
+                                 ) \
                                  )
 
 
