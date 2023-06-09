@@ -628,7 +628,7 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
         //boundary_flux_sum[substep_count] += edgeflux[0];
 
         
-	      atomicAdd(*(boundary_flux_sum+substep_count), edgeflux[0]);
+	      atomicAdd((boundary_flux_sum+substep_count), edgeflux[0]);
 
         printf(" k = %d  substep_count = %ld edge_flux %f bflux %f \n",k,substep_count, edgeflux[0], boundary_flux_sum[substep_count] );
 
