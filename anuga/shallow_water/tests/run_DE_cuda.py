@@ -93,6 +93,8 @@ domain1.compute_fluxes()
 timestep1 = domain1.flux_timestep
 boundary_flux1 = domain1.boundary_flux_sum[0]
 
+
+
 def compute_fluxes_ext_central_kernel(domain,timestep):
     
     local_timestep = num.zeros((1,), dtype=float)     # InOut
@@ -331,6 +333,10 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     # Recover values from gpu
     #-------------------------------------
 
+    print('=================')
+    print('boundary_flux_sum', boundary_flux_sum)
+    print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
+
     local_timestep[:]        = cp.asnumpy(gpu_local_timestep)          #InOut
     boundary_flux_sum[:]     = cp.asnumpy(gpu_boundary_flux_sum)       #InOut
     max_speed[:]             = cp.asnumpy(gpu_max_speed)               #InOut
@@ -338,6 +344,10 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     xmom_explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
     ymom_explicit_update[:]  = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
+
+    print('boundary_flux_sum', boundary_flux_sum)
+    print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
+    print('=================')
 
     return local_timestep[0]
 
