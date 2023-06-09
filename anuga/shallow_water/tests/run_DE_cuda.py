@@ -93,8 +93,8 @@ nvtxRangePop()
 #------------------------------
 #Evolve the system through time
 #------------------------------
-yieldstep = 0.002
-finaltime = 0.002
+yieldstep = 0.0002
+finaltime = 0.0002
 nvtxRangePush('evolve domain1')
 print('Evolve domain1')
 print('domain1 number of triangles ',domain1.number_of_elements)
@@ -391,9 +391,9 @@ domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 nvtxRangePush('compute fluxes domain2')
-domain2.compute_fluxes()
-#timestep = domain2.evolve_max_timestep 
-#domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
+#domain2.compute_fluxes()
+timestep = domain2.evolve_max_timestep 
+domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
 nvtxRangePop()
 
 
