@@ -243,6 +243,8 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     #------------------------------------
     import cupy as cp
     
+    nvtxRangePush('to gpu')
+
     gpu_local_timestep        = cp.array(local_timestep)         #InOut
     gpu_boundary_flux_sum     = cp.array(boundary_flux_sum )     #InOut
     gpu_max_speed             = cp.array(max_speed)              #InOut
@@ -274,7 +276,8 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     gpu_riverwall_rowIndex    = cp.array(riverwall_rowIndex)
     gpu_riverwall_hydraulic_properties = cp.array(riverwall_hydraulic_properties)
 
-
+    nvtxRangePop()
+    
     #----------------------------------------
     # Read in precompiled kernel function
     #----------------------------------------
@@ -369,6 +372,9 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     #print('boundary_flux_sum', boundary_flux_sum)
     #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
 
+
+    nvtxRangePush('from gpu')
+
     local_timestep[:]        = cp.asnumpy(gpu_local_timestep)          #InOut
     boundary_flux_sum[:]     = cp.asnumpy(gpu_boundary_flux_sum)       #InOut
     max_speed[:]             = cp.asnumpy(gpu_max_speed)               #InOut
@@ -376,6 +382,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     xmom_explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
     ymom_explicit_update[:]  = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
+    nvtxRangePop()
 
     #print('boundary_flux_sum', boundary_flux_sum)
     #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
