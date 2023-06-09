@@ -15,13 +15,29 @@ import warnings
 import time
 import math
 
+#-----------------------------------------------------
+# Code for profiling cuda version
+#-----------------------------------------------------
+def nvtxRangePush(*arg):
+    pass
+def nvtxRangePop(*arg):
+    pass
 
-""" Run a version of the validation test runup_sinusoid
-to ensure limiting solution has small velocity
-"""
+try:
+    from cupy.cuda.nvtx import RangePush as nvtxRangePush
+    from cupy.cuda.nvtx import RangePop  as nvtxRangePop
+except:
+    pass
+
+try:
+    from nvtx import range_push as nvtxRangePush
+    from nvtx import range_pop  as nvtxRangePop
+except:
+    pass
 
 def create_domain(name='domain'):
-    domain = anuga.rectangular_cross_domain(2,2, len1=1., len2=1.)
+
+    domain = anuga.rectangular_cross_domain(500,500, len1=1., len2=1.)
 
     domain.set_flow_algorithm('DE0')
     domain.set_low_froude(0)
@@ -64,22 +80,34 @@ print('Test Runup')
 print(70*'=')
 
 
+nvtxRangePush('create domain1')
 domain1 = create_domain('domain_original')
 domain1.set_multiprocessor_mode(0)
+nvtxRangePop()
 
+nvtxRangePush('create domain1')
 domain2 = create_domain('domain_cuda')
 domain2.set_multiprocessor_mode(0) # will change to 2 once burn in
+nvtxRangePop()
 
 #------------------------------
 #Evolve the system through time
 #------------------------------
+yieldstep = 0.002
+finaltime = 0.002
+nvtxRangePush('evolve domain1')
 print('Evolve domain1')
-for t in domain1.evolve(yieldstep=0.1,finaltime=0.1):
+print('domain1 number of triangles ',domain1.number_of_elements)
+for t in domain1.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain1.print_timestepping_statistics()
+nvtxRangePop()
 
+nvtxRangePush('evolve domain2')
 print('Evolve domain2')
-for t in domain2.evolve(yieldstep=0.1,finaltime=0.1):
+print('domain2 number of triangles ',domain2.number_of_elements)
+for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
+nvtxRangePop()
 
 #----------------------------------------
 # Now just run the cuda code on domain2
@@ -87,11 +115,15 @@ for t in domain2.evolve(yieldstep=0.1,finaltime=0.1):
 domain2.set_multiprocessor_mode(4)
 timestep = 0.1
 
+nvtxRangePush('distribute domain1')
 domain1.distribute_to_vertices_and_edges()
+nvtxRangePop()
 
+nvtxRangePush('compute fluxes domain1')
 domain1.compute_fluxes()
 timestep1 = domain1.flux_timestep
 boundary_flux1 = domain1.boundary_flux_sum[0]
+nvtxRangePop()
 
 
 
@@ -333,9 +365,9 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     # Recover values from gpu
     #-------------------------------------
 
-    print('=================')
-    print('boundary_flux_sum', boundary_flux_sum)
-    print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
+    #print('=================')
+    #print('boundary_flux_sum', boundary_flux_sum)
+    #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
 
     local_timestep[:]        = cp.asnumpy(gpu_local_timestep)          #InOut
     boundary_flux_sum[:]     = cp.asnumpy(gpu_boundary_flux_sum)       #InOut
@@ -345,24 +377,27 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     ymom_explicit_update[:]  = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
 
-    print('boundary_flux_sum', boundary_flux_sum)
-    print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
-    print('=================')
+    #print('boundary_flux_sum', boundary_flux_sum)
+    #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
+    #print('=================')
 
     return local_timestep[0]
 
 #-----------------------------------------
 # Test the kernel version of compute fluxes
 #----------------------------------------
+nvtxRangePush('distribute domain2')
 domain2.distribute_to_vertices_and_edges()
+nvtxRangePop()
 
-timestep = domain2.evolve_max_timestep
-flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
-domain2.flux_timestep = flux_timestep
-
-
-
+nvtxRangePush('compute fluxes domain2')
 domain2.compute_fluxes()
+#timestep = domain2.evolve_max_timestep 
+#domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
+nvtxRangePop()
+
+
+## 
 timestep2 = domain2.flux_timestep
 boundary_flux2 = domain2.boundary_flux_sum[0]
 
