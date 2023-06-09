@@ -277,7 +277,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     gpu_riverwall_hydraulic_properties = cp.array(riverwall_hydraulic_properties)
 
     nvtxRangePop()
-    
+
     #----------------------------------------
     # Read in precompiled kernel function
     #----------------------------------------
@@ -298,7 +298,7 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
     with open('../cuda_anuga.cu') as f:
         code = f.read()
 
-    print(code)
+    #print(code)
 
     #kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
     
