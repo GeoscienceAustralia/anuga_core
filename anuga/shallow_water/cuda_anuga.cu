@@ -653,9 +653,9 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
         }
       }
 
-      local_stage_explicit_update += edgeflux[0];
-      local_xmom_explicit_update  += edgeflux[1];
-      local_ymom_explicit_update  += edgeflux[2];
+      local_stage_explicit_update = local_stage_explicit_update + edgeflux[0];
+      local_xmom_explicit_update  = local_xmom_explicit_update + edgeflux[1];
+      local_ymom_explicit_update  = local_ymom_explicit_update + edgeflux[2];
 
       // If this cell is not a ghost, and the neighbour is a
       // boundary condition OR a ghost cell, then add the flux to the

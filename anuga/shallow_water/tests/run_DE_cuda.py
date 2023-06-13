@@ -459,8 +459,10 @@ from pprint import pprint
 
 pprint(stage1.explicit_update)
 pprint(stage2.explicit_update)
+pprint(stage1.explicit_update-stage2.explicit_update)
 pprint(max_speed_1)
 pprint(max_speed_2)
+pprint(max_speed_1-max_speed_2)
 #assert num.allclose(timestep1,timestep2)
 #assert num.allclose(boundary_flux1,boundary_flux2)
 #assert num.allclose(stage1.explicit_update,stage2.explicit_update)
