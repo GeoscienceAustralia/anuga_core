@@ -127,7 +127,7 @@ nvtxRangePop()
 
 
 
-def compute_fluxes_ext_central_kernel(domain,timestep):
+def compute_fluxes_ext_central_kernel(domain, timestep):
     
     local_timestep = num.zeros((1,), dtype=float)     # InOut
 
@@ -297,14 +297,6 @@ def compute_fluxes_ext_central_kernel(domain,timestep):
 
     with open('../cuda_anuga.cu') as f:
         code = f.read()
-
-    #print(code)
-
-    #kernel = cp.RawKernel(code, "_cuda_compute_fluxes_loop_1")
-    
-    #mod  = cp.RawModule(code=code, options=('-arch=sm_70', ))
-
-    #kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
 
     mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop_1",))
 
