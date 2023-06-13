@@ -387,7 +387,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     nvtxRangePush('calculate flux: reduction operations')
     
     if substep_count == 0:
-        timestep = local_timestep.min()
+        timestep = timestep_array.min()
 
     domain.boundary_flux_sum[substep_count] = local_boundary_flux_sum.sum()
 
