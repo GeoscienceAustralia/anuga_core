@@ -253,7 +253,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     nvtxRangePush('to gpu')
 
     gpu_local_timestep        = cp.array(local_timestep)           #InOut
-    gpu_boundary_flux_sum     = cp.array(local_boundary_flux_sum ) #InOut
+    gpu_local_boundary_flux_sum = cp.array(local_boundary_flux_sum ) #InOut
     gpu_max_speed             = cp.array(max_speed)                #InOut
     gpu_stage_explicit_update = cp.array(stage_explicit_update)    #InOut
     gpu_xmom_explicit_update  = cp.array(xmom_explicit_update)     #InOut
