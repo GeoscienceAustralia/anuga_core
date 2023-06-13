@@ -129,7 +129,7 @@ nvtxRangePop()
 
 def compute_fluxes_ext_central_kernel(domain, timestep):
     
-    local_timestep = num.zeros((1,), dtype=float)     # InOut
+        # InOut
 
     #--------------------------------
     # create alias to domain variables
@@ -237,6 +237,12 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     base_call = call
 
     substep_count = (call - base_call) % domain.timestep_fluxcalls
+
+    # array to collect all the local timesteps and do reduction
+    # after kernel call
+    # FIXME SR: Maybe we only need a cupy array and use cupy amin 
+    # to collect global timestep 
+    local_timestep = num.zeros(number_of_elements, dtype=float) 
 
     #------------------------------------
     # create cupy arrays
