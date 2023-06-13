@@ -423,8 +423,8 @@ __device__ double atomicMin_double(double* address, double val)
 // Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop_1(double* timestep_array,  // InOut
-                                    double* boundary_flux_sum,       // InOut
+__global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
+                                    double* boundary_flux_sum_k_array, // InOut
                                     double* max_speed,               // InOut
                                     double* stage_explicit_update,   // InOut
                                     double* xmom_explicit_update,    // InOut
@@ -665,7 +665,7 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_array,  // InOut
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
         //boundary_flux_sum[substep_count] += edgeflux[0];
-        local_boundary_flux_sum[k] += edgeflux[0];
+        local_boundary_flux_sum += edgeflux[0];
         
 	      //atomicAdd((boundary_flux_sum+substep_count), edgeflux[0]);
 
@@ -692,7 +692,8 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_array,  // InOut
     xmom_explicit_update[k]  = local_xmom_explicit_update * inv_area;
     ymom_explicit_update[k]  = local_ymom_explicit_update * inv_area;
 
-    timestep_array[k] = local_timestep;
+    boundary_flux_sum_k_array[k] = local_boundary_flux_sum;
+    timestep_k_array[k] = local_timestep;
 
   } // End triangle k
 
