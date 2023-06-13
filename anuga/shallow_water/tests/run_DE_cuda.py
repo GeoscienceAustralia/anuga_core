@@ -37,7 +37,7 @@ except:
 
 def create_domain(name='domain'):
 
-    domain = anuga.rectangular_cross_domain(500,500, len1=1., len2=1.)
+    domain = anuga.rectangular_cross_domain(5,5, len1=1., len2=1.)
 
     domain.set_flow_algorithm('DE0')
     domain.set_low_froude(0)
@@ -434,17 +434,20 @@ quantities1 = domain1.quantities
 stage1 = quantities1["stage"]
 xmom1 = quantities1["xmomentum"]
 ymom1 = quantities1["ymomentum"]
+max_speed_1 = domain1.max_speed
 
 
 quantities2 = domain2.quantities
 stage2 = quantities2["stage"]
 xmom2 = quantities2["xmomentum"]
 ymom2 = quantities2["ymomentum"]
+max_speed_2 = domain2.max_speed
 
 
 print('timestep error              ', abs(timestep1-timestep2))
 print('boundary_flux error         ', abs(boundary_flux1-boundary_flux2))
 print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
+print('max_speed error             ', num.linalg.norm(max_speed_1-max_speed_2))
 print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
 print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
 #print('edge timestep error         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
@@ -452,7 +455,12 @@ print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom
 #print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
 
 
+from pprint import pprint
 
+pprint(stage1.explicit_update)
+pprint(stage2.explicit_update)
+pprint(max_speed_1)
+pprint(max_speed_2)
 #assert num.allclose(timestep1,timestep2)
 #assert num.allclose(boundary_flux1,boundary_flux2)
 #assert num.allclose(stage1.explicit_update,stage2.explicit_update)
