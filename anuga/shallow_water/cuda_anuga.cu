@@ -423,8 +423,8 @@ __device__ double atomicMin_double(double* address, double val)
 // Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,  // InOut
-                                    double* local_boundary_flux_sum, // InOut
+__global__ void _cuda_compute_fluxes_loop_1(double* timestep_array,  // InOut
+                                    double* boundary_flux_sum,       // InOut
                                     double* max_speed,               // InOut
                                     double* stage_explicit_update,   // InOut
                                     double* xmom_explicit_update,    // InOut
@@ -472,30 +472,24 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,  // InOut
   double z_half, ql[3], pressuregrad_work;
   double qr[3], edgeflux[3], edge_timestep, normal_x, normal_y;
   double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n;
-  double h_left_tmp, h_right_tmp, speed_max_last, weir_height;
+  double h_left_tmp, h_right_tmp, weir_height;
 
-  
-  
+  // Set explicit_update to zero for all conserved_quantities.
+  // This assumes compute_fluxes called before forcing terms
+  double local_stage_explicit_update = 0.0;
+  double local_xmom_explicit_update  = 0.0;
+  double local_ymom_explicit_update  = 0.0;
+
+  double local_max_speed = 0.0;
+  double local_timestep = 1.0e+100;
+  double local_boundary_flux_sum = 0.0;
+  double speed_max_last = 0.0;
+
 
   //for (k = 0; k < number_of_elements; k++)
   k = blockIdx.x * blockDim.x + threadIdx.x; 
   if(k<number_of_elements)
   {
-
-    // Set reduction arrays
-    // reduction will be done outside kernel
-    local_timestep[k] = 1.0e+100;
-    local_boundary_flux_sum[k] = 0.0;
-    
-    max_speed[k] = 0.0;
-
-    // Set explicit_update to zero for all conserved_quantities.
-    // This assumes compute_fluxes called before forcing terms
-    stage_explicit_update[k] = 0.0;
-    xmom_explicit_update[k] = 0.0;
-    ymom_explicit_update[k] = 0.0;
-
-    speed_max_last = 0.0;
 
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++)
@@ -652,16 +646,16 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,  // InOut
             //local_timestep[0] = fmin(local_timestep[0], edge_timestep);
 	          //atomicMin_double(local_timestep, edge_timestep);
 
-            local_timestep[k] = fmin(local_timestep[k], edge_timestep);
+            local_timestep = fmin(local_timestep, edge_timestep);
 
             speed_max_last = fmax(speed_max_last, max_speed_local);
           }
         }
       }
 
-      stage_explicit_update[k] += edgeflux[0];
-      xmom_explicit_update[k] += edgeflux[1];
-      ymom_explicit_update[k] += edgeflux[2];
+      local_stage_explicit_update += edgeflux[0];
+      local_xmom_explicit_update  += edgeflux[1];
+      local_ymom_explicit_update  += edgeflux[2];
 
       // If this cell is not a ghost, and the neighbour is a
       // boundary condition OR a ghost cell, then add the flux to the
@@ -682,8 +676,8 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,  // InOut
         
       }
 
-      xmom_explicit_update[k] -= normals[ki2] * pressuregrad_work;
-      ymom_explicit_update[k] -= normals[ki2 + 1] * pressuregrad_work;
+      local_xmom_explicit_update -= normals[ki2] * pressuregrad_work;
+      local_ymom_explicit_update -= normals[ki2 + 1] * pressuregrad_work;
 
     } // End edge i (and neighbour n)
 
@@ -694,9 +688,11 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,  // InOut
     // Normalise triangle k by area and store for when all conserved
     // quantities get updated
     inv_area = 1.0 / areas[k];
-    stage_explicit_update[k] *= inv_area;
-    xmom_explicit_update[k] *= inv_area;
-    ymom_explicit_update[k] *= inv_area;
+    stage_explicit_update[k] = local_stage_explicit_update * inv_area;
+    xmom_explicit_update[k]  = local_xmom_explicit_update * inv_area;
+    ymom_explicit_update[k]  = local_ymom_explicit_update * inv_area;
+
+    timestep_array[k] = local_timestep;
 
   } // End triangle k
 

@@ -243,7 +243,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     # FIXME SR: Maybe we only need a cupy array and use cupy amin 
     # and sum to collect global timestep and boundary flux
     local_boundary_flux_sum = num.zeros(number_of_elements, dtype=float) 
-    local_timestep = num.zeros(number_of_elements, dtype=float) 
+    timestep_array = num.zeros(number_of_elements, dtype=float) 
 
     #------------------------------------
     # create cupy arrays
@@ -252,7 +252,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     
     nvtxRangePush('to gpu')
 
-    gpu_local_timestep        = cp.array(local_timestep)           #InOut
+    gpu_timestep_array        = cp.array(timestep_array)           #InOut
     gpu_local_boundary_flux_sum = cp.array(local_boundary_flux_sum ) #InOut
     gpu_max_speed             = cp.array(max_speed)                #InOut
     gpu_stage_explicit_update = cp.array(stage_explicit_update)    #InOut
@@ -323,7 +323,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     kernel( (NO_OF_BLOCKS, 0, 0), \
                                  (THREADS_PER_BLOCK, 0, 0), \
                                   ( \
-                                    gpu_local_timestep, \
+                                    gpu_timestep_array, \
                                     gpu_local_boundary_flux_sum, \
                                     gpu_max_speed, \
                                     gpu_stage_explicit_update,\
@@ -374,8 +374,8 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
     nvtxRangePush('calculate flux: from gpu')
 
-    local_timestep[:]        = cp.asnumpy(gpu_local_timestep)          #InOut
-    local_boundary_flux_sum[:] = cp.asnumpy(gpu_local_boundary_flux_sum)       #InOut
+    timestep_array[:]        = cp.asnumpy(gpu_timestep_array)          #InOut
+    local_boundary_flux_sum[:] = cp.asnumpy(gpu_local_boundary_flux_sum) #InOut
     max_speed[:]             = cp.asnumpy(gpu_max_speed)               #InOut
     stage_explicit_update[:] = cp.asnumpy(gpu_stage_explicit_update)   #InOut
     xmom_explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
