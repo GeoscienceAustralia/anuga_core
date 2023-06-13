@@ -238,10 +238,11 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
     substep_count = (call - base_call) % domain.timestep_fluxcalls
 
-    # array to collect all the local timesteps and do reduction
-    # after kernel call
+    # Arrays to collect local timesteps and boundary fluxes
+    # and do reduction after kernel call
     # FIXME SR: Maybe we only need a cupy array and use cupy amin 
-    # to collect global timestep 
+    # and sum to collect global timestep and boundary flux
+    local_boundary_flux_sum = num.zeros(number_of_elements, dtype=float) 
     local_timestep = num.zeros(number_of_elements, dtype=float) 
 
     #------------------------------------
@@ -251,12 +252,12 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     
     nvtxRangePush('to gpu')
 
-    gpu_local_timestep        = cp.array(local_timestep)         #InOut
-    gpu_boundary_flux_sum     = cp.array(boundary_flux_sum )     #InOut
-    gpu_max_speed             = cp.array(max_speed)              #InOut
-    gpu_stage_explicit_update = cp.array(stage_explicit_update)  #InOut
-    gpu_xmom_explicit_update  = cp.array(xmom_explicit_update)   #InOut
-    gpu_ymom_explicit_update  = cp.array(ymom_explicit_update)   #InOut
+    gpu_local_timestep        = cp.array(local_timestep)           #InOut
+    gpu_boundary_flux_sum     = cp.array(local_boundary_flux_sum ) #InOut
+    gpu_max_speed             = cp.array(max_speed)                #InOut
+    gpu_stage_explicit_update = cp.array(stage_explicit_update)    #InOut
+    gpu_xmom_explicit_update  = cp.array(xmom_explicit_update)     #InOut
+    gpu_ymom_explicit_update  = cp.array(ymom_explicit_update)     #InOut
 
     gpu_stage_centroid_values = cp.array(stage_centroid_values) 
     gpu_stage_edge_values     = cp.array(stage_edge_values)
@@ -323,7 +324,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
                                  (THREADS_PER_BLOCK, 0, 0), \
                                   ( \
                                     gpu_local_timestep, \
-                                    gpu_boundary_flux_sum, \
+                                    gpu_local_boundary_flux_sum, \
                                     gpu_max_speed, \
                                     gpu_stage_explicit_update,\
                                     gpu_xmom_explicit_update,\
@@ -371,10 +372,10 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
 
 
-    nvtxRangePush('from gpu')
+    nvtxRangePush('calculate flux: from gpu')
 
     local_timestep[:]        = cp.asnumpy(gpu_local_timestep)          #InOut
-    boundary_flux_sum[:]     = cp.asnumpy(gpu_boundary_flux_sum)       #InOut
+    local_boundary_flux_sum[:] = cp.asnumpy(gpu_local_boundary_flux_sum)       #InOut
     max_speed[:]             = cp.asnumpy(gpu_max_speed)               #InOut
     stage_explicit_update[:] = cp.asnumpy(gpu_stage_explicit_update)   #InOut
     xmom_explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
@@ -382,11 +383,22 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
     nvtxRangePop()
 
+
+    nvtxRangePush('calculate flux: reduction operations')
+    
+    if substep_count == 0:
+        timestep = local_timestep.amin()
+
+    domain.boundary_flux_sum[substep_count] = local_boundary_flux_sum.sum()
+
+    nvtxRangePop()
+
+
     #print('boundary_flux_sum', boundary_flux_sum)
     #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
     #print('=================')
 
-    return local_timestep[0]
+    return timestep
 
 #-----------------------------------------
 # Test the kernel version of compute fluxes

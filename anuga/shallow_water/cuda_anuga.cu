@@ -1,33 +1,70 @@
-// Python - C extension module for shallow_water.py
-//
-// To compile (Python2.6):
-//  gcc -c swb2_domain_ext.c -I/usr/include/python2.6 -o domain_ext.o -Wall -O
-//  gcc -shared swb2_domain_ext.o  -o swb2_domain_ext.so
-//
-// or use python compile.py
-//
-// See the module swb_domain.py for more documentation on
-// how to use this module
-//
-//
-// Stephen Roberts, ANU 2009
-// Ole Nielsen, GA 2004
-// Gareth Davies, GA 2011
+// CUDA code to implement flux and quantity updates as used 
+// in evolve loop
 
-//#include "math.h"
-//#include <stdio.h>
-//#include <string.h>
-//#include <assert.h>
 
-// #if defined(__APPLE__)
-// // clang doesn't have cuda
-// #else
-// #include "omp.h"
-// #endif
 
-//#include "sw_domain.h"
+// FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in 
+// extrapolation
+__device__ int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
+  double *qmin, double *qmax)
+{
+// Considering the centroid of an FV triangle and the vertices of its
+// auxiliary triangle, find
+// qmin=min(q)-qc and qmax=max(q)-qc,
+// where min(q) and max(q) are respectively min and max over the
+// four values (at the centroid of the FV triangle and the auxiliary
+// triangle vertices),
+// and qc is the centroid
+// dq0=q(vertex0)-q(centroid of FV triangle)
+// dq1=q(vertex1)-q(vertex0)
+// dq2=q(vertex2)-q(vertex0)
 
-const double pi = 3.14159265358979;
+// This is a simple implementation
+*qmax = fmax(fmax(dq0, fmax(dq0 + dq1, dq0 + dq2)), 0.0);
+*qmin = fmin(fmin(dq0, fmin(dq0 + dq1, dq0 + dq2)), 0.0);
+
+return 0;
+}
+
+// FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in 
+// extrapolation
+__device__ int __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
+{
+// Given provisional jumps dqv from the FV triangle centroid to its
+// vertices/edges, and jumps qmin (qmax) between the centroid of the FV
+// triangle and the minimum (maximum) of the values at the auxiliary triangle
+// vertices (which are centroids of neighbour mesh triangles), calculate a
+// multiplicative factor phi by which the provisional vertex jumps are to be
+// limited
+
+int i;
+double r = 1000.0, r0 = 1.0, phi = 1.0;
+static double TINY = 1.0e-100; // to avoid machine accuracy problems.
+// FIXME: Perhaps use the epsilon used elsewhere.
+
+// Any provisional jump with magnitude < TINY does not contribute to
+// the limiting process.
+// return 0;
+
+for (i = 0; i < 3; i++)
+{
+if (dqv[i] < -TINY)
+r0 = qmin / dqv[i];
+
+if (dqv[i] > TINY)
+r0 = qmax / dqv[i];
+
+r = fmin(r0, r);
+}
+
+phi = fmin(r * beta_w, 1.0);
+// phi=1.;
+dqv[0] = dqv[0] * phi;
+dqv[1] = dqv[1] * phi;
+dqv[2] = dqv[2] * phi;
+
+return 0;
+}
 
 // Computational function for rotation
 __device__ void __rotate(double *q, double n1, double n2)
@@ -162,10 +199,7 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
   // Something that scales like the Froude number
   // We will use this to scale the diffusive component of the UH/VH fluxes.
 
-  // local_fr = sqrt(
-  //     max(0.001, min(1.0,
-  //         (u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
-  //         (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
+  // low_froude can have values 0, 1, 2
   if (low_froude == 1)
   {
     local_fr = sqrt(
@@ -367,7 +401,7 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
 }
 
 
-
+// FIXME SR: At present reduction is done outside kernel
 __device__ double atomicMin_double(double* address, double val)
 
 {
@@ -386,15 +420,15 @@ __device__ double atomicMin_double(double* address, double val)
 		        return __longlong_as_double(old);
 
 }
-// First parallel loop in cuda_compute_fluxes
+// Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // InOut
-                                    double* boundary_flux_sum,     // InOut
-                                    double* max_speed,             // InOut
-                                    double* stage_explicit_update, // InOut
-                                    double* xmom_explicit_update,  // InOut
-                                    double* ymom_explicit_update,  // InOut
+__global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,  // InOut
+                                    double* local_boundary_flux_sum, // InOut
+                                    double* max_speed,               // InOut
+                                    double* stage_explicit_update,   // InOut
+                                    double* xmom_explicit_update,    // InOut
+                                    double* ymom_explicit_update,    // InOut
 
                                     double* stage_centroid_values,
                                     double* stage_edge_values,
@@ -440,19 +474,28 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
   double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n;
   double h_left_tmp, h_right_tmp, speed_max_last, weir_height;
 
-  double boundary_flux_sum_substep = 0.0;
-  //local_timestep[0] = 1.0e+100;
+  
+  
 
   //for (k = 0; k < number_of_elements; k++)
   k = blockIdx.x * blockDim.x + threadIdx.x; 
   if(k<number_of_elements)
   {
-    speed_max_last = 0.0;
+
+    // Set reduction arrays
+    // reduction will be done outside kernel
+    local_timestep[k] = 1.0e+100;
+    local_boundary_flux_sum[k] = 0.0;
+    
+    max_speed[k] = 0.0;
+
     // Set explicit_update to zero for all conserved_quantities.
     // This assumes compute_fluxes called before forcing terms
     stage_explicit_update[k] = 0.0;
     xmom_explicit_update[k] = 0.0;
     ymom_explicit_update[k] = 0.0;
+
+    speed_max_last = 0.0;
 
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++)
@@ -607,7 +650,9 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
             // CFL for triangle k
 
             //local_timestep[0] = fmin(local_timestep[0], edge_timestep);
-	          atomicMin_double(local_timestep, edge_timestep);
+	          //atomicMin_double(local_timestep, edge_timestep);
+
+            local_timestep[k] = fmin(local_timestep[k], edge_timestep);
 
             speed_max_last = fmax(speed_max_last, max_speed_local);
           }
@@ -626,12 +671,11 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
         //boundary_flux_sum[substep_count] += edgeflux[0];
-
+        local_boundary_flux_sum[k] += edgeflux[0];
         
-	      atomicAdd((boundary_flux_sum+substep_count), edgeflux[0]);
+	      //atomicAdd((boundary_flux_sum+substep_count), edgeflux[0]);
 
         //printf(" k = %d  substep_count = %ld edge_flux %f bflux %f \n",k,substep_count, edgeflux[0], boundary_flux_sum[substep_count] );
-
 
         //printf('boundary_flux_sum_substep %e \n',boundary_flux_sum_substep);
         
@@ -661,6 +705,9 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
 //  printf("cuda local_timestep            %f \n",local_timestep[0]);
 
 }
+
+
+
 
 // // Computational function for flux computation
 // int main(int *argc, char*argv[])
@@ -754,65 +801,4 @@ __global__ void _cuda_compute_fluxes_loop_1(double* local_timestep,        // In
 //                                limiting_threshold);
 
 // }
-
-
-
-__device__ int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
-                         double *qmin, double *qmax)
-{
-  // Considering the centroid of an FV triangle and the vertices of its
-  // auxiliary triangle, find
-  // qmin=min(q)-qc and qmax=max(q)-qc,
-  // where min(q) and max(q) are respectively min and max over the
-  // four values (at the centroid of the FV triangle and the auxiliary
-  // triangle vertices),
-  // and qc is the centroid
-  // dq0=q(vertex0)-q(centroid of FV triangle)
-  // dq1=q(vertex1)-q(vertex0)
-  // dq2=q(vertex2)-q(vertex0)
-
-  // This is a simple implementation
-  *qmax = fmax(fmax(dq0, fmax(dq0 + dq1, dq0 + dq2)), 0.0);
-  *qmin = fmin(fmin(dq0, fmin(dq0 + dq1, dq0 + dq2)), 0.0);
-
-  return 0;
-}
-
-__device__ int __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
-{
-  // Given provisional jumps dqv from the FV triangle centroid to its
-  // vertices/edges, and jumps qmin (qmax) between the centroid of the FV
-  // triangle and the minimum (maximum) of the values at the auxiliary triangle
-  // vertices (which are centroids of neighbour mesh triangles), calculate a
-  // multiplicative factor phi by which the provisional vertex jumps are to be
-  // limited
-
-  int i;
-  double r = 1000.0, r0 = 1.0, phi = 1.0;
-  static double TINY = 1.0e-100; // to avoid machine accuracy problems.
-  // FIXME: Perhaps use the epsilon used elsewhere.
-
-  // Any provisional jump with magnitude < TINY does not contribute to
-  // the limiting process.
-  // return 0;
-
-  for (i = 0; i < 3; i++)
-  {
-    if (dqv[i] < -TINY)
-      r0 = qmin / dqv[i];
-
-    if (dqv[i] > TINY)
-      r0 = qmax / dqv[i];
-
-    r = fmin(r0, r);
-  }
-
-  phi = fmin(r * beta_w, 1.0);
-  // phi=1.;
-  dqv[0] = dqv[0] * phi;
-  dqv[1] = dqv[1] * phi;
-  dqv[2] = dqv[2] * phi;
-
-  return 0;
-}
 
