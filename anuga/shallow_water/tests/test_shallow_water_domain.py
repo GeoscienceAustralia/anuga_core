@@ -3964,7 +3964,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Import underlying routine locally.
         # FIXME (Ole): This routine might have to be removed entirely as likely
         # superseded by extrapolate_second_order_edge_sw
-        from  anuga.shallow_water.swDE1_domain_ext import extrapolate_second_order_sw
+        from anuga.shallow_water.swDE1_domain_ext import extrapolate_second_order_sw
 
         extrapolate_second_order_sw(domain)
 
