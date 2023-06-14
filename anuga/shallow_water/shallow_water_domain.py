@@ -2330,10 +2330,9 @@ class Domain(Generic_Domain):
         """ Clean up the stage and momentum values to ensure non-negative heights
         """
 
-        from .swb2_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
-        from .swDE1_domain_ext import protect_new
-
         if self.flow_algorithm == 'tsunami':
+            from .swb2_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
+        
             # shortcuts
             wc = self.quantities['stage'].centroid_values
             wv = self.quantities['stage'].vertex_values
@@ -2350,6 +2349,7 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
 
         elif self.compute_fluxes_method == 'DE':
+            from .swDE1_domain_ext import protect_new
             mass_error = protect_new(self)
             if mass_error > 0.0 and self.verbose :
                 #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
@@ -2357,6 +2357,9 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: {0} m^3'.format(mass_error))
 
         else:
+
+            from .shallow_water_ext import protect        
+
             # shortcuts
             wc = self.quantities['stage'].centroid_values
             wv = self.quantities['stage'].vertex_values
@@ -2364,13 +2367,11 @@ class Domain(Generic_Domain):
             zv = self.quantities['elevation'].vertex_values
             xmomc = self.quantities['xmomentum'].centroid_values
             ymomc = self.quantities['ymomentum'].centroid_values
-            areas = self.areas
-            
-            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
-            if mass_error > 0.0 and self.verbose :
-                print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
+            
+            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+                    self.epsilon, wc, zc, xmomc, ymomc)
+
 
             
 
