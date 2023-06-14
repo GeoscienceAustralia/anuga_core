@@ -22,10 +22,7 @@ def configuration(parent_package='',top_path=None):
     #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
     util_dir = join('..','utilities')
 
-    config.add_extension('shallow_water_ext',
-                         sources=['shallow_water_ext.pyx'],
-                         include_dirs=[util_dir])
-
+    # FIXME (Ole): Do we still need this one?
     config.add_extension('swb2_domain_ext',
                          sources=['swb2_domain_ext.pyx'],
                          include_dirs=[util_dir])

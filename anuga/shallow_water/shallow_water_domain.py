@@ -2022,7 +2022,7 @@ class Domain(Generic_Domain):
     def extrapolate_second_order_sw(self):
         """Fast version of extrapolation from centroids to edges"""
 
-        # FIXME (Ole): This might be an obsolute function (it was migrated from shallow_water_ext)
+        # FIXME (Ole): This might be an obsolute function (it was migrated from from the old c extension)
         from .swDE1_domain_ext import extrapolate_second_order_sw as extrapol2
         extrapol2(self)
 
@@ -2051,7 +2051,7 @@ class Domain(Generic_Domain):
         if self.compute_fluxes_method == 'original':
             # FIXME (Ole): Deprecate this (and the wb versions)
             from .shallow_water_ext import compute_fluxes_ext_central_structure
-            from .shallow_water_ext import gravity as gravity_c
+            from .swDE1_domain_ext import gravity as gravity_c
             self.flux_timestep = compute_fluxes_ext_central_structure(self)
             gravity_c(self)
 
@@ -2060,7 +2060,7 @@ class Domain(Generic_Domain):
             # computations. Then they match up exactly with
             # standard gravity term - g h grad(z)
             from .shallow_water_ext import compute_fluxes_ext_wb
-            from .shallow_water_ext import gravity as gravity_c
+            from .swDE1_domain_ext import gravity as gravity_c
 
             self.flux_timestep = compute_fluxes_ext_wb(self)
             gravity_c(self)
@@ -2081,7 +2081,7 @@ class Domain(Generic_Domain):
             # gravity flux and gravity forcing via
             # as -g h grad(w) - sum midpoint edge pressure terms
             from .shallow_water_ext import compute_fluxes_ext_wb_3
-            from .shallow_water_ext import gravity_wb as gravity_wb_c
+            from .swDE1_domain_ext import gravity_wb as gravity_wb_c
 
             self.flux_timestep = compute_fluxes_ext_wb_3(self)
             gravity_wb_c(self)
@@ -2330,10 +2330,10 @@ class Domain(Generic_Domain):
         """ Clean up the stage and momentum values to ensure non-negative heights
         """
 
+        from .swb2_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
+        from .swDE1_domain_ext import protect_new
+
         if self.flow_algorithm == 'tsunami':
-
-            from .swb2_domain_ext import protect
-
             # shortcuts
             wc = self.quantities['stage'].centroid_values
             wv = self.quantities['stage'].vertex_values
@@ -2350,9 +2350,6 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
 
         elif self.compute_fluxes_method == 'DE':
-
-            from .swDE1_domain_ext import protect_new
-
             mass_error = protect_new(self)
             if mass_error > 0.0 and self.verbose :
                 #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
@@ -2360,16 +2357,23 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: {0} m^3'.format(mass_error))
 
         else:
-            from .shallow_water_ext import protect
-
-            # Shortcuts
+            # shortcuts
             wc = self.quantities['stage'].centroid_values
+            wv = self.quantities['stage'].vertex_values
             zc = self.quantities['elevation'].centroid_values
+            zv = self.quantities['elevation'].vertex_values
             xmomc = self.quantities['xmomentum'].centroid_values
             ymomc = self.quantities['ymomentum'].centroid_values
+            areas = self.areas
+            
+            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
+                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
 
-            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                    self.epsilon, wc, zc, xmomc, ymomc)
+            if mass_error > 0.0 and self.verbose :
+                print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
+
+            
+
 
 
     def balance_deep_and_shallow(self):
