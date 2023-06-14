@@ -2467,7 +2467,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         #domain.compute_forcing_terms()
-        from anuga.shallow_water.shallow_water_ext import gravity
+        from anuga.shallow_water.swDE1_domain_ext import gravity
         gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
@@ -2514,7 +2514,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         #domain.compute_forcing_terms()
-        from anuga.shallow_water.shallow_water_ext import gravity
+        from anuga.shallow_water.swDE1_domain_ext import gravity
         gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
@@ -2672,7 +2672,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        from anuga.shallow_water.shallow_water_ext import gravity_wb
+        from anuga.shallow_water.swDE1_domain_ext import gravity_wb
         gravity_wb(domain)
 
 
@@ -2719,7 +2719,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        from anuga.shallow_water.shallow_water_ext import gravity_wb
+        from anuga.shallow_water.swDE1_domain_ext import gravity_wb
         gravity_wb(domain)
 
 

@@ -86,6 +86,8 @@ cdef extern from "swDE1_domain.c" nogil:
         int _extrapolate_second_order_edge_sw(domain* D)
         int _extrapolate_second_order_sw(domain* D)
         int _rotate(double *q, double n1, double n2)
+        int _gravity(domain* D)
+        int _gravity_wb(domain* D)
 
         int _flux_function_central(double *q_left, double *q_right,
                                    double h_left, double h_right,
@@ -457,3 +459,29 @@ def compute_flux_update_frequency(object domain_object, double timestep):
 
         with nogil:
                 _compute_flux_update_frequency(&D, timestep)
+
+
+def gravity(object domain_object):
+
+        cdef domain D
+
+        get_python_domain_parameters(&D, domain_object)
+        get_python_domain_pointers(&D, domain_object)
+
+        err = _gravity(&D)
+
+        if err == -1:
+                return None
+
+def gravity_wb(object domain_object):
+
+        cdef domain D
+
+        get_python_domain_parameters(&D, domain_object)
+        get_python_domain_pointers(&D, domain_object)
+
+        err = _gravity_wb(&D)
+
+        if err == -1:
+                return None
+

@@ -2649,3 +2649,128 @@ int _extrapolate_second_order_edge_sw(struct domain *D) {
 
   return 0;
 }
+
+
+
+int _gravity(struct domain *D) {
+
+    int k, N, k3, k6;
+    double g, avg_h, zx, zy;
+    double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+
+    g = D->g;
+    N = D->number_of_elements;
+
+    for (k = 0; k < N; k++) {
+        k3 = 3 * k; // base index
+
+        // Get bathymetry
+        z0 = (D->bed_vertex_values)[k3 + 0];
+        z1 = (D->bed_vertex_values)[k3 + 1];
+        z2 = (D->bed_vertex_values)[k3 + 2];
+
+        //printf("z0 %g, z1 %g, z2 %g \n",z0,z1,z2);
+
+        // Get average depth from centroid values
+        avg_h = (D->stage_centroid_values)[k] - (D->bed_centroid_values)[k];
+
+        //printf("avg_h  %g \n",avg_h);
+        // Compute bed slope
+        k6 = 6 * k; // base index
+
+        x0 = (D->vertex_coordinates)[k6 + 0];
+        y0 = (D->vertex_coordinates)[k6 + 1];
+        x1 = (D->vertex_coordinates)[k6 + 2];
+        y1 = (D->vertex_coordinates)[k6 + 3];
+        x2 = (D->vertex_coordinates)[k6 + 4];
+        y2 = (D->vertex_coordinates)[k6 + 5];
+
+        //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+        _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+        //printf("zx %g, zy %g \n",zx,zy);
+
+        // Update momentum
+        (D->xmom_explicit_update)[k] += -g * zx*avg_h;
+        (D->ymom_explicit_update)[k] += -g * zy*avg_h;
+    }
+    return 0;
+}
+
+int _gravity_wb(struct domain *D) {
+
+    int i, k, N, k3, k6;
+    double g, avg_h, wx, wy, fact;
+    double x0, y0, x1, y1, x2, y2;
+    double hh[3];
+    double w0, w1, w2;
+    double sidex, sidey, area;
+    double n0, n1;
+
+    g = D->g;
+
+    N = D->number_of_elements;
+    for (k = 0; k < N; k++) {
+        k3 = 3 * k; // base index
+
+        //------------------------------------
+        // Calculate side terms -ghw_x term
+        //------------------------------------
+
+        // Get vertex stage values for gradient calculation
+        w0 = (D->stage_vertex_values)[k3 + 0];
+        w1 = (D->stage_vertex_values)[k3 + 1];
+        w2 = (D->stage_vertex_values)[k3 + 2];
+
+        // Compute stage slope
+        k6 = 6 * k; // base index
+
+        x0 = (D->vertex_coordinates)[k6 + 0];
+        y0 = (D->vertex_coordinates)[k6 + 1];
+        x1 = (D->vertex_coordinates)[k6 + 2];
+        y1 = (D->vertex_coordinates)[k6 + 3];
+        x2 = (D->vertex_coordinates)[k6 + 4];
+        y2 = (D->vertex_coordinates)[k6 + 5];
+
+        //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+        _gradient(x0, y0, x1, y1, x2, y2, w0, w1, w2, &wx, &wy);
+
+        avg_h = (D->stage_centroid_values)[k] - (D->bed_centroid_values)[k];
+
+        // Update using -ghw_x term
+        (D->xmom_explicit_update)[k] += -g * wx*avg_h;
+        (D->ymom_explicit_update)[k] += -g * wy*avg_h;
+
+        //------------------------------------
+        // Calculate side terms \sum_i 0.5 g l_i h_i^2 n_i
+        //------------------------------------
+
+        // Getself.stage_c = self.domain.quantities['stage'].centroid_values edge depths
+        hh[0] = (D->stage_edge_values)[k3 + 0] - (D->bed_edge_values)[k3 + 0];
+        hh[1] = (D->stage_edge_values)[k3 + 1] - (D->bed_edge_values)[k3 + 1];
+        hh[2] = (D->stage_edge_values)[k3 + 2] - (D->bed_edge_values)[k3 + 2];
+
+
+        //printf("h0,1,2 %f %f %f\n",hh[0],hh[1],hh[2]);
+
+        // Calculate the side correction term
+        sidex = 0.0;
+        sidey = 0.0;
+        for (i = 0; i < 3; i++) {
+            n0 = (D->normals)[k6 + 2 * i];
+            n1 = (D->normals)[k6 + 2 * i + 1];
+
+            //printf("n0, n1 %i %g %g\n",i,n0,n1);
+            fact = -0.5 * g * hh[i] * hh[i] * (D->edgelengths)[k3 + i];
+            sidex = sidex + fact*n0;
+            sidey = sidey + fact*n1;
+        }
+
+        // Update momentum with side terms
+        area = (D->areas)[k];
+        (D->xmom_explicit_update)[k] += -sidex / area;
+        (D->ymom_explicit_update)[k] += -sidey / area;
+
+    }
+    return 0;
+}
