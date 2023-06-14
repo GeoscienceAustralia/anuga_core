@@ -51,7 +51,7 @@ from pprint import pprint
 
 # Get gateway to C implementation of flux function for direct testing
 from anuga.shallow_water.swDE1_domain_ext import flux_function_central as flux_function
-from anuga.shallow_water.shallow_water_ext import rotate
+from anuga.shallow_water.swDE1_domain_ext import rotate
 
 
 def set_bottom_friction(tag, elements, domain):
@@ -1044,7 +1044,7 @@ class Test_Shallow_Water(unittest.TestCase):
         hc = hc_n = (hl + hr) / 2
         max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
         
-        # FIXME (Ole): edgeflux used to have direction - now it the two last compenents are zero and pressure_flux has a corresponding scalar value)                           assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
+        # FIXME (Ole): edgeflux used to have direction - now it the two last components are zero and pressure_flux has a corresponding scalar value)                           assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
         
         # Now it is this instead:
         assert num.allclose(max_speed, 7.22956891292)

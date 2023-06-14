@@ -85,6 +85,7 @@ cdef extern from "swDE1_domain.c" nogil:
         double _protect_new(domain* D)
         int _extrapolate_second_order_edge_sw(domain* D)
         int _extrapolate_second_order_sw(domain* D)
+        int _rotate(double *q, double n1, double n2)
 
         int _flux_function_central(double *q_left, double *q_right,
                                    double h_left, double h_right,
@@ -336,6 +337,25 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 
 #===============================================================================
+
+def rotate(np.ndarray[double, ndim=1, mode="c"] q not None, np.ndarray[double, ndim=1, mode="c"] normal not None, int direction):
+
+        assert normal.shape[0] == 2, "Normal vector must have 2 components"
+
+        cdef np.ndarray[double, ndim=1, mode="c"] r
+        cdef double n1, n2
+
+        n1 = normal[0]
+        n2 = normal[1]
+
+        if direction == -1:
+                n2 = -n2
+
+        r = np.ascontiguousarray(np.copy(q))
+
+        _rotate(&r[0], n1, n2)
+
+        return r
 
 
 def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\

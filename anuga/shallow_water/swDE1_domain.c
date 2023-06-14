@@ -34,10 +34,10 @@ unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
 
 // Computational function for rotation
 int _rotate(double *q, double n1, double n2) {
-  /*Rotate the last  2 coordinates of q (q[1], q[2])
+  /*Rotate the last  2 coordinates of 3x1 array q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
 
-    Result is returned in array 2x1 r
+    Result is returned in array q
     To rotate in opposite direction, call rotate with (q, n1, -n2)
 
     Contents of q are changed by this function */
