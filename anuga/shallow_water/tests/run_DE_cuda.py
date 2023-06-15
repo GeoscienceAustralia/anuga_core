@@ -402,13 +402,19 @@ xmom2 = quantities2["xmomentum"]
 ymom2 = quantities2["ymomentum"]
 max_speed_2 = domain2.max_speed
 
+N = domain1.number_of_elements
+
+# scale linalg.norm by number of elements
+import math
+sqrtN = 1.0/math.sqrt(N)
+
 
 print('timestep error              ', abs(timestep1-timestep2))
 print('boundary_flux error         ', abs(boundary_flux1-boundary_flux2))
-print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
 print('max_speed error             ', num.linalg.norm(max_speed_1-max_speed_2))
-print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
-print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))*sqrtN
+print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))*sqrtN
+print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))*sqrtN
 #print('edge timestep error         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
 #print('pressure work error         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
 #print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
