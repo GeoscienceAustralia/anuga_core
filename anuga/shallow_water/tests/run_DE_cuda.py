@@ -164,7 +164,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     # beta_vh =  domain.beta_vh
     # beta_vh_dry =  domain.beta_vh_dry
     # max_flux_update_frequency =  domain.max_flux_update_frequency
-    # limiting_threshold = domain.max_flux_update_frequency
+    limiting_threshold = 10.0 * domain.H0
 
     # Quantity structures
     quantities = domain.quantities
@@ -235,8 +235,8 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     gpu_edge_river_wall_counter = cp.array(domain.edge_river_wall_counter)
 
     gpu_riverwall_elevation    = cp.array(riverwallData.riverwall_elevation)
-    gpu_riverwall_rowIndex     = cp.array(riverwallData.riverwall_rowIndex)
-    gpu_riverwall_hydraulic_properties = cp.array(riverwallData.riverwall_hydraulic_properties)
+    gpu_riverwall_rowIndex     = cp.array(riverwallData.hydraulic_properties_rowIndex)
+    gpu_riverwall_hydraulic_properties = cp.array(riverwallData.hydraulic_properties)
 
     nvtxRangePop()
 
@@ -310,7 +310,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
                                     gpu_riverwall_elevation,
                                     gpu_riverwall_rowIndex,
                                     gpu_riverwall_hydraulic_properties,
-                                    
+
                                     number_of_elements,
                                     substep_count,
                                     riverwall_ncol_hydraulic_properties,
