@@ -367,9 +367,9 @@ domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 nvtxRangePush('compute fluxes domain2')
-domain2.compute_fluxes()
-#timestep = domain2.evolve_max_timestep 
-#domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
+#domain2.compute_fluxes()
+timestep = domain2.evolve_max_timestep 
+domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
 nvtxRangePop()
 
 
@@ -422,12 +422,13 @@ print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom
 
 from pprint import pprint
 
-pprint(stage1.explicit_update.reshape(2*nx,2*ny))
-pprint(stage2.explicit_update.reshape(2*nx,2*ny))
-pprint((stage1.explicit_update-stage2.explicit_update).reshape(2*nx,2*ny))
-pprint(max_speed_1.reshape(2*nx,2*ny))
-pprint(max_speed_2.reshape(2*nx,2*ny))
-pprint((max_speed_1-max_speed_2).reshape(2*nx,2*ny))
+if False:
+    pprint(stage1.explicit_update.reshape(2*nx,2*ny))
+    pprint(stage2.explicit_update.reshape(2*nx,2*ny))
+    pprint((stage1.explicit_update-stage2.explicit_update).reshape(2*nx,2*ny))
+    pprint(max_speed_1.reshape(2*nx,2*ny))
+    pprint(max_speed_2.reshape(2*nx,2*ny))
+    pprint((max_speed_1-max_speed_2).reshape(2*nx,2*ny))
 #assert num.allclose(timestep1,timestep2)
 #assert num.allclose(boundary_flux1,boundary_flux2)
 #assert num.allclose(stage1.explicit_update,stage2.explicit_update)
