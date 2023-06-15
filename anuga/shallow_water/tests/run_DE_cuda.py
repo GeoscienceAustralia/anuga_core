@@ -35,9 +35,12 @@ try:
 except:
     pass
 
+nx = 2
+ny = 2
+
 def create_domain(name='domain'):
 
-    domain = anuga.rectangular_cross_domain(5,5, len1=1., len2=1.)
+    domain = anuga.rectangular_cross_domain(nx, ny, len1=1., len2=1.)
 
     domain.set_flow_algorithm('DE0')
     domain.set_low_froude(0)
@@ -50,11 +53,18 @@ def create_domain(name='domain'):
     #------------------
     scale_me=1.0
 
+    #def topography(x,y):
+    #    return (-x/2.0 +0.05*num.sin((x+y)*50.0))*scale_me
+
     def topography(x,y):
-        return (-x/2.0 +0.05*num.sin((x+y)*50.0))*scale_me
+        return 0.0
+
+    #def stagefun(x,y):
+    #    stage=-0.2*scale_me #+0.01*(x>0.9)
+    #    return stage
 
     def stagefun(x,y):
-        stage=-0.2*scale_me #+0.01*(x>0.9)
+        stage=1.0-0.5*x
         return stage
 
     domain.set_quantity('elevation',topography)     # Use function for elevation
@@ -82,12 +92,12 @@ print(70*'=')
 
 nvtxRangePush('create domain1')
 domain1 = create_domain('domain_original')
-domain1.set_multiprocessor_mode(0)
+domain1.set_multiprocessor_mode(1)
 nvtxRangePop()
 
 nvtxRangePush('create domain1')
 domain2 = create_domain('domain_cuda')
-domain2.set_multiprocessor_mode(0) # will change to 2 once burn in
+domain2.set_multiprocessor_mode(1) # will change to 2 once burn in
 nvtxRangePop()
 
 #------------------------------
@@ -112,7 +122,7 @@ nvtxRangePop()
 #----------------------------------------
 # Now just run the cuda code on domain2
 #----------------------------------------
-domain2.set_multiprocessor_mode(4)
+domain2.set_multiprocessor_mode(2)
 timestep = 0.1
 
 nvtxRangePush('distribute domain1')
@@ -129,7 +139,6 @@ nvtxRangePop()
 
 def compute_fluxes_ext_central_kernel(domain, timestep):
     
-        # InOut
 
     #--------------------------------
     # create alias to domain variables
@@ -142,93 +151,35 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     g =  domain.g
     optimise_dry_cells =  domain.optimise_dry_cells
     evolve_max_timestep =  domain.evolve_max_timestep
-    minimum_allowed_height =  domain.minimum_allowed_height
-    maximum_allowed_speed =  domain.maximum_allowed_speed
     timestep_fluxcalls =  domain.timestep_fluxcalls
     low_froude =  domain.low_froude
-    extrapolate_velocity_second_order =  domain.extrapolate_velocity_second_order
-    beta_w =  domain.beta_w
-    beta_w_dry =  domain.beta_w_dry
-    beta_uh =  domain.beta_uh
-    beta_uh_dry =  domain.beta_uh_dry
-    beta_vh =  domain.beta_vh
-    beta_vh_dry =  domain.beta_vh_dry
-    max_flux_update_frequency =  domain.max_flux_update_frequency
-    limiting_threshold = domain.max_flux_update_frequency
 
-    neighbours = domain.neighbours
-    surrogate_neighbours = domain.surrogate_neighbours
-    neighbour_edges = domain.neighbour_edges
-    normals = domain.normals
-    edgelengths = domain.edgelengths
-    radii = domain.radii
-    areas = domain.areas
-    edge_flux_type = domain.edge_flux_type
-    tri_full_flag = domain.tri_full_flag
-
-    already_computed_flux = domain.already_computed_flux
-
-    vertex_coordinates = domain.vertex_coordinates
-    edge_coordinates = domain.edge_coordinates
-    centroid_coordinates = domain.centroid_coordinates
-    max_speed = domain.max_speed
-    number_of_boundaries = domain.number_of_boundaries
-    flux_update_frequency = domain.flux_update_frequency
-    update_next_flux = domain.update_next_flux
-    update_extrapolation = domain.update_extrapolation
-    allow_timestep_increase = domain.allow_timestep_increase
-    edge_timestep = domain.edge_timestep
-    edge_flux_work = domain.edge_flux_work
-    neigh_work = domain.neigh_work
-    pressuregrad_work = domain.pressuregrad_work
-    x_centroid_work = domain.x_centroid_work
-    y_centroid_work = domain.y_centroid_work
-    boundary_flux_sum = domain.boundary_flux_sum
-    edge_river_wall_counter = domain.edge_river_wall_counter
+    # minimum_allowed_height =  domain.minimum_allowed_height
+    # maximum_allowed_speed =  domain.maximum_allowed_speed
+    # extrapolate_velocity_second_order =  domain.extrapolate_velocity_second_order
+    # beta_w =  domain.beta_w
+    # beta_w_dry =  domain.beta_w_dry
+    # beta_uh =  domain.beta_uh
+    # beta_uh_dry =  domain.beta_uh_dry
+    # beta_vh =  domain.beta_vh
+    # beta_vh_dry =  domain.beta_vh_dry
+    # max_flux_update_frequency =  domain.max_flux_update_frequency
+    # limiting_threshold = domain.max_flux_update_frequency
 
     # Quantity structures
     quantities = domain.quantities
-    stage = quantities["stage"]
-    xmomentum = quantities["xmomentum"]
-    ymomentum = quantities["ymomentum"]
-    elevation = quantities["elevation"]
+    stage  = quantities["stage"]
+    xmom   = quantities["xmomentum"]
+    ymom   = quantities["ymomentum"]
+    bed    = quantities["elevation"]
     height = quantities["height"]
-
-    stage_edge_values = stage.edge_values
-    xmom_edge_values = xmomentum.edge_values
-    ymom_edge_values = ymomentum.edge_values
-    bed_edge_values = elevation.edge_values
-    height_edge_values = height.edge_values
-    stage_centroid_values = stage.centroid_values
-    xmom_centroid_values = xmomentum.centroid_values
-    ymom_centroid_values = ymomentum.centroid_values
-    bed_centroid_values = elevation.centroid_values
-    height_centroid_values = height.centroid_values
-    stage_vertex_values = stage.vertex_values
-    xmom_vertex_values = xmomentum.vertex_values
-    ymom_vertex_values = ymomentum.vertex_values
-    bed_vertex_values = elevation.vertex_values
-    height_vertex_values = height.vertex_values
-    stage_boundary_values = stage.boundary_values
-    xmom_boundary_values = xmomentum.boundary_values
-    ymom_boundary_values = ymomentum.boundary_values
-    bed_boundary_values = elevation.boundary_values
-    stage_explicit_update = stage.explicit_update
-    xmom_explicit_update = stage.explicit_update
-    ymom_explicit_update = ymomentum.explicit_update
-    #------------------------------------------------------
-    # Riverwall structures
-    #------------------------------------------------------
     riverwallData = domain.riverwallData
-    riverwall_elevation = riverwallData.riverwall_elevation
-    riverwall_rowIndex = riverwallData.hydraulic_properties_rowIndex
-    ncol_riverwall_hydraulic_properties = riverwallData.ncol_hydraulic_properties
-    riverwall_hydraulic_properties = riverwallData.hydraulic_properties
 
-
+    riverwall_ncol_hydraulic_properties = riverwallData.ncol_hydraulic_properties
 
     #-------------------------------------
-    # glue code
+    # FIXME SR: Need to calc substep_count
+    # properly as used to be static in C code
     #-------------------------------------
     timestep_fluxcalls = 1
     call = 1
@@ -238,10 +189,12 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
     substep_count = (call - base_call) % domain.timestep_fluxcalls
 
+    #----------------------------------------
     # Arrays to collect local timesteps and boundary fluxes
     # and do reduction after kernel call
     # FIXME SR: Maybe we only need a cupy array and use cupy amin 
     # and sum to collect global timestep and boundary flux
+    #---------------------------------------
     local_boundary_flux_sum = num.zeros(number_of_elements, dtype=float) 
     timestep_array = num.zeros(number_of_elements, dtype=float) 
 
@@ -252,36 +205,38 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     
     nvtxRangePush('to gpu')
 
-    gpu_timestep_array        = cp.array(timestep_array)           #InOut
+    gpu_timestep_array          = cp.array(timestep_array)           #InOut
     gpu_local_boundary_flux_sum = cp.array(local_boundary_flux_sum ) #InOut
-    gpu_max_speed             = cp.array(max_speed)                #InOut
-    gpu_stage_explicit_update = cp.array(stage_explicit_update)    #InOut
-    gpu_xmom_explicit_update  = cp.array(xmom_explicit_update)     #InOut
-    gpu_ymom_explicit_update  = cp.array(ymom_explicit_update)     #InOut
 
-    gpu_stage_centroid_values = cp.array(stage_centroid_values) 
-    gpu_stage_edge_values     = cp.array(stage_edge_values)
-    gpu_xmom_edge_values      = cp.array(xmom_edge_values)
-    gpu_ymom_edge_values      = cp.array(ymom_edge_values)
-    gpu_bed_edge_values       = cp.array(bed_edge_values)
-    gpu_height_edge_values    = cp.array(height_edge_values)
-    gpu_height_centroid_values = cp.array(height_centroid_values)
-    gpu_bed_centroid_values   = cp.array(bed_centroid_values)
-    gpu_stage_boundary_values = cp.array(stage_boundary_values)  
-    gpu_xmom_boundary_values  = cp.array(xmom_boundary_values) 
-    gpu_ymom_boundary_values  = cp.array(ymom_boundary_values) 
-    gpu_areas                 = cp.array(areas)
-    gpu_normals               = cp.array(normals)
-    gpu_edgelengths           = cp.array(edgelengths)
-    gpu_radii                 = cp.array(radii)
-    gpu_tri_full_flag         = cp.array(tri_full_flag)
-    gpu_neighbours            = cp.array(neighbours)
-    gpu_neighbour_edges       = cp.array(neighbour_edges)
-    gpu_edge_flux_type        = cp.array(edge_flux_type)  
-    gpu_edge_river_wall_counter = cp.array(edge_river_wall_counter)
-    gpu_riverwall_elevation   = cp.array(riverwall_elevation)
-    gpu_riverwall_rowIndex    = cp.array(riverwall_rowIndex)
-    gpu_riverwall_hydraulic_properties = cp.array(riverwall_hydraulic_properties)
+    gpu_max_speed              = cp.array(domain.max_speed)         #InOut
+    gpu_stage_explicit_update  = cp.array(stage.explicit_update)    #InOut
+    gpu_xmom_explicit_update   = cp.array(xmom.explicit_update)     #InOut
+    gpu_ymom_explicit_update   = cp.array(ymom.explicit_update)     #InOut
+
+    gpu_stage_centroid_values  = cp.array(stage.centroid_values) 
+    gpu_stage_edge_values      = cp.array(stage.edge_values)
+    gpu_xmom_edge_values       = cp.array(xmom.edge_values)
+    gpu_ymom_edge_values       = cp.array(ymom.edge_values)
+    gpu_bed_edge_values        = cp.array(bed.edge_values)
+    gpu_height_edge_values     = cp.array(height.edge_values)
+    gpu_height_centroid_values = cp.array(height.centroid_values)
+    gpu_bed_centroid_values    = cp.array(bed.centroid_values)
+    gpu_stage_boundary_values  = cp.array(stage.boundary_values)  
+    gpu_xmom_boundary_values   = cp.array(xmom.boundary_values) 
+    gpu_ymom_boundary_values   = cp.array(ymom.boundary_values) 
+    gpu_areas                  = cp.array(domain.areas)
+    gpu_normals                = cp.array(domain.normals)
+    gpu_edgelengths            = cp.array(domain.edgelengths)
+    gpu_radii                  = cp.array(domain.radii)
+    gpu_tri_full_flag          = cp.array(domain.tri_full_flag)
+    gpu_neighbours             = cp.array(domain.neighbours)
+    gpu_neighbour_edges        = cp.array(domain.neighbour_edges)
+    gpu_edge_flux_type         = cp.array(domain.edge_flux_type)  
+    gpu_edge_river_wall_counter = cp.array(domain.edge_river_wall_counter)
+
+    gpu_riverwall_elevation    = cp.array(riverwallData.riverwall_elevation)
+    gpu_riverwall_rowIndex     = cp.array(riverwallData.riverwall_rowIndex)
+    gpu_riverwall_hydraulic_properties = cp.array(riverwallData.riverwall_hydraulic_properties)
 
     nvtxRangePop()
 
@@ -320,46 +275,50 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     NO_OF_BLOCKS = int(math.ceil(number_of_elements/THREADS_PER_BLOCK))
 
 
-    kernel( (NO_OF_BLOCKS, 0, 0), \
-                                 (THREADS_PER_BLOCK, 0, 0), \
-                                  ( \
-                                    gpu_timestep_array, \
-                                    gpu_local_boundary_flux_sum, \
-                                    gpu_max_speed, \
-                                    gpu_stage_explicit_update,\
-                                    gpu_xmom_explicit_update,\
-                                    gpu_ymom_explicit_update,\
-                                    gpu_stage_centroid_values,\
-                                    gpu_stage_edge_values,\
-                                    gpu_xmom_edge_values, \
-                                    gpu_ymom_edge_values,\
-                                    gpu_bed_edge_values,\
-                                    gpu_height_edge_values,\
-                                    gpu_height_centroid_values,\
-                                    gpu_bed_centroid_values,\
-                                    gpu_stage_boundary_values, \
-                                    gpu_xmom_boundary_values, \
-                                    gpu_ymom_boundary_values, \
-                                    gpu_areas,\
-                                    gpu_normals,\
-                                    gpu_edgelengths,\
-                                    gpu_radii,\
-                                    gpu_tri_full_flag,\
-                                    gpu_neighbours,\
-                                    gpu_neighbour_edges,\
-                                    gpu_edge_flux_type, \
-                                    gpu_edge_river_wall_counter,\
-                                    gpu_riverwall_elevation,\
-                                    gpu_riverwall_rowIndex,\
-                                    gpu_riverwall_hydraulic_properties,\
-                                    number_of_elements,\
-                                    substep_count,\
-                                    ncol_riverwall_hydraulic_properties,\
-                                    epsilon,\
-                                    g,\
-                                    low_froude,\
-                                    limiting_threshold \
-                                 ) \
+    kernel( (NO_OF_BLOCKS, 0, 0), 
+                                 (THREADS_PER_BLOCK, 0, 0), 
+                                  ( 
+                                    gpu_timestep_array, 
+                                    gpu_local_boundary_flux_sum, 
+
+                                    gpu_max_speed, 
+                                    gpu_stage_explicit_update,
+                                    gpu_xmom_explicit_update,
+                                    gpu_ymom_explicit_update,
+
+                                    gpu_stage_centroid_values,
+                                    gpu_stage_edge_values,
+                                    gpu_xmom_edge_values, 
+                                    gpu_ymom_edge_values,
+                                    gpu_bed_edge_values,
+                                    gpu_height_edge_values,
+                                    gpu_height_centroid_values,
+                                    gpu_bed_centroid_values,
+                                    gpu_stage_boundary_values, 
+                                    gpu_xmom_boundary_values, 
+                                    gpu_ymom_boundary_values, 
+                                    gpu_areas,
+                                    gpu_normals,
+                                    gpu_edgelengths,
+                                    gpu_radii,
+                                    gpu_tri_full_flag,
+                                    gpu_neighbours,
+                                    gpu_neighbour_edges,
+                                    gpu_edge_flux_type, 
+                                    gpu_edge_river_wall_counter,
+
+                                    gpu_riverwall_elevation,
+                                    gpu_riverwall_rowIndex,
+                                    gpu_riverwall_hydraulic_properties,
+                                    
+                                    number_of_elements,
+                                    substep_count,
+                                    riverwall_ncol_hydraulic_properties,
+                                    epsilon,
+                                    g,
+                                    low_froude,
+                                    limiting_threshold 
+                                 ) 
                                  )
 
 
@@ -376,10 +335,10 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
     timestep_array[:]        = cp.asnumpy(gpu_timestep_array)          #InOut
     local_boundary_flux_sum[:] = cp.asnumpy(gpu_local_boundary_flux_sum) #InOut
-    max_speed[:]             = cp.asnumpy(gpu_max_speed)               #InOut
-    stage_explicit_update[:] = cp.asnumpy(gpu_stage_explicit_update)   #InOut
-    xmom_explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
-    ymom_explicit_update[:]  = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
+    domain.max_speed[:]      = cp.asnumpy(gpu_max_speed)               #InOut
+    stage.explicit_update[:] = cp.asnumpy(gpu_stage_explicit_update)   #InOut
+    xmom.explicit_update[:]  = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
+    ymom.explicit_update[:]  = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
     nvtxRangePop()
 
@@ -408,9 +367,9 @@ domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 nvtxRangePush('compute fluxes domain2')
-#domain2.compute_fluxes()
-timestep = domain2.evolve_max_timestep 
-domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
+domain2.compute_fluxes()
+#timestep = domain2.evolve_max_timestep 
+#domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
 nvtxRangePop()
 
 
@@ -457,12 +416,12 @@ print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom
 
 from pprint import pprint
 
-pprint(stage1.explicit_update)
-pprint(stage2.explicit_update)
-pprint(stage1.explicit_update-stage2.explicit_update)
-pprint(max_speed_1)
-pprint(max_speed_2)
-pprint(max_speed_1-max_speed_2)
+pprint(stage1.explicit_update.reshape(2*nx,2*ny))
+pprint(stage2.explicit_update.reshape(2*nx,2*ny))
+pprint((stage1.explicit_update-stage2.explicit_update).reshape(2*nx,2*ny))
+pprint(max_speed_1.reshape(2*nx,2*ny))
+pprint(max_speed_2.reshape(2*nx,2*ny))
+pprint((max_speed_1-max_speed_2).reshape(2*nx,2*ny))
 #assert num.allclose(timestep1,timestep2)
 #assert num.allclose(boundary_flux1,boundary_flux2)
 #assert num.allclose(stage1.explicit_update,stage2.explicit_update)

@@ -34,8 +34,8 @@ def configuration(parent_package='',top_path=None):
                          sources=['swDE_domain_original_ext.pyx'],
                          include_dirs=[util_dir])
 
-    config.add_extension('swDE_domain_local_timestep_ext',
-                         sources=['swDE_domain_local_timestep_ext.pyx'],
+    config.add_extension('swDE_domain_base_ext',
+                         sources=['swDE_domain_base_ext.pyx'],
                          include_dirs=[util_dir])
     
     # # FIXME SR: come back to getting Mac to run with openmp

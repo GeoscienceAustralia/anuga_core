@@ -112,20 +112,24 @@ from anuga.utilities.parallel_abstraction import size, rank, get_processor_name
 from anuga.utilities.parallel_abstraction import finalize, send, receive
 from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
+
+#-----------------------------------------------------
+# Code for profiling cuda version
+#-----------------------------------------------------
 def nvtxRangePush(*arg):
     pass
 def nvtxRangePop(*arg):
     pass
 
 try:
-    from nvtx import range_push as nvtxRangePush
-    from nvtx import range_pop  as nvtxRangePop
+    from cupy.cuda.nvtx import RangePush as nvtxRangePush
+    from cupy.cuda.nvtx import RangePop  as nvtxRangePop
 except:
     pass
 
 try:
-    from cupy.cuda.nvtx import RangePush as nvtxRangePush
-    from cupy.cuda.nvtx import RangePop  as nvtxRangePop
+    from nvtx import range_push as nvtxRangePush
+    from nvtx import range_pop  as nvtxRangePop
 except:
     pass
 
@@ -297,13 +301,13 @@ class Domain(Generic_Domain):
 
         #-------------------------------
         # Set multiprocessor mode
-        # 0. original
-        # 1. original with local timestep
+        # 0. original with local timestep
+        # 1. base code used by modes 2,3,4
         # 2. Openmp
         # 3. Openacc
         # 4. Cuda
         #-------------------------------
-        self.set_multiprocessor_mode(0)
+        self.set_multiprocessor_mode(1)
 
         #-------------------------------
         # datetime and timezone
@@ -2169,7 +2173,7 @@ class Domain(Generic_Domain):
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import compute_fluxes_ext_central
             elif self.multiprocessor_mode == 1:
-                from .swDE_domain_local_timestep_ext import compute_fluxes_ext_central
+                from .swDE_domain_base_ext import compute_fluxes_ext_central
             elif self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import compute_fluxes_ext_central
             elif self.multiprocessor_mode == 3:
@@ -2268,7 +2272,7 @@ class Domain(Generic_Domain):
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 1:
-                from .swDE_domain_local_timestep_ext import extrapolate_second_order_edge_sw as extrapol2
+                from .swDE_domain_base_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 3:
@@ -2416,7 +2420,7 @@ class Domain(Generic_Domain):
             if self.multiprocessor_mode == 0:
                 from .swDE_domain_original_ext import protect_new
             elif self.multiprocessor_mode == 1:
-                from .swDE_domain_local_timestep_ext import protect_new
+                from .swDE_domain_base_ext import protect_new
             elif self.multiprocessor_mode == 2:
                 from .swDE_domain_openmp_ext import  protect_new
             elif self.multiprocessor_mode == 3:
@@ -2532,7 +2536,10 @@ class Domain(Generic_Domain):
 
         if self.get_using_discontinuous_elevation():
 
-            if self.multiprocessor_mode == 2:
+            if self.multiprocessor_mode == 1:
+                from .swDE_domain_base_ext import fix_negative_cells
+                num_negative_ids = fix_negative_cells(self)
+            elif self.multiprocessor_mode == 2:                
                 from .swDE_domain_openmp_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 3:
@@ -3169,7 +3176,7 @@ class Domain(Generic_Domain):
         if self.multiprocessor_mode == 0:
             from .swDE_domain_original_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 1:
-            from .swDE_domain_local_timestep_ext import compute_flux_update_frequency
+            from .swDE_domain_base_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 2:
             from .swDE_domain_openmp_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 3:

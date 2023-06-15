@@ -39,6 +39,7 @@ class Test_DE_openmp(unittest.TestCase):
 
             domain.set_flow_algorithm('DE0')
             domain.set_low_froude(0)
+            domain.set_multiprocessor_mode(1)
         
             domain.set_name(name)  
             domain.set_datadir('.')
@@ -78,11 +79,11 @@ class Test_DE_openmp(unittest.TestCase):
         print(70*'=')
 
 
-        domain1 = create_domain('domain_original')
-        domain1.set_multiprocessor_mode(0)
+        domain1 = create_domain('domain_base')
+        domain1.set_multiprocessor_mode(1)
 
         domain2 = create_domain('domain_openmp')
-        domain2.set_multiprocessor_mode(0) # will change to 2 once burn in
+        domain2.set_multiprocessor_mode(1) # will change to 2 once burn in
 
         #------------------------------
         #Evolve the system through time
@@ -120,17 +121,22 @@ class Test_DE_openmp(unittest.TestCase):
         xmom1 = quantities1["xmomentum"]
         ymom1 = quantities1["ymomentum"]
 
+        max_speed_1 = domain1.max_speed
+
 
         quantities2 = domain2.quantities
         stage2 = quantities2["stage"]
         xmom2 = quantities2["xmomentum"]
         ymom2 = quantities2["ymomentum"]
 
+        max_speed_2 = domain2.max_speed
+
 
         print('timestep error              ', abs(timestep1-timestep2))
         print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
         print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
         print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+        print('max_speed error             ', num.linalg.norm(max_speed_1-max_speed_2))
         #print('edge timestep error         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
         #print('pressure work error         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
         #print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
@@ -141,6 +147,7 @@ class Test_DE_openmp(unittest.TestCase):
         assert num.allclose(stage1.explicit_update,stage2.explicit_update)
         assert num.allclose(xmom1.explicit_update,xmom2.explicit_update)
         assert num.allclose(ymom1.explicit_update,ymom2.explicit_update)
+        assert num.allclose(max_speed_1,max_speed_2)
         #assert num.allclose(domain1.edge_timestep,domain2.edge_timestep)
         #assert num.allclose(domain1.pressuregrad_work,domain2.pressuregrad_work)
         #assert num.allclose(domain1.edge_flux_work,domain2.edge_flux_work)
@@ -198,6 +205,7 @@ class Test_DE_openmp(unittest.TestCase):
                                            breaklines = riverWalls.values())
 
             domain.set_name(name)
+            domain.set_multiprocessor_mode(1)
 
             #Initial Conditions
             domain.set_quantity('elevation', lambda x,y : -x/10, location='centroids') # Use function for elevation
@@ -222,16 +230,15 @@ class Test_DE_openmp(unittest.TestCase):
         print(70*'=')
 
 
-        domain1 = create_domain('domain_original')
-        domain1.set_multiprocessor_mode(0)
+        domain1 = create_domain('domain_base')
+        domain1.set_multiprocessor_mode(1)
 
         domain2 = create_domain('domain_openmp')
-        domain2.set_multiprocessor_mode(0) # will change to 2 once burn in
+        domain2.set_multiprocessor_mode(1) # will change to 2 once burn in
 
         #------------------------------
         #Evolve the system through time
         #------------------------------
-
         print('Evolve domain1')
         for t in domain1.evolve(yieldstep=0.1,finaltime=0.1):
             domain1.print_timestepping_statistics()
@@ -256,14 +263,16 @@ class Test_DE_openmp(unittest.TestCase):
 
         # Compare update arrays and timestep
 
+
         print('domain1 timestep ', timestep1)
         print('domain2 timestep ', timestep2)
-        
 
         quantities1 = domain1.quantities
         stage1 = quantities1["stage"]
         xmom1 = quantities1["xmomentum"]
         ymom1 = quantities1["ymomentum"]
+
+        max_speed_1 = domain1.max_speed
 
 
         quantities2 = domain2.quantities
@@ -271,27 +280,51 @@ class Test_DE_openmp(unittest.TestCase):
         xmom2 = quantities2["xmomentum"]
         ymom2 = quantities2["ymomentum"]
 
+        max_speed_2 = domain2.max_speed
+
+
         print('timestep error              ', abs(timestep1-timestep2))
         print('stage explicit update error ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update))
         print('xmom  explicit update error ', num.linalg.norm(xmom1.explicit_update-xmom2.explicit_update))
         print('ymom  explicit update error ', num.linalg.norm(ymom1.explicit_update-ymom2.explicit_update))
+        print('max_speed error             ', num.linalg.norm(max_speed_1-max_speed_2))
         #print('edge timestep error         ', num.linalg.norm(domain1.edge_timestep-domain2.edge_timestep))
         #print('pressure work error         ', num.linalg.norm(domain1.pressuregrad_work-domain2.pressuregrad_work))
         #print('edge flux work error        ', num.linalg.norm(domain1.edge_flux_work-domain2.edge_flux_work))
+
 
 
         assert num.allclose(timestep1,timestep2)
         assert num.allclose(stage1.explicit_update,stage2.explicit_update)
         assert num.allclose(xmom1.explicit_update,xmom2.explicit_update)
         assert num.allclose(ymom1.explicit_update,ymom2.explicit_update)
+        assert num.allclose(max_speed_1,max_speed_2)
         #assert num.allclose(domain1.edge_timestep,domain2.edge_timestep)
         #assert num.allclose(domain1.pressuregrad_work,domain2.pressuregrad_work)
         #assert num.allclose(domain1.edge_flux_work,domain2.edge_flux_work)
 
-        import pprint
+        # ki3 = num.argmax(num.abs(domain1.edge_flux_work-domain2.edge_flux_work))
 
-        #pprint.pprint(domain1.edge_timestep)
-        #pprint.pprint(domain2.edge_timestep)    
+        # ki = ki3//3
+        # q = ki3%3
+        # k = ki//3
+        # e = ki%3
+
+        # print('edge_flux_work ki,q,k,e ', ki, q, k, e)
+
+        # import pprint
+
+        # #pprint.pprint(domain1.edge_flux_work)
+        # edge_flux_diff = domain2.edge_flux_work- domain1.edge_flux_work
+        # edge_timestep_diff =  domain2.edge_timestep- domain1.edge_timestep
+        # #pprint.pprint(domain2.edge_flux_work- domain1.edge_flux_work)
+
+        # for k in range(domain2.number_of_elements):
+        #     for i in range(3):
+        #         ki = 3*k+i
+        #         ki3 = 3*ki
+        #         print(k,i, domain2.neighbours[k,i], edge_timestep_diff[ki], edge_flux_diff[ki3],edge_flux_diff[ki3+1],edge_flux_diff[ki3+2])
+  
 
 if __name__ == "__main__":
     suite = unittest.makeSuite(Test_DE_openmp, 'test_runup')
