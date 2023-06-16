@@ -488,7 +488,7 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
 
   //for (k = 0; k < number_of_elements; k++)
   k = blockIdx.x * blockDim.x + threadIdx.x; 
-  if(k<number_of_elements)
+  if(k < number_of_elements)
   {
 
     // Loop through neighbours and compute edge flux for each
