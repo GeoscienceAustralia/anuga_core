@@ -312,7 +312,9 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
   double rwRat, hdRat, hdWrRat, scaleFlux, minhd, maxhd;
   double w1, w2; // Weights for averaging
   double newFlux;
-  double twothirds = (2.0 / 3.0);
+  double two = 2.0;
+  double three = 3.0;
+  double twothirds = (two / three);
   // Following constants control the 'blending' with the shallow water solution
   // They are now user-defined
   // double s1=0.9; // At this submergence ratio, begin blending with shallow water solution
