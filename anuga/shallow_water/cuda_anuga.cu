@@ -191,10 +191,10 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
   //               epsilon, h0, limiting_threshold);
 
   // Maximal and minimal wave speeds
-  soundspeed_left = sqrt(g * h_left);
-  soundspeed_right = sqrt(g * h_right);
-  // soundspeed_left  = sqrt(g*hle);
-  // soundspeed_right = sqrt(g*hre);
+  soundspeed_left = sqrtf(g * h_left);
+  soundspeed_right = sqrtf(g * h_right);
+  // soundspeed_left  = sqrtf(g*hle);
+  // soundspeed_right = sqrtf(g*hre);
 
   // Something that scales like the Froude number
   // We will use this to scale the diffusive component of the UH/VH fluxes.
@@ -202,16 +202,16 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
   // low_froude can have values 0, 1, 2
   if (low_froude == 1)
   {
-    local_fr = sqrt(
+    local_fr = sqrtf(
         fmax(0.001, fmin(1.0,
                          (u_right * u_right + u_left * u_left + v_right * v_right + v_left * v_left) /
                              (soundspeed_left * soundspeed_left + soundspeed_right * soundspeed_right + 1.0e-10))));
   }
   else if (low_froude == 2)
   {
-    local_fr = sqrt((u_right * u_right + u_left * u_left + v_right * v_right + v_left * v_left) /
+    local_fr = sqrtf((u_right * u_right + u_left * u_left + v_right * v_right + v_left * v_left) /
                     (soundspeed_left * soundspeed_left + soundspeed_right * soundspeed_right + 1.0e-10));
-    local_fr = sqrt(fmin(1.0, 0.01 + fmax(local_fr - 0.01, 0.0)));
+    local_fr = sqrtf(fmin(1.0, 0.01 + fmax(local_fr - 0.01, 0.0)));
   }
   else
   {
@@ -328,9 +328,9 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
   minhd = fmin(h_left, h_right);
   maxhd = fmax(h_left, h_right);
   // 'Raw' weir discharge = Qfactor*2/3*H*(2/3*g*H)**0.5
-  rw = Qfactor * twothirds * maxhd * sqrt(twothirds * g * maxhd);
+  rw = Qfactor * twothirds * maxhd * sqrtf(twothirds * g * maxhd);
   // Factor for villemonte correction
-  rw2 = Qfactor * twothirds * minhd * sqrt(twothirds * g * minhd);
+  rw2 = Qfactor * twothirds * minhd * sqrtf(twothirds * g * minhd);
   // Useful ratios
   rwRat = rw2 / fmax(rw, 1.0e-100);
   hdRat = minhd / fmax(maxhd, 1.0e-100);
@@ -392,7 +392,7 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
   // Adjust the max speed
   if (fabs(edgeflux[0]) > 0.)
   {
-    *max_speed_local = sqrt(g * (maxhd + weir_height)) + fabs(edgeflux[0] / (maxhd + 1.0e-12));
+    *max_speed_local = sqrtf(g * (maxhd + weir_height)) + fabs(edgeflux[0] / (maxhd + 1.0e-12));
   }
   //*max_speed_local += fabs(edgeflux[0])/(maxhd+1.0e-100);
   //*max_speed_local *= fmax(scaleFlux, 1.0);
