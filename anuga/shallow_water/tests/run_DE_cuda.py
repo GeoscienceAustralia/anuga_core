@@ -35,8 +35,8 @@ try:
 except:
     pass
 
-nx = 500
-ny = 500
+nx = 2
+ny = 2
 
 def create_domain(name='domain'):
 
@@ -427,7 +427,7 @@ print('ymom  explicit update inferror ', num.linalg.norm(ymom1.explicit_update-y
 
 from pprint import pprint
 
-if False:
+if True:
     pprint(stage1.explicit_update.reshape(2*nx,2*ny))
     pprint(stage2.explicit_update.reshape(2*nx,2*ny))
     pprint((stage1.explicit_update-stage2.explicit_update).reshape(2*nx,2*ny))
