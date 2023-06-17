@@ -206,6 +206,9 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     
     nvtxRangePush('to gpu')
 
+    # FIXME SR: we should probably allocate all these numpy arrays with 
+    # pinned memory to speed movement of data from host to device
+
     gpu_timestep_array          = cp.array(timestep_array)           #InOut
     gpu_local_boundary_flux_sum = cp.array(local_boundary_flux_sum ) #InOut
 
@@ -334,12 +337,20 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
     nvtxRangePush('calculate flux: from gpu')
 
-    cp.asnumpy(gpu_timestep_array,          out = timestep_array)          #InOut
-    cp.asnumpy(gpu_local_boundary_flux_sum, out = local_boundary_flux_sum) #InOut
-    cp.asnumpy(gpu_max_speed,               out = domain.max_speed)        #InOut
-    cp.asnumpy(gpu_stage_explicit_update,   out = stage.explicit_update)   #InOut
-    cp.asnumpy(gpu_xmom_explicit_update,    out = xmom.explicit_update)    #InOut
-    cp.asnumpy(gpu_ymom_explicit_update,    out = ymom.explicit_update)    #InOut
+    # FIXME SR: this only works if the out arrays are numpy arrays with pinned memory
+    # cp.asnumpy(gpu_timestep_array,          out = timestep_array)          #InOut
+    # cp.asnumpy(gpu_local_boundary_flux_sum, out = local_boundary_flux_sum) #InOut
+    # cp.asnumpy(gpu_max_speed,               out = domain.max_speed)        #InOut
+    # cp.asnumpy(gpu_stage_explicit_update,   out = stage.explicit_update)   #InOut
+    # cp.asnumpy(gpu_xmom_explicit_update,    out = xmom.explicit_update)    #InOut
+    # cp.asnumpy(gpu_ymom_explicit_update,    out = ymom.explicit_update)    #InOut
+
+    timestep_array[:]          = cp.asnumpy(gpu_timestep_array)          #InOut
+    local_boundary_flux_sum[:] = cp.asnumpy(gpu_local_boundary_flux_sum) #InOut
+    domain.max_speed[:]        = cp.asnumpy(gpu_max_speed)               #InOut
+    stage.explicit_update[:]   = cp.asnumpy(gpu_stage_explicit_update)   #InOut
+    xmom.explicit_update[:]    = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
+    ymom.explicit_update[:]    = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
     nvtxRangePop()
 
