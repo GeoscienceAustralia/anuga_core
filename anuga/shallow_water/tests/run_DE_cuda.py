@@ -315,7 +315,7 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
             gpu_riverwall_rowIndex,
             gpu_riverwall_hydraulic_properties,
 
-            num.float64(number_of_elements),
+            num.int64(number_of_elements),
             num.int64(substep_count),
             num.int64(riverwall_ncol_hydraulic_properties),
             num.float64(epsilon),

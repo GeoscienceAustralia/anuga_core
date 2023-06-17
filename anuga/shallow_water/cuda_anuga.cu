@@ -425,7 +425,7 @@ __device__ double atomicMin_double(double* address, double val)
 // Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
+__global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,  // InOut
                                     double* boundary_flux_sum_k_array, // InOut
                                     double* max_speed,               // InOut
                                     double* stage_explicit_update,   // InOut
@@ -480,7 +480,6 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
   double local_xmom_explicit_update;
   double local_ymom_explicit_update;
 
-  double local_max_speed;
   double local_timestep;
   double local_boundary_flux_sum;
   double speed_max_last;
@@ -495,7 +494,6 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
     local_xmom_explicit_update  = 0.0;
     local_ymom_explicit_update  = 0.0;
 
-    local_max_speed = 0.0;
     local_timestep = 1.0e+100;
     local_boundary_flux_sum = 0.0;
     speed_max_last = 0.0;
@@ -503,8 +501,8 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++)
     {
-      ki = 3 * k + i; // Linear index to edge i of triangle k
-      ki2 = 2 * ki;   // k*6 + i*2
+      ki = 3*k+i; // Linear index to edge i of triangle k
+      ki2 = 2*ki; // k*6 + i*2
 
       // Get left hand side values from triangle k, edge i
       ql[0] = stage_edge_values[ki];
@@ -674,7 +672,7 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
         //boundary_flux_sum[substep_count] += edgeflux[0];
-        local_boundary_flux_sum += edgeflux[0];
+        local_boundary_flux_sum = local_boundary_flux_sum + edgeflux[0];
         
 	      //atomicAdd((boundary_flux_sum+substep_count), edgeflux[0]);
 
