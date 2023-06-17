@@ -264,9 +264,9 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     with open('../cuda_anuga.cu') as f:
         code = f.read()
 
-    mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop_1",))
+    mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop",))
 
-    flux_kernel = mod.get_function("_cuda_compute_fluxes_loop_1")
+    flux_kernel = mod.get_function("_cuda_compute_fluxes_loop")
 
     # call the function with a tuple of grid size, a tuple of block size, 
     # and a tuple of all arguments required by the kernel
