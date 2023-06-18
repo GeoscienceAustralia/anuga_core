@@ -1418,11 +1418,6 @@ class Domain(Generic_Domain):
         """Set combination of slope limiting and time stepping
 
         Currently
-           1
-           1.5
-           2
-           2.5
-           tsunami
            DE0
            DE1
            DE2
@@ -1434,12 +1429,11 @@ class Domain(Generic_Domain):
         flag = str(flag)
 
         # Replace any dots with dashes
-        flag = flag.replace(".","_")
+        flag = flag.replace('.', '_')
 
 
-        flow_algorithms = ['1_0', '1_5', '1_75', '2_0', '2_0_limited', '2_5', \
-                           'tsunami', 'yusuke', 'DE0', 'DE1', 'DE2', \
-                           'DE0_7', "DE1_7"]
+        flow_algorithms = ['DE0', 'DE1', 'DE2', \
+                           'DE0_7', 'DE1_7']
 
         if flag in flow_algorithms:
             self.flow_algorithm = flag
@@ -1447,40 +1441,6 @@ class Domain(Generic_Domain):
             msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
             ', '.join(flow_algorithms)+'.'
             raise Exception(msg)
-
-        if self.flow_algorithm == '1_0':
-            self._set_1_0_defaults()
-
-        if self.flow_algorithm == '1_5':
-            self._set_1_5_defaults()
-
-        if self.flow_algorithm == '1_75':
-            self._set_1_75_defaults()
-
-        if self.flow_algorithm == '2_0_limited':
-            self._set_2_0_limited_defaults()
-
-
-        if self.flow_algorithm == '2_0':
-            self._set_2_0_defaults()
-
-
-        if self.flow_algorithm == '2_5':
-            self._set_2_5_defaults()
-
-
-        if self.flow_algorithm == 'tsunami':
-            self._set_tsunami_defaults()
-
-
-        if self.flow_algorithm == 'yusuke':
-            # To speed up calculation we also turn off
-            # the update of other quantities
-
-            self._set_tsunami_defaults()
-
-
-
 
         if self.flow_algorithm == 'DE0':
             self._set_DE0_defaults()
@@ -2048,113 +2008,14 @@ class Domain(Generic_Domain):
         This wrapper calls the underlying C version of compute fluxes
         """
 
-        if self.compute_fluxes_method == 'original':
-            # FIXME (Ole): Deprecate this (and the wb versions)
-            from .shallow_water_ext import compute_fluxes_ext_central_structure
-            from .swDE1_domain_ext import gravity as gravity_c
-            self.flux_timestep = compute_fluxes_ext_central_structure(self)
-            gravity_c(self)
+        # Using Gareth Davies discontinuous elevation scheme
+        # Flux calculation and gravity incorporated in same
+        # procedure
 
-        elif self.compute_fluxes_method == 'wb_1':
-            # Calc pressure terms using Simpson rule in flux
-            # computations. Then they match up exactly with
-            # standard gravity term - g h grad(z)
-            from .shallow_water_ext import compute_fluxes_ext_wb
-            from .swDE1_domain_ext import gravity as gravity_c
+        from .swDE1_domain_ext import compute_fluxes_ext_central
 
-            self.flux_timestep = compute_fluxes_ext_wb(self)
-            gravity_c(self)
-
-        elif self.compute_fluxes_method == 'wb_2':
-            # Use standard flux calculation, but calc gravity
-            # as -g h grad(w) - sum midpoint edge pressure terms
-
-            from .shallow_water_ext import compute_fluxes_ext_central_structure
-            from .shallow_water_ext import gravity_wb as gravity_wb_c
-
-            self.flux_timestep = compute_fluxes_ext_central_structure(self)
-            gravity_wb_c(self)
-
-
-        elif self.compute_fluxes_method == 'wb_3':
-            # Calculate pure flux terms with simpsons rule, and
-            # gravity flux and gravity forcing via
-            # as -g h grad(w) - sum midpoint edge pressure terms
-            from .shallow_water_ext import compute_fluxes_ext_wb_3
-            from .swDE1_domain_ext import gravity_wb as gravity_wb_c
-
-            self.flux_timestep = compute_fluxes_ext_wb_3(self)
-            gravity_wb_c(self)
-
-        elif self.compute_fluxes_method == 'tsunami':
-            # Using Gareth Davies well balanced scheme
-            # Flux calculation and gravity incorporated in same
-            # procedure
-            #
-            # FIXME SR: This needs cleaning up, should just be passing through
-            # the domain as in other compute flux calls
-
-            from .swb2_domain_ext import compute_fluxes_ext_central \
-                                      as compute_fluxes_ext
-
-            # Shortcuts
-            Stage = self.quantities['stage']
-            Xmom = self.quantities['xmomentum']
-            Ymom = self.quantities['ymomentum']
-            Bed = self.quantities['elevation']
-
-            timestep = self.evolve_max_timestep
-
-            self.flux_timestep = compute_fluxes_ext(timestep,
-                                           self.epsilon,
-                                           self.H0,
-                                           self.g,
-                                           self.neighbours,
-                                           self.neighbour_edges,
-                                           self.normals,
-                                           self.edgelengths,
-                                           self.radii,
-                                           self.areas,
-                                           self.tri_full_flag,
-                                           Stage.edge_values,
-                                           Xmom.edge_values,
-                                           Ymom.edge_values,
-                                           Bed.edge_values,
-                                           Stage.boundary_values,
-                                           Xmom.boundary_values,
-                                           Ymom.boundary_values,
-                                           self.boundary_flux_type,
-                                           Stage.explicit_update,
-                                           Xmom.explicit_update,
-                                           Ymom.explicit_update,
-                                           self.already_computed_flux,
-                                           self.max_speed,
-                                           int(self.optimise_dry_cells),
-                                           Stage.centroid_values,
-                                           Bed.centroid_values,
-                                           Bed.vertex_values)
-
-        elif self.compute_fluxes_method == 'DE':
-            # Using Gareth Davies discontinuous elevation scheme
-            # Flux calculation and gravity incorporated in same
-            # procedure
-
-            from .swDE1_domain_ext import compute_fluxes_ext_central
-
-            timestep = self.evolve_max_timestep
-            self.flux_timestep = compute_fluxes_ext_central(self, timestep)
-
-        else:
-            raise Exception('unknown compute_fluxes_method')
-
-            # TODO (SR)
-            # Should implement wb_4 as simpsons rule on both pure
-            # flux and pressure flux terms, ie a combination of wb_1
-            # and wb_3
-            # Mabe should come up with better names!
-
-
-
+        timestep = self.evolve_max_timestep
+        self.flux_timestep = compute_fluxes_ext_central(self, timestep)
 
     def distribute_to_vertices_and_edges(self):
         """ Call correct module function """

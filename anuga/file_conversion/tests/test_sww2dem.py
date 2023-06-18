@@ -115,7 +115,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.set_flow_algorithm('1_5')
+        self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -1482,108 +1482,6 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(swwfile)
 
 
-
-    def test_sww2ers_simple_1_5(self):
-        """Test that sww information can be converted correctly to ers
-        format
-        """
-
-        import time, os
-
-
-        NODATA_value = 1758323
-
-        # Setup
-        self.domain.set_name('datatest')
-        self.domain.set_flow_algorithm('1_5')
-
-        headerfile = self.domain.get_name() + '.ers'
-        swwfile = self.domain.get_name() + '.sww'
-
-        self.domain.set_datadir('.')
-        self.domain.format = 'sww'
-        self.domain.smooth = True
-        self.domain.set_quantity('elevation', lambda x, y:-x - y)
-
-        self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
-
-        sww = SWW_file(self.domain)
-        sww.store_connectivity()
-        sww.store_timestep()
-
-        # self.domain.tight_slope_limiters = 1
-        self.domain.evolve_to_end(finaltime=0.01)
-        sww.store_timestep()
-
-        cellsize = 0.25
-        # Check contents
-        # Get NetCDF
-
-        fid = NetCDFFile(sww.filename, netcdf_mode_r)
-
-        # Get the variables
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        z = fid.variables['elevation'][:]
-        time = fid.variables['time'][:]
-        stage = fid.variables['stage'][:]
-
-
-        # Export to ers files
-        outname = self.domain.get_name() + '_elevation.ers'
-        sww2dem(self.domain.get_name() + '.sww',
-                outname,
-                quantity='elevation',
-                cellsize=cellsize,
-                number_of_decimal_places=9,
-                NODATA_value=NODATA_value,
-                verbose=self.verbose)
-
-        # Check header data
-        from anuga.abstract_2d_finite_volumes.ermapper_grids import read_ermapper_header, read_ermapper_data
-
-        header = read_ermapper_header(outname)
-
-        assert header['projection'].lower() == '"utm-56"'
-        assert header['datum'].lower() == '"wgs84"'
-        assert header['units'].lower() == '"meters"'
-        assert header['value'].lower() == '"elevation"'
-        assert header['xdimension'] == '0.25'
-        assert header['ydimension'] == '0.25'
-        assert float(header['eastings']) == 308500.0  # xllcorner
-        assert float(header['northings']) == 6189000.0  # yllcorner
-        assert int(header['nroflines']) == 5
-        assert int(header['nrofcellsperline']) == 5
-        assert int(header['nullcellvalue']) == NODATA_value
-        # FIXME - there is more in the header
-
-
-        # Check grid data
-        grid = read_ermapper_data(self.domain.get_name() + '_elevation')
-
-
-
-        ref_grid = [-1, -1.25, -1.5, -1.75, -2.0,
-                    - 0.75, -1.0, -1.25, -1.5, -1.75,
-                    - 0.5, -0.75, -1.0, -1.25, -1.5,
-                    - 0.25, -0.5, -0.75, -1.0, -1.25,
-                    - 0.0, -0.25, -0.5, -0.75, -1.0]
-
-
-        
-        # pprint(grid)
-        assert num.allclose(grid, ref_grid)
-
-        fid.close()
-
-        # Cleanup
-        # FIXME the file clean-up doesn't work (eg Permission Denied Error)
-        # Done (Ole) - it was because sww2ers didn't close it's sww file
-        os.remove(sww.filename)
-        os.remove(self.domain.get_name() + '_elevation')
-        os.remove(self.domain.get_name() + '_elevation.ers')
- 
- 
     def test_sww2ers_simple_de0(self):
         """Test that sww information can be converted correctly to ers
         format
@@ -2289,6 +2187,6 @@ if __name__ == "__main__":
     # suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
 
 
-    suite = unittest.makeSuite(Test_Sww2Dem, 'test')
+    suite = unittest.makeSuite(Test_Sww2Dem, 'test_sww2dem_asc_elevation_depth')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
