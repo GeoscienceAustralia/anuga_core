@@ -407,34 +407,30 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
 
 // FIXME SR: At present reduction is done outside kernel
 __device__ double atomicMin_double(double* address, double val)
-
 {
+  unsigned long long int* address_as_ull = (unsigned long long int*) address;
+  unsigned long long int old = *address_as_ull, assumed;
 
-	    unsigned long long int* address_as_ull = (unsigned long long int*) address;
+	do {
+    assumed = old;
+		old = atomicCAS(address_as_ull, assumed, __double_as_longlong(fmin(val, __longlong_as_double(assumed))));
+		} while (assumed != old);
 
-	        unsigned long long int old = *address_as_ull, assumed;
-
-		    do {
-
-	                      assumed = old;
-			      old = atomicCAS(address_as_ull, assumed,
-							                __double_as_longlong(fmin(val, __longlong_as_double(assumed))));
-					        } while (assumed != old);
-
-		        return __longlong_as_double(old);
-
+	return __longlong_as_double(old);
 }
+
+
 // Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,  // InOut
+__global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,    // InOut
                                     double* boundary_flux_sum_k_array, // InOut
-                                    double* max_speed,               // InOut
-                                    double* stage_explicit_update,   // InOut
-                                    double* xmom_explicit_update,    // InOut
-                                    double* ymom_explicit_update,    // InOut
+                                    double* max_speed,                 // InOut
+                                    double* stage_explicit_update,     // InOut
+                                    double* xmom_explicit_update,      // InOut
+                                    double* ymom_explicit_update,      // InOut
 
-                                    double* stage_centroid_values,
+                                    double* stage_centroid_values,     // Rest In
                                     double* stage_edge_values,
                                     double* xmom_edge_values,
                                     double* ymom_edge_values,
@@ -449,26 +445,23 @@ __global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,  // InOut
                                     double* normals,
                                     double* edgelengths,
                                     double* radii,
-                                    long* tri_full_flag,
-                                    long* neighbours,
-                                    long* neighbour_edges,
-                                    long* edge_flux_type,
-                                    long* edge_river_wall_counter,
+                                    long*   tri_full_flag,
+                                    long*   neighbours,
+                                    long*   neighbour_edges,
+                                    long*   edge_flux_type,
+                                    long*   edge_river_wall_counter,
                                     double* riverwall_elevation,
-                                    long* riverwall_rowIndex,
+                                    long*   riverwall_rowIndex,
                                     double* riverwall_hydraulic_properties,
 
-                                    long number_of_elements,
-                                    long substep_count,
-                                    long ncol_riverwall_hydraulic_properties,
+                                    long   number_of_elements,
+                                    long   substep_count,
+                                    long   ncol_riverwall_hydraulic_properties,
                                     double epsilon,
                                     double g,
-                                    long low_froude,
+                                    long   low_froude,
                                     double limiting_threshold)
 {
-  // #pragma omp parallel for simd default(none) shared(D, substep_count, ) \
-
-
   long k, i, ki, ki2, n, m, nm, ii;
   long RiverWall_count;
   double max_speed_local, length, inv_area, zl, zr;
@@ -544,8 +537,8 @@ __global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,  // InOut
         qr[0] = stage_edge_values[nm];
         qr[1] = xmom_edge_values[nm];
         qr[2] = ymom_edge_values[nm];
-        zr = bed_edge_values[nm];
-        hre = height_edge_values[nm];
+        zr    = bed_edge_values[nm];
+        hre   = height_edge_values[nm];
       }
 
       // Audusse magic for well balancing

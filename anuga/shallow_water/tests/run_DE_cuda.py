@@ -35,8 +35,8 @@ try:
 except:
     pass
 
-nx = 2
-ny = 2
+nx = 500
+ny = 500
 
 def create_domain(name='domain'):
 
@@ -334,9 +334,14 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     #print('boundary_flux_sum', boundary_flux_sum)
     #print('gpu_boundary_flux_sum', gpu_boundary_flux_sum)
 
+    nvtxRangePush('calculate flux: from gpu')
+    gpu_reduce_timestep = gpu_timestep_array.min()
+
+    gpu_reduced_local_boundary_flux_sum = gpu_local_boundary_flux_sum.sum()
+    nvtxRangePop()
+
 
     nvtxRangePush('calculate flux: from gpu')
-
     # FIXME SR: this only works if the out arrays are numpy arrays with pinned memory
     # cp.asnumpy(gpu_timestep_array,          out = timestep_array)          #InOut
     # cp.asnumpy(gpu_local_boundary_flux_sum, out = local_boundary_flux_sum) #InOut
@@ -344,9 +349,6 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     # cp.asnumpy(gpu_stage_explicit_update,   out = stage.explicit_update)   #InOut
     # cp.asnumpy(gpu_xmom_explicit_update,    out = xmom.explicit_update)    #InOut
     # cp.asnumpy(gpu_ymom_explicit_update,    out = ymom.explicit_update)    #InOut
-
-    timestep_array[:]          = cp.asnumpy(gpu_timestep_array)          #InOut
-    local_boundary_flux_sum[:] = cp.asnumpy(gpu_local_boundary_flux_sum) #InOut
     domain.max_speed[:]        = cp.asnumpy(gpu_max_speed)               #InOut
     stage.explicit_update[:]   = cp.asnumpy(gpu_stage_explicit_update)   #InOut
     xmom.explicit_update[:]    = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
@@ -355,12 +357,12 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     nvtxRangePop()
 
 
-    nvtxRangePush('calculate flux: reduction operations')
+    nvtxRangePush('calculate flux: communicate reduced results')
     
     if substep_count == 0:
-        timestep = timestep_array.min()
+        timestep = cp.asnumpy(gpu_reduce_timestep)[0]
 
-    domain.boundary_flux_sum[substep_count] = local_boundary_flux_sum.sum()
+    domain.boundary_flux_sum[substep_count] = cp.asnumpy(gpu_reduced_local_boundary_flux_sum)[0]
 
     nvtxRangePop()
 
@@ -379,9 +381,9 @@ domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 nvtxRangePush('compute fluxes domain2')
-#domain2.compute_fluxes()
-timestep = domain2.evolve_max_timestep 
-domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
+domain2.compute_fluxes()
+#timestep = domain2.evolve_max_timestep 
+#domain2.flux_timestep = compute_fluxes_ext_central_kernel(domain2, timestep)
 nvtxRangePop()
 
 
@@ -440,7 +442,7 @@ print('ymom  update inferror         ', num.linalg.norm(ymom1.explicit_update-ym
 
 from pprint import pprint
 
-if True:
+if False:
     pprint(stage1.explicit_update.reshape(2*nx,2*ny))
     pprint(stage2.explicit_update.reshape(2*nx,2*ny))
     pprint((stage1.explicit_update-stage2.explicit_update).reshape(2*nx,2*ny))
