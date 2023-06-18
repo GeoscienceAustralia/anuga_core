@@ -129,7 +129,9 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
   if (h_left == 0. && h_right == 0.)
   {
     // Quick exit
-    memset(edgeflux, 0, 3 * sizeof(double));
+    edgeflux[0]=0.0;
+    edgeflux[1]=0.0;
+    edgeflux[2]=0.0;
     *max_speed = 0.0;
     *pressure_flux = 0.;
     return;
