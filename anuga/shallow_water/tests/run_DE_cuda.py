@@ -342,17 +342,19 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
 
 
     nvtxRangePush('calculate flux: from gpu')
-    # FIXME SR: this only works if the out arrays are numpy arrays with pinned memory
+    
     # cp.asnumpy(gpu_timestep_array,          out = timestep_array)          #InOut
     # cp.asnumpy(gpu_local_boundary_flux_sum, out = local_boundary_flux_sum) #InOut
-    # cp.asnumpy(gpu_max_speed,               out = domain.max_speed)        #InOut
-    # cp.asnumpy(gpu_stage_explicit_update,   out = stage.explicit_update)   #InOut
-    # cp.asnumpy(gpu_xmom_explicit_update,    out = xmom.explicit_update)    #InOut
-    # cp.asnumpy(gpu_ymom_explicit_update,    out = ymom.explicit_update)    #InOut
-    domain.max_speed[:]        = cp.asnumpy(gpu_max_speed)               #InOut
-    stage.explicit_update[:]   = cp.asnumpy(gpu_stage_explicit_update)   #InOut
-    xmom.explicit_update[:]    = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
-    ymom.explicit_update[:]    = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
+    
+    cp.asnumpy(gpu_max_speed, out = domain.max_speed)                    #InOut
+    cp.asnumpy(gpu_stage_explicit_update, out = stage.explicit_update)   #InOut
+    cp.asnumpy(gpu_xmom_explicit_update, out = xmom.explicit_update)     #InOut
+    cp.asnumpy(gpu_ymom_explicit_update, out = ymom.explicit_update)     #InOut
+
+    # domain.max_speed[:]        = cp.asnumpy(gpu_max_speed)               #InOut
+    # stage.explicit_update[:]   = cp.asnumpy(gpu_stage_explicit_update)   #InOut
+    # xmom.explicit_update[:]    = cp.asnumpy(gpu_xmom_explicit_update)    #InOut
+    # ymom.explicit_update[:]    = cp.asnumpy(gpu_ymom_explicit_update)    #InOut
 
     nvtxRangePop()
 
@@ -360,9 +362,9 @@ def compute_fluxes_ext_central_kernel(domain, timestep):
     nvtxRangePush('calculate flux: communicate reduced results')
     
     if substep_count == 0:
-        timestep = cp.asnumpy(gpu_reduce_timestep)[0]
+        timestep = cp.asnumpy(gpu_reduce_timestep)
 
-    domain.boundary_flux_sum[substep_count] = cp.asnumpy(gpu_reduced_local_boundary_flux_sum)[0]
+    domain.boundary_flux_sum[substep_count] = cp.asnumpy(gpu_reduced_local_boundary_flux_sum)
 
     nvtxRangePop()
 
