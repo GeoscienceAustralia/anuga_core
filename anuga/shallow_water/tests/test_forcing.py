@@ -2048,10 +2048,10 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
 
         B = Reflective_boundary(domain)
-        domain.set_boundary( {'exterior': B})
+        domain.set_boundary({'exterior': B})
 
 
         #Set up for a gradient of (3,0) at mid triangle (bce)
@@ -2076,7 +2076,9 @@ class Test_Forcing(unittest.TestCase):
 
         
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
+        
+        msg = 'Got %s expected %f' % (domain.quantities['xmomentum'].explicit_update, -g*h*3)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3), msg
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 
