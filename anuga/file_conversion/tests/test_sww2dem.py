@@ -2186,7 +2186,6 @@ Statistics of SWW file:
 if __name__ == "__main__":
     # suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
 
-
-    suite = unittest.makeSuite(Test_Sww2Dem, 'test_sww2dem_asc_elevation_depth')
+    suite = unittest.makeSuite(Test_Sww2Dem, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
