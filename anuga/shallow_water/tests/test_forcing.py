@@ -2054,7 +2054,7 @@ class Test_Forcing(unittest.TestCase):
         domain.set_boundary({'exterior': B})
 
 
-        #Set up for a gradient of (3,0) at mid triangle (bce)
+        # Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
             return 3*x
 
@@ -2069,14 +2069,14 @@ class Test_Forcing(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        # fluxes and gravity term are now combined. To ensure zero flux on boundary
+        # Fluxes and gravity term are now combined. To ensure zero flux on boundary
         # need to set reflective boundaries
         domain.update_boundary()
         domain.compute_fluxes()
-
         
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         
+        print(-g*h*3)
         msg = 'Got %s expected %f' % (domain.quantities['xmomentum'].explicit_update, -g*h*3)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3), msg
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)

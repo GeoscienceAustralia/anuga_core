@@ -1731,7 +1731,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.set_flow_algorithm('1_5')
+        self.domain.set_flow_algorithm('DE0')
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
@@ -1785,7 +1785,7 @@ class Test_Sww2Dem(unittest.TestCase):
             L = lines[6 + j].strip().split()
             y = (4 - j) * cellsize
             for i in range(5):
-                # print float(L[i])
+                print(i, float(L[i]), -i * cellsize - y)
                 assert num.allclose(float(L[i]), -i * cellsize - y)
                 
         # Cleanup
@@ -2186,6 +2186,6 @@ Statistics of SWW file:
 if __name__ == "__main__":
     # suite = unittest.makeSuite(Test_Shallow_Water, 'test_rainfall_forcing_with_evolve')
 
-    suite = unittest.makeSuite(Test_Sww2Dem, 'test')
+    suite = unittest.makeSuite(Test_Sww2Dem, 'test_export_grid')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
