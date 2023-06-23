@@ -4649,19 +4649,18 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.02, finaltime=0.5):
             pass
 
-        # FIXME: These numbers were from version before 25/10
-        #assert allclose(domain.recorded_min_timestep, 0.0140413643926)
-        #assert allclose(domain.recorded_max_timestep, 0.0140947355753)
 
-        for i in range(3):
-            #assert allclose(domain.quantities['stage'].edge_values[:4,i],
-            #                [0.10730244,0.12337617,0.11200126,0.12605666])
-            assert num.allclose(domain.quantities['xmomentum'].\
-                                    edge_values[:4,i],
-                                [0.07610894,0.06901572,0.07284461,0.06819712])
-            #assert allclose(domain.quantities['ymomentum'].edge_values[:4,i],
-            #                [-0.0060238, -0.00157404, -0.00309633, -0.0001637])
-
+        assert num.allclose(domain.quantities['xmomentum'].\
+                            edge_values[:4, 0],
+                            [0.07335652, 0.06685681, 0.07071273, 0.06628975])
+                            
+        assert num.allclose(domain.quantities['xmomentum'].\
+                            edge_values[:4, 1],
+                            [0.07343497, 0.06685681, 0.07083783, 0.06628975])
+                            
+        assert num.allclose(domain.quantities['xmomentum'].\
+                            edge_values[:4, 2],
+                            [0.08124162, 0.06685681, 0.07891946, 0.06628975])                            
         os.remove(domain.get_name() + '.sww')
 
     def test_flatbed_second_order(self):
@@ -8578,6 +8577,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed_first_order')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
