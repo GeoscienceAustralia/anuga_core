@@ -2044,7 +2044,7 @@ class Domain(Generic_Domain):
 
         else:
 
-            from .shallow_water_ext import protect        
+            from .swDE1_domain_ext import protect        
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2078,8 +2078,8 @@ class Domain(Generic_Domain):
         Wrapper for C implementation
         """
 
-        from .shallow_water_ext import balance_deep_and_shallow \
-                                      as balance_deep_and_shallow_ext
+        from .swDE1_domain_ext import balance_deep_and_shallow \
+            as balance_deep_and_shallow_ext
 
         # Shortcuts
         wc = self.quantities['stage'].centroid_values
@@ -2861,8 +2861,8 @@ def manning_friction_implicit(domain):
     Wrapper for c version
     """
 
-    from .shallow_water_ext import manning_friction_flat
-    from .shallow_water_ext import manning_friction_sloped
+    from .swDE1_domain_ext import manning_friction_flat
+    from .swDE1_domain_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -2895,8 +2895,8 @@ def manning_friction_explicit(domain):
     Wrapper for c version
     """
 
-    from .shallow_water_ext import manning_friction_flat
-    from .shallow_water_ext import manning_friction_sloped
+    from .swDE1_domain_ext import manning_friction_flat
+    from .swDE1_domain_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']

@@ -88,6 +88,8 @@ cdef extern from "swDE1_domain.c" nogil:
         int _rotate(double *q, double n1, double n2)
         int _gravity(domain* D)
         int _gravity_wb(domain* D)
+        void _manning_friction_flat(double g, double eps, int N, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom, double* ymom)
+        void _manning_friction_sloped(double g, double eps, int N, double* x, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom_update, double* ymom_update)
 
         int _flux_function_central(double *q_left, double *q_right,
                                    double h_left, double h_right,
@@ -485,3 +487,51 @@ def gravity_wb(object domain_object):
         if err == -1:
                 return None
 
+def manning_friction_flat(double g,\
+                                                double eps,\
+                                                np.ndarray[double, ndim=1, mode="c"] w not None,\
+                                                np.ndarray[double, ndim=1, mode="c"] uh not None,\
+                                                np.ndarray[double, ndim=1, mode="c"] vh not None,\
+                                                np.ndarray[double, ndim=2, mode="c"] z not None,\
+                                                np.ndarray[double, ndim=1, mode="c"] eta not None,\
+                                                np.ndarray[double, ndim=1, mode="c"] xmom not None,\
+                                                np.ndarray[double, ndim=1, mode="c"] ymom not None):
+
+
+        cdef int N
+
+        N = w.shape[0]
+
+        _manning_friction_flat(g, eps, N,\
+                                                &w[0],\
+                                                &z[0,0],\
+                                                &uh[0],\
+                                                &vh[0],\
+                                                &eta[0],\
+                                                &xmom[0],\
+                                                &ymom[0])
+
+def manning_friction_sloped(double g,\
+                                                        double eps,\
+                                                        np.ndarray[double, ndim=2, mode="c"] x not None,\
+                                                        np.ndarray[double, ndim=1, mode="c"] w not None,\
+                                                        np.ndarray[double, ndim=1, mode="c"] uh not None,\
+                                                        np.ndarray[double, ndim=1, mode="c"] vh not None,\
+                                                        np.ndarray[double, ndim=2, mode="c"] z not None,\
+                                                        np.ndarray[double, ndim=1, mode="c"] eta not None,\
+                                                        np.ndarray[double, ndim=1, mode="c"] xmom not None,\
+                                                        np.ndarray[double, ndim=1, mode="c"] ymom not None):
+
+        cdef int N
+
+        N = w.shape[0]
+
+        _manning_friction_sloped(g, eps, N,\
+                                                        &x[0,0],\
+                                                        &w[0],\
+                                                        &z[0,0],\
+                                                        &uh[0],\
+                                                        &vh[0],\
+                                                        &eta[0],\
+                                                        &xmom[0],\
+                                                        &ymom[0])
