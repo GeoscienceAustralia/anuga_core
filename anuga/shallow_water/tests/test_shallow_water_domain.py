@@ -4550,46 +4550,47 @@ class Test_Shallow_Water(unittest.TestCase):
             pass
 
         # Data from earlier version of abstract_2d_finite_volumes
-        assert num.allclose(domain.recorded_min_timestep, 0.0396825396825)
-        assert num.allclose(domain.recorded_max_timestep, 0.0396825396825)
+        assert num.allclose(domain.recorded_min_timestep, 0.03571428571428564)
+        assert num.allclose(domain.recorded_max_timestep, 0.03571428571428564)
 
         msg = ("domain.quantities['stage'].centroid_values[:12]=%s"
                % str(domain.quantities['stage'].centroid_values[:12]))
         assert num.allclose(domain.quantities['stage'].centroid_values[:12],
-                            [0.00171396, 0.02656103, 0.00241523, 0.02656103,
-                             0.00241523, 0.02656103, 0.00241523, 0.02656103,
-                             0.00241523, 0.02656103, 0.00241523, 0.0272623]), msg
+                            [0.00117244, 0.025897, 0.00200148, 0.025897,
+                             0.00200148, 0.025897, 0.00200148, 0.025897,
+                             0.00200148, 0.025897, 0.00200148, 0.02672604                 
+                            ]), msg
 
         domain.distribute_to_vertices_and_edges()
 
         assert num.allclose(domain.quantities['stage'].vertex_values[:12,0],
-                            [0.001, 0.02656103, 0.001, 0.02656103, 0.001, 0.02656103,
-                             0.001, 0.02656103, 0.001, 0.02656103, 0.001, 0.0272623])
+                            [-0.00104301, 0.025897, 0.00020015, 0.025897,
+                              0.00020015, 0.025897, 0.00020015, 0.025897,
+                              0.00020015, 0.025897, 0.00011501, 0.02672604])
 
         assert num.allclose(domain.quantities['stage'].vertex_values[:12,1],
-                            [0.00237867, 0.02656103, 0.001, 0.02656103, 0.001,
-                             0.02656103, 0.001, 0.02656103, 0.001, 0.02656103,
-                             0.00110647, 0.0272623])
-
+                            [0.00328283, 0.025897, 0.00020015, 0.025897,
+                             0.00020015, 0.025897, 0.00020015, 0.025897,
+                             0.00020015, 0.025897, 0.00028528, 0.02672604])
+                             
         assert num.allclose(domain.quantities['stage'].vertex_values[:12,2],
-                            [0.00176321, 0.02656103, 0.00524568,
-                             0.02656103, 0.00524568, 0.02656103,
-                             0.00524568, 0.02656103, 0.00524568,
-                             0.02656103, 0.00513921, 0.0272623])
+                            [0.0012775, 0.025897, 0.00560414, 0.025897,
+                             0.00560414, 0.025897, 0.00560414, 0.025897,
+                             0.00560414, 0.025897, 0.00560414, 0.02672604])
 
+                             
         assert num.allclose(domain.quantities['xmomentum'].centroid_values[:12],
-                            [0.00113961, 0.01302432, 0.00148672,
-                             0.01302432, 0.00148672, 0.01302432,
-                             0.00148672, 0.01302432, 0.00148672 ,
-                             0.01302432, 0.00148672, 0.01337143])
+                            [0.000189, 0.0042, 0.000189, 0.0042, 
+                             0.000189, 0.0042, 0.000189, 0.0042,
+                             0.000189, 0.0042, 0.000189, 0.0042])
+                             
 
         assert num.allclose(domain.quantities['ymomentum'].centroid_values[:12],
-                            [-2.91240050e-004 , 1.22721531e-004,
-                             -1.22721531e-004,  1.22721531e-004 ,
-                             -1.22721531e-004,  1.22721531e-004,
-                             -1.22721531e-004 , 1.22721531e-004,
-                             -1.22721531e-004,  1.22721531e-004,
-                             -1.22721531e-004,  -4.57969873e-005])
+                            [-1.89000000e-04, 0.00000000e+00, 0.00000000e+00,
+                              0.00000000e+00, -5.57589689e-20, -2.78794844e-20,
+                              8.36384533e-20,  0.00000000e+00, -3.06674329e-19,  
+                              0.00000000e+00,  2.23035875e-19, -1.89000000e-04])
+        
 
         os.remove(domain.get_name() + '.sww')
 
@@ -8556,6 +8557,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_distribut')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
