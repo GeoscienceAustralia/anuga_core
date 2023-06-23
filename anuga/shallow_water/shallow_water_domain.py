@@ -1852,7 +1852,7 @@ class Domain(Generic_Domain):
 
             # FIXME SR: Clean up code to just take self (domain) as
             # input argument
-            from .swb2_domain_ext import protect
+            from .swDE1_domain_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -1870,7 +1870,7 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: %g m^3 '% mass_error)
 
 
-            from .swb2_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
+            from .swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
 
             # Shortcuts
             Stage = self.quantities['stage']
@@ -2017,7 +2017,7 @@ class Domain(Generic_Domain):
         """
 
         if self.flow_algorithm == 'tsunami':
-            from .swb2_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
+            from .swDE1_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
         
             # shortcuts
             wc = self.quantities['stage'].centroid_values
