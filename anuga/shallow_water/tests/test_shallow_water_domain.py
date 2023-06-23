@@ -4772,7 +4772,6 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(domain.recorded_min_timestep, 0.018940360210353942)
         assert num.allclose(domain.recorded_max_timestep, 0.018940360210353942)
 
-        
         UH_EX = [-0.00271431, 0.02744767,  0.00023944, 0.02746294]
         VH_EX = [1.10413075e-03, 2.62134850e-04, -2.72890315e-05, 2.77104392e-04]
         
@@ -8579,6 +8578,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed_second_order_vmax_0')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)

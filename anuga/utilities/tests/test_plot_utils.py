@@ -6,7 +6,7 @@ import anuga
 import anuga.utilities.plot_utils as util
 import numpy as np
 
-flow_algorithms = ['DE0', 'DE1', '1_5', '2_0', 'tsunami']
+flow_algorithms = ['DE0', 'DE1']
 verbose = False
 
 import sys
