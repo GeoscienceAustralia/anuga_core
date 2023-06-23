@@ -246,7 +246,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.default_order = 2
         domain.set_minimum_storable_height(0.01)
 
@@ -281,22 +281,17 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check maximal runup
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
-        #print 'Runup, location', runup, location
-        assert num.allclose(runup, 6.33333333) or \
-               num.allclose(runup, 6) or \
-               num.allclose(runup, 12) # old limiters
-        assert num.allclose(location[0], 38.33333333) or \
-               num.allclose(location[0], 40.0) or \
-               num.allclose(location[0], 10)
+
+        assert num.allclose(runup, 3.33333333)
+        assert num.allclose(location[0], 53.333332)
+        assert num.allclose(location[1], 43.333332)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
-        #print 'Runup, location:',runup, location
-
- 
-        assert num.allclose(runup, 1.666666666)
-        assert num.allclose(location[0], 61.666666)
+        
+        assert num.allclose(runup, 3.3333333)
+        assert num.allclose(location[0], 53.333332)
 
         # Check runup restricted to a polygon
         p = [[50,1], [99,1], [99,49], [50,49]]
@@ -304,8 +299,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         location = get_maximum_inundation_location(swwfile, polygon=p)
         #print runup, location
 
-        assert num.allclose(runup, 3.6666666)
-        assert num.allclose(location[0], 51.6666666)                
+        assert num.allclose(runup, 3.33333)
+        assert num.allclose(location[0], 53.33333)                
 
         # Check that mimimum_storable_height works
         fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
@@ -358,23 +353,16 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
 
-        #print runup, location
+        assert num.allclose(runup, 3.33333333)
+        assert num.allclose(location[0], 308553.34)
 
-        assert num.allclose(runup,6.33333333) or \
-               num.allclose(runup, 6) or \
-               num.allclose(runup, 12) # old limiters
-        assert num.allclose(location[0], 38.34+E) or \
-               num.allclose(location[0], 40+E) or \
-               num.allclose(location[0], 10+E)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
-        #print runup, location
-        #1.66666666667 [308561.66, 6189006.5]
 
-        assert num.allclose(runup, 1.666666666)
-        assert num.allclose(location[0], 61.66+E)
+        assert num.allclose(runup, 3.333333)
+        assert num.allclose(location[0], 308553.34)
 
         # Check runup restricted to a polygon
         p = num.array([[50,1], [99,1], [99,49], [50,49]], int) + num.array([E, N], int)      #array default#
@@ -382,10 +370,10 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
 
-        #print runup, location
+        #print('Runup, location', runup, location)        
 
-        assert num.allclose(runup, 3.66666666)
-        assert num.allclose(location[0], 51.66+E)                
+        assert num.allclose(runup, 3.33333)
+        assert num.allclose(location[0], 308553.34)
 
 
         # Cleanup
