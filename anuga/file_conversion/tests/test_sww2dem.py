@@ -1786,7 +1786,8 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 print(i, float(L[i]), -i * cellsize - y)
-                assert num.allclose(float(L[i]), -i * cellsize - y)
+                msg = 'Got %f expected %f' % (float(L[i]), -i * cellsize - y)
+                assert num.allclose(float(L[i]), -i * cellsize - y), msg
                 
         # Cleanup
         os.remove(prjfile)
