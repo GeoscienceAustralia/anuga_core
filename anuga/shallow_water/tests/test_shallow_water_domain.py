@@ -4662,6 +4662,7 @@ class Test_Shallow_Water(unittest.TestCase):
                             edge_values[:4, 2],
                             [0.08124162, 0.06685681, 0.07891946, 0.06628975])                            
         os.remove(domain.get_name() + '.sww')
+        
 
     def test_flatbed_second_order(self):
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -4697,39 +4698,22 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
             pass
 
-        msg = 'min step was %f instead of %f' % (domain.recorded_min_timestep,
-                                                 0.0210448446782)
+        msg = 'Min timestep was %f instead of %f' % (domain.recorded_min_timestep,
+                                                     0.018940360)
+        assert num.allclose(domain.recorded_min_timestep, 0.018940360), msg
+        
+        msg = 'Max timestep was %f instead of %f' % (domain.recorded_max_timestep,
+                                                     0.018940360)        
+        assert num.allclose(domain.recorded_max_timestep, 0.018940360), msg
 
-        assert num.allclose(domain.recorded_min_timestep, 0.0210448446782), msg
-        assert num.allclose(domain.recorded_max_timestep, 0.0210448446782)
-
-        #FIXME: These numbers were from version before 25/10
-        #assert allclose(domain.quantities['stage'].vertex_values[:4,0],
-        #                [0.00101913,0.05352143,0.00104852,0.05354394])
-
-        # Slight change due to flux limiter optimisation 18/04/2012
-
-        #pprint(domain.quantities['stage'].vertex_values[:4,0])
-        #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
-        #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
+        W_0 = [-0.00524972, 0.05350326, 0.00077479, 0.05356756]
+        UH_0 = [-0.00271431, 0.02744767, 0.00023944, 0.02746294]
+        VH_0 = [1.10413075e-03, 2.62134850e-04, -2.72890315e-05, 2.77104392e-04]
 
 
-
-        #W_0 =  [ 0.001     ,  0.05350388,  0.001     ,  0.05352525]
-        #UH_0 = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
-        #VH_0 = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
-
-        W_0 =  [ 0.001     ,  0.05350737,  0.00106727,  0.0535293 ]
-        UH_0 = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
-        VH_0 = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05, 6.14082609e-04]
-
-
-
-        assert num.allclose(domain.quantities['stage'].vertex_values[:4,0], W_0)
-
-        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0], UH_0)
-
-        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0], VH_0)
+        assert num.allclose(domain.quantities['stage'].vertex_values[:4, 0], W_0)
+        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4, 0], UH_0)
+        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4, 0], VH_0)
 
 
         os.remove(domain.get_name() + '.sww')
@@ -4861,29 +4845,26 @@ class Test_Shallow_Water(unittest.TestCase):
                 # Evolution
                 for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
                     pass
-                assert num.allclose(domain.recorded_min_timestep, 0.0210448446782)
-                assert num.allclose(domain.recorded_max_timestep, 0.0210448446782)
+                    
+                assert num.allclose(domain.recorded_min_timestep, 0.018940360)
+                assert num.allclose(domain.recorded_max_timestep, 0.018940360)
 
-            #print domain.quantities['stage'].centroid_values[:4]
-            #print domain.quantities['xmomentum'].centroid_values[:4]
-            #print domain.quantities['ymomentum'].centroid_values[:4]
+            #print(domain.quantities['stage'].centroid_values[:4])
+            #print(domain.quantities['xmomentum'].centroid_values[:4])
+            #print(domain.quantities['ymomentum'].centroid_values[:4])
 
             #Centroids were correct but not vertices.
             #Hence the check of distribute below.
 
             if not V:
 
-
-
-                W_EX = [ 0.00725574,  0.05350737,  0.01008413,  0.0535293 ]
-                UH_EX = [ 0.00654919,  0.03684904,  0.00852886,  0.03686323]
-                VH_EX = [-0.00143163,  0.00061027, -0.00062325,  0.00061408]
-
-
+                W_EX = [0.00519999, 0.05350326, 0.00786757, 0.05356756]
+                UH_EX = [0.0026886, 0.02746638, 0.00346158, 0.02746294]
+                VH_EX = [-0.00109367, 0.00026213, -0.0002771, 0.0002771]
+                
                 assert num.allclose(domain.quantities['stage'].centroid_values[:4], W_EX)
                 assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4], UH_EX)
                 assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4], VH_EX)
-
 
                 assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0, atol=1.0e-3)
             else:
@@ -4903,8 +4884,8 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0, atol=1.0e-3)
 
 
-            UH_EX = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
-            VH_EX = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05,   6.14082609e-04]
+            UH_EX = [-0.00271431,  0.02744767,  0.00023944,  0.02746294]
+            VH_EX = [1.10413075e-03,  2.62134850e-04, -2.72890315e-05,  2.77104392e-04]
 
             #pprint(domain.quantities['stage'].vertex_values[:4,0])
             #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
@@ -8577,6 +8558,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed_first_order')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
