@@ -81,7 +81,7 @@ class Test_Data_Manager(Test_Mux):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.default_order = 2
 
         # Set some field values
