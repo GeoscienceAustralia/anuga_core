@@ -2064,6 +2064,7 @@ class Test_Forcing(unittest.TestCase):
 
         domain.set_quantity('elevation', slope)
         domain.set_quantity('stage', stage)
+        domain.set_quantity('height', h)
 
         for name in domain.conserved_quantities:
             assert num.allclose(domain.quantities[name].explicit_update, 0)
@@ -2076,7 +2077,6 @@ class Test_Forcing(unittest.TestCase):
         
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
         
-        print(-g*h*3)
         msg = 'Got %s expected %f' % (domain.quantities['xmomentum'].explicit_update, -g*h*3)
         assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3), msg
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
