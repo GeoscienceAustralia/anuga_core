@@ -1300,7 +1300,7 @@ class Test_Shallow_Water(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
 
         val0 = 2. + 2.0/3
         val1 = 4. + 4.0/3
@@ -1333,6 +1333,7 @@ class Test_Shallow_Water(unittest.TestCase):
         hr = hre = val2 - zr
         hc = hc_n = (hl + hr) / 2
         low_froude = 1
+        domain.set_quantity('height', hc)
 
         max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)
 
@@ -1384,7 +1385,6 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(pressure_flux, 87.111111)
         assert num.allclose(edgeflux2, [9.63942522, 0., 0.])
 
-
         # Scale, add up and check that compute_fluxes is correct for vol 1
         e0 = domain.edgelengths[1, 0]
         e1 = domain.edgelengths[1, 1]
@@ -1406,13 +1406,13 @@ class Test_Shallow_Water(unittest.TestCase):
         #    assert num.allclose(total_flux[i],
         #                        domain.quantities[name].explicit_update[1])
 
-        # These still work, so things must be OK behind the scenes ;-)
+        msg = 'Got %s' % (str(domain.quantities['stage'].explicit_update))
         assert num.allclose(domain.quantities['stage'].explicit_update,
-                            [0., -0.68218178, -111.77316251, -35.68522449])
+                            [-6.46904403, -4.5743049, -100.45244512, -43.89591759]), msg
         assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            [-69.68888889, -166.6, 69.68888889, 0])
+                            [-120.05, 0., 120.05, 0.])
         assert num.allclose(domain.quantities['ymomentum'].explicit_update,
-                            [-69.68888889, -35.93333333, 0., 69.68888889])
+                            [-120.05, 0., 0., 120.05])
 
     def test_compute_fluxes_DE_1(self):
         # This is a reuse of test_compute_fluxes_old_2 which used the original (now deprecated algorithm).
@@ -3243,7 +3243,6 @@ class Test_Shallow_Water(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
-        #domain.set_flow_algorithm('1_5')
         L = domain.quantities['stage'].vertex_values
 
         def stage(x, y):
@@ -3409,7 +3408,7 @@ class Test_Shallow_Water(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
 
         # Set up for a gradient of (8,2) at mid triangle (bce)
         def slope(x, y):
@@ -4527,7 +4526,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.smooth = False
         domain.default_order = 2
         domain.beta_w = 0.9
@@ -4631,7 +4630,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.smooth = False
         domain.default_order = 1
         domain.H0 = 1.0e-3 # As suggested in the manual
@@ -4671,7 +4670,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.smooth = False
         domain.default_order = 2
         domain.beta_w = 0.9
@@ -4743,7 +4742,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.smooth = False
         domain.default_order = 2
         domain.beta_w = 0.9
@@ -4797,7 +4796,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.smooth = False
         domain.default_order=domain._order_ = 2
         domain.beta_w = 0.9
@@ -7578,7 +7577,7 @@ friction  \n \
                                                        len1=length,
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.set_name('channel_variable_test')  # Output name
         domain.set_quantities_to_be_stored({'elevation': 2,
                                             'stage': 2})
@@ -8267,7 +8266,7 @@ friction  \n \
 
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.reduction = mean
 
 
@@ -8766,6 +8765,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_default_1')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
