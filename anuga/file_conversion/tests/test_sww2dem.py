@@ -485,7 +485,7 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(swwfile)
         
 
-    def test_sww2dem_larger_1_5(self):
+    def test_sww2dem_larger_DE0(self):
         """Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView. Here:
 
@@ -516,10 +516,10 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.default_order = 2
 
-        domain.set_name('datatest_1_5')
+        domain.set_name('datatest_DE0')
 
         prjfile = domain.get_name() + '_elevation.prj'
         ascfile = domain.get_name() + '_elevation.asc'
@@ -865,9 +865,9 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
 
-        domain.set_name('datatest')
+        domain.set_name('datatest_DE0')
 
         prjfile = domain.get_name() + '_elevation.prj'
         ascfile = domain.get_name() + '_elevation.asc'
@@ -1356,7 +1356,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.default_order = 2
 
 
@@ -1593,7 +1593,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.set_flow_algorithm('1_5')
+        self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -1814,7 +1814,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.set_flow_algorithm('1_5')
+        self.domain.set_flow_algorithm('DE0')
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
@@ -1951,7 +1951,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.set_flow_algorithm('1_5')
+        self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -2095,7 +2095,7 @@ class Test_Sww2Dem(unittest.TestCase):
         swwfile = self.domain.get_name() + '.sww'
 
         self.domain.set_datadir('.')
-        self.domain.set_flow_algorithm('1_5')
+        self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
