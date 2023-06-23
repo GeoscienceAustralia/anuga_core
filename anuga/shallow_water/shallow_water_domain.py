@@ -571,30 +571,6 @@ class Domain(Generic_Domain):
             print('##########################################################################')
 
 
-
-    def _set_1_0_defaults(self):
-        """Set up the defaults for running the flow_algorithm "1_0"
-           so that users can revert back to old default algorithm
-        """
-
-
-        self._set_config_defaults()
-
-        self.set_timestepping_method(1)
-        self.set_default_order(1)
-        self.set_CFL(1.0)
-
-
-        if self.processor == 0 and self.verbose:
-            print('##########################################################################')
-            print('#')
-            print('# Using continuous elevation solver 1_0')
-            print('#')
-            print('# Uses diffusive first order spatial, first order timestepping')
-            print('#')
-            print('##########################################################################')
-
-
     def _set_DE0_defaults(self):
         """Set up the defaults for running the flow_algorithm "DE0"
            A 'discontinuous elevation' method

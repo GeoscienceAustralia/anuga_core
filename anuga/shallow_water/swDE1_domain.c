@@ -6,7 +6,7 @@
 //
 // or use python compile.py
 //
-// See the module swb_domain.py for more documentation on
+// See the module shallow_water_domain.py for more documentation on
 // how to use this module
 //
 //
