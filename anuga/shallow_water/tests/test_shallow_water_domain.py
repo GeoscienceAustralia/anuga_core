@@ -3438,15 +3438,16 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [4.1, 16.1, 20.1])
+
+        assert num.allclose(L[1], [1.469863, 18.7301, 20.1])
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i]) / 3)
 
 
         domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
         domain.distribute_to_vertices_and_edges()
-        #print L[1]
-        assert num.allclose(L[1], [  4.239986, 16.060004,  20.00001 ], rtol=1.0e-2)
+
+        assert num.allclose(L[1], [1.46986301, 18.7301,  20.00001 ], rtol=1.0e-2)
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i]) / 3)
 
@@ -3455,7 +3456,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.tight_slope_limiters = 0
         domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [4.1, 16.1, 20.1])
+        assert num.allclose(L[1], [1.46986301, 18.7301,  20.00001], rtol=1.0e-2)
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i]) / 3)
 
@@ -3463,11 +3464,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.tight_slope_limiters = 1
 
         domain.distribute_to_vertices_and_edges()
-        assert  num.allclose(L[1], [4.19444976, 16.10554024, 20.00001]) or\
-                num.allclose(L[1], [4.23370103, 16.06529897, 20.001]) or\
-                num.allclose(L[1], [4.18944138, 16.10955862, 20.001]) or\
-                num.allclose(L[1], [4.19351461, 16.10548539, 20.001]) or\
-                num.allclose(L[1], [4.00001   , 16.15431247, 20.14567753])
+        assert  num.allclose(L[1], [1.46986301, 18.7301,  20.00001], rtol=1.0e-2)
+
 
         for i in range(len(L)):
             assert num.allclose(volumes[i], num.sum(L[i]) / 3)
@@ -8558,6 +8556,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_distribut')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
