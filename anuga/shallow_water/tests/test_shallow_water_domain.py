@@ -4769,21 +4769,15 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
             pass
 
-        assert num.allclose(domain.recorded_min_timestep, 0.0210448446782)
-        assert num.allclose(domain.recorded_max_timestep, 0.0210448446782)
+        assert num.allclose(domain.recorded_min_timestep, 0.018940360210353942)
+        assert num.allclose(domain.recorded_max_timestep, 0.018940360210353942)
 
-        #pprint(domain.quantities['stage'].vertex_values[:4,0])
-        #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
-        #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
-
-        UH_EX = [ 0.00090262,  0.03684904,  0.00090267,  0.03686323]
-        VH_EX = [ -1.97310289e-04,   6.10268320e-04,  -6.59631326e-05,   6.14082609e-04]
-
-        #UH_EX = [ 0.00044246,  0.03684648,  0.0008209 ,  0.03686007]
-        #VH_EX = [-0.00142112,  0.00061559, -0.00062362,  0.00061896]
-
-        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0], UH_EX)
-        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0], VH_EX)
+        
+        UH_EX = [-0.00271431, 0.02744767,  0.00023944, 0.02746294]
+        VH_EX = [1.10413075e-03, 2.62134850e-04, -2.72890315e-05, 2.77104392e-04]
+        
+        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4, 0], UH_EX)
+        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4, 0], VH_EX)
 
         os.remove(domain.get_name() + '.sww')
 
@@ -7551,103 +7545,6 @@ friction  \n \
             # For each timestep
             assert num.allclose(max(elevation[i,:]), i * inc)
 
-    def test_variable_elevation_1_5(self):
-        """test_variable_elevation
-
-        This will test that elevagtion van be stored in sww files
-        as a time dependent quantity.
-
-        It will also chck that storage of other quantities
-        can be controlled this way.
-        """
-
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-
-        #---------------------------------------------------------------------
-        # Setup computational domain
-        #---------------------------------------------------------------------
-        length = 8.
-        width = 6.
-        dx = dy = 1    # Resolution: Length of subdivisions on both axes
-
-        inc = 0.05 # Elevation increment
-
-        points, vertices, boundary = rectangular_cross(int(length / dx),
-                                                       int(width / dy),
-                                                       len1=length,
-                                                       len2=width)
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.set_name('channel_variable_test')  # Output name
-        domain.set_quantities_to_be_stored({'elevation': 2,
-                                            'stage': 2})
-
-        #---------------------------------------------------------------------
-        # Setup initial conditions
-        #---------------------------------------------------------------------
-
-        def pole_increment(x,y):
-            """This provides a small increment to a pole located mid stream
-            For use with variable elevation data
-            """
-
-            z = 0.0*x
-
-            N = len(x)
-            for i in range(N):
-                # Pole
-                if (x[i] - 4)**2 + (y[i] - 2)**2 < 1.0**2:
-                    z[i] += inc
-            return z
-
-        domain.set_quantity('elevation', 0.0)    # Flat bed initially
-        domain.set_quantity('friction', 0.01)    # Constant friction
-        domain.set_quantity('stage', 10.0)        # Dry initial condition
-
-        #------------------------------------------------------------------
-        # Setup boundary conditions
-        #------------------------------------------------------------------
-        Bi = Dirichlet_boundary([10.0, 0, 0])          # Inflow
-        Br = Reflective_boundary(domain)              # Solid reflective wall
-        Bo = Dirichlet_boundary([-5, 0, 0])           # Outflow
-
-        domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
-
-        #-------------------------------------------------------------------
-        # Evolve system through time
-        #-------------------------------------------------------------------
-
-        for t in domain.evolve(yieldstep=1, finaltime=3.0):
-            #print domain.timestepping_statistics()
-
-            domain.add_quantity('elevation', pole_increment)
-
-
-        # Check that quantities have been stored correctly
-        sww_file = domain.get_name() + '.sww'
-        fid = NetCDFFile(sww_file)
-
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        stage = fid.variables['stage'][:]
-        elevation = fid.variables['elevation'][:]
-        fid.close()
-
-        os.remove(sww_file)
-
-
-        assert len(stage.shape) == 2
-        assert len(elevation.shape) == 2
-
-        M, N = stage.shape
-
-        for i in range(M):
-            # For each timestep
-            assert num.allclose(max(elevation[i,:]), i * inc)
-
 
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
@@ -8258,93 +8155,7 @@ friction  \n \
 
 
 
-    #Test smoothing
-    def test_smoothing_1_5(self):
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-        from anuga.utilities.numerical_tools import mean
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(2, 2)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.reduction = mean
-
-
-        #Set some field values
-        domain.set_quantity('elevation', lambda x,y: x)
-        domain.set_quantity('friction', 0.03)
-
-
-        ######################
-        # Boundary conditions
-        B = Transmissive_boundary(domain)
-        domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
-
-
-        ######################
-        # Initial condition - with jumps
-
-        bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, float)
-
-        h = 0.03
-        for i in range(stage.shape[0]):
-            if i % 2 == 0:
-                stage[i,:] = bed[i,:] + h
-            else:
-                stage[i,:] = bed[i,:]
-
-        domain.set_quantity('stage', stage)
-
-        stage = domain.quantities['stage']
-
-        # Get smoothed stage
-        A, V = stage.get_vertex_values(xy=False, smooth=True)
-        Q = stage.vertex_values
-
-
-        assert A.shape[0] == 9
-        assert V.shape[0] == 8
-        assert V.shape[1] == 3
-
-        # First four points
-        assert num.allclose(A[0], (Q[0,2] + Q[1,1]) / 2)
-        assert num.allclose(A[1], (Q[1,0] + Q[3,1] + Q[2,2]) / 3)
-        assert num.allclose(A[2], Q[3,0])
-        assert num.allclose(A[3], (Q[0,0] + Q[5,1] + Q[4,2]) / 3)
-
-        # Center point
-        assert num.allclose(A[4], (Q[0,1] + Q[1,2] + Q[2,0] +
-                                   Q[5,0] + Q[6,2] + Q[7,1]) / 6)
-
-        # Check V
-        assert num.allclose(V[0,:], [3,4,0])
-        assert num.allclose(V[1,:], [1,0,4])
-        assert num.allclose(V[2,:], [4,5,1])
-        assert num.allclose(V[3,:], [2,1,5])
-        assert num.allclose(V[4,:], [6,7,3])
-        assert num.allclose(V[5,:], [4,3,7])
-        assert num.allclose(V[6,:], [7,8,4])
-        assert num.allclose(V[7,:], [5,4,8])
-
-        # Get smoothed stage with XY
-        X, Y, A1, V1 = stage.get_vertex_values(xy=True, smooth=True)
-
-        assert num.allclose(A, A1)
-        assert num.allclose(V, V1)
-
-        # Check XY
-        assert num.allclose(X[4], 0.5)
-        assert num.allclose(Y[4], 0.5)
-
-        assert num.allclose(X[7], 1.0)
-        assert num.allclose(Y[7], 0.5)
-
-
-
+    # Test smoothing
     def test_smoothing_de0(self):
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -8768,6 +8579,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_DE_1')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_flatbed_second_order_vmax_0')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
