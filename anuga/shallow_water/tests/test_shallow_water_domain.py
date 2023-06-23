@@ -1473,6 +1473,7 @@ class Test_Shallow_Water(unittest.TestCase):
         hr = hre = qr[0] - zr
         hc = hc_n = (hl + hr)/2
         low_froude = 1
+        domain.set_quantity('height', hc)        
 
         max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)
         assert(num.any(edgeflux0 != 0))
@@ -1484,6 +1485,7 @@ class Test_Shallow_Water(unittest.TestCase):
         hl = hle = ql[0] - zl
         hr = hre = qr[0] - zr
         hc = hc_n = (hl + hr)/2
+        domain.set_quantity('height', hc)                
 
         max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)
         assert(num.any(edgeflux1 != 0))
@@ -1495,6 +1497,7 @@ class Test_Shallow_Water(unittest.TestCase):
         hl = hle = ql[0] - zl
         hr = hre = qr[0] - zr
         hc = hc_n = (hl + hr)/2
+        domain.set_quantity('height', hc)                
 
         max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)
         assert(num.any(edgeflux2 != 0))
@@ -8765,6 +8768,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_default_1')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_DE_1')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
