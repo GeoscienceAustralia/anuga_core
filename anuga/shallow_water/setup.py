@@ -17,19 +17,13 @@ def configuration(parent_package='',top_path=None):
     config = Configuration('shallow_water', parent_package, top_path)
 
     config.add_data_dir('tests')
-    config.add_data_dir(join('tests','data'))
+    config.add_data_dir(join('tests', 'data'))
 
-    #util_dir = os.path.abspath(join(os.path.dirname(__file__),'..','utilities'))
-    util_dir = join('..','utilities')
-
-    # FIXME (Ole): Do we still need this one?
-    config.add_extension('swb2_domain_ext',
-                         sources=['swb2_domain_ext.pyx'],
-                         include_dirs=[util_dir])
+    util_dir = join('..', 'utilities')
 
     config.add_extension('swDE1_domain_ext',
-                         sources=['swDE1_domain_ext.pyx'],
-                         include_dirs=[util_dir])
+                         sources = ['swDE1_domain_ext.pyx'],
+                         include_dirs = [util_dir])
 
     config.ext_modules = cythonize(config.ext_modules, annotate=True)
 
