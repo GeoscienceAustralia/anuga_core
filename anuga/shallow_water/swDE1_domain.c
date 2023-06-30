@@ -321,6 +321,23 @@ int _flux_function_central(double *q_left, double *q_right,
 
   //printf("Entering _flux_function_central with h_left = %f, h_right = %f\n", h_left, h_right);
 
+//   printf("%e %e %e\n%e %e %e\n%e %e\n%e %e\n%e %e\n%e\n%e\n%e\n%e\n %e %e %e\n%e\n%e\n%e\n%e\n%ld\n", \
+//                            q_left[0], q_left[1], q_left[2], \
+//                            q_right[0], q_right[1], q_right[2], \
+//                            h_left, h_right,\
+//                            hle, hre,\
+//                            n1, n2,\
+//                            epsilon,\
+//                            ze,\
+//                            limiting_threshold,\
+//                            g,\
+//                            edgeflux[0], edgeflux[1], edgeflux[2], \
+//                            max_speed[0],\
+//                            pressure_flux[0],\
+//                            hc,\
+//                            hc_n,\
+//                            low_froude);
+
   if(h_left==0. && h_right==0.){
     // Quick exit
     memset(edgeflux, 0, 3*sizeof(double));
@@ -938,6 +955,8 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 }
             }
 
+            //printf("%d %d edgeflux %e %e %e \n", k,i, edgeflux[0],edgeflux[1],edgeflux[2]);
+
             // Multiply edgeflux by edgelength
             length = D->edgelengths[ki];
             edgeflux[0] *= length;
@@ -982,6 +1001,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 D->edge_flux_work[nm3 + 2 ] = edgeflux[2];
                 bedslope_work = length*(-D->g * 0.5 *( h_right*h_right - hre*hre- (hre+hc_n)*(zr-zc_n)) + pressure_flux);
                 D->pressuregrad_work[nm] = bedslope_work;
+
 
                 D->already_computed_flux[nm] = call; // #n Done
             }

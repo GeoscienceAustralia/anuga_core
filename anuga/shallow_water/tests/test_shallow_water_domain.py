@@ -987,15 +987,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.set_quantity('stage', [[val0, val0, val0], [val1, val1, val1],
                                       [val2, val2, val2], [val3, val3, val3]])
+
+        domain.set_quantity('height', [[val0, val0, val0], [val1, val1, val1],
+                                      [val2, val2, val2], [val3, val3, val3]])
+
         domain.check_integrity()
 
-        zl = zr = 0.    # Assume flat bed
+        zl = zr = zc = 0.    # Assume flat bed
 
         edgeflux = num.zeros(3, float)
         edgeflux0 = num.zeros(3, float)
         edgeflux1 = num.zeros(3, float)
         edgeflux2 = num.zeros(3, float)
-        H0 = 0.0
+        H0 = domain.H0
 
         # Flux across right edge of volume 1
         normal = domain.get_normal(1, 0)    # Get normal 0 of triangle 1
@@ -1011,29 +1015,37 @@ class Test_Shallow_Water(unittest.TestCase):
         hl = hle = val1 - zl
         hr = hre = val2 - zr
         hc = hc_n = (hl + hr) / 2        
-        low_froude = 1
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        low_froude = 0
+        max_speed, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
 
+        #print(max_speed, pressure_flux, edgeflux0)
         # Flux across edge in the east direction (as per normal vector)
         assert num.allclose(max_speed, 9.21592824046)
-        assert num.allclose(pressure_flux, 253.71111111)
+        assert num.allclose(pressure_flux0, 253.71111111)
         assert num.allclose(edgeflux0, [-15.3598804, 0, 0.])
 
         # Flux across edge in the west direction (opposite sign for xmomentum)
         normal_opposite = domain.get_normal(2, 2)   # Get normal 2 of triangle 2
         assert num.allclose(normal_opposite, [-1, 0])
 
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        max_speed, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
         assert num.allclose(max_speed, 9.21592824046)
-        assert num.allclose(pressure_flux, 253.71111111)        
+        assert num.allclose(pressure_flux0, 253.71111111)        
 
         # FIXME (Ole): edgeflux used to have direction - now the two last compenents are zero and pressure_flux has a corresponding scalar value).
         #
         # The test used to be this:
         # assert num.allclose(edgeflux, [-15.3598804, -253.71111111, 0.])
         
-        # Now it is this:
-        assert num.allclose(edgeflux, [0, 0, 0.])        
+        # Now it is this
+        #assert num.allclose(edgeflux0, [-15.3598804, 0, 0.]) 
+
+        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
+        edgeflux0[1] += normal[0]*bedslope_work0
+        edgeflux0[2] += normal[1]*bedslope_work0
+
+        #print(edgeflux0)
+        assert num.allclose(edgeflux0, [-15.3598804, 253.71111111, 0.])
 
         # Flux across upper edge of volume 1
         normal = domain.get_normal(1, 1)
@@ -1042,15 +1054,22 @@ class Test_Shallow_Water(unittest.TestCase):
         hl = hle = ql[0] - zl
         hr = hre = qr[0] - zr
         hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        max_speed, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        
         
         # FIXME (Ole): edgeflux used to have direction - now it the two last components are zero and pressure_flux has a corresponding scalar value)                           assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
         
         # Now it is this instead:
         assert num.allclose(max_speed, 7.22956891292)
-        assert num.allclose(pressure_flux, 123.04444444)
+        assert num.allclose(pressure_flux1, 123.04444444)
         assert num.allclose(edgeflux1, [2.4098563, 0., 0.])
 
+        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
+        edgeflux1[1] += normal[0]*bedslope_work1
+        edgeflux1[2] += normal[1]*bedslope_work1
+
+        #print(edgeflux1)
+        assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
 
         # Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1, 2)
@@ -1060,7 +1079,7 @@ class Test_Shallow_Water(unittest.TestCase):
         hl = hle = ql[0] - zl
         hr = hre = qr[0] - zr
         hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        max_speed, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)        
         
         # FIXME (Ole): The test changed from this
         #assert num.allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])
@@ -1068,10 +1087,17 @@ class Test_Shallow_Water(unittest.TestCase):
         
         # To this:
         assert num.allclose(max_speed, 7.22956891292)   
-        assert num.allclose(pressure_flux, 87.111111111)                     
+        assert num.allclose(pressure_flux2, 87.111111111)                     
         assert num.allclose(edgeflux2, [9.63942522, 0., 0.])
 
         
+        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
+        edgeflux2[1] += normal[0]*bedslope_work2
+        edgeflux2[2] += normal[1]*bedslope_work2
+
+        #print(edgeflux2)
+        assert num.allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])   
+
         # FIXME (Ole): This type of test was great for internal integrity and should really be reinstated by incorporating pressure_flux 
         
         # Scale, add up and check that compute_fluxes is correct for vol 1
@@ -1082,13 +1108,16 @@ class Test_Shallow_Water(unittest.TestCase):
         total_flux = -(e0*edgeflux0 +
                        e1*edgeflux1 +
                        e2*edgeflux2) / domain.areas[1]
-
+        #print(total_flux)
         assert num.allclose(total_flux, [-0.68218178, -166.6, -35.93333333])
 
         # Now check that compute_flux yields the same
         domain.compute_fluxes()
 
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
+
+            #print(i,name, total_flux[i],
+            #                    domain.quantities[name].explicit_update[1])
             assert num.allclose(total_flux[i],
                                 domain.quantities[name].explicit_update[1])
 
@@ -1118,19 +1147,28 @@ class Test_Shallow_Water(unittest.TestCase):
         val2 = 8. + 2.0/3
         val3 = 2. + 8.0/3
 
-        zl = zr = 0    # Assume flat zero bed
-        ze = (zl + zr) / 2
+        ze = zl = zr = zc = 0    # Assume flat zero bed
+
+        #ze = (zl + zr) / 2
         
         edgeflux = num.zeros(3, float)
         edgeflux0 = num.zeros(3, float)
         edgeflux1 = num.zeros(3, float)
         edgeflux2 = num.zeros(3, float)
-        H0 = 0.0
-        low_froude = 1
+        ql = num.zeros(3, float)
+        qr = num.zeros(3, float)
 
-        domain.set_quantity('elevation', zl*num.ones((4, 3), int)) #array default#
+        H0 = domain.H0
+        low_froude = 0
+
+        domain.set_quantity('elevation', zc*num.ones((4, 3), int)) #array default#
 
         domain.set_quantity('stage', [[val0, val0-1, val0-2],
+                                      [val1, val1+1, val1],
+                                      [val2, val2-2, val2],
+                                      [val3-0.5, val3, val3]])
+
+        domain.set_quantity('height', [[val0, val0-1, val0-2],
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
                                       [val3-0.5, val3, val3]])
@@ -1143,35 +1181,124 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
+        Stage  = domain.quantities['stage']
+        Height = domain.quantities['height']
+        Bed    = domain.quantities['elevation']
+        Xmom   = domain.quantities['xmomentum']
+        Ymom   = domain.quantities['ymomentum']
+
+        hc = Height.centroid_values[1]
+        zc = Bed.centroid_values[1]
+
+
         # Flux across right edge of volume 1
         normal = domain.get_normal(1, 0)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        qr = domain.get_conserved_quantities(vol_id=2, edge=2)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=0)
+        # qr = domain.get_conserved_quantities(vol_id=2, edge=2)
 
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[0] - zr
+        # hc = hc_n = (hl + hr) / 2
+
+               
+        ql[0] = Stage.edge_values[1,0]
+        ql[1] = Xmom.edge_values[1,0]
+        ql[2] = Ymom.edge_values[1,0]
+        zl  = Bed.edge_values[1,0]
+        hle = Height.edge_values[1,0]
+
+        hc_n = Height.centroid_values[2]
+        zc_n = Bed.centroid_values[2]
+
+        qr[0] = Stage.edge_values[2,2]
+        qr[1] = Xmom.edge_values[2,2]
+        qr[2] = Ymom.edge_values[2,2]
+        zr  = Bed.edge_values[2,2]
+        hre = Height.edge_values[2,2]
+
+        z_half = max(zl, zr)
+
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)
+
+        low_froude = 0
+
+        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+        
+        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
+        edgeflux0[1] += normal[0]*bedslope_work0
+        edgeflux0[2] += normal[1]*bedslope_work0
+
 
         # Flux across upper edge of volume 1
         normal = domain.get_normal(1, 1)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        qr = domain.get_conserved_quantities(vol_id=3, edge=0)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=1)
+        # qr = domain.get_conserved_quantities(vol_id=3, edge=0)
         
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[0] - zr
+        # hc = hc_n = (hl + hr) / 2
+
+
+        ql[0] = Stage.edge_values[1,1]
+        ql[1] = Xmom.edge_values[1,1]
+        ql[2] = Ymom.edge_values[1,1]
+        zl  = Bed.edge_values[1,1]
+        hl = hle = Height.edge_values[1,1]
+
+        hc_n = Height.centroid_values[3]
+        zc_n = Bed.centroid_values[3]
+
+        qr[0] = Stage.edge_values[3,0]
+        qr[1] = Xmom.edge_values[3,0]
+        qr[2] = Ymom.edge_values[3,0]
+        zr  = Bed.edge_values[3,0]
+        hr = hre = Height.edge_values[3,0]
+
+        z_half = max(zl, zr)
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)
+
+        max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+         
+        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
+        edgeflux1[1] += normal[0]*bedslope_work1
+        edgeflux1[2] += normal[1]*bedslope_work1
 
         # Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1, 2)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        qr = domain.get_conserved_quantities(vol_id=0, edge=1)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=2)
+        # qr = domain.get_conserved_quantities(vol_id=0, edge=1)
         
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[0] - zr
+        # hc = hc_n = (hl + hr) / 2
+
+        ql[0] = Stage.edge_values[1,2]
+        ql[1] = Xmom.edge_values[1,2]
+        ql[2] = Ymom.edge_values[1,2]
+        zl  = Bed.edge_values[1,2]
+        hl = hle = Height.edge_values[1,2]
+
+        hc_n = Height.centroid_values[0]
+        zc_n = Bed.centroid_values[0]
+
+        qr[0] = Stage.edge_values[0,1]
+        qr[1] = Xmom.edge_values[0,1]
+        qr[2] = Ymom.edge_values[0,1]
+        zr  = Bed.edge_values[0,1]
+        hr = hre = Height.edge_values[0,1] 
+
+        z_half = max(zl, zr)
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)   
+
+
+        max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+         
+        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
+        edgeflux2[1] += normal[0]*bedslope_work2
+        edgeflux2[2] += normal[1]*bedslope_work2
 
         # Scale, add up and check that compute_fluxes is correct for vol 1
         # FIXME (Ole): This no longer works after the introduction of pressure_flux
@@ -1187,6 +1314,8 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_fluxes()
 
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
+            #print(i,name, total_flux[i],
+            #                    domain.quantities[name].explicit_update[1])
             assert num.allclose(total_flux[i],
                                 domain.quantities[name].explicit_update[1])
 
@@ -1220,13 +1349,20 @@ class Test_Shallow_Water(unittest.TestCase):
         edgeflux0 = num.zeros(3, float)
         edgeflux1 = num.zeros(3, float)
         edgeflux2 = num.zeros(3, float)
-        H0 = 0.0
-        low_froude = 1
+        ql = num.zeros(3, float)
+        qr = num.zeros(3, float)
 
-        domain.set_quantity('stage', [[val0, val0-1, val0-2],
+        H0 = 0.0
+        low_froude = 0
+
+        stage_vertex = num.array([[val0, val0-1, val0-2],
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
                                       [val3-0.5, val3, val3]])
+
+        domain.set_quantity('stage', stage_vertex )
+
+        domain.set_quantity('height', stage_vertex + zl)
 
         domain.set_quantity('xmomentum',
                             [[1,2,3], [3,4,5], [1,-1,0], [0,-2,2]])
@@ -1236,36 +1372,156 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
+        # # Flux across right edge of volume 1
+        # normal = domain.get_normal(1, 0)
+
+
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=0)
+        # qr = domain.get_conserved_quantities(vol_id=2, edge=2)
+        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[1] - zr
+        # hc = hc_n = (hl + hr) / 2        
+        # max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+
+        # # Flux across upper edge of volume 1
+        # normal = domain.get_normal(1, 1)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=1)
+        # qr = domain.get_conserved_quantities(vol_id=3, edge=0)
+        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[1] - zr
+        # hc = hc_n = (hl + hr) / 2        
+        # max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        
+        # # Flux across lower left hypotenuse of volume 1
+        # normal = domain.get_normal(1, 2)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=2)
+        # qr = domain.get_conserved_quantities(vol_id=0, edge=1)
+        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[1] - zr
+        # hc = hc_n = (hl + hr) / 2        
+        # max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+
+        Stage  = domain.quantities['stage']
+        Height = domain.quantities['height']
+        Bed    = domain.quantities['elevation']
+        Xmom   = domain.quantities['xmomentum']
+        Ymom   = domain.quantities['ymomentum']
+
+        hc = Height.centroid_values[1]
+        zc = Bed.centroid_values[1]
+
+
         # Flux across right edge of volume 1
         normal = domain.get_normal(1, 0)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        qr = domain.get_conserved_quantities(vol_id=2, edge=2)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=0)
+        # qr = domain.get_conserved_quantities(vol_id=2, edge=2)
+
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[0] - zr
+        # hc = hc_n = (hl + hr) / 2
+
+               
+        ql[0] = Stage.edge_values[1,0]
+        ql[1] = Xmom.edge_values[1,0]
+        ql[2] = Ymom.edge_values[1,0]
+        zl  = Bed.edge_values[1,0]
+        hle = Height.edge_values[1,0]
+
+        hc_n = Height.centroid_values[2]
+        zc_n = Bed.centroid_values[2]
+
+        qr[0] = Stage.edge_values[2,2]
+        qr[1] = Xmom.edge_values[2,2]
+        qr[2] = Ymom.edge_values[2,2]
+        zr  = Bed.edge_values[2,2]
+        hre = Height.edge_values[2,2]
+
+        z_half = max(zl, zr)
+
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)
+
+        low_froude = 0
+
+        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, z_half, g, H0, hc, hc_n, low_froude)
         
-        hl = hle = ql[0] - zl
-        hr = hre = qr[1] - zr
-        hc = hc_n = (hl + hr) / 2        
-        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
+        edgeflux0[1] += normal[0]*bedslope_work0
+        edgeflux0[2] += normal[1]*bedslope_work0
+
 
         # Flux across upper edge of volume 1
         normal = domain.get_normal(1, 1)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        qr = domain.get_conserved_quantities(vol_id=3, edge=0)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=1)
+        # qr = domain.get_conserved_quantities(vol_id=3, edge=0)
         
-        hl = hle = ql[0] - zl
-        hr = hre = qr[1] - zr
-        hc = hc_n = (hl + hr) / 2        
-        max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[0] - zr
+        # hc = hc_n = (hl + hr) / 2
+
+
+        ql[0] = Stage.edge_values[1,1]
+        ql[1] = Xmom.edge_values[1,1]
+        ql[2] = Ymom.edge_values[1,1]
+        zl  = Bed.edge_values[1,1]
+        hl = hle = Height.edge_values[1,1]
+
+        hc_n = Height.centroid_values[3]
+        zc_n = Bed.centroid_values[3]
+
+        qr[0] = Stage.edge_values[3,0]
+        qr[1] = Xmom.edge_values[3,0]
+        qr[2] = Ymom.edge_values[3,0]
+        zr  = Bed.edge_values[3,0]
+        hr = hre = Height.edge_values[3,0]
+
+        z_half = max(zl, zr)
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)
+
+        max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+         
+        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
+        edgeflux1[1] += normal[0]*bedslope_work1
+        edgeflux1[2] += normal[1]*bedslope_work1
+
         # Flux across lower left hypotenuse of volume 1
         normal = domain.get_normal(1, 2)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        qr = domain.get_conserved_quantities(vol_id=0, edge=1)
+        # ql = domain.get_conserved_quantities(vol_id=1, edge=2)
+        # qr = domain.get_conserved_quantities(vol_id=0, edge=1)
         
-        hl = hle = ql[0] - zl
-        hr = hre = qr[1] - zr
-        hc = hc_n = (hl + hr) / 2        
-        max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)        
+        # hl = hle = ql[0] - zl
+        # hr = hre = qr[0] - zr
+        # hc = hc_n = (hl + hr) / 2
 
+        ql[0] = Stage.edge_values[1,2]
+        ql[1] = Xmom.edge_values[1,2]
+        ql[2] = Ymom.edge_values[1,2]
+        zl  = Bed.edge_values[1,2]
+        hl = hle = Height.edge_values[1,2]
+
+        hc_n = Height.centroid_values[0]
+        zc_n = Bed.centroid_values[0]
+
+        qr[0] = Stage.edge_values[0,1]
+        qr[1] = Xmom.edge_values[0,1]
+        qr[2] = Ymom.edge_values[0,1]
+        zr  = Bed.edge_values[0,1]
+        hr = hre = Height.edge_values[0,1] 
+
+        z_half = max(zl, zr)
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)   
+
+
+        max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+         
+        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
+        edgeflux2[1] += normal[0]*bedslope_work2
+        edgeflux2[2] += normal[1]*bedslope_work2
 
         # Scale, add up and check that compute_fluxes is correct for vol 1
         e0 = domain.edgelengths[1, 0]
@@ -1281,7 +1537,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.compute_fluxes()
 
         for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            #print(i, total_flux[i])
+            #print(i, total_flux[i], domain.quantities[name].explicit_update[1])
             assert num.allclose(total_flux[i],
                                 domain.quantities[name].explicit_update[1])
 
@@ -1442,12 +1698,16 @@ class Test_Shallow_Water(unittest.TestCase):
         val2 = 8. + 2.0/3
         val3 = 2. + 8.0/3
 
-        ze = zl = zr = 0    # Assume flat zero bed
+        ze = zl = zr = zc = 0    # Assume flat zero bed
         edgeflux = num.zeros(3, float)
         edgeflux0 = num.zeros(3, float)
         edgeflux1 = num.zeros(3, float)
         edgeflux2 = num.zeros(3, float)
-        H0 = 0.0
+
+        ql = num.zeros(3, float)
+        qr = num.zeros(3, float)
+
+        H0 = domain.H0
 
         domain.set_quantity('elevation', zl*num.ones((4, 3), int)) #array default#
 
@@ -1455,6 +1715,11 @@ class Test_Shallow_Water(unittest.TestCase):
                                       [val1, val1+1, val1],
                                       [val2, val2-2, val2],
                                       [val3-0.5, val3, val3]])
+
+        domain.set_quantity('height', [[val0 - zl, val0-1 - zl, val0-2 - zl],
+                                      [val1 - zl, val1+1 - zl, val1 - zl],
+                                      [val2 - zl, val2-2 - zl, val2 - zl],
+                                      [val3-0.5 - zl, val3 - zl, val3 - zl]])
 
         domain.set_quantity('xmomentum',
                             [[1,2,3], [3,4,5], [1,-1,0], [0,-2,2]])
@@ -1464,53 +1729,126 @@ class Test_Shallow_Water(unittest.TestCase):
 
         domain.check_integrity()
 
-        # Flux across right edge of volume 1
+        Stage  = domain.quantities['stage']
+        Height = domain.quantities['height']
+        Bed    = domain.quantities['elevation']
+        Xmom   = domain.quantities['xmomentum']
+        Ymom   = domain.quantities['ymomentum']
+
+        hc = Height.centroid_values[1]
+        zc = Bed.centroid_values[1]
+
+        l0 = domain.edgelengths[1, 0]
+        l1 = domain.edgelengths[1, 1]
+        l2 = domain.edgelengths[1, 2]
+
+        # Flux across right edge of volume 1 (volume 2)
         normal = domain.get_normal(1, 0)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        qr = domain.get_conserved_quantities(vol_id=2, edge=2)
 
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr)/2
-        low_froude = 1
-        domain.set_quantity('height', hc)        
+        
+        ql[0] = Stage.edge_values[1,0]
+        ql[1] = Xmom.edge_values[1,0]
+        ql[2] = Ymom.edge_values[1,0]
+        zl  = Bed.edge_values[1,0]
+        hle = Height.edge_values[1,0]
 
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        hc_n = Height.centroid_values[2]
+        zc_n = Bed.centroid_values[2]
+
+        qr[0] = Stage.edge_values[2,2]
+        qr[1] = Xmom.edge_values[2,2]
+        qr[2] = Ymom.edge_values[2,2]
+        zr  = Bed.edge_values[2,2]
+        hre = Height.edge_values[2,2]
+
+        z_half = max(zl, zr)
+
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)
+
+        low_froude = 0
+        #domain.set_quantity('height', hc)        
+
+        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+        #print("1 0 edgeflux python %e %e %e"% (edgeflux0[0]*l0,edgeflux0[1]*l0,edgeflux0[2]*l0))
+
+        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
+        edgeflux0[1] += normal[0]*bedslope_work0
+        edgeflux0[2] += normal[1]*bedslope_work0
         assert(num.any(edgeflux0 != 0))
 
-        # Flux across upper edge of volume 1
-        normal = domain.get_normal(1, 1)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr)/2
-        domain.set_quantity('height', hc)                
 
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        # Flux across upper edge of volume 1 (volume 3)
+        normal = domain.get_normal(1, 1)
+        
+        ql[0] = Stage.edge_values[1,1]
+        ql[1] = Xmom.edge_values[1,1]
+        ql[2] = Ymom.edge_values[1,1]
+        zl  = Bed.edge_values[1,1]
+        hl = hle = Height.edge_values[1,1]
+
+        hc_n = Height.centroid_values[3]
+        zc_n = Bed.centroid_values[3]
+
+        qr[0] = Stage.edge_values[3,0]
+        qr[1] = Xmom.edge_values[3,0]
+        qr[2] = Ymom.edge_values[3,0]
+        zr  = Bed.edge_values[3,0]
+        hr = hre = Height.edge_values[3,0]
+
+        z_half = max(zl, zr)
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)
+
+        #hc = hc_n = (hl + hr)/2
+        #domain.set_quantity('height', hc) 
+
+
+
+        max_speed, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+        #print("1 1 edgeflux python %e %e %e"% (edgeflux1[0]*l1,edgeflux1[1]*l1,edgeflux1[2]*l1))
+        
+        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
+        edgeflux1[1] += normal[0]*bedslope_work1
+        edgeflux1[2] += normal[1]*bedslope_work1
         assert(num.any(edgeflux1 != 0))
 
-        # Flux across lower left hypotenuse of volume 1
+        # Flux across lower left hypotenuse of volume 1 (volume 0)
         normal = domain.get_normal(1, 2)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr)/2
-        domain.set_quantity('height', hc)                
+        
+        ql[0] = Stage.edge_values[1,2]
+        ql[1] = Xmom.edge_values[1,2]
+        ql[2] = Ymom.edge_values[1,2]
+        zl  = Bed.edge_values[1,2]
+        hl = hle = Height.edge_values[1,2]
 
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)
+        hc_n = Height.centroid_values[0]
+        zc_n = Bed.centroid_values[0]
+
+        qr[0] = Stage.edge_values[0,1]
+        qr[1] = Xmom.edge_values[0,1]
+        qr[2] = Ymom.edge_values[0,1]
+        zr  = Bed.edge_values[0,1]
+        hr = hre = Height.edge_values[0,1] 
+
+        z_half = max(zl, zr)
+        hl = max(hle+zl-z_half,0.0)
+        hr = max(hre+zr-z_half,0.0)             
+
+        max_speed, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, z_half, g, H0, hc, hc_n, low_froude)
+        #print("1 2 edgeflux python %e %e %e"% (edgeflux2[0]*l2,edgeflux2[1]*l2,edgeflux2[2]*l2))
+
+        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
+        edgeflux2[1] += normal[0]*bedslope_work2
+        edgeflux2[2] += normal[1]*bedslope_work2
         assert(num.any(edgeflux2 != 0))
 
         # Scale, add up and check that compute_fluxes is correct for vol 1
         # FIXME (Ole): This does not work after the introduction of pressure_flux
-        e0 = domain.edgelengths[1, 0]
-        e1 = domain.edgelengths[1, 1]
-        e2 = domain.edgelengths[1, 2]
 
-        total_flux = -(e0*edgeflux0 +
-                       e1*edgeflux1 +
-                       e2*edgeflux2) / domain.areas[1]
+        total_flux = -(l0*edgeflux0 +
+                       l1*edgeflux1 +
+                       l2*edgeflux2) / domain.areas[1]
 
         domain.compute_fluxes()
 
@@ -8557,6 +8895,6 @@ friction  \n \
 
 if __name__ == "__main__":
     #suite = unittest.makeSuite(Test_Shallow_Water, 'test_balance_deep_and_shallow_Froude')
-    suite = unittest.makeSuite(Test_Shallow_Water, 'test')
+    suite = unittest.makeSuite(Test_Shallow_Water, 'test_compute_fluxes_structure_3')
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
