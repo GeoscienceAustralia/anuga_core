@@ -2136,7 +2136,7 @@ class Quantity(object):
     # Methods for outputting model results
     ############################################################################
 
-    def get_vertex_values(self, xy=True, smooth=None, precision=None):
+    def get_vertex_values(self, xy=True, smooth=None, centroid_averaging=None, precision=None):
         """Return vertex values like an OBJ format i.e. one value per node.
 
         The vertex values are returned as one sequence in the 1D float array A.
@@ -2172,6 +2172,13 @@ class Quantity(object):
             except:
                 smooth = False
 
+        if centroid_averaging is None:
+            # Take default from domain
+            try:
+                centroid_averaging = self.domain.get_using_centroid_averaging()
+            except:
+                centroid_averaging = False
+                
         if precision is None:
             precision = float
 
@@ -2182,53 +2189,17 @@ class Quantity(object):
             A = num.zeros(N, float)
             points = self.domain.get_nodes()
 
-            if True:
-                # Fast C version
-                if self.domain.get_using_discontinuous_elevation():
-                    average_centroid_values(ensure_numeric(self.domain.vertex_value_indices),
-                                      ensure_numeric(self.domain.number_of_triangles_per_node),
-                                      ensure_numeric(self.centroid_values),
-                                      A)
-                else:
-                    average_vertex_values(ensure_numeric(self.domain.vertex_value_indices),
-                                      ensure_numeric(self.domain.number_of_triangles_per_node),
-                                      ensure_numeric(self.vertex_values),
-                                      A)
-                A = A.astype(precision)
+            if centroid_averaging:
+                average_centroid_values(ensure_numeric(self.domain.vertex_value_indices),
+                                    ensure_numeric(self.domain.number_of_triangles_per_node),
+                                    ensure_numeric(self.centroid_values),
+                                    A)
             else:
-                # FIXME (Ole): This could be retired
-                # Slow Python version
-                current_node = 0
-                k = 0 # Track triangles touching on node
-                total = 0.0
-                for index in self.domain.vertex_value_indices:
-
-                    if self.domain.number_of_triangles_per_node[current_node] == 0:
-                        total = 0.0
-                        k = 0
-                        current_node += 1
-                    else:
-
-                        if current_node == N:
-                            msg = 'Current node exceeding number of nodes (%d) ' % N
-                            raise Exception(msg)
-
-                        k += 1
-
-                        volume_id = index // 3
-                        vertex_id = index % 3
-
-                        v = self.vertex_values[volume_id, vertex_id]
-                        total += v
-
-                        if self.domain.number_of_triangles_per_node[current_node] == k:
-                            A[current_node] = total // k
-
-                            # Move on to next node
-                            total = 0.0
-                            k = 0
-                            current_node += 1
-
+                average_vertex_values(ensure_numeric(self.domain.vertex_value_indices),
+                                    ensure_numeric(self.domain.number_of_triangles_per_node),
+                                    ensure_numeric(self.vertex_values),
+                                    A)
+            A = A.astype(precision)
 
         else:
             # Return disconnected internal vertex values

@@ -584,6 +584,7 @@ class Domain(Generic_Domain):
         self.set_timestepping_method('euler')
 
         self.set_using_discontinuous_elevation(True)
+        self.set_using_centroid_averaging(True)
         self.set_compute_fluxes_method('DE')
         self.set_distribute_to_vertices_and_edges_method('DE')
 
@@ -646,6 +647,7 @@ class Domain(Generic_Domain):
         self.set_timestepping_method(2)
 
         self.set_using_discontinuous_elevation(True)
+        self.set_using_centroid_averaging(True)
         self.set_compute_fluxes_method('DE')
         self.set_distribute_to_vertices_and_edges_method('DE')
 
@@ -708,6 +710,7 @@ class Domain(Generic_Domain):
         self.set_timestepping_method(3)
 
         self.set_using_discontinuous_elevation(True)
+        self.set_using_centroid_averaging(True)
         self.set_compute_fluxes_method('DE')
         self.set_distribute_to_vertices_and_edges_method('DE')
 
@@ -770,6 +773,7 @@ class Domain(Generic_Domain):
         self.set_timestepping_method(2)
 
         self.set_using_discontinuous_elevation(True)
+        self.set_using_centroid_averaging(True)
         self.set_compute_fluxes_method('DE')
         self.set_distribute_to_vertices_and_edges_method('DE')
 
@@ -832,6 +836,7 @@ class Domain(Generic_Domain):
         self.set_timestepping_method(1)
 
         self.set_using_discontinuous_elevation(True)
+        self.set_using_centroid_averaging(True)
         self.set_compute_fluxes_method('DE')
         self.set_distribute_to_vertices_and_edges_method('DE')
 
