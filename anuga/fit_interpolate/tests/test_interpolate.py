@@ -1797,7 +1797,7 @@ class Test_Interpolate(unittest.TestCase):
         
         # Create shallow water domain
         domain = Domain(mesh_file)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         os.remove(mesh_file)
         
         domain.default_order = 2
@@ -1821,7 +1821,6 @@ class Test_Interpolate(unittest.TestCase):
         domain.distribute_to_vertices_and_edges()
         domain.set_quantity('stage', 1.0)
 
-
         domain.set_name('datatest' + str(time.time()))
         domain.smooth = True
         domain.reduction = mean
@@ -1844,11 +1843,11 @@ class Test_Interpolate(unittest.TestCase):
                             velocity_y_file,
                             verbose=False)
 
-        depth_answers_array = [[0.0, 6.0, 1.5], [2.0, 15., 10.5]] 
-        velocity_x_answers_array = [[0.0, 3./6.0, 3./1.5],
-                                    [2.0, 3./15., 3/10.5]]
-        velocity_y_answers_array = [[0.0, 4./6.0, 4./1.5],
-                                    [2.0, 4./15., 4./10.5]]
+        depth_answers_array = [[0.0, 4.0, 3.416666667], [2.0, 13., 12.41667]] 
+        velocity_x_answers_array = [[0.0, 3./4.0, 0.87804878],
+                                    [2.0, 0.230769, 0.241611]]
+        velocity_y_answers_array = [[0.0, 1.0, 1.170732],
+                                    [2.0, 0.307692, 0.322148]]
         depth_file_handle = open(depth_file)
         depth_reader = csv.reader(depth_file_handle)
         next(depth_reader)
@@ -1861,12 +1860,16 @@ class Test_Interpolate(unittest.TestCase):
                                               depth_answers_array,
                                               velocity_x_answers_array):
             for i in range(len(depths)):
-                #print "depths",depths[i] 
-                #print "depth_answers",depth_answers[i]
-                #print "velocitys",velocitys[i] 
-                #print "velocity_answers_array", velocity_answers[i]
-                msg = 'Interpolation failed'
+                #print(i)
+                #print('depths', depths[i], 'depth_answers', depth_answers[i])
+                #print('velocitys', velocitys[i], 'velocity_answers_array', velocity_answers[i])
+                
+                msg = 'Interpolation failed. Expected %f got %f' % (depth_answers[i], 
+                                                                    float(depths[i])) 
                 assert num.allclose(float(depths[i]), depth_answers[i]), msg
+                
+                msg = 'Interpolation failed. Expected %f got %f' % (velocity_answers[i], 
+                                                                    float(velocitys[i])) 
                 assert num.allclose(float(velocitys[i]), velocity_answers[i]), msg
 
         velocity_y_file_handle = open(velocity_y_file)
@@ -1876,12 +1879,17 @@ class Test_Interpolate(unittest.TestCase):
                                               velocity_y_reader,
                                               velocity_y_answers_array):
             for i in range(len(depths)):
-                #print "depths",depths[i] 
-                #print "depth_answers",depth_answers[i]
-                #print "velocitys",velocitys[i] 
-                #print "velocity_answers_array", velocity_answers[i]
-                msg = 'Interpolation failed'
+                #print(i)
+                #print('depths', depths[i], 'depth_answers', depth_answers[i])
+                #print('velocitys', velocitys[i], 'velocity_answers_array', velocity_answers[i])            
+
+                msg = 'Interpolation failed. Expected %f got %f' % (depth_answers[i], 
+                                                                    float(depths[i])) 
+                
                 assert num.allclose(float(depths[i]), depth_answers[i]), msg
+                
+                msg = 'Interpolation failed. Expected %f got %f' % (velocity_answers[i], 
+                                                                    float(velocitys[i]))   
                 assert num.allclose(float(velocitys[i]), velocity_answers[i]), msg
                 
         # clean up

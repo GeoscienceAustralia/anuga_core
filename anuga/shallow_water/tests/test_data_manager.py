@@ -81,7 +81,7 @@ class Test_Data_Manager(Test_Mux):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.default_order = 2
 
         # Set some field values
@@ -108,6 +108,7 @@ class Test_Data_Manager(Test_Mux):
                 stage[i,:] = bed[i,:]
 
         domain.set_quantity('stage', stage)
+        domain.set_quantity('height', h)        
 
 
         domain.distribute_to_vertices_and_edges()               
@@ -390,28 +391,16 @@ class Test_Data_Manager(Test_Mux):
 
         time = fid.variables['stage-elevation.max_time'][:]
         assert num.allclose(time, 0.0) or \
-            num.allclose(time, 0.35077909)              
+            num.allclose(time, 0.39956954)              
 
         extrema = fid.variables['xmomentum.extrema'][:]
-        # Padarn Note: Had to add an extra possibility here (the final one [-0.06062178  0.47518688])
-        # to pass this assertion. Cannot see what would be causing this.
-        assert num.allclose(extrema,[-0.06062178, 0.47873023]) or \
-            num.allclose(extrema, [-0.06062178, 0.47847986]) or \
-            num.allclose(extrema, [-0.06062178, 0.47848481]) or \
-            num.allclose(extrema, [-0.06062178, 0.47763887]) or \
-            num.allclose(extrema, [-0.06062178, 0.46691909])or \
-            num.allclose(extrema, [-0.06062178, 0.47503704]) or \
-            num.allclose(extrema, [-0.06062178,  0.47518688]) or \
-            num.allclose(extrema, [-0.06062178,  0.49014235])
-
-
+        assert num.allclose(extrema, [-0.01077721, 0.1856276])
         
         extrema = fid.variables['ymomentum.extrema'][:]
-        assert num.allclose(extrema,[0.00, 0.0625786]) or \
-            num.allclose(extrema,[0.00, 0.06062178])
+        assert num.allclose(extrema, [-0.00033392, 0.04227795])
 
         time_interval = fid.variables['extrema.time_interval'][:]
-        assert num.allclose(time_interval, [0,1])
+        assert num.allclose(time_interval, [0, 1])
         
         polygon = fid.variables['extrema.polygon'][:]        
         assert num.allclose(polygon, domain.get_boundary_polygon())

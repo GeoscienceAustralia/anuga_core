@@ -183,77 +183,10 @@ class Test_system(unittest.TestCase):
         msg += "It's testing that starttime is working"
         assert num.allclose(stage[2,0], 4.85825),msg
         
-        
-
         # clean up
         os.remove(boundary_filename)
         os.remove(filename)
  
-    def test_boundary_timeII_1_5(self):
-        """
-        test_boundary_timeII(self):
-        Test that starttime can be set in the middle of a boundary condition
-        """
-        
-        boundary_starttime = 0
-        boundary_filename = self.create_sww_boundary(boundary_starttime)
-        #print "boundary_filename",boundary_filename 
-        
-        filename = tempfile.mktemp(".sww")
-        #print "filename",filename 
-        dir, base = os.path.split(filename)
-        senario_name = base[:-4]
- 
-        mesh = Mesh()
-        mesh.add_region_from_polygon([[10,10], [90,10], [90,90], [10,90]])
-        mesh.generate_mesh(verbose=False)
-        
-        domain = pmesh_to_domain_instance(mesh, anuga.Domain) 
-        domain.set_name(senario_name)                 
-        domain.set_datadir(dir)
-        domain.set_flow_algorithm('1_5')
-        domain.set_low_froude(0)
-        new_starttime = 0.
-        domain.set_starttime(new_starttime)
-
-        # Setup initial conditions
-        domain.set_quantity('elevation', 0.0) 
-        domain.set_quantity('stage', 0.0)         
-        Bf = anuga.File_boundary(boundary_filename,
-                           domain,  use_cache=False, verbose=False)
-
-
-        # Setup boundary conditions
-        domain.set_boundary({'exterior': Bf})
-        for t in domain.evolve(yieldstep = 5, finaltime = 9.0):
-            pass
-            #print domain.boundary_statistics()
-            #domain.write_time()
-            #print "domain.time", domain.time
-
-
-        # do an assertion on the time of the produced sww file
-        fid = NetCDFFile(filename, netcdf_mode_r)    #Open existing file for read
-        times = fid.variables['time'][:]
-        stage = fid.variables['stage'][:]
-        #print stage
-        #print "times", times
-        #print "fid.starttime", fid.starttime
-        assert num.allclose(fid.starttime, new_starttime)
-        fid.close()
-        
-        #print "stage[2,0]", stage[2,0]
-        msg = "This test is a bit hand crafted, based on the output file. "
-        msg += "Not logic. "
-        msg += "It's testing that starttime is working"
-        assert num.allclose(stage[2,0], 4.88601),msg
-        
-        
-
-        # clean up
-        os.remove(boundary_filename)
-        os.remove(filename)
-               
 #-------------------------------------------------------------
 
 if __name__ == "__main__":

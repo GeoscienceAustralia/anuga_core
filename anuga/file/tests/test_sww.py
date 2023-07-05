@@ -363,7 +363,7 @@ class Test_sww(unittest.TestCase):
         domain.set_name('test_get_mesh_and_quantities_from_sww_file')
         swwfile = domain.get_name() + '.sww'
         domain.set_datadir('.')
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
 
         Br = Reflective_boundary(domain)    # Side walls
         Bd = Dirichlet_boundary([1, 0, 0])  # inflow
@@ -510,7 +510,7 @@ class Test_sww(unittest.TestCase):
         domain.set_name('test_get_mesh_and_quantities_from_unique_vertices_sww_file')
         swwfile = domain.get_name() + '.sww'
         domain.set_datadir('.')
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
         domain.set_store_vertices_uniquely()
 
         Br = Reflective_boundary(domain)    # Side walls

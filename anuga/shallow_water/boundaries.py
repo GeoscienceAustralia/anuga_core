@@ -26,17 +26,7 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.config import g as gravity
      
-from .shallow_water_ext import rotate
-
-#from anuga.utilities import compile
-#if compile.can_use_C_extension('shallow_water_ext.c'):
-#    # Underlying C implementations can be accessed
-#    from shallow_water_ext import rotate
-#else:
-#    msg = 'C implementations could not be accessed by %s.\n ' % __file__
-#    msg += 'Make sure compile_all.py has been run as described in '
-#    msg += 'the ANUGA installation guide.'
-#    raise Exception, msg
+from anuga.shallow_water.swDE1_domain_ext import rotate
 
 
 class Reflective_boundary(Boundary):

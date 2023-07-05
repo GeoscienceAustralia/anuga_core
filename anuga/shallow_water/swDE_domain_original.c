@@ -6,7 +6,7 @@
 //
 // or use python compile.py
 //
-// See the module swb_domain.py for more documentation on
+// See the module shallow_water_domain.py for more documentation on
 // how to use this module
 //
 //
@@ -17,7 +17,10 @@
 
 #include "math.h"
 #include <stdio.h>
-#include <string.h> 
+#include <string.h>
+
+// Shared code snippets
+#include "util_ext.h"
 #include "sw_domain.h"
 
 const double pi = 3.14159265358979;
@@ -31,10 +34,10 @@ unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
 
 // Computational function for rotation
 int _rotate(double *q, double n1, double n2) {
-  /*Rotate the last  2 coordinates of q (q[1], q[2])
+  /*Rotate the last  2 coordinates of 3x1 array q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
 
-    Result is returned in array 2x1 r
+    Result is returned in array q
     To rotate in opposite direction, call rotate with (q, n1, -n2)
 
     Contents of q are changed by this function */
@@ -302,6 +305,8 @@ int _flux_function_central(double *q_left, double *q_right,
     The implemented formula is given in equation (3.15) on page 714
 
     FIXME: Several variables in this interface are no longer used, clean up
+
+    low_froude is either 1 or 2 - see comment inline
   */
 
   int i;
@@ -313,6 +318,25 @@ int _flux_function_central(double *q_left, double *q_right,
   double tmp, local_fr, v_right, v_left;
   // Workspace (allocate once, use many)
   static double q_left_rotated[3], q_right_rotated[3], flux_right[3], flux_left[3];
+
+  //printf("Entering _flux_function_central with h_left = %f, h_right = %f\n", h_left, h_right);
+
+//   printf("%e %e %e\n%e %e %e\n%e %e\n%e %e\n%e %e\n%e\n%e\n%e\n%e\n %e %e %e\n%e\n%e\n%e\n%e\n%ld\n", \
+//                            q_left[0], q_left[1], q_left[2], \
+//                            q_right[0], q_right[1], q_right[2], \
+//                            h_left, h_right,\
+//                            hle, hre,\
+//                            n1, n2,\
+//                            epsilon,\
+//                            ze,\
+//                            limiting_threshold,\
+//                            g,\
+//                            edgeflux[0], edgeflux[1], edgeflux[2], \
+//                            max_speed[0],\
+//                            pressure_flux[0],\
+//                            hc,\
+//                            hc_n,\
+//                            low_froude);
 
   if(h_left==0. && h_right==0.){
     // Quick exit
@@ -469,10 +493,12 @@ int _flux_function_central(double *q_left, double *q_right,
     // Separate pressure flux, so we can apply different wet-dry hacks to it
     *pressure_flux = 0.5*g*( s_max*h_left*h_left -s_min*h_right*h_right)*inverse_denominator;
 
-
     // Rotate back
     _rotate(edgeflux, n1, -n2);
   }
+
+  //printf("Pressure flux = %f, s_max = %f, s_min = %f, h_left = %f, h_right = %f\n", *pressure_flux, s_max, s_min, h_left, h_right);
+
 
   return 0;
 }
@@ -929,6 +955,8 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 }
             }
 
+            //printf("%d %d edgeflux %e %e %e \n", k,i, edgeflux[0],edgeflux[1],edgeflux[2]);
+
             // Multiply edgeflux by edgelength
             length = D->edgelengths[ki];
             edgeflux[0] *= length;
@@ -973,6 +1001,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 D->edge_flux_work[nm3 + 2 ] = edgeflux[2];
                 bedslope_work = length*(-D->g * 0.5 *( h_right*h_right - hre*hre- (hre+hc_n)*(zr-zc_n)) + pressure_flux);
                 D->pressuregrad_work[nm] = bedslope_work;
+
 
                 D->already_computed_flux[nm] = call; // #n Done
             }
@@ -1304,6 +1333,623 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   return 0;
 }
 
+
+
+// MIGRATED from shallow_water.c
+// FIXME (Ole): Maybe superseded by extrapolate_second_order_edge_sw below?
+// Computational routine
+int _extrapolate_second_order_sw(struct domain *D) {
+
+
+  // Domain Variables
+    int number_of_elements;
+    double epsilon;
+    double minimum_allowed_height;
+    double beta_w;
+    double beta_w_dry;
+    double beta_uh;
+    double beta_uh_dry;
+    double beta_vh;
+    double beta_vh_dry;
+    long* surrogate_neighbours;
+    long* number_of_boundaries;
+    double* centroid_coordinates;
+    double* stage_centroid_values;
+    double* xmom_centroid_values;
+    double* ymom_centroid_values;
+    double* bed_centroid_values;
+    double* edge_coordinates;
+    double* vertex_coordinates;
+    double* stage_edge_values;
+    double* xmom_edge_values;
+    double* ymom_edge_values;
+    double* bed_edge_values;
+    double* stage_vertex_values;
+    double* xmom_vertex_values;
+    double* ymom_vertex_values;
+    double* bed_vertex_values;
+    int optimise_dry_cells;
+    int extrapolate_velocity_second_order;
+
+    // Local variables
+    double a, b; // Gradient vector used to calculate edge values from centroids
+    int k, k0, k1, k2, k3, k6, coord_index, i;
+    double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
+    double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
+    double dqv[3], qmin, qmax, hmin, hmax;
+    double hc, h0, h1, h2, beta_tmp, hfactor;
+    //double dk, dv0, dv1, dv2, de[3], demin, dcmax, r0scale;
+    double dk, dv0, dv1, dv2;
+
+    double *xmom_centroid_store;
+    double *ymom_centroid_store;
+    //double *stage_centroid_store;
+
+
+    // Associate memory location of Domain varibles with local aliases
+    number_of_elements     = D->number_of_elements;
+    epsilon                = D->epsilon;
+    minimum_allowed_height = D->minimum_allowed_height;
+    beta_w                 = D->beta_w;
+    beta_w_dry             = D->beta_w_dry;
+    beta_uh                = D->beta_uh;
+    beta_uh_dry            = D->beta_uh_dry;
+    beta_vh                = D->beta_vh;
+    beta_vh_dry            = D->beta_vh_dry;
+    optimise_dry_cells     = D->optimise_dry_cells;
+
+    extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
+
+    surrogate_neighbours      = D->surrogate_neighbours;
+    number_of_boundaries      = D->number_of_boundaries;
+    centroid_coordinates      = D->centroid_coordinates;
+    stage_centroid_values     = D->stage_centroid_values;
+    xmom_centroid_values      = D->xmom_centroid_values;
+    ymom_centroid_values      = D->ymom_centroid_values;
+    bed_centroid_values       = D->bed_centroid_values;
+    edge_coordinates          = D->edge_coordinates;
+    vertex_coordinates        = D->vertex_coordinates;
+    stage_edge_values         = D->stage_edge_values;
+    xmom_edge_values          = D->xmom_edge_values;
+    ymom_edge_values          = D->ymom_edge_values;
+    bed_edge_values           = D->bed_edge_values;
+    stage_vertex_values       = D->stage_vertex_values;
+    xmom_vertex_values        = D->xmom_vertex_values;
+    ymom_vertex_values        = D->ymom_vertex_values;
+    bed_vertex_values         = D->bed_vertex_values;
+
+
+
+
+/*
+int _extrapolate_second_order_sw(int number_of_elements,
+        double epsilon,
+        double minimum_allowed_height,
+        double beta_w,
+        double beta_w_dry,
+        double beta_uh,
+        double beta_uh_dry,
+        double beta_vh,
+        double beta_vh_dry,
+        long* surrogate_neighbours,
+        long* number_of_boundaries,
+        double* centroid_coordinates,
+        double* stage_centroid_values,
+        double* xmom_centroid_values,
+        double* ymom_centroid_values,
+        double* elevation_centroid_values,
+        double* vertex_coordinates,
+        double* stage_vertex_values,
+        double* xmom_vertex_values,
+        double* ymom_vertex_values,
+        double* elevation_vertex_values,
+        int optimise_dry_cells,
+        int extrapolate_velocity_second_order) {
+
+
+
+    // Local variables
+    double a, b; // Gradient vector used to calculate vertex values from centroids
+    int k, k0, k1, k2, k3, k6, coord_index, i;
+    double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
+    double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
+    double dqv[3], qmin, qmax, hmin, hmax;
+    double hc, h0, h1, h2, beta_tmp, hfactor;
+    double xmom_centroid_store[number_of_elements], ymom_centroid_store[number_of_elements], dk, dv0, dv1, dv2;
+*/
+
+   // Use malloc to avoid putting these variables on the stack, which can cause
+   // segfaults in large model runs
+    xmom_centroid_store = malloc(number_of_elements*sizeof(double));
+    ymom_centroid_store = malloc(number_of_elements*sizeof(double));
+    // stage_centroid_store = malloc(number_of_elements*sizeof(double));
+
+    if (extrapolate_velocity_second_order == 1) {
+        // Replace momentum centroid with velocity centroid to allow velocity
+        // extrapolation This will be changed back at the end of the routine
+        for (k = 0; k < number_of_elements; k++) {
+
+            dk = max(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
+            xmom_centroid_store[k] = xmom_centroid_values[k];
+            xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
+
+            ymom_centroid_store[k] = ymom_centroid_values[k];
+            ymom_centroid_values[k] = ymom_centroid_values[k] / dk;
+        }
+    }
+
+    // Begin extrapolation routine
+    for (k = 0; k < number_of_elements; k++) {
+        k3 = k * 3;
+        k6 = k * 6;
+
+        if (number_of_boundaries[k] == 3) {
+            // No neighbours, set gradient on the triangle to zero
+
+            stage_vertex_values[k3] = stage_centroid_values[k];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k];
+            xmom_vertex_values[k3] = xmom_centroid_values[k];
+            xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
+            xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
+            ymom_vertex_values[k3] = ymom_centroid_values[k];
+            ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
+            ymom_vertex_values[k3 + 2] = ymom_centroid_values[k];
+
+            continue;
+        } else {
+            // Triangle k has one or more neighbours.
+            // Get centroid and vertex coordinates of the triangle
+
+            // Get the vertex coordinates
+            xv0 = vertex_coordinates[k6];
+            yv0 = vertex_coordinates[k6 + 1];
+            xv1 = vertex_coordinates[k6 + 2];
+            yv1 = vertex_coordinates[k6 + 3];
+            xv2 = vertex_coordinates[k6 + 4];
+            yv2 = vertex_coordinates[k6 + 5];
+
+            // Get the centroid coordinates
+            coord_index = 2 * k;
+            x = centroid_coordinates[coord_index];
+            y = centroid_coordinates[coord_index + 1];
+
+            // Store x- and y- differentials for the vertices of
+            // triangle k relative to the centroid
+            dxv0 = xv0 - x;
+            dxv1 = xv1 - x;
+            dxv2 = xv2 - x;
+            dyv0 = yv0 - y;
+            dyv1 = yv1 - y;
+            dyv2 = yv2 - y;
+        }
+
+
+
+
+        if (number_of_boundaries[k] <= 1) {
+            //==============================================
+            // Number of boundaries <= 1
+            //==============================================
+
+
+            // If no boundaries, auxiliary triangle is formed
+            // from the centroids of the three neighbours
+            // If one boundary, auxiliary triangle is formed
+            // from this centroid and its two neighbours
+
+            k0 = surrogate_neighbours[k3];
+            k1 = surrogate_neighbours[k3 + 1];
+            k2 = surrogate_neighbours[k3 + 2];
+
+            // Get the auxiliary triangle's vertex coordinates
+            // (really the centroids of neighbouring triangles)
+            coord_index = 2 * k0;
+            x0 = centroid_coordinates[coord_index];
+            y0 = centroid_coordinates[coord_index + 1];
+
+            coord_index = 2 * k1;
+            x1 = centroid_coordinates[coord_index];
+            y1 = centroid_coordinates[coord_index + 1];
+
+            coord_index = 2 * k2;
+            x2 = centroid_coordinates[coord_index];
+            y2 = centroid_coordinates[coord_index + 1];
+
+            // Store x- and y- differentials for the vertices
+            // of the auxiliary triangle
+            dx1 = x1 - x0;
+            dx2 = x2 - x0;
+            dy1 = y1 - y0;
+            dy2 = y2 - y0;
+
+            // Calculate 2*area of the auxiliary triangle
+            // The triangle is guaranteed to be counter-clockwise
+            area2 = dy2 * dx1 - dy1*dx2;
+
+            // If the mesh is 'weird' near the boundary,
+            // the triangle might be flat or clockwise
+            // Default to zero gradient
+            if (area2 <= 0) {
+                //printf("Error negative triangle area \n");
+                //return -1;
+
+                stage_vertex_values[k3] = stage_centroid_values[k];
+                stage_vertex_values[k3 + 1] = stage_centroid_values[k];
+                stage_vertex_values[k3 + 2] = stage_centroid_values[k];
+                xmom_vertex_values[k3] = xmom_centroid_values[k];
+                xmom_vertex_values[k3 + 1] = xmom_centroid_values[k];
+                xmom_vertex_values[k3 + 2] = xmom_centroid_values[k];
+                ymom_vertex_values[k3] = ymom_centroid_values[k];
+                ymom_vertex_values[k3 + 1] = ymom_centroid_values[k];
+                ymom_vertex_values[k3 + 2] = ymom_centroid_values[k];
+
+                continue;
+            }
+
+            // Calculate heights of neighbouring cells
+            hc = stage_centroid_values[k] - bed_centroid_values[k];
+            h0 = stage_centroid_values[k0] - bed_centroid_values[k0];
+            h1 = stage_centroid_values[k1] - bed_centroid_values[k1];
+            h2 = stage_centroid_values[k2] - bed_centroid_values[k2];
+            hmin = min(min(h0, min(h1, h2)), hc);
+            //hfactor = hc/(hc + 1.0);
+
+            hfactor = 0.0;
+            if (hmin > 0.001) {
+                hfactor = (hmin - 0.001) / (hmin + 0.004);
+            }
+
+            if (optimise_dry_cells) {
+                // Check if linear reconstruction is necessary for triangle k
+                // This check will exclude dry cells.
+
+                hmax = max(h0, max(h1, h2));
+                if (hmax < epsilon) {
+                    continue;
+                }
+            }
+
+            //-----------------------------------
+            // stage
+            //-----------------------------------
+
+            // Calculate the difference between vertex 0 of the auxiliary
+            // triangle and the centroid of triangle k
+            dq0 = stage_centroid_values[k0] - stage_centroid_values[k];
+
+            // Calculate differentials between the vertices
+            // of the auxiliary triangle (centroids of neighbouring triangles)
+            dq1 = stage_centroid_values[k1] - stage_centroid_values[k0];
+            dq2 = stage_centroid_values[k2] - stage_centroid_values[k0];
+
+            inv_area2 = 1.0 / area2;
+            // Calculate the gradient of stage on the auxiliary triangle
+            a = dy2 * dq1 - dy1*dq2;
+            a *= inv_area2;
+            b = dx1 * dq2 - dx2*dq1;
+            b *= inv_area2;
+
+            // Calculate provisional jumps in stage from the centroid
+            // of triangle k to its vertices, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now we want to find min and max of the centroid and the
+            // vertices of the auxiliary triangle and compute jumps
+            // from the centroid to the min and max
+            find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+
+            // Playing with dry wet interface
+            //hmin = qmin;
+            //beta_tmp = beta_w_dry;
+            //if (hmin>minimum_allowed_height)
+            beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
+
+            //printf("min_alled_height = %f\n",minimum_allowed_height);
+            //printf("hmin = %f\n",hmin);
+            //printf("beta_w = %f\n",beta_w);
+            //printf("beta_tmp = %f\n",beta_tmp);
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+            //for (i=0;i<3;i++)
+            stage_vertex_values[k3 + 0] = stage_centroid_values[k] + dqv[0];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+
+
+            //-----------------------------------
+            // xmomentum
+            //-----------------------------------
+
+            // Calculate the difference between vertex 0 of the auxiliary
+            // triangle and the centroid of triangle k
+            dq0 = xmom_centroid_values[k0] - xmom_centroid_values[k];
+
+            // Calculate differentials between the vertices
+            // of the auxiliary triangle
+            dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k0];
+            dq2 = xmom_centroid_values[k2] - xmom_centroid_values[k0];
+
+            // Calculate the gradient of xmom on the auxiliary triangle
+            a = dy2 * dq1 - dy1*dq2;
+            a *= inv_area2;
+            b = dx1 * dq2 - dx2*dq1;
+            b *= inv_area2;
+
+            // Calculate provisional jumps in stage from the centroid
+            // of triangle k to its vertices, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now we want to find min and max of the centroid and the
+            // vertices of the auxiliary triangle and compute jumps
+            // from the centroid to the min and max
+            find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+            //beta_tmp = beta_uh;
+            //if (hmin<minimum_allowed_height)
+            //beta_tmp = beta_uh_dry;
+            beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+            for (i = 0; i < 3; i++) {
+                xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
+            }
+
+            //-----------------------------------
+            // ymomentum
+            //-----------------------------------
+
+            // Calculate the difference between vertex 0 of the auxiliary
+            // triangle and the centroid of triangle k
+            dq0 = ymom_centroid_values[k0] - ymom_centroid_values[k];
+
+            // Calculate differentials between the vertices
+            // of the auxiliary triangle
+            dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k0];
+            dq2 = ymom_centroid_values[k2] - ymom_centroid_values[k0];
+
+            // Calculate the gradient of xmom on the auxiliary triangle
+            a = dy2 * dq1 - dy1*dq2;
+            a *= inv_area2;
+            b = dx1 * dq2 - dx2*dq1;
+            b *= inv_area2;
+
+            // Calculate provisional jumps in stage from the centroid
+            // of triangle k to its vertices, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now we want to find min and max of the centroid and the
+            // vertices of the auxiliary triangle and compute jumps
+            // from the centroid to the min and max
+            find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+
+            //beta_tmp = beta_vh;
+            //
+            //if (hmin<minimum_allowed_height)
+            //beta_tmp = beta_vh_dry;
+            beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+            for (i = 0; i < 3; i++) {
+                ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+            }
+        }// End number_of_boundaries <=1
+        else {
+
+            //==============================================
+            // Number of boundaries == 2
+            //==============================================
+
+            // One internal neighbour and gradient is in direction of the neighbour's centroid
+
+            // Find the only internal neighbour (k1?)
+            for (k2 = k3; k2 < k3 + 3; k2++) {
+                // Find internal neighbour of triangle k
+                // k2 indexes the edges of triangle k
+
+                if (surrogate_neighbours[k2] != k) {
+                    break;
+                }
+            }
+
+            if ((k2 == k3 + 3)) {
+                // If we didn't find an internal neighbour
+                return -1;
+            }
+
+            k1 = surrogate_neighbours[k2];
+
+            // The coordinates of the triangle are already (x,y).
+            // Get centroid of the neighbour (x1,y1)
+            coord_index = 2 * k1;
+            x1 = centroid_coordinates[coord_index];
+            y1 = centroid_coordinates[coord_index + 1];
+
+            // Compute x- and y- distances between the centroid of
+            // triangle k and that of its neighbour
+            dx1 = x1 - x;
+            dy1 = y1 - y;
+
+            // Set area2 as the square of the distance
+            area2 = dx1 * dx1 + dy1*dy1;
+
+            // Set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2)
+            // and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
+            // respectively correspond to the x- and y- gradients
+            // of the conserved quantities
+            dx2 = 1.0 / area2;
+            dy2 = dx2*dy1;
+            dx2 *= dx1;
+
+
+            //-----------------------------------
+            // stage
+            //-----------------------------------
+
+            // Compute differentials
+            dq1 = stage_centroid_values[k1] - stage_centroid_values[k];
+
+            // Calculate the gradient between the centroid of triangle k
+            // and that of its neighbour
+            a = dq1*dx2;
+            b = dq1*dy2;
+
+            // Calculate provisional vertex jumps, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now limit the jumps
+            if (dq1 >= 0.0) {
+                qmin = 0.0;
+                qmax = dq1;
+            } else {
+                qmin = dq1;
+                qmax = 0.0;
+            }
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_w);
+
+            //for (i=0; i < 3; i++)
+            //{
+            stage_vertex_values[k3] = stage_centroid_values[k] + dqv[0];
+            stage_vertex_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
+            stage_vertex_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+            //}
+
+            //-----------------------------------
+            // xmomentum
+            //-----------------------------------
+
+            // Compute differentials
+            dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k];
+
+            // Calculate the gradient between the centroid of triangle k
+            // and that of its neighbour
+            a = dq1*dx2;
+            b = dq1*dy2;
+
+            // Calculate provisional vertex jumps, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now limit the jumps
+            if (dq1 >= 0.0) {
+                qmin = 0.0;
+                qmax = dq1;
+            } else {
+                qmin = dq1;
+                qmax = 0.0;
+            }
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_w);
+
+            //for (i=0;i<3;i++)
+            //xmom_vertex_values[k3] = xmom_centroid_values[k] + dqv[0];
+            //xmom_vertex_values[k3 + 1] = xmom_centroid_values[k] + dqv[1];
+            //xmom_vertex_values[k3 + 2] = xmom_centroid_values[k] + dqv[2];
+
+            for (i = 0; i < 3; i++) {
+                xmom_vertex_values[k3 + i] = xmom_centroid_values[k] + dqv[i];
+            }
+
+            //-----------------------------------
+            // ymomentum
+            //-----------------------------------
+
+            // Compute differentials
+            dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k];
+
+            // Calculate the gradient between the centroid of triangle k
+            // and that of its neighbour
+            a = dq1*dx2;
+            b = dq1*dy2;
+
+            // Calculate provisional vertex jumps, to be limited
+            dqv[0] = a * dxv0 + b*dyv0;
+            dqv[1] = a * dxv1 + b*dyv1;
+            dqv[2] = a * dxv2 + b*dyv2;
+
+            // Now limit the jumps
+            if (dq1 >= 0.0) {
+                qmin = 0.0;
+                qmax = dq1;
+            }
+            else {
+                qmin = dq1;
+                qmax = 0.0;
+            }
+
+            // Limit the gradient
+            limit_gradient(dqv, qmin, qmax, beta_w);
+
+            //for (i=0;i<3;i++)
+            //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
+            //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
+            //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
+
+            for (i = 0; i < 3; i++) {
+                ymom_vertex_values[k3 + i] = ymom_centroid_values[k] + dqv[i];
+            }
+            //ymom_vertex_values[k3] = ymom_centroid_values[k] + dqv[0];
+            //ymom_vertex_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
+            //ymom_vertex_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
+        } // else [number_of_boundaries==2]
+
+
+
+
+    } // for k=0 to number_of_elements-1
+
+    if (extrapolate_velocity_second_order == 1) {
+        // Convert back from velocity to momentum
+        for (k = 0; k < number_of_elements; k++) {
+            k3 = 3 * k;
+            //dv0 = max(stage_vertex_values[k3]-bed_vertex_values[k3],minimum_allowed_height);
+            //dv1 = max(stage_vertex_values[k3+1]-bed_vertex_values[k3+1],minimum_allowed_height);
+            //dv2 = max(stage_vertex_values[k3+2]-bed_vertex_values[k3+2],minimum_allowed_height);
+            dv0 = max(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
+            dv1 = max(stage_vertex_values[k3 + 1] - bed_vertex_values[k3 + 1], 0.);
+            dv2 = max(stage_vertex_values[k3 + 2] - bed_vertex_values[k3 + 2], 0.);
+
+            //Correct centroid and vertex values
+            xmom_centroid_values[k] = xmom_centroid_store[k];
+            xmom_vertex_values[k3] = xmom_vertex_values[k3] * dv0;
+            xmom_vertex_values[k3 + 1] = xmom_vertex_values[k3 + 1] * dv1;
+            xmom_vertex_values[k3 + 2] = xmom_vertex_values[k3 + 2] * dv2;
+
+            ymom_centroid_values[k] = ymom_centroid_store[k];
+            ymom_vertex_values[k3] = ymom_vertex_values[k3] * dv0;
+            ymom_vertex_values[k3 + 1] = ymom_vertex_values[k3 + 1] * dv1;
+            ymom_vertex_values[k3 + 2] = ymom_vertex_values[k3 + 2] * dv2;
+
+        }
+    }
+
+
+    free(xmom_centroid_store);
+    free(ymom_centroid_store);
+    //free(stage_centroid_store);
+
+
+    return 0;
+}
+
+
+
 // Computational routine
 //int _extrapolate_second_order_edge_sw(int number_of_elements,
 //                                 double epsilon,
@@ -1339,7 +1985,7 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 //                                 double* x_centroid_work,
 //                                 double* y_centroid_work,
 //                                 long* update_extrapolation) {
-int _extrapolate_second_order_edge_sw(struct domain *D){
+int _extrapolate_second_order_edge_sw(struct domain *D) {
 
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
@@ -2022,4 +2668,213 @@ int _extrapolate_second_order_edge_sw(struct domain *D){
   }
 
   return 0;
+}
+
+
+
+int _gravity(struct domain *D) {
+
+    int k, N, k3, k6;
+    double g, avg_h, zx, zy;
+    double x0, y0, x1, y1, x2, y2, z0, z1, z2;
+
+    g = D->g;
+    N = D->number_of_elements;
+
+    for (k = 0; k < N; k++) {
+        k3 = 3 * k; // base index
+
+        // Get bathymetry
+        z0 = (D->bed_vertex_values)[k3 + 0];
+        z1 = (D->bed_vertex_values)[k3 + 1];
+        z2 = (D->bed_vertex_values)[k3 + 2];
+
+        //printf("z0 %g, z1 %g, z2 %g \n",z0,z1,z2);
+
+        // Get average depth from centroid values
+        avg_h = (D->stage_centroid_values)[k] - (D->bed_centroid_values)[k];
+
+        //printf("avg_h  %g \n",avg_h);
+        // Compute bed slope
+        k6 = 6 * k; // base index
+
+        x0 = (D->vertex_coordinates)[k6 + 0];
+        y0 = (D->vertex_coordinates)[k6 + 1];
+        x1 = (D->vertex_coordinates)[k6 + 2];
+        y1 = (D->vertex_coordinates)[k6 + 3];
+        x2 = (D->vertex_coordinates)[k6 + 4];
+        y2 = (D->vertex_coordinates)[k6 + 5];
+
+        //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+        _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+        //printf("zx %g, zy %g \n",zx,zy);
+
+        // Update momentum
+        (D->xmom_explicit_update)[k] += -g * zx*avg_h;
+        (D->ymom_explicit_update)[k] += -g * zy*avg_h;
+    }
+    return 0;
+}
+
+int _gravity_wb(struct domain *D) {
+
+    int i, k, N, k3, k6;
+    double g, avg_h, wx, wy, fact;
+    double x0, y0, x1, y1, x2, y2;
+    double hh[3];
+    double w0, w1, w2;
+    double sidex, sidey, area;
+    double n0, n1;
+
+    g = D->g;
+
+    N = D->number_of_elements;
+    for (k = 0; k < N; k++) {
+        k3 = 3 * k; // base index
+
+        //------------------------------------
+        // Calculate side terms -ghw_x term
+        //------------------------------------
+
+        // Get vertex stage values for gradient calculation
+        w0 = (D->stage_vertex_values)[k3 + 0];
+        w1 = (D->stage_vertex_values)[k3 + 1];
+        w2 = (D->stage_vertex_values)[k3 + 2];
+
+        // Compute stage slope
+        k6 = 6 * k; // base index
+
+        x0 = (D->vertex_coordinates)[k6 + 0];
+        y0 = (D->vertex_coordinates)[k6 + 1];
+        x1 = (D->vertex_coordinates)[k6 + 2];
+        y1 = (D->vertex_coordinates)[k6 + 3];
+        x2 = (D->vertex_coordinates)[k6 + 4];
+        y2 = (D->vertex_coordinates)[k6 + 5];
+
+        //printf("x0 %g, y0 %g, x1 %g, y1 %g, x2 %g, y2 %g \n",x0,y0,x1,y1,x2,y2);
+        _gradient(x0, y0, x1, y1, x2, y2, w0, w1, w2, &wx, &wy);
+
+        avg_h = (D->stage_centroid_values)[k] - (D->bed_centroid_values)[k];
+
+        // Update using -ghw_x term
+        (D->xmom_explicit_update)[k] += -g * wx*avg_h;
+        (D->ymom_explicit_update)[k] += -g * wy*avg_h;
+
+        //------------------------------------
+        // Calculate side terms \sum_i 0.5 g l_i h_i^2 n_i
+        //------------------------------------
+
+        // Getself.stage_c = self.domain.quantities['stage'].centroid_values edge depths
+        hh[0] = (D->stage_edge_values)[k3 + 0] - (D->bed_edge_values)[k3 + 0];
+        hh[1] = (D->stage_edge_values)[k3 + 1] - (D->bed_edge_values)[k3 + 1];
+        hh[2] = (D->stage_edge_values)[k3 + 2] - (D->bed_edge_values)[k3 + 2];
+
+
+        //printf("h0,1,2 %f %f %f\n",hh[0],hh[1],hh[2]);
+
+        // Calculate the side correction term
+        sidex = 0.0;
+        sidey = 0.0;
+        for (i = 0; i < 3; i++) {
+            n0 = (D->normals)[k6 + 2 * i];
+            n1 = (D->normals)[k6 + 2 * i + 1];
+
+            //printf("n0, n1 %i %g %g\n",i,n0,n1);
+            fact = -0.5 * g * hh[i] * hh[i] * (D->edgelengths)[k3 + i];
+            sidex = sidex + fact*n0;
+            sidey = sidey + fact*n1;
+        }
+
+        // Update momentum with side terms
+        area = (D->areas)[k];
+        (D->xmom_explicit_update)[k] += -sidex / area;
+        (D->ymom_explicit_update)[k] += -sidey / area;
+
+    }
+    return 0;
+}
+
+
+void _manning_friction_flat(double g, double eps, int N,
+        double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom, double* ymom) {
+
+    int k, k3;
+    double S, h, z, z0, z1, z2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    for (k = 0; k < N; k++) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom[k] += S * uh[k];
+                ymom[k] += S * vh[k];
+            }
+        }
+    }
+}
+
+void _manning_friction_sloped(double g, double eps, int N,
+        double* x, double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom_update, double* ymom_update) {
+
+    int k, k3, k6;
+    double S, h, z, z0, z1, z2, zs, zx, zy;
+    double x0, y0, x1, y1, x2, y2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    for (k = 0; k < N; k++) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+
+            // Compute bed slope
+            k6 = 6 * k; // base index
+
+            x0 = x[k6 + 0];
+            y0 = x[k6 + 1];
+            x1 = x[k6 + 2];
+            y1 = x[k6 + 3];
+            x2 = x[k6 + 4];
+            y2 = x[k6 + 5];
+
+            _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+            zs = sqrt(1.0 + zx * zx + zy * zy);
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * zs * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom_update[k] += S * uh[k];
+                ymom_update[k] += S * vh[k];
+            }
+        }
+    }
 }
