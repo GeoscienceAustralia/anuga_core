@@ -87,7 +87,9 @@ cdef extern from "swDE_domain_cuda.c" nogil:
 	struct edge:
 		pass
 
-	double _cuda_compute_fluxes_central(domain* D, double timestep)
+	double _cuda_compute_fluxes_central(double* timestep_array,
+		                                double* boundary_flux_sum_array,
+										domain* D, double timestep)
 	double _cuda_protect(domain* D)
 	int _cuda_extrapolate_second_order_edge_sw(domain* D)
 	int _cuda_fix_negative_cells(domain* D)
@@ -349,8 +351,14 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
 
-	with nogil:
-		timestep =  _cuda_compute_fluxes_central(&D, timestep)
+	# with nogil:
+	# 	timestep =  _cuda_compute_fluxes_central(&D, timestep)
+
+	cdef np.ndarray[np.float64_t] timestep_k_array = np.zeros((domain_object.number_of_elements,), dtype=np.float64)
+	cdef np.ndarray[np.float64_t] boundary_flux_sum_k_array = np.zeros((domain_object.number_of_elements,), dtype=np.float64)
+
+	timestep =  _cuda_compute_fluxes_central(&timestep_k_array[0], &boundary_flux_sum_k_array[0],
+											 &D, timestep)
 
 	return timestep
 

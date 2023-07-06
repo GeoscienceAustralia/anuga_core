@@ -129,7 +129,9 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
   if (h_left == 0. && h_right == 0.)
   {
     // Quick exit
-    memset(edgeflux, 0, 3 * sizeof(double));
+    edgeflux[0]=0.0;
+    edgeflux[1]=0.0;
+    edgeflux[2]=0.0;
     *max_speed = 0.0;
     *pressure_flux = 0.;
     return;
@@ -312,7 +314,9 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
   double rwRat, hdRat, hdWrRat, scaleFlux, minhd, maxhd;
   double w1, w2; // Weights for averaging
   double newFlux;
-  double twothirds = (2.0 / 3.0);
+  double two = 2.0;
+  double three = 3.0;
+  double twothirds = (two / three);
   // Following constants control the 'blending' with the shallow water solution
   // They are now user-defined
   // double s1=0.9; // At this submergence ratio, begin blending with shallow water solution
@@ -403,34 +407,30 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
 
 // FIXME SR: At present reduction is done outside kernel
 __device__ double atomicMin_double(double* address, double val)
-
 {
+  unsigned long long int* address_as_ull = (unsigned long long int*) address;
+  unsigned long long int old = *address_as_ull, assumed;
 
-	    unsigned long long int* address_as_ull = (unsigned long long int*) address;
+	do {
+    assumed = old;
+		old = atomicCAS(address_as_ull, assumed, __double_as_longlong(fmin(val, __longlong_as_double(assumed))));
+		} while (assumed != old);
 
-	        unsigned long long int old = *address_as_ull, assumed;
-
-		    do {
-
-	                      assumed = old;
-			      old = atomicCAS(address_as_ull, assumed,
-							                __double_as_longlong(fmin(val, __longlong_as_double(assumed))));
-					        } while (assumed != old);
-
-		        return __longlong_as_double(old);
-
+	return __longlong_as_double(old);
 }
+
+
 // Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
+__global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,    // InOut
                                     double* boundary_flux_sum_k_array, // InOut
-                                    double* max_speed,               // InOut
-                                    double* stage_explicit_update,   // InOut
-                                    double* xmom_explicit_update,    // InOut
-                                    double* ymom_explicit_update,    // InOut
+                                    double* max_speed,                 // InOut
+                                    double* stage_explicit_update,     // InOut
+                                    double* xmom_explicit_update,      // InOut
+                                    double* ymom_explicit_update,      // InOut
 
-                                    double* stage_centroid_values,
+                                    double* stage_centroid_values,     // Rest In
                                     double* stage_edge_values,
                                     double* xmom_edge_values,
                                     double* ymom_edge_values,
@@ -445,26 +445,23 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
                                     double* normals,
                                     double* edgelengths,
                                     double* radii,
-                                    long* tri_full_flag,
-                                    long* neighbours,
-                                    long* neighbour_edges,
-                                    long* edge_flux_type,
-                                    long* edge_river_wall_counter,
+                                    long*   tri_full_flag,
+                                    long*   neighbours,
+                                    long*   neighbour_edges,
+                                    long*   edge_flux_type,
+                                    long*   edge_river_wall_counter,
                                     double* riverwall_elevation,
-                                    long* riverwall_rowIndex,
+                                    long*   riverwall_rowIndex,
                                     double* riverwall_hydraulic_properties,
 
-                                    long number_of_elements,
-                                    long substep_count,
-                                    long ncol_riverwall_hydraulic_properties,
+                                    long   number_of_elements,
+                                    long   substep_count,
+                                    long   ncol_riverwall_hydraulic_properties,
                                     double epsilon,
                                     double g,
-                                    long low_froude,
+                                    long   low_froude,
                                     double limiting_threshold)
 {
-  // #pragma omp parallel for simd default(none) shared(D, substep_count, ) \
-
-
   long k, i, ki, ki2, n, m, nm, ii;
   long RiverWall_count;
   double max_speed_local, length, inv_area, zl, zr;
@@ -474,28 +471,33 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
   double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2, pressure_flux, hc, hc_n;
   double h_left_tmp, h_right_tmp, weir_height;
 
-  // Set explicit_update to zero for all conserved_quantities.
-  // This assumes compute_fluxes called before forcing terms
-  double local_stage_explicit_update = 0.0;
-  double local_xmom_explicit_update  = 0.0;
-  double local_ymom_explicit_update  = 0.0;
+  double local_stage_explicit_update;
+  double local_xmom_explicit_update;
+  double local_ymom_explicit_update;
 
-  double local_max_speed = 0.0;
-  double local_timestep = 1.0e+100;
-  double local_boundary_flux_sum = 0.0;
-  double speed_max_last = 0.0;
-
+  double local_timestep;
+  double local_boundary_flux_sum;
+  double speed_max_last;
 
   //for (k = 0; k < number_of_elements; k++)
   k = blockIdx.x * blockDim.x + threadIdx.x; 
-  if(k<number_of_elements)
+  if(k < number_of_elements)
   {
+    // Set explicit_update to zero for all conserved_quantities.
+    // This assumes compute_fluxes called before forcing terms
+    local_stage_explicit_update = 0.0;
+    local_xmom_explicit_update  = 0.0;
+    local_ymom_explicit_update  = 0.0;
+
+    local_timestep = 1.0e+100;
+    local_boundary_flux_sum = 0.0;
+    speed_max_last = 0.0;
 
     // Loop through neighbours and compute edge flux for each
     for (i = 0; i < 3; i++)
     {
-      ki = 3 * k + i; // Linear index to edge i of triangle k
-      ki2 = 2 * ki;   // k*6 + i*2
+      ki = 3*k+i; // Linear index to edge i of triangle k
+      ki2 = 2*ki; // k*6 + i*2
 
       // Get left hand side values from triangle k, edge i
       ql[0] = stage_edge_values[ki];
@@ -535,8 +537,8 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
         qr[0] = stage_edge_values[nm];
         qr[1] = xmom_edge_values[nm];
         qr[2] = ymom_edge_values[nm];
-        zr = bed_edge_values[nm];
-        hre = height_edge_values[nm];
+        zr    = bed_edge_values[nm];
+        hre   = height_edge_values[nm];
       }
 
       // Audusse magic for well balancing
@@ -654,8 +656,8 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
       }
 
       local_stage_explicit_update = local_stage_explicit_update + edgeflux[0];
-      local_xmom_explicit_update  = local_xmom_explicit_update + edgeflux[1];
-      local_ymom_explicit_update  = local_ymom_explicit_update + edgeflux[2];
+      local_xmom_explicit_update  = local_xmom_explicit_update  + edgeflux[1];
+      local_ymom_explicit_update  = local_ymom_explicit_update  + edgeflux[2];
 
       // If this cell is not a ghost, and the neighbour is a
       // boundary condition OR a ghost cell, then add the flux to the
@@ -665,7 +667,7 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
         // boundary_flux_sum is an array with length = timestep_fluxcalls
         // For each sub-step, we put the boundary flux sum in.
         //boundary_flux_sum[substep_count] += edgeflux[0];
-        local_boundary_flux_sum += edgeflux[0];
+        local_boundary_flux_sum = local_boundary_flux_sum + edgeflux[0];
         
 	      //atomicAdd((boundary_flux_sum+substep_count), edgeflux[0]);
 
@@ -676,8 +678,8 @@ __global__ void _cuda_compute_fluxes_loop_1(double* timestep_k_array,  // InOut
         
       }
 
-      local_xmom_explicit_update -= normals[ki2] * pressuregrad_work;
-      local_ymom_explicit_update -= normals[ki2 + 1] * pressuregrad_work;
+      local_xmom_explicit_update = local_xmom_explicit_update - normals[ki2] * pressuregrad_work;
+      local_ymom_explicit_update = local_ymom_explicit_update - normals[ki2 + 1] * pressuregrad_work;
 
     } // End edge i (and neighbour n)
 
