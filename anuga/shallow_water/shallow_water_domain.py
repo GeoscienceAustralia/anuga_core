@@ -1960,7 +1960,8 @@ class Domain(Generic_Domain):
             # Do extrapolation step
             nvtxRangePush('extrapolate')
             if self.multiprocessor_mode == 0:
-                from .swDE_domain_original_ext import extrapolate_second_order_edge_sw as extrapol2
+                #from .swDE_domain_original_ext import extrapolate_second_order_edge_sw as extrapol2
+                from .swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 1:
                 from .swDE_domain_base_ext import extrapolate_second_order_edge_sw as extrapol2
             elif self.multiprocessor_mode == 2:
@@ -2807,7 +2808,8 @@ class Domain(Generic_Domain):
 
         nvtxRangePush('compute_flux_update_frequenc')
         if self.multiprocessor_mode == 0:
-            from .swDE_domain_original_ext import compute_flux_update_frequency
+            #from .swDE_domain_original_ext import compute_flux_update_frequency
+            from .swDE1_domain_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 1:
             from .swDE_domain_base_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 2:
