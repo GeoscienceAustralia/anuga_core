@@ -145,7 +145,8 @@ Install ANUGA from source (e.g. as a developer) using MiniForge (Ubuntu)
 ------------------------------------------------------------------------
 
 If you want to use the very latest version of ANUGA (or develop ANUGA code) then you need
-to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source.
+to download the `anuga_core` repository from `github` and then `pip` install ANUGA from the source. These steps will require that the following packages are installed: git, pip, conda (via miniforge described at the beginning of this document).
+
 
 First install the latest version of `Miniforge` as described in section `Install MiniForge`_.
 
@@ -156,6 +157,14 @@ Now we need to download the ANUGA source code from `github`
     git clone https://github.com/anuga-community/anuga_core.git
 
 This creates a directory `anuga_core`.
+
+.. note::
+
+    If you want to also contribute to the code base, you must have a GitHub account and setup authentication from your developer workstation to GitHub as per these instructions:        https://docs.github.com/en/authentication/managing-commit-signature-verification. The command to clone ANUGA as a developer is then 
+
+    .. code-block:: bash
+
+        git clone git@github.com:anuga-community/anuga_core.git
 
 Now create and activate a `conda` environment with ANUGA's current dependencies as 
 defined in the file `environment.yml`
@@ -174,6 +183,18 @@ and finally install ANUGA. Do a standard `pip` install
 
 .. note::
 
+    If you intend to develop ANUGA code then you should install ANUGA to be "editable". I.e.:
+
+    .. code-block:: bash
+
+        pip install -e .
+
+    In this case the installation is "inplace" and "editable". You will be able to change and 
+    develop code in the `anuga_core` directories. Note that if you change any `cython` or `C` 
+    code you will need to run `pip install -e .` again for your changes to take effect.
+
+.. note::
+
     You may need to install a compiler to complete the `pip install`. 
     You can use the system compilers or use `conda` to install compilers as such (for Linux and OSX):
 
@@ -186,32 +207,13 @@ and finally install ANUGA. Do a standard `pip` install
     .. code-block:: bash
 
         conda install m2w64-gcc libpython 
-
+ 
 
 Finally it is sensible to test the installation.
 
 .. code-block:: bash
 
-    pytest --pyargs anuga
-
-
-.. note::
-
-    If you intend to develop ANUGA code then you should install ANUGA to be "editable". I.e.:
-
-    .. code-block:: bash
-
-        pip install -e .
-
-    In this case the installation is "inplace" and "editable". You will be able to change and 
-    develop code in the `anuga_core` directories. Note that if you change any `cython` or `C` 
-    code you will need to run `pip install -e .` again for your changes to take effect.
-
-    Be sure to test your installation via:
-
-    .. code-block:: bash
-
-        pytest --pyargs anuga
+    pytest --pyargs anuga
 
 
 Updating

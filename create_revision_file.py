@@ -22,7 +22,7 @@ with open('setup.py') as infile:
     for line in infile:
         match = re.match(r'VERSION =', line)
         if match != None:
-            VERSION = re.findall('\d.\d.\d',line)[0]
+            VERSION = re.findall('\d.\d.\ddev|\d.\d.\d',line)[0]
 
 
 destination_path='anuga'
