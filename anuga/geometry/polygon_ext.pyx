@@ -90,7 +90,7 @@ def _separate_points_by_polygon(np.ndarray[double, ndim=2, mode="c"] points not 
     N = polygon.shape[0]
 
     if verbose:
-        print "Got %d points and %d polygon vertices" % (M,N)
+        print ("Got %d points and %d polygon vertices") % (M,N)
 
     count = __separate_points_by_polygon(M, N, &points[0,0], &polygon[0,0], &indices[0], closed, verbose)
 
