@@ -80,8 +80,8 @@ def read_mux2(int numSrc,\
   
   if start_tstep > nt or finish_tstep < 0:
     print ("ERROR: Gauge data has incorrect start and finish times:")
-    print ("   start_tstep = %d, max_number_of_steps = %d") % (start_tstep, nt)
-    print ("   finish_tstep = %d, min_number_of_steps = %d") % (finish_tstep, 0)
+    print ("   start_tstep = %d, max_number_of_steps = %d" % (start_tstep, nt))
+    print ("   finish_tstep = %d, min_number_of_steps = %d" % (finish_tstep, 0))
 
     assert start_tstep <= nt and finish_tstep >= 0, "Incorrect start and finish times"
 
