@@ -902,7 +902,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         indices = domain.get_wet_elements()
         z = domain.get_quantity('elevation').\
                 get_values(location='centroids', indices=indices)
-        assert num.alltrue(z < initial_runup_height)
+        assert num.all(z < initial_runup_height)
 
         q_ref = domain.get_maximum_inundation_elevation(minimum_height=minimum_storable_height)
         # First order accuracy
@@ -983,7 +983,7 @@ class Test_sww_Interrogate(unittest.TestCase):
                 get_values(location='centroids', indices=indices)
 
 
-        assert num.alltrue(z < final_runup_height+1.0/N)
+        assert num.all(z < final_runup_height+1.0/N)
 
         q = domain.get_maximum_inundation_elevation()
         # First order accuracy

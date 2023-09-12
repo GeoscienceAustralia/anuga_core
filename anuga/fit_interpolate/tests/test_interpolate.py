@@ -1480,8 +1480,8 @@ class Test_Interpolate(unittest.TestCase):
                                    verbose = False)
         
         
-        assert num.alltrue(I.precomputed_values['Attribute'][:,4] != NAN)
-        assert num.sometrue(I.precomputed_values['Attribute'][:,5] == NAN)
+        assert num.all(I.precomputed_values['Attribute'][:,4] != NAN)
+        assert num.any(I.precomputed_values['Attribute'][:,5] == NAN)
 
         #X = I.precomputed_values['Attribute'][1,:]
         #print X

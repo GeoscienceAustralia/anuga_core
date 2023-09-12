@@ -1549,7 +1549,7 @@ def compare(A, B, ids=None):
             
     elif isinstance(A, num.ndarray):
         # Use element by element comparison
-        identical = num.alltrue(A==B)
+        identical = num.all(A==B)
 
     #elif type(A) == types.InstanceType:
     elif type(A) is type:

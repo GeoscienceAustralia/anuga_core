@@ -599,7 +599,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
 
             msg = 'time_interval %s did not include any model timesteps.' \
                   % time_interval
-            assert not num.alltrue(timesteps == 0), msg
+            assert not num.all(timesteps == 0), msg
         else:
             # Take them all
             timesteps = all_timeindices
@@ -637,7 +637,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                 #print max(wet_elevation)
 
 
-            if num.alltrue(wet_nodes == 0):
+            if num.all(wet_nodes == 0):
                 runup = None
             else:
                 # Find maximum elevation among wet nodes

@@ -181,7 +181,7 @@ def timefile2netcdf(file_text, file_out = None, quantity_names=None, \
 
     msg = 'File %s must list time as a monotonuosly ' % file_text
     msg += 'increasing sequence'
-    assert num.alltrue(T[1:] - T[:-1] > 0), msg
+    assert num.all(T[1:] - T[:-1] > 0), msg
 
     #Create NetCDF file
     fid = NetCDFFile(file_out, netcdf_mode_w)

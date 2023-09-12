@@ -1086,8 +1086,8 @@ class Barometric_pressure_fast(object):
             self.prev_pressure_vertex_values=num.empty(N,float)
             self.next_pressure_vertex_values=num.empty(N,float)
             for i in range(N):
-                self.prev_pressure_vertex_values[i]=self.pressure(self.file_time[self.index],i)
-                self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i)
+                self.prev_pressure_vertex_values[i]=self.pressure(self.file_time[self.index],i)[0]
+                self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i)[0]
 
         self.p_vec=num.empty(N,float)
 
@@ -1135,7 +1135,7 @@ class Barometric_pressure_fast(object):
             self.index+=1
             self.prev_pressure_vertex_values=copy(self.next_pressure_vertex_values)
             for i in range(self.prev_pressure_vertex_values.shape[0]):
-                self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i) 
+                self.next_pressure_vertex_values[i]=self.pressure(self.file_time[self.index+1],i)[0] 
 
 
 class Wind_stress_fast(object):

@@ -235,7 +235,13 @@ def generate_mesh(points=None,
             in_tri.number_of_point_attributes = pointatts.shape[1]
             in_tri.point_attributes.setup()
             for i, pointatt in enumerate(pointatts):
-                in_tri.point_attributes[i] = pointatt
+                # meshpy seems to act differently for scalar atts and vector atts
+                if pointatts.shape[1] == 1:
+                    in_tri.point_attributes[i] = pointatt[0]
+                else:
+                    in_tri.point_attributes[i] = pointatt
+
+                
 
 
         if verbose:

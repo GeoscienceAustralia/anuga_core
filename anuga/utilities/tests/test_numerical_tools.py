@@ -97,7 +97,7 @@ class Test_Numerical_Tools(unittest.TestCase):
         B = ensure_numeric(A)
         assert isinstance(B, num.ndarray)
         assert B.dtype.char == 'l'
-        assert num.alltrue(A == B)
+        assert num.all(A == B)
         assert A is B  # Same object
 
         # check default num.array type, which is supposed to be num.int32
@@ -111,16 +111,16 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert isinstance(B, num.ndarray)
         assert A.dtype.char == 'l'
         assert B.dtype.char == 'd'
-        assert num.alltrue(A == B)
+        assert num.all(A == B)
         assert A is not B   # Not the same object
 
         # Check scalars
         A = 1
         B = ensure_numeric(A, float)
-        assert num.alltrue(A == B)
+        assert num.all(A == B)
 
         B = ensure_numeric(A, int)
-        assert num.alltrue(A == B)
+        assert num.all(A == B)
 
 #        # try to simulate getting (x,0) shape
 #        data_points = [[ 413634. ],]

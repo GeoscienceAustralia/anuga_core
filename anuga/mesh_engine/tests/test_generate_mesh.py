@@ -44,11 +44,11 @@ class triangTestCase(unittest.TestCase):
                              pointattlist, segattlist, mode, points)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat ==
+        self.assertTrue(num.all(data['generatedtrianglelist'].flat ==
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat ==
+        self.assertTrue(num.all(data['generatedsegmentlist'].flat ==
                                     correct.flat),
                         'segmentlist is wrong!')
 
@@ -75,11 +75,11 @@ class triangTestCase(unittest.TestCase):
         data = generate_mesh(points, seglist, holelist, regionlist,
                              pointattlist, segattlist, mode, points)
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat ==
+        self.assertTrue(num.all(data['generatedtrianglelist'].flat ==
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat ==
+        self.assertTrue(num.all(data['generatedsegmentlist'].flat ==
                                     correct.flat),
                         'segmentlist is wrong!')
 
@@ -154,11 +154,11 @@ class triangTestCase(unittest.TestCase):
                              pointattlist, segattlist, mode, points)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat ==
+        self.assertTrue(num.all(data['generatedtrianglelist'].flat ==
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat ==
+        self.assertTrue(num.all(data['generatedsegmentlist'].flat ==
                                     correct.flat),
                         'segmentlist is wrong!')
 
@@ -168,7 +168,7 @@ class triangTestCase(unittest.TestCase):
                                      correct.flat),
                         'Failed')
 
-        self.assertTrue(num.alltrue(data['generatedsegmentmarkerlist'] ==
+        self.assertTrue(num.all(data['generatedsegmentmarkerlist'] ==
                                     num.array([1, 2, 3, 4])),
                         'Failed!')
 
@@ -386,11 +386,11 @@ class triangTestCase(unittest.TestCase):
         #print("data", data)
 
         correct = num.array([(1, 0, 2), (2, 3, 1)])
-        self.assertTrue(num.alltrue(data['generatedtrianglelist'].flat ==
+        self.assertTrue(num.all(data['generatedtrianglelist'].flat ==
                                     correct.flat),
                         'trianglelist is wrong!')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat ==
+        self.assertTrue(num.all(data['generatedsegmentlist'].flat ==
                                     correct.flat),
                         'segmentlist is wrong!')
 
@@ -405,7 +405,7 @@ class triangTestCase(unittest.TestCase):
                                      correct.flat),
                         'Failed')
         correct = num.array([(0, 1), (1, 3), (3, 2), (2, 0)])
-        self.assertTrue(num.alltrue(data['generatedsegmentlist'].flat ==
+        self.assertTrue(num.all(data['generatedsegmentlist'].flat ==
                                     correct.flat),
                         'Failed!')
 
@@ -416,7 +416,7 @@ class triangTestCase(unittest.TestCase):
 
         # I copied these answers from the output, so bad test..
         correct = num.array([(-1, 1, -1), (-1, 0, -1)])
-        self.assertTrue(num.alltrue(data['generatedtriangleneighborlist'].flat ==
+        self.assertTrue(num.all(data['generatedtriangleneighborlist'].flat ==
                                     correct.flat),
                         'Failed!')
 

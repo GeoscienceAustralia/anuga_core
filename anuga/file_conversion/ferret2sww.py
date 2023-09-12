@@ -189,7 +189,7 @@ def ferret2sww(basename_in, name_out=None,
 
     # Cleanup
     missing = (amplitudes == nan_ha)
-    if num.sometrue (missing):
+    if num.any (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ha.nc'
@@ -198,7 +198,7 @@ def ferret2sww(basename_in, name_out=None,
             amplitudes = amplitudes*(missing==0) + missing*NaN_filler
 
     missing = (uspeed == nan_ua)
-    if num.sometrue (missing):
+    if num.any (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_ua.nc'
@@ -207,7 +207,7 @@ def ferret2sww(basename_in, name_out=None,
             uspeed = uspeed*(missing==0) + missing*NaN_filler
 
     missing = (vspeed == nan_va)
-    if num.sometrue (missing):
+    if num.any (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_va.nc'
@@ -216,7 +216,7 @@ def ferret2sww(basename_in, name_out=None,
             vspeed = vspeed*(missing==0) + missing*NaN_filler
 
     missing = (elevations == nan_e)
-    if num.sometrue (missing):
+    if num.any (missing):
         if fail_on_NaN:
             msg = 'NetCDFFile %s contains missing values' \
                   % basename_in + '_e.nc'
