@@ -2106,7 +2106,7 @@ class Test_Urs2Sts(Test_Mux):
         
             time_vec = Bf.F.get_time()
             assert num.allclose(Bf.F.starttime, starttime)            
-            assert num.alltrue(time_vec < time_limit)
+            assert num.all(time_vec < time_limit)
             
             
         try:    

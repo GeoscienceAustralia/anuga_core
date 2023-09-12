@@ -41,7 +41,7 @@ class Test_Domain(unittest.TestCase):
             assert name in domain.quantities
 
 
-        assert num.alltrue(domain.get_conserved_quantities(0, edge=1) == 0.)
+        assert num.all(domain.get_conserved_quantities(0, edge=1) == 0.)
 
 
 #-------------------------------------------------------------

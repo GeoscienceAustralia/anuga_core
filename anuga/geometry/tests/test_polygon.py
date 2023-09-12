@@ -781,23 +781,23 @@ class Test_Polygon(unittest.TestCase):
 
         points = [(1., 0.25), (1., 0.75)]
         inside, outside = in_and_outside_polygon(points, polygon, closed=True)
-        assert num.alltrue(inside == [0, 1])
+        assert num.all(inside == [0, 1])
         assert len(outside) == 0
 
         inside, outside = in_and_outside_polygon(points, polygon, closed=False)
         assert len(inside) == 0
-        assert num.alltrue(outside == [0, 1])
+        assert num.all(outside == [0, 1])
 
         points = [(100., 0.25), (0.5, 0.5)]
         inside, outside = in_and_outside_polygon(points, polygon)
-        assert num.alltrue(inside == [1])
+        assert num.all(inside == [1])
         assert outside[0] == 0
 
         points = [(100., 0.25), (0.5, 0.5), (39, 20),
                   (0.6, 0.7), (56, 43), (67, 90)]
         inside, outside = in_and_outside_polygon(points, polygon)
-        assert num.alltrue(inside == [1, 3])
-        assert num.alltrue(outside == [0, 2, 4, 5])
+        assert num.all(inside == [1, 3])
+        assert num.all(outside == [0, 2, 4, 5])
 
     def test_intersection1(self):
         line0 = [[-1, 0], [1, 0]]

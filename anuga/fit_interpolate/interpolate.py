@@ -329,7 +329,7 @@ class Interpolate (FitInterpolate):
 
                 if key in self.interpolation_matrices:
                     X, stored_points = self.interpolation_matrices[key]
-                    if num.alltrue(stored_points == point_coordinates):
+                    if num.all(stored_points == point_coordinates):
                         reuse_A = True                # Reuse interpolation matrix
 
                 if reuse_A is False:
@@ -777,7 +777,7 @@ class Interpolation_function(object):
         # Check temporal info
         time = ensure_numeric(time)
 
-        if not num.alltrue(time[1:] - time[:-1] >= 0):
+        if not num.all(time[1:] - time[:-1] >= 0):
             # This message is time consuming to form due to the conversion of
             msg = 'Time must be a monotonuosly increasing sequence %s' % time
             raise Exception(msg)

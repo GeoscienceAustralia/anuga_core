@@ -160,8 +160,8 @@ class Test_Caching(unittest.TestCase):
             T3 = f_numeric(A0, B0)  # Compute without caching
 
 
-            assert num.alltrue(T1 == T2), 'Cached result does not match computed result'
-            assert num.alltrue(T2 == T3), 'Cached result does not match computed result'
+            assert num.all(T1 == T2), 'Cached result does not match computed result'
+            assert num.all(T2 == T3), 'Cached result does not match computed result'
             
 
     def test_hash_collision(self):
@@ -205,8 +205,8 @@ class Test_Caching(unittest.TestCase):
             T1_ref = f_numeric(A0, A0)
             T2_ref = f_numeric(A1, A1)
 
-            assert num.alltrue(T1 == T1_ref)
-            assert num.alltrue(T2 == T2_ref)
+            assert num.all(T1 == T1_ref)
+            assert num.all(T2 == T2_ref)
 
 
     def test_caching_of_dictionaries(self):

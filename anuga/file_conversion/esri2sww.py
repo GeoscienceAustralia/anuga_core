@@ -255,7 +255,7 @@ def esri2sww(bath_dir,
 
         # handle missing values
         missing = (elevation_grid == elevation_meta['NODATA_value'])
-        if num.sometrue (missing):
+        if num.any (missing):
             if fail_on_NaN:
                 msg = 'File %s contains missing values' \
                       % (elevation_files[j])

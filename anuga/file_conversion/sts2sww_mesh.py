@@ -96,7 +96,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     mesh_dic = mesh.Mesh2MeshList()
 
     points_utm=ensure_numeric(points_utm)
-    assert num.alltrue(ensure_numeric(mesh_dic['generatedpointlist'])
+    assert num.all(ensure_numeric(mesh_dic['generatedpointlist'])
                        == ensure_numeric(points_utm))
 
     volumes = mesh_dic['generatedtrianglelist']

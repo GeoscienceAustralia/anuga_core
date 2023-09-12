@@ -694,7 +694,7 @@ class Test_Util(unittest.TestCase):
                     q0 = F(t, point_id=id)
                     q1 = F(t+60, point_id=id)
 
-                if num.alltrue(q0 == NAN):
+                if num.all(q0 == NAN):
                     actual = q0
                 else:
                     actual = (k*q1 + (6-k)*q0)/6
@@ -705,8 +705,8 @@ class Test_Util(unittest.TestCase):
                 #print "q",q
                 #print "actual", actual
                 #print
-                if num.alltrue(q0 == NAN):
-                     self.assertTrue(num.alltrue(q == actual), 'Fail!')
+                if num.all(q0 == NAN):
+                     self.assertTrue(num.all(q == actual), 'Fail!')
                 else:
                     assert num.allclose(q, actual)
 

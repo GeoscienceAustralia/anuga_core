@@ -103,7 +103,7 @@ def _binary_c2nc(file_in, file_out, quantity):
     lon_sorted = list(lon)
     lon_sorted.sort()
 
-    if not num.alltrue(lon == lon_sorted):
+    if not num.all(lon == lon_sorted):
         msg = "Longitudes in mux file are not in ascending order"
         raise IOError(msg)
 

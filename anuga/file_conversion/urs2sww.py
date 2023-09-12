@@ -163,7 +163,7 @@ def urs_ungridded2sww(basename_in='o', basename_out=None, verbose=False,
     # If this raise is removed there is currently no downstream errors
 
     points_utm=ensure_numeric(points_utm)
-    assert num.alltrue(ensure_numeric(mesh_dic['generatedpointlist'])
+    assert num.all(ensure_numeric(mesh_dic['generatedpointlist'])
                        == ensure_numeric(points_utm))
 
     volumes = mesh_dic['generatedtrianglelist']

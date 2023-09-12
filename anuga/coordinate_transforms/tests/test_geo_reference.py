@@ -283,7 +283,7 @@ class geo_referenceTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
         self.assertTrue(type(new_points) == type(points), 'failed')
-        self.assertTrue(num.alltrue(points == new_points), 'failed')
+        self.assertTrue(num.all(points == new_points), 'failed')
 
         # test that calling get_absolute twice does the right thing
         # first call
@@ -298,7 +298,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('First call of .get_absolute() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.all(expected_new_points == new_points), msg)
 
         # and repeat from 'new_points = g.get_absolute(points)' above
         # to see if second call with same input gives same results.
@@ -308,7 +308,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Second call of .get_absolute() returned\n%s\nexpected\n%s'
                % (str(new_points), str(expected_new_points)))
-        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.all(expected_new_points == new_points), msg)
 
         # and repeat again to see if *third* call with same input
         # gives same results.
@@ -318,7 +318,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Third call of .get_absolute() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.all(expected_new_points == new_points), msg)
 
     def test_get_relative_list(self):
         # test with supplied offsets
@@ -392,7 +392,7 @@ class geo_referenceTestCase(unittest.TestCase):
 
         self.assertTrue(isinstance(new_points, num.ndarray), 'failed')
         self.assertTrue(type(new_points) == type(points), 'failed')
-        self.assertTrue(num.alltrue(points == new_points), 'failed')
+        self.assertTrue(num.all(points == new_points), 'failed')
 
         # test that calling get_relative twice does the right thing
         # first call
@@ -407,7 +407,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('First call of .get_relative() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.all(expected_new_points == new_points), msg)
 
         # and repeat from 'new_points = g.get_relative(points)' above
         # to see if second call with same input gives same results.
@@ -417,7 +417,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Second call of .get_relative() returned\n%s\nexpected\n%s'
                % (str(new_points), str(expected_new_points)))
-        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.all(expected_new_points == new_points), msg)
 
         # and repeat again to see if *third* call with same input
         # gives same results.
@@ -427,7 +427,7 @@ class geo_referenceTestCase(unittest.TestCase):
         self.assertTrue(type(new_points) == type(points), 'failed')
         msg = ('Third call of .get_relative() returned %s\nexpected %s'
                % (str(new_points), str(expected_new_points)))
-        self.assertTrue(num.alltrue(expected_new_points == new_points), msg)
+        self.assertTrue(num.all(expected_new_points == new_points), msg)
 
     def test_is_absolute(self):
         
@@ -663,21 +663,21 @@ class geo_referenceTestCase(unittest.TestCase):
         points = ((2,3), (3,1), (5,2))
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
-        self.assertFalse(num.alltrue(abs_points == points))
+        self.assertFalse(num.all(abs_points == points))
         new_points = abs_points.copy()
         new_points[:,0] -= x0
         new_points[:,1] -= y0
-        self.assertTrue(num.alltrue(new_points == points))
+        self.assertTrue(num.all(new_points == points))
 
         # points in num.array()
         points = num.array(((2,3), (3,1), (5,2)), float)
         abs_points = geo.get_absolute(points)
         # check we haven't changed 'points' itself
-        self.assertFalse(num.alltrue(abs_points == points))
+        self.assertFalse(num.all(abs_points == points))
         new_points = abs_points.copy()
         new_points[:,0] -= x0
         new_points[:,1] -= y0
-        self.assertTrue(num.alltrue(new_points == points))
+        self.assertTrue(num.all(new_points == points))
 
     def test_georef_types(self):
         '''Ensure that attributes of a georeference are of correct type.

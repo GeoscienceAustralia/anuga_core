@@ -388,7 +388,7 @@ class Test_sww(unittest.TestCase):
 
         
         # Check that mesh has been recovered
-        assert num.alltrue(mesh.triangles == domain.get_triangles())
+        assert num.all(mesh.triangles == domain.get_triangles())
         assert num.allclose(mesh.nodes, domain.get_nodes())
 
         # Check that time has been recovered
@@ -462,7 +462,7 @@ class Test_sww(unittest.TestCase):
 
         
         # Check that mesh has been recovered
-        assert num.alltrue(mesh.triangles == domain.get_triangles())
+        assert num.all(mesh.triangles == domain.get_triangles())
         assert num.allclose(mesh.nodes, domain.get_nodes())
 
         # Check that time has been recovered
@@ -554,7 +554,7 @@ class Test_sww(unittest.TestCase):
         # Check that mesh has been recovered
         # triangle order should be ok
         assert num.allclose(mesh.nodes[mi,:],domain.get_nodes()[di,:])
-        assert num.alltrue(minv[mesh.triangles] == dinv[domain.get_triangles()])
+        assert num.all(minv[mesh.triangles] == dinv[domain.get_triangles()])
 
 
         # Check that time has been recovered
@@ -647,7 +647,7 @@ class Test_sww(unittest.TestCase):
         # Check that mesh has been recovered
         # triangle order should be ok
         assert num.allclose(mesh.nodes[mi,:],domain.get_nodes()[di,:])
-        assert num.alltrue(minv[mesh.triangles] == dinv[domain.get_triangles()])
+        assert num.all(minv[mesh.triangles] == dinv[domain.get_triangles()])
 
 
         # Check that time has been recovered
