@@ -2048,13 +2048,13 @@ class Test_Forcing(unittest.TestCase):
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
         domain = Domain(points, vertices)
-        domain.set_flow_algorithm('1_5')
+        domain.set_flow_algorithm('DE0')
 
         B = Reflective_boundary(domain)
-        domain.set_boundary( {'exterior': B})
+        domain.set_boundary({'exterior': B})
 
 
-        #Set up for a gradient of (3,0) at mid triangle (bce)
+        # Set up for a gradient of (3,0) at mid triangle (bce)
         def slope(x, y):
             return 3*x
 
@@ -2064,19 +2064,21 @@ class Test_Forcing(unittest.TestCase):
 
         domain.set_quantity('elevation', slope)
         domain.set_quantity('stage', stage)
+        domain.set_quantity('height', h)
 
         for name in domain.conserved_quantities:
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        # fluxes and gravity term are now combined. To ensure zero flux on boundary
+        # Fluxes and gravity term are now combined. To ensure zero flux on boundary
         # need to set reflective boundaries
         domain.update_boundary()
         domain.compute_fluxes()
-
         
         assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3)
+        
+        msg = 'Got %s expected %f' % (domain.quantities['xmomentum'].explicit_update, -g*h*3)
+        assert num.allclose(domain.quantities['xmomentum'].explicit_update, -g*h*3), msg
         assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
 
 

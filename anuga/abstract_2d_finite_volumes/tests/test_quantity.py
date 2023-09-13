@@ -3334,7 +3334,7 @@ Parameters
         # V now provides id to unique node id
         #======================================================
         domain.smooth = True
-        domain.using_discontinuous_elevation = True
+        domain.using_centroid_averaging = True
 
         quantity.centroid_values[:] = num.array([100, 101, 102, 103, 104, 105])
 

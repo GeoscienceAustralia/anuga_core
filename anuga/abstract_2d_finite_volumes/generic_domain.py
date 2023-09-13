@@ -341,6 +341,7 @@ class Generic_Domain(object):
 
         # Early algorithms need elevation to remain continuous
         self.set_using_discontinuous_elevation(False)
+        self.set_using_centroid_averaging(False)
 
         if verbose:
             log.critical('Domain: Set work arrays')
@@ -695,13 +696,39 @@ class Generic_Domain(object):
         default is False
         """
 
-        self.using_discontinuous_elevation = flag
+        if flag is True:
+            self.using_discontinuous_elevation = True
+        elif flag is False:
+            self.using_discontinuous_elevation = False
+        else:
+            msg = f'Excepted boolean argument, received {flag}'
+            raise Exception(msg)
 
     def get_using_discontinuous_elevation(self):
         """
         Return boolean indicating whether algorithm is using dicontinuous elevation
         """
         return self.using_discontinuous_elevation
+
+
+    def set_using_centroid_averaging(self, flag=True):
+        """Set flag to use centroid averaging in output
+        of smoothed vertex values. This is good to ensure
+        that vertex stage >= vertex elevation. But can be
+        less accurate than vertex averaging. 
+        """
+
+        if flag is True:
+            self.using_centroid_averaging = True
+        elif flag is False:
+            self.using_centroid_averaging = False
+        else:
+            msg = f'Excepted boolean argument, received {flag}'
+            raise Exception(msg)
+
+    def get_using_centroid_averaging(self):
+
+        return self.using_centroid_averaging
 
     def set_quantity_vertices_dict(self, quantity_dict):
         """Set values for named quantities.

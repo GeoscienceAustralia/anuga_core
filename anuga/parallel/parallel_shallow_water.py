@@ -156,13 +156,13 @@ class Parallel_domain(Domain):
 
 
     def sww_merge(self, verbose=False, delete_old=False):
-        '''Merge all the sub domain sww files into a global sww file
-        
+        """Merge all the sub domain sww files into a global sww file
+
         :param bool verbose: Flag to produce more output
         :param bool delete_old: Flag to delete sub domain sww files after
             creating global sww file
-            
-        '''
+
+        """
 
         # make sure all the computations have finished
 
@@ -187,11 +187,12 @@ class Parallel_domain(Domain):
             Domain.write_time(self)
 
 
-    '''
-    Outputs domain triangulation, full triangles are shown in green while ghost triangles are shown in blue.
-    The default filename is "domain.png"
-    '''
     def dump_triangulation(self, filename="domain.png"):
+        """
+        Outputs domain triangulation, full triangles are shown in green while ghost triangles are shown in blue.
+        The default filename is 'domain.png'
+        """
+
         # Get vertex coordinates, partition full and ghost triangles based on self.tri_full_flag
 
         try:
@@ -259,7 +260,7 @@ class Parallel_domain(Domain):
 
     def dump_local_triangulation(self, filename=None):
         '''
-        Outputs domain triangulation, full triangles are shown in green while 
+        Outputs domain triangulation, full triangles are shown in green while
         ghost triangles are shown in blue.
 
         The default filename is self.get_name()+'.png'

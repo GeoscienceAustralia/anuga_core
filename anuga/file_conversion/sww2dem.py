@@ -128,7 +128,9 @@ def sww2dem(name_in, name_out,
 
     assert(isinstance(block_size, (int, int, float)))
 
+    # ---------------------------------------------------------
     # Read sww file
+    # ---------------------------------------------------------
     if verbose:
         log.critical('Reading from %s' % name_in)
         log.critical('Output directory is %s' % name_out)
@@ -358,6 +360,9 @@ def sww2dem(name_in, name_out,
 
         return
 
+
+
+
     num_tri =  len(volumes)
     norms = num.zeros(6*num_tri, float)
 
@@ -365,7 +370,7 @@ def sww2dem(name_in, name_out,
     from .calc_grid_values_ext import calc_grid_values
 
     calc_grid_values(nrows, ncols, cellsize, NODATA_value,
-                     x,y, norms, volumes, result, grid_values)
+                    x,y, norms, volumes, result, grid_values)
 
 
 
