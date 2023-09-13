@@ -6,7 +6,7 @@ import sys
 from os.path import join
 from Cython.Build import cythonize
 import Cython.Compiler.Options
-#Cython.Compiler.Options.annotate = True
+Cython.Compiler.Options.annotate = False
 
 
 def configuration(parent_package='',top_path=None):
