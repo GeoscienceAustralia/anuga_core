@@ -22,7 +22,7 @@ class Test_DE_openmp(unittest.TestCase):
         pass
 
     def tearDown(self):
-        for file in ['runup_openmp.sww']:
+        for file in ['domain_base.sww', 'domain_openmp.sww', 'domain_openmp_depth_yeah.asc', 'domain_openmp_depth_yeah.prj']:
             try:
                 os.remove(file)
             except:

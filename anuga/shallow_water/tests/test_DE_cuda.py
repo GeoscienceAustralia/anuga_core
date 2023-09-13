@@ -22,7 +22,7 @@ class Test_DE_cuda(unittest.TestCase):
         pass
 
     def tearDown(self):
-        for file in ['runup_cuda.sww']:
+        for file in ['domain_cuda.sww', 'domain_original.sww', 'domain_cuda_depth_yeah.asc', 'domain_cuda_depth_yeah.prj']:
             try:
                 os.remove(file)
             except:
