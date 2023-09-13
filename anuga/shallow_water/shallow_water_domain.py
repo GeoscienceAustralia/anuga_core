@@ -1843,8 +1843,8 @@ class Domain(Generic_Domain):
         """Fast version of extrapolation from centroids to edges"""
 
         # FIXME (Ole): This might be an obsolute function (it was migrated from from the old c extension)
-        from .swDE1_domain_ext import extrapolate_second_order_sw as extrapol2
-        extrapol2(self)
+        from .sw_domain_ext import extrapolate_second_order_sw
+        extrapolate_second_order_sw(self)
 
     #@profile
     def compute_fluxes(self):
@@ -1875,7 +1875,7 @@ class Domain(Generic_Domain):
         nvtxRangePush("Compute Fluxes (Domain)")
 
         if self.multiprocessor_mode == 0:
-            from .swDE1_domain_ext import compute_fluxes_ext_central
+            from .sw_domain_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 1:
             from .swDE_domain_base_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 2:
@@ -1904,7 +1904,7 @@ class Domain(Generic_Domain):
 
             # FIXME SR: Clean up code to just take self (domain) as
             # input argument
-            from .swDE1_domain_ext import protect
+            from .sw_domain_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -1922,7 +1922,7 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: %g m^3 '% mass_error)
 
 
-            from .swDE1_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
+            from .sw_domain_ext import extrapolate_second_order_edge_sw
 
             # Shortcuts
             Stage = self.quantities['stage']
@@ -1930,7 +1930,7 @@ class Domain(Generic_Domain):
             Ymom = self.quantities['ymomentum']
             Elevation = self.quantities['elevation']
 
-            extrapol2_ext(self,
+            extrapolate_second_order_edge_sw(self,
                   self.surrogate_neighbours,
                   self.number_of_boundaries,
                   self.centroid_coordinates,
@@ -1961,7 +1961,7 @@ class Domain(Generic_Domain):
             # Do extrapolation step
             nvtxRangePush('extrapolate')
             if self.multiprocessor_mode == 0:
-                from .swDE1_domain_ext import extrapolate_second_order_edge_sw
+                from .sw_domain_ext import extrapolate_second_order_edge_sw
             elif self.multiprocessor_mode == 1:
                 from .swDE_domain_base_ext import extrapolate_second_order_edge_sw
             elif self.multiprocessor_mode == 2:
@@ -2088,7 +2088,7 @@ class Domain(Generic_Domain):
         """
 
         if self.flow_algorithm == 'tsunami':
-            from .swDE1_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
+            from .sw_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
         
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2111,7 +2111,7 @@ class Domain(Generic_Domain):
             nvtxRangePush('protect_new')
             if self.multiprocessor_mode == 0:
                 #from .swDE_domain_original_ext import protect_new
-                from .swDE1_domain_ext import protect_new
+                from .sw_domain_ext import protect_new
             elif self.multiprocessor_mode == 1:
                 from .swDE_domain_base_ext import protect_new
             elif self.multiprocessor_mode == 2:
@@ -2135,7 +2135,7 @@ class Domain(Generic_Domain):
 
         else:
 
-            from .swDE1_domain_ext import protect        
+            from .sw_domain_ext import protect        
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2169,7 +2169,7 @@ class Domain(Generic_Domain):
         Wrapper for C implementation
         """
 
-        from .swDE1_domain_ext import balance_deep_and_shallow \
+        from .sw_domain_ext import balance_deep_and_shallow \
             as balance_deep_and_shallow_ext
 
         # Shortcuts
@@ -2811,8 +2811,7 @@ class Domain(Generic_Domain):
 
         nvtxRangePush('compute_flux_update_frequenc')
         if self.multiprocessor_mode == 0:
-            #from .swDE_domain_original_ext import compute_flux_update_frequency
-            from .swDE1_domain_ext import compute_flux_update_frequency
+            from .sw_domain_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 1:
             from .swDE_domain_base_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 2:
@@ -3015,8 +3014,8 @@ def manning_friction_implicit(domain):
     Wrapper for c version
     """
 
-    from .swDE1_domain_ext import manning_friction_flat
-    from .swDE1_domain_ext import manning_friction_sloped
+    from .sw_domain_ext import manning_friction_flat
+    from .sw_domain_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -3049,8 +3048,8 @@ def manning_friction_explicit(domain):
     Wrapper for c version
     """
 
-    from .swDE1_domain_ext import manning_friction_flat
-    from .swDE1_domain_ext import manning_friction_sloped
+    from .sw_domain_ext import manning_friction_flat
+    from .sw_domain_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']

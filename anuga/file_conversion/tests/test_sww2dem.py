@@ -2644,7 +2644,7 @@ class Test_Sww2Dem(unittest.TestCase):
         filehandler.setLevel(log.logging.CRITICAL)
         log.logging.getLogger('').addHandler(filehandler)
         # Setup
-        self.domain.set_name('datatest')
+        self.domain.set_name('datatest_verbose')
 
         prjfile = self.domain.get_name() + '_elevation.prj'
         ascfile = self.domain.get_name() + '_elevation.asc'
@@ -2686,11 +2686,11 @@ class Test_Sww2Dem(unittest.TestCase):
         
         #print (output, 'log message output')
     
-        output_verbose_True = '''Reading from datatest.sww
-Output directory is datatest_elevation.asc
+        output_verbose_True = '''Reading from datatest_verbose.sww
+Output directory is datatest_verbose_elevation.asc
 ------------------------------------------------
 Statistics of SWW file:
-  Name: datatest.sww
+  Name: datatest_verbose.sww
   Reference:
     Lower left corner: [308500.000000, 6189000.000000]
     Start time: 0.000000
@@ -2711,11 +2711,10 @@ Statistics of SWW file:
         for output_verbose_True_line, line in zip(output_verbose_True,
                                                   output[:len(output_verbose_True)-1]):
 
-            #print(str(line))
-            #print(str(output_verbose_True_line))
-            #print()
-            msg = "Expected {0} got {1}".format(output_verbose_True_line.lstrip(), str(line).lstrip())
-            assert str(line).lstrip() == output_verbose_True_line.lstrip(), msg
+            # print(str(line))
+            # print(str(output_verbose_True_line))
+            # print()
+            assert str(line).lstrip() == output_verbose_True_line.lstrip()
             # cleanup
             try:
                 os.remove(prjfile)

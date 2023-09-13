@@ -26,7 +26,7 @@ from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 from anuga.config import g as gravity
      
-from anuga.shallow_water.swDE1_domain_ext import rotate
+from anuga.shallow_water.sw_domain_ext import rotate
 
 
 class Reflective_boundary(Boundary):

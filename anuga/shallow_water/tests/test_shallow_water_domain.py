@@ -50,8 +50,8 @@ from anuga.config import g
 from pprint import pprint
 
 # Get gateway to C implementation of flux function for direct testing
-from anuga.shallow_water.swDE1_domain_ext import flux_function_central as flux_function
-from anuga.shallow_water.swDE1_domain_ext import rotate
+from anuga.shallow_water.sw_domain_ext import flux_function_central as flux_function
+from anuga.shallow_water.sw_domain_ext import rotate
 
 
 def set_bottom_friction(tag, elements, domain):
@@ -3036,7 +3036,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         #domain.compute_forcing_terms()
-        from anuga.shallow_water.swDE1_domain_ext import gravity
+        from anuga.shallow_water.sw_domain_ext import gravity
         gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
@@ -3083,7 +3083,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
         #domain.compute_forcing_terms()
-        from anuga.shallow_water.swDE1_domain_ext import gravity
+        from anuga.shallow_water.sw_domain_ext import gravity
         gravity(domain)
 
         #print domain.quantities['xmomentum'].explicit_update
@@ -3129,7 +3129,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        from anuga.shallow_water.swDE1_domain_ext import gravity_wb
+        from anuga.shallow_water.sw_domain_ext import gravity_wb
         gravity_wb(domain)
 
 
@@ -3176,7 +3176,7 @@ class Test_Shallow_Water(unittest.TestCase):
             assert num.allclose(domain.quantities[name].explicit_update, 0)
             assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
 
-        from anuga.shallow_water.swDE1_domain_ext import gravity_wb
+        from anuga.shallow_water.sw_domain_ext import gravity_wb
         gravity_wb(domain)
 
 
@@ -4171,7 +4171,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Import underlying routine locally.
         # FIXME (Ole): This routine might have to be removed entirely as likely
         # superseded by extrapolate_second_order_edge_sw
-        from anuga.shallow_water.swDE1_domain_ext import extrapolate_second_order_sw
+        from anuga.shallow_water.sw_domain_ext import extrapolate_second_order_sw
 
         extrapolate_second_order_sw(domain)
 
