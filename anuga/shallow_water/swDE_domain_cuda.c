@@ -1129,10 +1129,10 @@ double _cuda_compute_fluxes_central(double* timestep_k_array,
   double local_flux_sum = 0.0;
   for (int k=0; k<number_of_elements; k++)
   {
-    printf("k %d flux_sum %e \n",k, boundary_flux_sum_k_array[k]);
+    //printf("k %d flux_sum %e \n",k, boundary_flux_sum_k_array[k]);
     local_flux_sum += boundary_flux_sum_k_array[k];
   }
-  printf("substep_count %ld local_flux_sum %e \n", substep_count, local_flux_sum);
+  //printf("substep_count %ld local_flux_sum %e \n", substep_count, local_flux_sum);
   
   boundary_flux_sum[substep_count] = local_flux_sum;
 
