@@ -6,7 +6,7 @@ import sys
 from os.path import join
 from Cython.Build import cythonize
 import Cython.Compiler.Options
-Cython.Compiler.Options.annotate = True
+Cython.Compiler.Options.annotate = False
 
 
 def configuration(parent_package='',top_path=None):
@@ -21,11 +21,11 @@ def configuration(parent_package='',top_path=None):
 
     util_dir = join('..', 'utilities')
 
-    config.add_extension('swDE1_domain_ext',
-                         sources = ['swDE1_domain_ext.pyx'],
+    config.add_extension('sw_domain_ext',
+                         sources = ['sw_domain_ext.pyx'],
                          include_dirs = [util_dir])
 
-    config.ext_modules = cythonize(config.ext_modules, annotate=True)
+    config.ext_modules = cythonize(config.ext_modules, annotate=False)
 
     return config
     
