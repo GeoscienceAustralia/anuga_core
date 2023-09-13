@@ -374,6 +374,7 @@ class Generic_Domain(object):
         # Early algorithms need elevation to remain continuous
         self.set_using_discontinuous_elevation(False)
         self.set_using_centroid_averaging(False)
+        self.set_using_centroid_averaging(False)
 
         if verbose:
             log.critical('Domain: Set work arrays')

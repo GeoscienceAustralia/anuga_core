@@ -21,10 +21,6 @@ def configuration(parent_package='',top_path=None):
 
     util_dir = join('..', 'utilities')
 
-    # config.add_extension('swDE_domain_original_ext',
-    #                      sources=['swDE_domain_original_ext.pyx'],
-    #                      include_dirs=[util_dir])
-
     config.add_extension('swDE1_domain_ext',
                          sources=['swDE1_domain_ext.pyx'],
                          include_dirs=[util_dir])
@@ -32,13 +28,7 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('swDE_domain_base_ext',
                          sources=['swDE_domain_base_ext.pyx'],
                          include_dirs=[util_dir])
-    
-    # # FIXME SR: come back to getting Mac to run with openmp
-    # if sys.platform == 'darwin':
-    #     extra_compiler_args = None
-    #     extra_link_args = None
-
-    
+      
     config.add_extension('swDE_domain_openmp_ext',
                          sources=['swDE_domain_openmp_ext.pyx'],
                          include_dirs=[util_dir],
