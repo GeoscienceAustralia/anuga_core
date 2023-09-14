@@ -304,7 +304,7 @@ class Domain(Generic_Domain):
         #-------------------------------
         # Set multiprocessor mode
         # 0. original with local timestep
-        # 1. base code used by modes 2,3,4
+        # 1. simd code used by modes 2,3,4
         # 2. Openmp
         # 3. Openacc
         # 4. Cuda
@@ -1877,14 +1877,14 @@ class Domain(Generic_Domain):
         if self.multiprocessor_mode == 0:
             from .sw_domain_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 1:
-            from .sw_domain_ext_domain_base_ext import compute_fluxes_ext_central
+            from .sw_domain_simd_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 2:
-            from .sw_domain_ext_domain_openmp_ext import compute_fluxes_ext_central
+            from .sw_domain_openmp_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 3:
-            from .sw_domain_ext_domain_openacc_ext import compute_fluxes_ext_central
+            from .sw_domain_openacc_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            from .sw_domain_ext_domain_base_ext import compute_fluxes_ext_central
+            from .sw_domain_simd_ext import compute_fluxes_ext_central
         else:
             raise Exception('Not implemented')
 
@@ -1963,14 +1963,14 @@ class Domain(Generic_Domain):
             if self.multiprocessor_mode == 0:
                 from .sw_domain_ext import extrapolate_second_order_edge_sw
             elif self.multiprocessor_mode == 1:
-                from .sw_domain_ext_domain_base_ext import extrapolate_second_order_edge_sw
+                from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
             elif self.multiprocessor_mode == 2:
-                from .sw_domain_ext_domain_openmp_ext import extrapolate_second_order_edge_sw
+                from .sw_domain_openmp_ext import extrapolate_second_order_edge_sw
             elif self.multiprocessor_mode == 3:
-                from .sw_domain_ext_domain_openacc_ext import extrapolate_second_order_edge_sw
+                from .sw_domain_openacc_ext import extrapolate_second_order_edge_sw
             elif self.multiprocessor_mode == 4:
                 # change over to cuda routines as developed
-                from .sw_domain_ext_domain_base_ext import extrapolate_second_order_edge_sw
+                from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
             else:
                 raise Exception('Not implemented')
 
@@ -2113,14 +2113,14 @@ class Domain(Generic_Domain):
                 #from .sw_domain_ext_domain_original_ext import protect_new
                 from .sw_domain_ext import protect_new
             elif self.multiprocessor_mode == 1:
-                from .sw_domain_ext_domain_base_ext import protect_new
+                from .sw_domain_simd_ext import protect_new
             elif self.multiprocessor_mode == 2:
-                from .sw_domain_ext_domain_openmp_ext import  protect_new
+                from .sw_domain_openmp_ext import  protect_new
             elif self.multiprocessor_mode == 3:
-                from .sw_domain_ext_domain_openacc_ext import  protect_new
+                from .sw_domain_openacc_ext import  protect_new
             elif self.multiprocessor_mode == 4:
                 # change over to cuda routines as developed
-                from .sw_domain_ext_domain_base_ext import  protect_new
+                from .sw_domain_simd_ext import  protect_new
             else:
                 raise Exception('Not implemented')
 
@@ -2217,17 +2217,17 @@ class Domain(Generic_Domain):
         if self.get_using_discontinuous_elevation():
 
             if self.multiprocessor_mode == 1:
-                from .sw_domain_ext_domain_base_ext import fix_negative_cells
+                from .sw_domain_simd_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 2:                
-                from .sw_domain_ext_domain_openmp_ext import fix_negative_cells
+                from .sw_domain_openmp_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 3:
-                from .sw_domain_ext_domain_openacc_ext import fix_negative_cells
+                from .sw_domain_openacc_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 4:
                 # change over to cuda routines as developed
-                from .sw_domain_ext_domain_base_ext import fix_negative_cells
+                from .sw_domain_simd_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             else:
                 tff = self.tri_full_flag
@@ -2813,14 +2813,14 @@ class Domain(Generic_Domain):
         if self.multiprocessor_mode == 0:
             from .sw_domain_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 1:
-            from .sw_domain_ext_domain_base_ext import compute_flux_update_frequency
+            from .sw_domain_simd_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 2:
-            from .sw_domain_ext_domain_openmp_ext import compute_flux_update_frequency
+            from .sw_domain_openmp_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 3:
-            from .sw_domain_ext_domain_openacc_ext import compute_flux_update_frequency
+            from .sw_domain_openacc_ext import compute_flux_update_frequency
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            from .sw_domain_ext_domain_base_ext import compute_flux_update_frequency
+            from .sw_domain_simd_ext import compute_flux_update_frequency
         else:
             raise Exception('Not implemented')
 

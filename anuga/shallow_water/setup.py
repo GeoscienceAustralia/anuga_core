@@ -25,17 +25,17 @@ def configuration(parent_package='',top_path=None):
                          sources=['sw_domain_ext.pyx'],
                          include_dirs=[util_dir])
 
-    config.add_extension('sw_domain_ext_domain_base_ext',
-                         sources=['sw_domain_base_ext.pyx'],
+    config.add_extension('sw_domain_simd_ext',
+                         sources=['sw_domain_simd_ext.pyx'],
                          include_dirs=[util_dir])
       
-    config.add_extension('sw_domain_ext_domain_openmp_ext',
+    config.add_extension('sw_domain_openmp_ext',
                          sources=['sw_domain_openmp_ext.pyx'],
                          include_dirs=[util_dir],
                          extra_compile_args=['-fopenmp'],
                          extra_link_args=['-fopenmp'])
 
-    config.add_extension('sw_domain_ext_domain_openacc_ext',
+    config.add_extension('sw_domain_openacc_ext',
                          sources=['sw_domain_openacc_ext.pyx'],
                          include_dirs=[util_dir],
                          extra_compile_args=None,

@@ -241,10 +241,11 @@ class Generic_Domain(object):
 
         #-------------------------------
         # Set multiprocessor mode 
-        # 0. original
-        # 1. original with local timestep
-        # 2. Openmp
-        # 3. GPU (not implemented)
+        # 0. orig (original with edge optim)
+        # 1. simd (used for multiprocessor)
+        # 2. openmp (in development)
+        # 3. openacc (in development)
+        # 4. cuda (in development)
         #-------------------------------    
         self.set_multiprocessor_mode(0)
 
@@ -749,7 +750,7 @@ class Generic_Domain(object):
         Set multiprocessor mode 
         
         0. original
-        1. base (used for multiprocessor)
+        1. simd (used for multiprocessor)
         2. openmp (in development)
         3. openacc (in development)
         4. cuda (in development)

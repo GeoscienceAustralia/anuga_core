@@ -7,7 +7,7 @@ import cython
 import numpy as np
 cimport numpy as np
 
-cdef extern from "sw_domain_base.c" nogil:
+cdef extern from "sw_domain_simd.c" nogil:
 	struct domain:
 		long number_of_elements
 		long boundary_length
