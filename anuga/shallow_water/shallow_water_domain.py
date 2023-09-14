@@ -1812,8 +1812,8 @@ class Domain(Generic_Domain):
         """Fast version of extrapolation from centroids to edges"""
 
         # FIXME (Ole): This might be an obsolute function (it was migrated from from the old c extension)
-        from .sw_domain_ext import extrapolate_second_order_sw as extrapol2
-        extrapol2(self)
+        from .sw_domain_orig_ext import extrapolate_second_order_sw
+        extrapolate_second_order_sw(self)
 
     #@profile
     def compute_fluxes(self):
@@ -1841,7 +1841,7 @@ class Domain(Generic_Domain):
         # Flux calculation and gravity incorporated in same
         # procedure
 
-        from .sw_domain_ext import compute_fluxes_ext_central
+        from .sw_domain_orig_ext import compute_fluxes_ext_central
 
         timestep = self.evolve_max_timestep
         self.flux_timestep = compute_fluxes_ext_central(self, timestep)
@@ -1857,7 +1857,7 @@ class Domain(Generic_Domain):
 
             # FIXME SR: Clean up code to just take self (domain) as
             # input argument
-            from .sw_domain_ext import protect
+            from .sw_domain_orig_ext import protect
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -1875,7 +1875,7 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: %g m^3 '% mass_error)
 
 
-            from .sw_domain_ext import extrapolate_second_order_edge_sw as extrapol2_ext
+            from .sw_domain_orig_ext import extrapolate_second_order_edge_sw as extrapol2_ext
 
             # Shortcuts
             Stage = self.quantities['stage']
@@ -1909,8 +1909,8 @@ class Domain(Generic_Domain):
             self.protect_against_infinitesimal_and_negative_heights()
 
             # Do extrapolation step
-            from .sw_domain_ext import extrapolate_second_order_edge_sw as extrapol2
-            extrapol2(self)
+            from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
+            extrapolate_second_order_edge_sw(self)
 
         else:
             # Code for original method
@@ -2022,7 +2022,7 @@ class Domain(Generic_Domain):
         """
 
         if self.flow_algorithm == 'tsunami':
-            from .sw_domain_ext import protect  # FIXME (Ole): Should probably be decommissioned
+            from .sw_domain_orig_ext import protect  # FIXME (Ole): Should probably be decommissioned
         
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2040,7 +2040,7 @@ class Domain(Generic_Domain):
                 print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
 
         elif self.compute_fluxes_method == 'DE':
-            from .sw_domain_ext import protect_new
+            from .sw_domain_orig_ext import protect_new
             mass_error = protect_new(self)
             if mass_error > 0.0 and self.verbose :
                 #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
@@ -2049,7 +2049,7 @@ class Domain(Generic_Domain):
 
         else:
 
-            from .sw_domain_ext import protect        
+            from .sw_domain_orig_ext import protect        
 
             # shortcuts
             wc = self.quantities['stage'].centroid_values
@@ -2083,7 +2083,7 @@ class Domain(Generic_Domain):
         Wrapper for C implementation
         """
 
-        from .sw_domain_ext import balance_deep_and_shallow \
+        from .sw_domain_orig_ext import balance_deep_and_shallow \
             as balance_deep_and_shallow_ext
 
         # Shortcuts
@@ -2676,7 +2676,7 @@ class Domain(Generic_Domain):
             Update the 'flux_update_frequency' and 'update_extrapolate' variables
             Used to control updating of fluxes / extrapolation for 'local-time-stepping'
         """
-        from .sw_domain_ext import compute_flux_update_frequency \
+        from .sw_domain_orig_ext import compute_flux_update_frequency \
                                   as compute_flux_update_frequency_ext
 
         compute_flux_update_frequency_ext(self, self.timestep)
@@ -2866,8 +2866,8 @@ def manning_friction_implicit(domain):
     Wrapper for c version
     """
 
-    from .sw_domain_ext import manning_friction_flat
-    from .sw_domain_ext import manning_friction_sloped
+    from .sw_domain_orig_ext import manning_friction_flat
+    from .sw_domain_orig_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
@@ -2900,8 +2900,8 @@ def manning_friction_explicit(domain):
     Wrapper for c version
     """
 
-    from .sw_domain_ext import manning_friction_flat
-    from .sw_domain_ext import manning_friction_sloped
+    from .sw_domain_orig_ext import manning_friction_flat
+    from .sw_domain_orig_ext import manning_friction_sloped
 
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
