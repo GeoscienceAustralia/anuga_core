@@ -41,11 +41,11 @@ def configuration(parent_package='',top_path=None):
                          extra_compile_args=None,
                          extra_link_args=None)
 
-    config.add_extension('sw_domain_cuda_ext',
-                         sources=['sw_domain_cuda_ext.pyx'],
-                         include_dirs=[util_dir],
-                         extra_compile_args=None,
-                         extra_link_args=None)
+    #config.add_extension('sw_domain_cuda_ext',
+    #                     sources=['sw_domain_cuda_ext.pyx'],
+    #                     include_dirs=[util_dir],
+    #                     extra_compile_args=None,
+    #                     extra_link_args=None)
 
 
 
