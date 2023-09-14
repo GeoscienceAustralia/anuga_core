@@ -21,8 +21,8 @@ def configuration(parent_package='',top_path=None):
 
     util_dir = join('..', 'utilities')
 
-    config.add_extension('sw_domain_ext',
-                         sources=['sw_domain_ext.pyx'],
+    config.add_extension('sw_domain_orig_ext',
+                         sources=['sw_domain_orig_ext.pyx'],
                          include_dirs=[util_dir])
 
     config.add_extension('sw_domain_simd_ext',
