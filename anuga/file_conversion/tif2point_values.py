@@ -67,7 +67,7 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
         affine_transform= Affine.from_gdal(*raster.GetGeoTransform())
         ilocs= np.array(~ affine_transform * (points[:,0],points[:,1]))
 
-    elif (tif_epsg == str(32700 + int(zone))) and south:
+    elif (tif_epsg == str(32700 + int(zone))) or (tif_epsg == str(7800 + int(zone)))  and south:
         # no need for transformation
         affine_transform= Affine.from_gdal(*raster.GetGeoTransform())
         ilocs= np.array(~ affine_transform * (points[:,0],points[:,1]))
