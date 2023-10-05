@@ -34,6 +34,9 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
     #print(points_utm)
     #points_lons, points_lats= transform(UTM, src_georeference, points[:,0], points[:,1])
 
+    #print(tif_epsg)
+    #print(south)
+
     if tif_epsg == '4326':
         # tif file is lat long projection ie 'EPSG:4326'
         tif_georeference= CRS(raster.GetProjection())
@@ -67,7 +70,12 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
         affine_transform= Affine.from_gdal(*raster.GetGeoTransform())
         ilocs= np.array(~ affine_transform * (points[:,0],points[:,1]))
 
-    elif (tif_epsg == str(32700 + int(zone))) or (tif_epsg == str(7800 + int(zone)))  and south:
+    elif (tif_epsg == str(32700 + int(zone))) and south:
+        # no need for transformation
+        affine_transform= Affine.from_gdal(*raster.GetGeoTransform())
+        ilocs= np.array(~ affine_transform * (points[:,0],points[:,1]))
+
+    elif (tif_epsg == str(7800 + int(zone)))  and south:
         # no need for transformation
         affine_transform= Affine.from_gdal(*raster.GetGeoTransform())
         ilocs= np.array(~ affine_transform * (points[:,0],points[:,1]))
