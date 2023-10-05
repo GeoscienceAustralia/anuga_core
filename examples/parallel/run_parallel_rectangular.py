@@ -76,6 +76,8 @@ parser.add_argument('-fdt', '--fixed_dt', type=float, default=fixed_flux_timeste
                     help='Set a fixed flux timestep')
 parser.add_argument('-ta', '--test_allreduce', action='store_true',
                     help='run fixed timestep with dummy allreduce')
+parser.add_argument('-mp', '--multi_processor_mode', type=int, default=0,
+                    help='set multiprocessor mode in [0,1,2,3,4]')
 
 parser.add_argument('-v', '--verbose', action='store_true', help='turn on verbosity')
 
@@ -85,6 +87,7 @@ args = parser.parse_args()
 
 if myid == 0: print(args)
 
+multi_processor_mode = args.multi_processor_mode
 sqrtN = args.sqrtN
 yieldstep = args.yieldstep
 finaltime = args.finaltime
@@ -124,6 +127,8 @@ if myid == 0:
     domain.set_quantity('stage', 1.0)
     domain.set_flow_algorithm('DE0')
     domain.set_name('sw_rectangle')
+
+    domain.set_multiprocessor_mode(multi_processor_mode)
  
     if verbose: domain.print_statistics()
     # nvtx marker
