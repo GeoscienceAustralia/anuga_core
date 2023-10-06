@@ -19,7 +19,7 @@ echo "#==========================="
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
 python3 -m venv anuga_env
 source anuga_env/bin/activate
-pip install wheel scipy gdal==3.4.1 matplotlib pytest cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython utm mpi4py
+pip install wheel scipy gdal==3.4.1 matplotlib pytest cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython utm affine mpi4py
 
 echo "#==========================="
 echo "# Installing anuga from the anuga_core directory"
