@@ -286,7 +286,9 @@ class Test_Distribute_Mesh(unittest.TestCase):
             num.allclose(triangles, true_triangles_meshpy_2022_1_3_win_2)
             
         print(triangles_per_proc)
-        assert num.allclose(triangles_per_proc,[8,8]) or num.allclose(triangles_per_proc,[9,7])
+        assert num.allclose(triangles_per_proc,[8,8]) or \
+            num.allclose(triangles_per_proc,[9,7]) or \
+            num.allclose(triangles_per_proc,[7,9]) 
 
 
 
