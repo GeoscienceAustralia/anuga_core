@@ -1,0 +1,22 @@
+# Requirements to install anuga in read the docs
+
+cython
+pybind11
+dill
+future
+gitpython
+matplotlib
+meshpy
+nbsphinx
+netcdf4
+numpy
+Pmw
+pymetis
+pytest
+pytz
+scipy
+setuptools
+sphinx
+utm
+wheel
+
