@@ -8,6 +8,7 @@ gitpython
 matplotlib
 meshpy
 nbsphinx
+sphinx_rtd_theme
 netcdf4
 numpy
 Pmw
@@ -18,5 +19,6 @@ scipy
 setuptools
 sphinx
 utm
+affine
 wheel
 
