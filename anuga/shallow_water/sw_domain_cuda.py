@@ -283,10 +283,10 @@ class GPU_interface(object):
         # cp.asnumpy(gpu_timestep_array,          out = timestep_array)          #InOut
         # cp.asnumpy(gpu_local_boundary_flux_sum, out = local_boundary_flux_sum) #InOut
         
-        cp.asnumpy(gpu_max_speed, out = self.max_speed)                    #InOut
-        cp.asnumpy(gpu_stage_explicit_update, out = self.stage_explicit_update)   #InOut
-        cp.asnumpy(gpu_xmom_explicit_update, out = self.xmom_explicit_update)     #InOut
-        cp.asnumpy(gpu_ymom_explicit_update, out = self.ymom_explicit_update)     #InOut
+        cp.asnumpy(self.gpu_max_speed, out = self.cpu_max_speed)                    #InOut
+        cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)   #InOut
+        cp.asnumpy(self.gpu_xmom_explicit_update, out = self.cpu_xmom_explicit_update)     #InOut
+        cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)     #InOut
 
         nvtxRangePop()
 
