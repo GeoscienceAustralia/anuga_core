@@ -158,9 +158,9 @@ class GPU_interface(object):
         self.gpu_local_boundary_flux_sum = cp.array(self.cpu_local_boundary_flux_sum ) #InOut
 
         self.gpu_max_speed              = cp.array(self.cpu_max_speed)                #InOut
-        self.gpu_stage_explicit_update  = cp.array(self.cpu_stage.explicit_update)    #InOut
-        self.gpu_xmom_explicit_update   = cp.array(self.cpu_xmom.explicit_update)     #InOut
-        self.gpu_ymom_explicit_update   = cp.array(self.cpu_ymom.explicit_update)     #InOut
+        self.gpu_stage_explicit_update  = cp.array(self.cpu_stage_explicit_update)    #InOut
+        self.gpu_xmom_explicit_update   = cp.array(self.cpu_xmom_explicit_update)     #InOut
+        self.gpu_ymom_explicit_update   = cp.array(self.cpu_ymom_explicit_update)     #InOut
 
         self.gpu_stage_centroid_values  = cp.array(self.cpu_stage_centroid_values) 
         self.gpu_stage_edge_values      = cp.array(self.cpu_stage_edge_values)
