@@ -106,8 +106,8 @@ class GPU_interface(object):
         # FIXME SR: Maybe we only need a cupy array and use cupy amin 
         # and sum to collect global timestep and boundary flux
         #---------------------------------------
-        self.cpu_local_boundary_flux_sum = num.zeros(self.number_of_elements, dtype=float) 
-        self.cpu_timestep_array = num.zeros(self.number_of_elements, dtype=float) 
+        self.cpu_local_boundary_flux_sum = num.zeros(self.cpu_number_of_elements, dtype=float) 
+        self.cpu_timestep_array = num.zeros(self.cpu_number_of_elements, dtype=float) 
 
 
     #-----------------------------------------------------
@@ -254,13 +254,13 @@ class GPU_interface(object):
                 self.gpu_riverwall_rowIndex,
                 self.gpu_riverwall_hydraulic_properties,
 
-                num.int64  (self.number_of_elements),
+                num.int64  (self.cpu_number_of_elements),
                 num.int64  (substep_count),
-                num.int64  (self.riverwall_ncol_hydraulic_properties),
-                num.float64(self.epsilon),
-                num.float64(self.g),
-                num.int64  (self.low_froude),
-                num.float64(self.limiting_threshold)
+                num.int64  (self.cpu_riverwall_ncol_hydraulic_properties),
+                num.float64(self.cpu_epsilon),
+                num.float64(self.cpu_g),
+                num.int64  (self.cpu_low_froude),
+                num.float64(self.cpu_limiting_threshold)
                 ) 
                 )
 
