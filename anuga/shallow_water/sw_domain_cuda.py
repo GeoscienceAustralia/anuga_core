@@ -296,7 +296,7 @@ class GPU_interface(object):
         if substep_count == 0:
             timestep = cp.asnumpy(gpu_reduce_timestep)
 
-        domain.boundary_flux_sum[substep_count] = cp.asnumpy(gpu_reduced_local_boundary_flux_sum)
+        self.domain.boundary_flux_sum[substep_count] = cp.asnumpy(gpu_reduced_local_boundary_flux_sum)
 
         nvtxRangePop()
 
