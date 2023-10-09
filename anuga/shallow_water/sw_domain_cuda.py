@@ -127,7 +127,7 @@ class GPU_interface(object):
         #mod.load_file("../cuda_anuga.cubin")
 
         # FIXME SR: need to ensure we find location of kernel source 
-        with open('cuda_anuga.cu') as f:
+        with open('../cuda_anuga.cu') as f:
             code = f.read()
 
         mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop",))
