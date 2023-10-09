@@ -71,7 +71,6 @@ class GPU_interface(object):
         riverwallData = domain.riverwallData
 
         self.cpu_riverwall_ncol_hydraulic_properties = riverwallData.ncol_hydraulic_properties
-        self.riverwall_ncol_hydraulic_properties
 
         
         self.cpu_stage_explicit_update  = stage.explicit_update   
