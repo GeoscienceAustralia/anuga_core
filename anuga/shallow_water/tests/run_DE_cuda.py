@@ -207,24 +207,24 @@ if False:
     pprint((max_speed_1-max_speed_2).reshape(2*nx,2*ny))
 
 
-stage_ids = num.argsort(num.abs(stage1.explicit_update-stage2.explicit_update))
+    stage_ids = num.argsort(num.abs(stage1.explicit_update-stage2.explicit_update))
 
-print('stage max diff values')
-pprint(stage_ids[-10:])
-pprint(stage1.explicit_update[stage_ids[-10:]])
-pprint(stage2.explicit_update[stage_ids[-10:]])
-pprint(num.abs(stage1.explicit_update-stage2.explicit_update)[stage_ids[-10:]])
-print(num.abs(stage1.explicit_update-stage2.explicit_update).max())
+    print('stage max diff values')
+    pprint(stage_ids[-10:])
+    pprint(stage1.explicit_update[stage_ids[-10:]])
+    pprint(stage2.explicit_update[stage_ids[-10:]])
+    pprint(num.abs(stage1.explicit_update-stage2.explicit_update)[stage_ids[-10:]])
+    print(num.abs(stage1.explicit_update-stage2.explicit_update).max())
 
 
-xmom_ids = num.argsort(num.abs(xmom1.explicit_update-xmom2.explicit_update))
+    xmom_ids = num.argsort(num.abs(xmom1.explicit_update-xmom2.explicit_update))
 
-print('xmom max diff values')
-pprint(xmom_ids[-10:])
-pprint(xmom1.explicit_update[xmom_ids[-10:]])
-pprint(xmom2.explicit_update[xmom_ids[-10:]])
-pprint(num.abs(xmom1.explicit_update-xmom2.explicit_update)[xmom_ids[-10:]])
-print(num.abs(xmom1.explicit_update-xmom2.explicit_update).max())
+    print('xmom max diff values')
+    pprint(xmom_ids[-10:])
+    pprint(xmom1.explicit_update[xmom_ids[-10:]])
+    pprint(xmom2.explicit_update[xmom_ids[-10:]])
+    pprint(num.abs(xmom1.explicit_update-xmom2.explicit_update)[xmom_ids[-10:]])
+    print(num.abs(xmom1.explicit_update-xmom2.explicit_update).max())
 
 
 
