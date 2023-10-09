@@ -17,25 +17,6 @@ import math
 
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
-# #-----------------------------------------------------
-# # Code for profiling cuda version
-# #-----------------------------------------------------
-# def nvtxRangePush(*arg):
-#     pass
-# def nvtxRangePop(*arg):
-#     pass
-
-# try:
-#     from cupy.cuda.nvtx import RangePush as nvtxRangePush
-#     from cupy.cuda.nvtx import RangePop  as nvtxRangePop
-# except:
-#     pass
-
-# try:
-#     from nvtx import range_push as nvtxRangePush
-#     from nvtx import range_pop  as nvtxRangePop
-# except:
-#     pass
 
 nx = 500
 ny = 500
@@ -143,25 +124,25 @@ nvtxRangePop()
 # Test the kernel version of compute fluxes
 #----------------------------------------
 
-nvtxRangePush('distribute domain2')
+nvtxRangePush('distribute on cpu for domain2')
 domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 
-from anuga.shallow_water.sw_domain_cuda import Gpu_interface
-gpu_domain2 = Gpu_interface(domain2)
+from anuga.shallow_water.sw_domain_cuda import GPU_interface
+gpu_interface2 = GPU_interface(domain2)
 
-nvtxRangePush('allocate gpu arrays domain2')
-gpu_domain2.allocate_gpu_arrays()
+nvtxRangePush('allocate gpu arrays for domain2')
+gpu_interface2.allocate_gpu_arrays()
 nvtxRangePop()
 
-nvtxRangePush('compile gpu kernels domain2')
-gpu_domain2.compile_gpu_kernels()
+nvtxRangePush('compile gpu kernels for domain2')
+gpu_interface2.compile_gpu_kernels()
 nvtxRangePop()
 
-nvtxRangePush('compute fluxes on gpu domain2')
+nvtxRangePush('compute fluxes on gpu for domain2')
 timestep2 = domain2.evolve_max_timestep 
-timestep2 = gpu_domain2.compute_fluxes_ext_central_kernel(timestep2)
+timestep2 = gpu_interface2.compute_fluxes_ext_central_kernel(timestep2)
 nvtxRangePop()
 
 boundary_flux2 = domain2.boundary_flux_sum[0]

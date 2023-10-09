@@ -309,7 +309,7 @@ class Domain(Generic_Domain):
         # 3. Openacc
         # 4. Cuda
         #-------------------------------
-        self.set_multiprocessor_mode(1)
+        self.set_multiprocessor_mode(4)
 
         #-------------------------------
         # datetime and timezone
