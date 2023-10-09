@@ -111,10 +111,11 @@ class GPU_interface(object):
         self.cpu_timestep_array = np.zeros(self.cpu_number_of_elements, dtype=float) 
 
 
-    #-----------------------------------------------------
-    # compile gpu kernels
-    #-----------------------------------------------------
+
     def compile_gpu_kernels(self):
+        """ 
+        compile gpu kernels
+        """
 
         #----------------------------------------
         # Read in precompiled kernel function
@@ -155,13 +156,22 @@ class GPU_interface(object):
         # FIXME SR: we should probably allocate all the cpu numpy arrays with 
         # pinned memory to speed movement of data from host to device
 
+        # these are just used for the reduction operation of the flux calculation
         self.gpu_timestep_array          = cp.array(self.cpu_timestep_array)           #InOut
         self.gpu_local_boundary_flux_sum = cp.array(self.cpu_local_boundary_flux_sum ) #InOut
 
+        # these come out of flux calculation
         self.gpu_max_speed              = cp.array(self.cpu_max_speed)                #InOut
+
+        # these come out of flux calculation
+        # these go into the update conserved quantities
         self.gpu_stage_explicit_update  = cp.array(self.cpu_stage_explicit_update)    #InOut
         self.gpu_xmom_explicit_update   = cp.array(self.cpu_xmom_explicit_update)     #InOut
         self.gpu_ymom_explicit_update   = cp.array(self.cpu_ymom_explicit_update)     #InOut
+
+        # centroid values go InOut of extrapolation
+        # edge values go Out of extrapolation Into update_boundaries
+        # vertex values go Out of extrapolation
 
         self.gpu_stage_centroid_values  = cp.array(self.cpu_stage_centroid_values) 
         self.gpu_stage_edge_values      = cp.array(self.cpu_stage_edge_values)
@@ -174,6 +184,8 @@ class GPU_interface(object):
         self.gpu_stage_boundary_values  = cp.array(self.cpu_stage_boundary_values)  
         self.gpu_xmom_boundary_values   = cp.array(self.cpu_xmom_boundary_values) 
         self.gpu_ymom_boundary_values   = cp.array(self.cpu_ymom_boundary_values) 
+
+        # These should not change during evolve
         self.gpu_areas                  = cp.array(self.cpu_domain_areas)
         self.gpu_normals                = cp.array(self.cpu_domain_normals)
         self.gpu_edgelengths            = cp.array(self.cpu_domain_edgelengths)
@@ -192,10 +204,20 @@ class GPU_interface(object):
 
         self.gpu_arrays_allocated = True
     
-    #-----------------------------------------------------
-    # compute flux
-    #-----------------------------------------------------
+
+    def cpu_to_gpu_for_compute_fluxes(self):
+        """
+        Move transient data from cpu to gpu 
+        """
+
+
     def compute_fluxes_ext_central_kernel(self, timestep):
+        """
+        compute flux
+
+        Ensure transient data has been copied to the GPU via cpu_to_gpu_flux
+        """
+
    
         #-------------------------------------
         # FIXME SR: Need to calc substep_count

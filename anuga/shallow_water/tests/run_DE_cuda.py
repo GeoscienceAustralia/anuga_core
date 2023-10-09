@@ -113,6 +113,10 @@ nvtxRangePush('distribute domain1')
 domain1.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
+nvtxRangePush('update boundary domain1')
+domain1.update_boundary()
+nvtxRangePop()
+
 nvtxRangePush('compute fluxes domain1')
 domain1.compute_fluxes()
 timestep1 = domain1.flux_timestep
@@ -126,6 +130,10 @@ nvtxRangePop()
 
 nvtxRangePush('distribute on cpu for domain2')
 domain2.distribute_to_vertices_and_edges()
+nvtxRangePop()
+
+nvtxRangePush('update boundary domain2')
+domain2.update_boundary()
 nvtxRangePop()
 
 
