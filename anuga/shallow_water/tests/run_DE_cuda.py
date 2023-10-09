@@ -136,7 +136,7 @@ nvtxRangePush('update boundary domain2')
 domain2.update_boundary()
 nvtxRangePop()
 
-
+# lets use cupy flux calculation
 from anuga.shallow_water.sw_domain_cuda import GPU_interface
 gpu_interface2 = GPU_interface(domain2)
 
