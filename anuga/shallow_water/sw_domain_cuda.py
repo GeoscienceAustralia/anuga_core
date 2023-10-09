@@ -131,11 +131,11 @@ class GPU_interface(object):
         with open('../cuda_anuga.cu') as f:
             code = f.read()
 
-        mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop",))
+        self.mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop",))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
-        self.flux_kernel = mod.get_function("_cuda_compute_fluxes_loop")
+        self.flux_kernel = self.mod.get_function("_cuda_compute_fluxes_loop")
 
 
 
@@ -219,7 +219,7 @@ class GPU_interface(object):
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
 
 
-        flux_kernel( (NO_OF_BLOCKS, 0, 0), 
+        self.flux_kernel( (NO_OF_BLOCKS, 0, 0), 
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
                 self.gpu_timestep_array, 
