@@ -1,5 +1,6 @@
 
-import numpy as num
+import numpy as np
+import cupy as cp
 
 #-----------------------------------------------------
 # Code for profiling cuda version
@@ -106,8 +107,8 @@ class GPU_interface(object):
         # FIXME SR: Maybe we only need a cupy array and use cupy amin 
         # and sum to collect global timestep and boundary flux
         #---------------------------------------
-        self.cpu_local_boundary_flux_sum = num.zeros(self.cpu_number_of_elements, dtype=float) 
-        self.cpu_timestep_array = num.zeros(self.cpu_number_of_elements, dtype=float) 
+        self.cpu_local_boundary_flux_sum = np.zeros(self.cpu_number_of_elements, dtype=float) 
+        self.cpu_timestep_array = np.zeros(self.cpu_number_of_elements, dtype=float) 
 
 
     #-----------------------------------------------------
@@ -215,7 +216,7 @@ class GPU_interface(object):
         import math
 
         THREADS_PER_BLOCK = 128
-        NO_OF_BLOCKS = int(math.ceil(self.number_of_elements/THREADS_PER_BLOCK))
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
 
 
         flux_kernel( (NO_OF_BLOCKS, 0, 0), 
@@ -254,13 +255,13 @@ class GPU_interface(object):
                 self.gpu_riverwall_rowIndex,
                 self.gpu_riverwall_hydraulic_properties,
 
-                num.int64  (self.cpu_number_of_elements),
-                num.int64  (substep_count),
-                num.int64  (self.cpu_riverwall_ncol_hydraulic_properties),
-                num.float64(self.cpu_epsilon),
-                num.float64(self.cpu_g),
-                num.int64  (self.cpu_low_froude),
-                num.float64(self.cpu_limiting_threshold)
+                np.int64  (self.cpu_number_of_elements),
+                np.int64  (substep_count),
+                np.int64  (self.cpu_riverwall_ncol_hydraulic_properties),
+                np.float64(self.cpu_epsilon),
+                np.float64(self.cpu_g),
+                np.int64  (self.cpu_low_froude),
+                np.float64(self.cpu_limiting_threshold)
                 ) 
                 )
 
