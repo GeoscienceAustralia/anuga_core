@@ -34,7 +34,7 @@ keywords:
   - tsunami
   - shallow water equations
   - finite volume method
-license: GPL-2.0+
+license: Apache License, Version 2.0
 commit: 564d7c88b06d7ae3b3a3a2862673d597b7a950bd
 version: 3.1.9
 date-released: '2022-06-26'
