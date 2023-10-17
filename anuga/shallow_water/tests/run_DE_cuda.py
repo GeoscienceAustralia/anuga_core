@@ -125,7 +125,12 @@ nvtxRangePop()
 
 
 #-----------------------------------------
-# Test the kernel version of compute fluxes
+# Test the kernel versions of
+# distribute_to_vertices_and_edges
+# update_boundary
+# compute_fluxes
+# as found in evolve_one_euler_step in
+# generic_domain.py (abstract_2d_finite_volume)
 #----------------------------------------
 
 nvtxRangePush('distribute on cpu for domain2')
@@ -136,13 +141,17 @@ nvtxRangePush('update boundary domain2')
 domain2.update_boundary()
 nvtxRangePop()
 
-# lets use cupy flux calculation
+# Setup gpu interface (if multiprocessor_mode == 4 and cupy available)
 from anuga.shallow_water.sw_domain_cuda import GPU_interface
 gpu_interface2 = GPU_interface(domain2)
 
+# Some of these arrays are "static" and so only
+# need to be allocated and set once per simulation
 nvtxRangePush('allocate gpu arrays for domain2')
 gpu_interface2.allocate_gpu_arrays()
 nvtxRangePop()
+
+
 
 nvtxRangePush('compile gpu kernels for domain2')
 gpu_interface2.compile_gpu_kernels()
