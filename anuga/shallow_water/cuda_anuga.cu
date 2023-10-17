@@ -444,7 +444,7 @@ __global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,    // InOut
                                     double* stage_boundary_values,
                                     double* xmom_boundary_values,
                                     double* ymom_boundary_values,
-                                    
+
                                     double* areas,
                                     double* normals,
                                     double* edgelengths,
@@ -855,14 +855,34 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
 
 
 
-__global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values, double* xmom_edge_values, double* ymom_edge_values,
-                                            double* height_edge_values, double* bed_edge_values, double* centroid_coordinates,
-                                            double* edge_coordinates, double* height_centroid_values,double* bed_centroid_values, double* x_centroid_work,
-                                            double* xmom_centroid_values, double* y_centroid_work, double* ymom_centroid_values,
-                                            double* stage_centroid_values, double* beta_w_dry, double* beta_w,  
-                                            double* beta_uh_dry, double* beta_uh, double* beta_vh_dry, double* beta_vh,
-                                            double minimum_allowed_height, int number_of_elements, int extrapolate_velocity_second_order,
-                                            double* surrogate_neighbours  
+__global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values, 
+                                                      double* xmom_edge_values, 
+                                                      double* ymom_edge_values,
+                                                      double* height_edge_values, 
+                                                      double* bed_edge_values, 
+
+                                                      double* stage_centroid_values, 
+                                                      double* xmom_centroid_values,
+                                                      double* ymom_centroid_values, 
+                                                      double* height_centroid_values,
+                                                      double* bed_centroid_values, 
+                                                      double* x_centroid_work,
+                                                      double* y_centroid_work,
+                                                      
+                                                      double* centroid_coordinates,
+                                                      double* edge_coordinates, 
+                                                      double* surrogate_neighbours,               
+                                                      
+                                                      double* beta_w_dry, 
+                                                      double* beta_w,
+                                                      double* beta_uh_dry, 
+                                                      double* beta_uh, 
+                                                      double* beta_vh_dry, 
+                                                      double* beta_vh,
+                                                      
+                                                      double minimum_allowed_height, 
+                                                      int number_of_elements, 
+                                                      int extrapolate_velocity_second_order  
                                             ) {
 
     int k = blockIdx.x * blockDim.x + threadIdx.x;
@@ -888,6 +908,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
 
         // Replace momentum centroid with velocity centroid to allow velocity
         // extrapolation This will be changed back at the end of the routine
+
 
         dk = fmax(height_centroid_values[k] - bed_centroid_values[k], 0.0);
 

@@ -153,7 +153,7 @@ nvtxRangePop()
 nvtxRangePush('distribute_to_vertices_and_edges on gpu domain2')
 timestep2 = domain2.evolve_max_timestep 
 
-timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernal()
+timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernel()
 nvtxRangePop()
 
 # vol2=domain2.get_water_volume()
@@ -193,12 +193,12 @@ N = domain1.number_of_elements
 import math
 
 print('stage edge value L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
-print('stage edge value L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
-print('stage edge value L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
+print('xmom  edge value L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
+print('ymom  edge value L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
 
 print('stage centroid value L2 norm ', num.linalg.norm(stage1.centroid_values-stage2.centroid_values)/N)
-print('stage centroid value L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
-print('stage centroid value L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
+print('xmom  centroid value L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
+print('ymom  centroid value L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
 
 
 
