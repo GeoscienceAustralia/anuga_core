@@ -137,10 +137,8 @@ class GPU_interface(object):
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
         self.flux_kernel = self.mod.get_function("_cuda_compute_fluxes_loop")
+        self.extrapolate_kernel = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw")
 
-
-
-    
     #-----------------------------------------------------
     # Allocate GPU arrays
     #-----------------------------------------------------
@@ -157,8 +155,8 @@ class GPU_interface(object):
         # pinned memory to speed movement of data from host to device
 
         # these are just used for the reduction operation of the flux calculation
-        self.gpu_timestep_array          = cp.array(self.cpu_timestep_array)           #InOut
-        self.gpu_local_boundary_flux_sum = cp.array(self.cpu_local_boundary_flux_sum ) #InOut
+        self.gpu_timestep_array          = cp.array(self.cpu_timestep_array)
+        self.gpu_local_boundary_flux_sum = cp.array(self.cpu_local_boundary_flux_sum )
 
         # these come out of flux calculation
         self.gpu_max_speed              = cp.array(self.cpu_max_speed)                #InOut
@@ -175,12 +173,19 @@ class GPU_interface(object):
 
         self.gpu_stage_centroid_values  = cp.array(self.cpu_stage_centroid_values) 
         self.gpu_stage_edge_values      = cp.array(self.cpu_stage_edge_values)
+
+        self.gpu_xmom_centroid_values   = cp.array(self.cpu_xmom_centroid_values)
         self.gpu_xmom_edge_values       = cp.array(self.cpu_xmom_edge_values)
+
+        self.gpu_ymom_centroid_values   = cp.array(self.cpu_ymom_centroid_values)        
         self.gpu_ymom_edge_values       = cp.array(self.cpu_ymom_edge_values)
-        self.gpu_bed_edge_values        = cp.array(self.cpu_bed_edge_values)
-        self.gpu_height_edge_values     = cp.array(self.cpu_height_edge_values)
-        self.gpu_height_centroid_values = cp.array(self.cpu_height_centroid_values)
+
         self.gpu_bed_centroid_values    = cp.array(self.cpu_bed_centroid_values)
+        self.gpu_bed_edge_values        = cp.array(self.cpu_bed_edge_values)
+
+        self.gpu_height_centroid_values = cp.array(self.cpu_height_centroid_values)
+        self.gpu_height_edge_values     = cp.array(self.cpu_height_edge_values)
+        
         self.gpu_stage_boundary_values  = cp.array(self.cpu_stage_boundary_values)  
         self.gpu_xmom_boundary_values   = cp.array(self.cpu_xmom_boundary_values) 
         self.gpu_ymom_boundary_values   = cp.array(self.cpu_ymom_boundary_values) 
@@ -205,13 +210,99 @@ class GPU_interface(object):
         self.gpu_arrays_allocated = True
     
 
-    def cpu_to_gpu_for_compute_fluxes(self):
+    def cpu_to_gpu_centroid_values(self):
         """
-        Move transient data from cpu to gpu 
+        Move centroid data from cpu to gpu 
         """
 
+        nvtxRangePush('cpu_to_gpu_centroid_values')
+        # FIXME SR: Do we need to transfer height and bed centroid values
+        self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
+        self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
+        self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
+        self.gpu_height_centroid_values.set(self.cpu_height_centroid_values)
+        self.gpu_bed_centroid_values.set(self.cpu_bed_centroid_values)
+        nvtxRangePop()
 
-    def compute_fluxes_ext_central_kernel(self, timestep):
+
+    def gpu_to_cpu_centroid_values(self):
+        """
+        Move centroid data from gpu to cpu
+        """
+
+        nvtxRangePush('gpu_to_cpu_centroid_values')
+        # FIXME SR: Do we need to transfer height and bed centroid values
+        cp.asnumpy(self.gpu_stage_centroid_values,  out = self.cpu_stage_centroid_values)
+        cp.asnumpy(self.gpu_xmom_centroid_values,  out = self.cpu_xmom_centroid_values)
+        cp.asnumpy(self.gpu_ymom_centroid_values,  out = self.cpu_ymom_centroid_values)
+        cp.asnumpy(self.gpu_height_centroid_values,  out = self.cpu_height_centroid_values)
+        cp.asnumpy(self.gpu_bed_centroid_values,  out = self.cpu_bed_centroid_values)  
+        nvtxRangePop()
+
+    def cpu_to_gpu_edge_values(self):
+        """
+        Move edge data from cpu to gpu 
+        """
+        
+        nvtxRangePush('cpu_to_gpu_edge_values')
+        self.gpu_stage_edge_values.set(self.cpu_stage_edge_values)
+        self.gpu_xmom_edge_values.set(self.cpu_xmom_edge_values)
+        self.gpu_ymom_edge_values.set(self.cpu_ymom_edge_values)
+        self.gpu_bed_edge_values.set(self.cpu_bed_edge_values)
+        self.gpu_height_edge_values.set(self.cpu_height_edge_values)
+        nvtxRangePop()
+        
+
+
+    def gpu_to_cpu_edge_values(self):
+        """
+        Move centroid data from gpu to cpu
+        """
+        nvtxRangePush('gpu_to_cpu_edge_values')
+        cp.asnumpy(self.gpu_stage_edge_values,  out = self.cpu_stage_edge_values)
+        cp.asnumpy(self.gpu_xmom_edge_values,  out = self.cpu_xmom_edge_values)
+        cp.asnumpy(self.gpu_ymom_edge_values,  out = self.cpu_ymom_edge_values)
+        cp.asnumpy(self.gpu_bed_edge_values,  out = self.cpu_bed_edge_values)
+        cp.asnumpy(self.gpu_height_edge_values,  out = self.cpu_height_edge_values)
+        nvtxRangePop()       
+
+
+    def cpu_to_gpu_boundary_values(self):
+        """
+        Move boundary data from cpu to gpu 
+        """
+
+        nvtxRangePush('cpu_to_gpu_boundary_values')
+        self.gpu_stage_boundary_values.set(self.cpu_stage_boundary_values)  
+        self.gpu_xmom_boundary_values.set(self.cpu_xmom_boundary_values) 
+        self.gpu_ymom_boundary_values.set(self.cpu_ymom_boundary_values) 
+        nvtxRangePop()
+
+    def gpu_to_cpu_boundary_values(self):
+        """
+        Move boundary data from gpu to cpu
+        """
+
+        nvtxRangePush('gpu_to_cpu_boundary_values')
+        cp.asnumpy(self.gpu_stage_boundary_values, out = self.cpu_stage_boundary_values)  
+        cp.asnumpy(self.gpu_xmom_boundary_values,  out = self.cpu_xmom_boundary_values) 
+        cp.asnumpy(self.gpu_ymom_boundary_values,  out = self.cpu_ymom_boundary_values) 
+        nvtxRangePop()
+
+    def gpu_to_cpu_for_compute_fluxes(self):
+        """
+        Move compute_fluxes updated data from gpu to cpu
+        """
+
+        nvtxRangePush('gpu_to_cpu_for_compute_fluxes')
+        cp.asnumpy(self.gpu_max_speed, out = self.cpu_max_speed)
+        cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)
+        cp.asnumpy(self.gpu_xmom_explicit_update, out = self.cpu_xmom_explicit_update)
+        cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)
+        nvtxRangePop()
+
+
+    def compute_fluxes_ext_central_kernel(self, timestep, recover_gpu_results=True):
         """
         compute flux
 
@@ -287,31 +378,11 @@ class GPU_interface(object):
                 ) 
                 )
 
-
-        #-------------------------------------
-        # Recover values from gpu
-        #-------------------------------------
-
         nvtxRangePush('calculate flux: cupy reductions')
         # FIXME SR: Does gpu_reduce_timestep live on the GPU or CPU?
         gpu_reduce_timestep = self.gpu_timestep_array.min()
-
         gpu_reduced_local_boundary_flux_sum = self.gpu_local_boundary_flux_sum.sum()
         nvtxRangePop()
-
-
-        nvtxRangePush('calculate flux: transfer from GPU')
-    
-        # cp.asnumpy(gpu_timestep_array,          out = timestep_array)          #InOut
-        # cp.asnumpy(gpu_local_boundary_flux_sum, out = local_boundary_flux_sum) #InOut
-        
-        cp.asnumpy(self.gpu_max_speed, out = self.cpu_max_speed)                    #InOut
-        cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)   #InOut
-        cp.asnumpy(self.gpu_xmom_explicit_update, out = self.cpu_xmom_explicit_update)     #InOut
-        cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)     #InOut
-
-        nvtxRangePop()
-
 
         nvtxRangePush('calculate flux: communicate reduced results')
         # do we need to do this?
@@ -319,8 +390,23 @@ class GPU_interface(object):
             timestep = cp.asnumpy(gpu_reduce_timestep)
 
         self.domain.boundary_flux_sum[substep_count] = cp.asnumpy(gpu_reduced_local_boundary_flux_sum)
-
         nvtxRangePop()
 
+        #-------------------------------------
+        # Recover values from gpu if necessary
+        #-------------------------------------
+        if recover_gpu_results:
+            nvtxRangePush('calculate flux: transfer from GPU')
+            cp.asnumpy(self.gpu_max_speed, out = self.cpu_max_speed)                           #InOut
+            cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)   #InOut
+            cp.asnumpy(self.gpu_xmom_explicit_update, out = self.cpu_xmom_explicit_update)     #InOut
+            cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)     #InOut
+            nvtxRangePop()
+
         return timestep
+
+
+
+#=======================================================================
+# Code to integrate with domain evolve loop        
 
