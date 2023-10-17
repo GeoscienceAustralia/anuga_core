@@ -81,6 +81,8 @@ class GPU_interface(object):
         self.cpu_stage_edge_values      = stage.edge_values
         self.cpu_xmom_edge_values       = xmom.edge_values
         self.cpu_ymom_edge_values       = ymom.edge_values
+        self.cpu_xmom_centroid_values   = xmom.centroid_values
+        self.cpu_ymom_centroid_values   = ymom.centroid_values
         self.cpu_bed_edge_values        = bed.edge_values
         self.cpu_height_edge_values     = height.edge_values
         self.cpu_height_centroid_values = height.centroid_values
@@ -132,7 +134,7 @@ class GPU_interface(object):
         with open('../cuda_anuga.cu') as f:
             code = f.read()
 
-        self.mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop",))
+        self.mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop","_cuda_extrapolate_second_order_edge_sw"))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
