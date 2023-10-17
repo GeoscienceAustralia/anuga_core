@@ -309,7 +309,8 @@ class Domain(Generic_Domain):
         # 3. Openacc
         # 4. Cuda
         #-------------------------------
-        self.set_multiprocessor_mode(4)
+        self.gpu_interface = None
+        self.set_multiprocessor_mode(1)
 
         #-------------------------------
         # datetime and timezone
@@ -1884,7 +1885,8 @@ class Domain(Generic_Domain):
             from .sw_domain_openacc_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            from .sw_domain_simd_ext import compute_fluxes_ext_central
+            # from .sw_domain_simd_ext import compute_fluxes_ext_central
+            compute_fluxes_ext_central = self.gpu_interface.compute_fluxes_ext_central_kernel
         else:
             raise Exception('Not implemented')
 
@@ -2933,6 +2935,43 @@ class Domain(Generic_Domain):
 
     def get_inv_tri_map(self):
         return self.inv_tri_map
+
+# ==============================================================================
+# GPU interface
+# ==============================================================================
+
+    def set_multiprocessor_mode(self, multiprocessor_mode= 0):
+        """
+        Set multiprocessor mode 
+        
+        0. original
+        1. simd (used for multiprocessor)
+        2. openmp (in development)
+        3. openacc (in development)
+        4. cuda (in development)
+        """
+
+        if multiprocessor_mode in [0,1,2,3,4]:
+            self.multiprocessor_mode = multiprocessor_mode
+
+            if multiprocessor_mode == 4:
+                self.set_gpu_interface()
+        else:
+            raise Exception('multiprocessor mode {multiprocessor_mode} not supported')
+    
+    def set_gpu_interface(self):
+
+        if self.multiprocessor_mode == 4 and self.gpu_interface is None:
+            try:
+                from .sw_domain_cuda import GPU_interface
+                self.gpu_interface = GPU_interface(self)
+                self.gpu_interface.allocate_gpu_arrays()
+                self.gpu_interface.compile_gpu_kernels()
+            except:
+                print('WARNING: cupy not available, so falling back to multiprocessor_mode 1')
+                self.set_multiprocessor_mode(1)
+            
+        
 
 ################################################################################
 # End of class Shallow Water Domain

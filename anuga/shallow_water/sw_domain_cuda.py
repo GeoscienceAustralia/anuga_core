@@ -525,22 +525,17 @@ class GPU_interface(object):
             cp.asnumpy(self.gpu_height_edge_values, out = self.cpu_height_edge_values)
             cp.asnumpy(self.gpu_bed_edge_values,    out = self.cpu_bed_edge_values)
 
+            # FIXME SR: check to see if we need to transfer all these centroid values
             cp.asnumpy(self.gpu_stage_centroid_values,  out = self.cpu_stage_centroid_values)
             cp.asnumpy(self.gpu_xmom_centroid_values,   out = self.cpu_xmom_centroid_values)
             cp.asnumpy(self.gpu_ymom_centroid_values,   out = self.cpu_ymom_centroid_values)
             cp.asnumpy(self.gpu_height_centroid_values, out = self.cpu_height_centroid_values)
             cp.asnumpy(self.gpu_bed_centroid_values,    out = self.cpu_bed_centroid_values)
 
-
-            cp.asnumpy(self.gpu_max_speed, out = self.cpu_max_speed)
-            cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)
-            cp.asnumpy(self.gpu_xmom_explicit_update, out = self.cpu_xmom_explicit_update)
-            cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)
             nvtxRangePop()
 
 
 
 
-#=======================================================================
-# Code to integrate with domain evolve loop        
+
 
