@@ -917,16 +917,16 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_
                                                       double* edge_coordinates, 
                                                       double* surrogate_neighbours,               
                                                       
-                                                       double beta_w_dry, // unused
-                                                       double beta_w, // unused
-                                                      double beta_uh_dry, 
-                                                      double beta_uh, 
-                                                       double beta_vh_dry, // unused
-                                                       double beta_vh, // unused
+                                                      //double beta_w_dry, // unused
+                                                      //double beta_w, // unused
+                                                      //double beta_uh_dry, 
+                                                      //double beta_uh, 
+                                                      //double beta_vh_dry, // unused
+                                                      //double beta_vh, // unused
                                                       
                                                       double minimum_allowed_height, 
-                                                      int number_of_elements, 
-                                                      int extrapolate_velocity_second_order  
+                                                      long number_of_elements, 
+                                                      long extrapolate_velocity_second_order  
                                             ) {
 
     int k = blockIdx.x * blockDim.x + threadIdx.x;
@@ -942,9 +942,9 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_
       double edge_values[3];
       double cv_k, cv_k0, cv_k1, cv_k2;
 
-      double minimum_allowed_height = minimum_allowed_height;
-      long number_of_elements = number_of_elements;
-      long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
+      //double minimum_allowed_height = minimum_allowed_height;
+      //long number_of_elements = number_of_elements;
+      //long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
 
       dk = fmax(stage_centroid_values[k] - bed_centroid_values[k], 0.0);
 
@@ -976,7 +976,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_
 }
 
 
-__global__ void _cuda_extrapolate_second_order_edge_sw_loop2(int* number_of_boundaries,
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
                                                              double* stage_edge_values,
                                                              double* xmom_edge_values, 
                                                              double* ymom_edge_values,
@@ -997,6 +997,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(int* number_of_boun
                                                              double* ymom_vertex_values,
                                                              double* bed_vertex_values,
 
+                                                             long* number_of_boundaries,
                                                              double* centroid_coordinates,
                                                              double* edge_coordinates, 
                                                              double* surrogate_neighbours,               
@@ -1009,8 +1010,8 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(int* number_of_boun
                                                              double beta_vh,
                                                       
                                                              double minimum_allowed_height, 
-                                                             int number_of_elements, 
-                                                             int extrapolate_velocity_second_order  
+                                                             long   number_of_elements, 
+                                                             long   extrapolate_velocity_second_order  
                                                              ) {
 
     int k = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1026,9 +1027,9 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(int* number_of_boun
       double edge_values[3];
       double cv_k, cv_k0, cv_k1, cv_k2;
 
-      double minimum_allowed_height = minimum_allowed_height;
-      long number_of_elements = number_of_elements;
-      long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
+      //double minimum_allowed_height = minimum_allowed_height;
+      //long number_of_elements = number_of_elements;
+      //long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
 
       k2 = k * 2;
       k3 = k * 3;
@@ -1504,52 +1505,18 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(int* number_of_boun
     }
 }
 
-__global__ void _cuda_extrapolate_second_order_edge_sw_loop3(double* stage_edge_values, 
-                                                      double* xmom_edge_values, 
-                                                      double* ymom_edge_values,
-                                                      double* height_edge_values, 
-                                                      double* bed_edge_values, 
-
-                                                      double* stage_centroid_values, 
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop3(
                                                       double* xmom_centroid_values,
                                                       double* ymom_centroid_values, 
-                                                      double* height_centroid_values,
-                                                      double* bed_centroid_values, 
+                                                      
                                                       double* x_centroid_work,
                                                       double* y_centroid_work,
-                                                      
-                                                      double* centroid_coordinates,
-                                                      double* edge_coordinates, 
-                                                      double* surrogate_neighbours,               
-                                                      
-                                                       double beta_w_dry, // unused
-                                                       double beta_w, // unused
-                                                      double beta_uh_dry, 
-                                                      double beta_uh, 
-                                                       double beta_vh_dry, // unused
-                                                       double beta_vh, // unused
-                                                      
-                                                      double minimum_allowed_height, 
-                                                      int number_of_elements, 
-                                                      int extrapolate_velocity_second_order  
+                                           
+                                                      long extrapolate_velocity_second_order  
                                             ) {
 
     int k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k < number_of_elements) {
-
-      double a, b; // Gradient vector used to calculate edge values from centroids
-      long k, k0, k1, k2, k3, k6, coord_index, i;
-      double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
-      double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
-      double dqv[3], qmin, qmax, hmin, hmax;
-      double hc, h0, h1, h2, beta_tmp, hfactor;
-      double dk, dk_inv, a_tmp, b_tmp, c_tmp, d_tmp;
-      double edge_values[3];
-      double cv_k, cv_k0, cv_k1, cv_k2;
-
-      double minimum_allowed_height = minimum_allowed_height;
-      long number_of_elements = number_of_elements;
-      long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
 
       if (extrapolate_velocity_second_order == 1)
         {
