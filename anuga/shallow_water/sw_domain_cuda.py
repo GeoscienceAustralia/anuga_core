@@ -234,13 +234,14 @@ class GPU_interface(object):
         self.gpu_edge_coordinates       = cp.array(self.cpu_edge_coordinates)
         self.gpu_surrogate_neighbours   = cp.array(self.cpu_surrogate_neighbours)              
 
-        # FIXME SR: check whether these are arrays or scalars   
-        self.gpu_beta_w_dry             = cp.array(self.cpu_beta_w_dry) 
-        self.gpu_beta_w                 = cp.array(self.cpu_beta_w)
-        self.gpu_beta_uh_dry            = cp.array(self.cpu_beta_uh_dry)  
-        self.gpu_beta_uh                = cp.array(self.cpu_beta_uh)
-        self.gpu_beta_vh_dry            = cp.array(self.cpu_beta_vh_dry)
-        self.gpu_beta_vh                = cp.array(self.cpu_beta_vh)
+        # FIXME SR: check whether these are arrays or scalars
+        # NOTE MR: They are scalars
+        self.gpu_beta_w_dry             = self.cpu_beta_w_dry
+        self.gpu_beta_w                 = self.cpu_beta_w
+        self.gpu_beta_uh_dry            = self.cpu_beta_uh_dry
+        self.gpu_beta_uh                = self.cpu_beta_uh
+        self.gpu_beta_vh_dry            = self.cpu_beta_vh_dry
+        self.gpu_beta_vh                = self.cpu_beta_vh
 
         self.gpu_x_centroid_work        = cp.array(self.cpu_x_centroid_work)
         self.gpu_y_centroid_work        = cp.array(self.cpu_y_centroid_work)
@@ -498,7 +499,8 @@ class GPU_interface(object):
 
         nvtxRangePush('extrapolate kernel: run kernel')
         # FIXME SR: Check to see if we need to read in vertex_values arrays
-        self.extrapolate_kernel( (NO_OF_BLOCKS, 0, 0), 
+
+        self.extrapolate_kernel( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
                 self.gpu_stage_edge_values, 
@@ -528,8 +530,8 @@ class GPU_interface(object):
                 self.gpu_beta_vh,
                 
                 np.float64 (self.cpu_minimum_allowed_height), 
-                np.int64   (self.cpu_number_of_elements), 
-                np.float64 (self.cpu_extrapolate_velocity_second_order)
+                np.int32   (self.cpu_number_of_elements), 
+                np.int32 (self.cpu_extrapolate_velocity_second_order)
                 ) 
                 )
         nvtxRangePop()

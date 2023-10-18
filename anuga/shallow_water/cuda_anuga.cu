@@ -873,12 +873,12 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
                                                       double* edge_coordinates, 
                                                       double* surrogate_neighbours,               
                                                       
-                                                      double* beta_w_dry, 
-                                                      double* beta_w,
-                                                      double* beta_uh_dry, 
-                                                      double* beta_uh, 
-                                                      double* beta_vh_dry, 
-                                                      double* beta_vh,
+                                                       double beta_w_dry, // unused
+                                                       double beta_w, // unused
+                                                      double beta_uh_dry, 
+                                                      double beta_uh, 
+                                                       double beta_vh_dry, // unused
+                                                       double beta_vh, // unused
                                                       
                                                       double minimum_allowed_height, 
                                                       int number_of_elements, 
@@ -1020,9 +1020,9 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
                     }
 
                     if (extrapolate_velocity_second_order == 1) {
-                        beta_tmp = beta_uh[k];
+                        beta_tmp = beta_uh;
                     } else {
-                        beta_tmp = beta_uh_dry[k];
+                        beta_tmp = beta_uh_dry;
                     }
 
                     calc_edge_values(beta_tmp, cv_k, cv_k0, cv_k1, cv_k2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
@@ -1088,9 +1088,9 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
                 cv_k2 = xmom_centroid_values[k2] / height_centroid_values[k2];
 
                 if (extrapolate_velocity_second_order == 1) {
-                    beta_tmp = beta_uh[k];
+                    beta_tmp = beta_uh;
                 } else {
-                    beta_tmp = beta_uh_dry[k];
+                    beta_tmp = beta_uh_dry;
                 }
 
                 calc_edge_values(beta_tmp, cv_k, cv_k0, cv_k1, cv_k2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
