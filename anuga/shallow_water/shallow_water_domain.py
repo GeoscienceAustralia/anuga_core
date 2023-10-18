@@ -2968,7 +2968,9 @@ class Domain(Generic_Domain):
                 self.gpu_interface.allocate_gpu_arrays()
                 self.gpu_interface.compile_gpu_kernels()
             except:
+                print('=====================================================================')
                 print('WARNING: cupy not available, so falling back to multiprocessor_mode 1')
+                print('=====================================================================')
                 self.set_multiprocessor_mode(1)
             
         

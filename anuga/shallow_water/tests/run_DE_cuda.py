@@ -147,6 +147,8 @@ nvtxRangePop()
 
 nvtxRangePush('compute fluxes domain2')
 domain2.compute_fluxes()
+timestep2 = domain2.flux_timestep
+boundary_flux2 = domain2.boundary_flux_sum[0]
 nvtxRangePop()
 
 

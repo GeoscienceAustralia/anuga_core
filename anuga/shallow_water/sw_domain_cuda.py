@@ -1,6 +1,9 @@
 
 import numpy as np
-import cupy as cp
+
+
+
+
 
 #-----------------------------------------------------
 # Code for profiling cuda version
@@ -133,6 +136,8 @@ class GPU_interface(object):
         compile gpu kernels
         """
 
+        import cupy as cp
+
         #----------------------------------------
         # Read in precompiled kernel function
         #----------------------------------------
@@ -164,10 +169,7 @@ class GPU_interface(object):
     # Allocate GPU arrays
     #-----------------------------------------------------
     def allocate_gpu_arrays(self):
-    
-        #------------------------------------
-        # create cupy arrays
-        #------------------------------------
+
         import cupy as cp
         
         nvtxRangePush('to gpu')
@@ -263,6 +265,8 @@ class GPU_interface(object):
         Move centroid data from gpu to cpu
         """
 
+        import cupy as cp
+
         nvtxRangePush('gpu_to_cpu_centroid_values')
         # FIXME SR: Do we need to transfer height and bed centroid values
         cp.asnumpy(self.gpu_stage_centroid_values,  out = self.cpu_stage_centroid_values)
@@ -291,6 +295,9 @@ class GPU_interface(object):
         """
         Move centroid data from gpu to cpu
         """
+
+        import cupy as cp
+
         nvtxRangePush('gpu_to_cpu_edge_values')
         cp.asnumpy(self.gpu_stage_edge_values,  out = self.cpu_stage_edge_values)
         cp.asnumpy(self.gpu_xmom_edge_values,  out = self.cpu_xmom_edge_values)
@@ -304,6 +311,7 @@ class GPU_interface(object):
         """
         Move boundary data from cpu to gpu 
         """
+        import cupy as cp
 
         nvtxRangePush('cpu_to_gpu_boundary_values')
         self.gpu_stage_boundary_values.set(self.cpu_stage_boundary_values)  
@@ -315,7 +323,7 @@ class GPU_interface(object):
         """
         Move boundary data from gpu to cpu
         """
-
+        import cupy as cp
         nvtxRangePush('gpu_to_cpu_boundary_values')
         cp.asnumpy(self.gpu_stage_boundary_values, out = self.cpu_stage_boundary_values)  
         cp.asnumpy(self.gpu_xmom_boundary_values,  out = self.cpu_xmom_boundary_values) 
@@ -326,7 +334,7 @@ class GPU_interface(object):
         """
         Move compute_fluxes updated data from gpu to cpu
         """
-
+        import cupy as cp
         nvtxRangePush('gpu_to_cpu_for_compute_fluxes')
         cp.asnumpy(self.gpu_max_speed, out = self.cpu_max_speed)
         cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)
@@ -341,6 +349,7 @@ class GPU_interface(object):
 
         Ensure transient data has been copied to the GPU via cpu_to_gpu_flux
         """
+        import cupy as cp
 
         #------------------------------------------------
         # Transfer transient values from cpu if necessary
@@ -464,6 +473,7 @@ class GPU_interface(object):
 
         Ensure transient data has been copied to the GPU via cpu_to_gpu routines
         """
+        import cupy as cp
 
         #------------------------------------------------
         # Transfer transient values from cpu if necessary
