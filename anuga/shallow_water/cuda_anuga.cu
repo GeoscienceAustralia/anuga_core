@@ -926,7 +926,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_
     if (k < number_of_elements) {
 
       double a, b; // Gradient vector used to calculate edge values from centroids
-      int k0, k1, k2, k3, k6, coord_index, i;
+      long k0, k1, k2, k3, k6, coord_index, i;
       double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
       double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
       double dqv[3], qmin, qmax, hmin, hmax;
@@ -1007,7 +1007,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
     if (k < number_of_elements) {
 
       double a, b; // Gradient vector used to calculate edge values from centroids
-      int k0, k1, k2, k3, k6, coord_index, i;
+      long k0, k1, k2, k3, k6, coord_index, i;
       double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
       double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
       double dqv[3], qmin, qmax, hmin, hmax;
