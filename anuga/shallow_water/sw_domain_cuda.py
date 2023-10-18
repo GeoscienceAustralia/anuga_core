@@ -38,6 +38,7 @@ class GPU_interface(object):
         self.domain = domain
 
         self.cpu_number_of_elements  =  domain.number_of_elements
+        self.cpu_number_of_boundaries  =  domain.number_of_boundaries
         self.cpu_boundary_length     =  domain.boundary_length 
         self.cpu_number_of_riverwall_edges =  domain.number_of_riverwall_edges
         self.cpu_epsilon             =  domain.epsilon
@@ -93,6 +94,12 @@ class GPU_interface(object):
         self.cpu_stage_boundary_values  = stage.boundary_values
         self.cpu_xmom_boundary_values   = xmom.boundary_values 
         self.cpu_ymom_boundary_values   = ymom.boundary_values
+
+        self.cpu_stage_vertex_values = stage.vertex_values
+        self.cpu_height_vertex_values = height.vertex_values
+        self.cpu_xmom_vertex_values = xmom.vertex_values
+        self.cpu_ymom_vertex_values = ymom.vertex_values
+        self.cpu_bed_vertex_values = bed.vertex_values
 
 
         self.cpu_domain_areas           = domain.areas
@@ -160,12 +167,23 @@ class GPU_interface(object):
         with open(cu_file) as f:
             code = f.read()
 
-        self.mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop","_cuda_extrapolate_second_order_edge_sw"))
+        self.mod  = cp.RawModule(code=code, options=("--std=c++17",),
+                                 name_expressions=("_cuda_compute_fluxes_loop",
+                                                   "_cuda_extrapolate_second_order_edge_sw",
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop1",
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop2",
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop3"))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
         self.flux_kernel = self.mod.get_function("_cuda_compute_fluxes_loop")
+
+        # FIXME: To be deprecated!
         self.extrapolate_kernel = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw")
+
+        self.extrapolate_kernel1 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop1")
+        self.extrapolate_kernel2 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop2")
+        self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
 
     #-----------------------------------------------------
     # Allocate GPU arrays
@@ -178,6 +196,8 @@ class GPU_interface(object):
 
         # FIXME SR: we should probably allocate all the cpu numpy arrays with 
         # pinned memory to speed movement of data from host to device
+
+        self.gpu_number_of_boundaries = cp.array(self.cpu_number_of_boundaries)
 
         # these are just used for the reduction operation of the flux calculation
         self.gpu_timestep_array          = cp.array(self.cpu_timestep_array)
@@ -214,6 +234,12 @@ class GPU_interface(object):
         self.gpu_stage_boundary_values  = cp.array(self.cpu_stage_boundary_values)  
         self.gpu_xmom_boundary_values   = cp.array(self.cpu_xmom_boundary_values) 
         self.gpu_ymom_boundary_values   = cp.array(self.cpu_ymom_boundary_values) 
+
+        self.gpu_stage_vertex_values = cp.array(self.cpu_stage_vertex_values)
+        self.gpu_height_vertex_values = cp.array(self.cpu_height_vertex_values)
+        self.gpu_xmom_vertex_values = cp.array(self.cpu_xmom_vertex_values)
+        self.gpu_ymom_vertex_values = cp.array(self.cpu_ymom_vertex_values)
+        self.gpu_bed_vertex_values = cp.array(self.cpu_bed_vertex_values)
 
         # These should not change during evolve
         self.gpu_areas                  = cp.array(self.cpu_domain_areas)
@@ -500,7 +526,42 @@ class GPU_interface(object):
         nvtxRangePush('extrapolate kernel: run kernel')
         # FIXME SR: Check to see if we need to read in vertex_values arrays
 
-        self.extrapolate_kernel( (NO_OF_BLOCKS, 0, 0),
+        # self.extrapolate_kernel( (NO_OF_BLOCKS, 0, 0),
+        #         (THREADS_PER_BLOCK, 0, 0), 
+        #         (  
+        #         self.gpu_stage_edge_values, 
+        #         self.gpu_xmom_edge_values, 
+        #         self.gpu_ymom_edge_values,
+        #         self.gpu_height_edge_values, 
+        #         self.gpu_bed_edge_values, 
+
+        #         self.gpu_stage_centroid_values, 
+        #         self.gpu_xmom_centroid_values,
+        #         self.gpu_ymom_centroid_values, 
+        #         self.gpu_height_centroid_values,
+        #         self.gpu_bed_centroid_values,
+
+        #         self.gpu_x_centroid_work,
+        #         self.gpu_y_centroid_work,
+                
+        #         self.gpu_centroid_coordinates,
+        #         self.gpu_edge_coordinates, 
+        #         self.gpu_surrogate_neighbours,               
+                
+        #         self.gpu_beta_w_dry, 
+        #         self.gpu_beta_w,
+        #         self.gpu_beta_uh_dry, 
+        #         self.gpu_beta_uh, 
+        #         self.gpu_beta_vh_dry, 
+        #         self.gpu_beta_vh,
+                
+        #         np.float64 (self.cpu_minimum_allowed_height), 
+        #         np.int32   (self.cpu_number_of_elements), 
+        #         np.int32 (self.cpu_extrapolate_velocity_second_order)
+        #         ) 
+        #         )
+
+        self.extrapolate_kernel1( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
                 self.gpu_stage_edge_values, 
@@ -534,6 +595,85 @@ class GPU_interface(object):
                 np.int32 (self.cpu_extrapolate_velocity_second_order)
                 ) 
                 )
+
+        self.extrapolate_kernel2( (NO_OF_BLOCKS, 0, 0),
+                (THREADS_PER_BLOCK, 0, 0), 
+                (  
+                self.gpu_number_of_boundaries,
+                self.gpu_stage_edge_values,
+                self.gpu_xmom_edge_values, 
+                self.gpu_ymom_edge_values,
+                self.gpu_height_edge_values, 
+                self.gpu_bed_edge_values, 
+
+                self.gpu_stage_centroid_values, 
+                self.gpu_xmom_centroid_values,
+                self.gpu_ymom_centroid_values, 
+                self.gpu_height_centroid_values,
+                self.gpu_bed_centroid_values,
+
+                self.gpu_stage_vertex_values,
+                self.gpu_height_vertex_values,
+                self.gpu_xmom_vertex_values,
+                self.gpu_ymom_vertex_values,
+                self.gpu_bed_vertex_values,
+
+                self.gpu_x_centroid_work,
+                self.gpu_y_centroid_work,
+                
+                self.gpu_centroid_coordinates,
+                self.gpu_edge_coordinates, 
+                self.gpu_surrogate_neighbours,               
+                
+                self.gpu_beta_w_dry, 
+                self.gpu_beta_w,
+                self.gpu_beta_uh_dry, 
+                self.gpu_beta_uh, 
+                self.gpu_beta_vh_dry, 
+                self.gpu_beta_vh,
+                
+                np.float64 (self.cpu_minimum_allowed_height), 
+                np.int32   (self.cpu_number_of_elements), 
+                np.int32 (self.cpu_extrapolate_velocity_second_order)
+                ) 
+                )
+
+        self.extrapolate_kernel3( (NO_OF_BLOCKS, 0, 0),
+                (THREADS_PER_BLOCK, 0, 0), 
+                (  
+                self.gpu_stage_edge_values, 
+                self.gpu_xmom_edge_values, 
+                self.gpu_ymom_edge_values,
+                self.gpu_height_edge_values, 
+                self.gpu_bed_edge_values, 
+
+                self.gpu_stage_centroid_values, 
+                self.gpu_xmom_centroid_values,
+                self.gpu_ymom_centroid_values, 
+                self.gpu_height_centroid_values,
+                self.gpu_bed_centroid_values,
+
+                self.gpu_x_centroid_work,
+                self.gpu_y_centroid_work,
+                
+                self.gpu_centroid_coordinates,
+                self.gpu_edge_coordinates, 
+                self.gpu_surrogate_neighbours,               
+                
+                self.gpu_beta_w_dry, 
+                self.gpu_beta_w,
+                self.gpu_beta_uh_dry, 
+                self.gpu_beta_uh, 
+                self.gpu_beta_vh_dry, 
+                self.gpu_beta_vh,
+                
+                np.float64 (self.cpu_minimum_allowed_height), 
+                np.int32   (self.cpu_number_of_elements), 
+                np.int32 (self.cpu_extrapolate_velocity_second_order)
+                ) 
+                )
+
+
         nvtxRangePop()
 
         #------------------------------------------------

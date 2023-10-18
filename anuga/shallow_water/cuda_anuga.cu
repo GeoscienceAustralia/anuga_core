@@ -49,16 +49,16 @@ static double TINY = 1.0e-100; // to avoid machine accuracy problems.
 // the limiting process.
 // return 0;
 
-for (i = 0; i < 3; i++)
-{
-if (dqv[i] < -TINY)
-r0 = qmin / dqv[i];
+ for (i = 0; i < 3; i++)
+   {
+     if (dqv[i] < -TINY)
+       r0 = qmin / dqv[i];
 
-if (dqv[i] > TINY)
-r0 = qmax / dqv[i];
+     if (dqv[i] > TINY)
+       r0 = qmax / dqv[i];
 
-r = fmin(r0, r);
-}
+     r = fmin(r0, r);
+   }
 
 phi = fmin(r * beta_w, 1.0);
 // phi=1.;
@@ -641,7 +641,7 @@ __global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,    // InOut
         edge_timestep = radii[k] * 1.0 / fmax(max_speed_local, epsilon);
 
         // Update the timestep
-        if ((tri_full_flag[k] == 1))
+        if (tri_full_flag[k] == 1)
         {
           if (max_speed_local > epsilon)
           {
@@ -825,7 +825,7 @@ __device__ void limit_gradient(double* dqv, double qmin, double qmax, double bet
     }
 }
 
-__device__ void calc_edge_values(double beta_tmp, double cv_k, double cv_k0, double cv_k1, double cv_k2,
+__device__ void __calc_edge_values(double beta_tmp, double cv_k, double cv_k0, double cv_k1, double cv_k2,
                                 double dxv0, double dxv1, double dxv2, double dyv0, double dyv1, double dyv2,
                                 double dx1, double dx2, double dy1, double dy2, double inv_area2, double* edge_values) {
     double htmp1, htmp2, htmp3, htmp4, htmp5;
@@ -840,6 +840,52 @@ __device__ void calc_edge_values(double beta_tmp, double cv_k, double cv_k0, dou
     edge_values[2] = cv_k + htmp1 * (dx1 * dy2 * cv_k0 - dxv2 * dyv0 * cv_k + dxv2 * dyv1 * cv_k1 - dxv1 * dyv2 * cv_k2 + dxv1 * dyv0 * cv_k0 - dxv0 * dyv1 * cv_k1);
 }
 
+__device__ void __calc_edge_values_2_bdy(double beta, double cv_k, double cv_k0, 
+                        double dxv0, double dxv1, double dxv2, double dyv0, double dyv1, double dyv2,
+                        double dx1, double dx2, double dy1, double dy2, double inv_area2,
+                        double *edge_values)
+{
+  double dqv[3];
+  double dq0, dq1, dq2;
+  double a, b;
+  double qmin, qmax;
+
+
+  // Compute differentials
+  dq1 = cv_k0 - cv_k;
+
+  // Calculate the gradient between the centroid of triangle k
+  // and that of its neighbour
+  a = dq1 * dx2;
+  b = dq1 * dy2;
+
+  // Calculate provisional edge jumps, to be limited
+  dqv[0] = a * dxv0 + b * dyv0;
+  dqv[1] = a * dxv1 + b * dyv1;
+  dqv[2] = a * dxv2 + b * dyv2;
+
+  // Now limit the jumps
+  if (dq1 >= 0.0)
+  {
+    qmin = 0.0;
+    qmax = dq1;
+  }
+  else
+  {
+    qmin = dq1;
+    qmax = 0.0;
+  }
+
+  // Limit the gradient
+  __limit_gradient(dqv, qmin, qmax, beta);
+
+  edge_values[0] = cv_k + dqv[0];
+  edge_values[1] = cv_k + dqv[1];
+  edge_values[2] = cv_k + dqv[2];
+
+}
+
+
 /*
 
 __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values, double* xmom_edge_values, double* ymom_edge_values,
@@ -853,9 +899,672 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
 
 */
 
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_values, 
+                                                      double* xmom_edge_values, 
+                                                      double* ymom_edge_values,
+                                                      double* height_edge_values, 
+                                                      double* bed_edge_values, 
+
+                                                      double* stage_centroid_values, 
+                                                      double* xmom_centroid_values,
+                                                      double* ymom_centroid_values, 
+                                                      double* height_centroid_values,
+                                                      double* bed_centroid_values, 
+                                                      double* x_centroid_work,
+                                                      double* y_centroid_work,
+                                                      
+                                                      double* centroid_coordinates,
+                                                      double* edge_coordinates, 
+                                                      double* surrogate_neighbours,               
+                                                      
+                                                       double beta_w_dry, // unused
+                                                       double beta_w, // unused
+                                                      double beta_uh_dry, 
+                                                      double beta_uh, 
+                                                       double beta_vh_dry, // unused
+                                                       double beta_vh, // unused
+                                                      
+                                                      double minimum_allowed_height, 
+                                                      int number_of_elements, 
+                                                      int extrapolate_velocity_second_order  
+                                            ) {
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    if (k < number_of_elements) {
+
+      double a, b; // Gradient vector used to calculate edge values from centroids
+      long k, k0, k1, k2, k3, k6, coord_index, i;
+      double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
+      double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
+      double dqv[3], qmin, qmax, hmin, hmax;
+      double hc, h0, h1, h2, beta_tmp, hfactor;
+      double dk, dk_inv, a_tmp, b_tmp, c_tmp, d_tmp;
+      double edge_values[3];
+      double cv_k, cv_k0, cv_k1, cv_k2;
+
+      double minimum_allowed_height = minimum_allowed_height;
+      long number_of_elements = number_of_elements;
+      long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
+
+      dk = fmax(stage_centroid_values[k] - bed_centroid_values[k], 0.0);
+
+      height_centroid_values[k] = dk;
+      x_centroid_work[k] = 0.0;
+      y_centroid_work[k] = 0.0;
+
+      if (dk <= minimum_allowed_height)
+        {
+          x_centroid_work[k] = 0.0;
+          xmom_centroid_values[k] = 0.0;
+          y_centroid_work[k] = 0.0;
+          ymom_centroid_values[k] = 0.0;
+        }
+
+      if (extrapolate_velocity_second_order == 1)
+        {
+          if (dk > minimum_allowed_height)
+            {
+              dk_inv = 1.0 / dk;
+              x_centroid_work[k] = xmom_centroid_values[k];
+              xmom_centroid_values[k] = xmom_centroid_values[k] * dk_inv;
+
+              y_centroid_work[k] = ymom_centroid_values[k];
+              ymom_centroid_values[k] = ymom_centroid_values[k] * dk_inv;
+            }
+        }
+    }
+}
 
 
-__global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values, 
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop2(int* number_of_boundaries,
+                                                             double* stage_edge_values,
+                                                             double* xmom_edge_values, 
+                                                             double* ymom_edge_values,
+                                                             double* height_edge_values, 
+                                                             double* bed_edge_values, 
+
+                                                             double* stage_centroid_values, 
+                                                             double* xmom_centroid_values,
+                                                             double* ymom_centroid_values, 
+                                                             double* height_centroid_values,
+                                                             double* bed_centroid_values, 
+                                                             double* x_centroid_work,
+                                                             double* y_centroid_work,
+
+                                                             double* stage_vertex_values,
+                                                             double* height_vertex_values,
+                                                             double* xmom_vertex_values,
+                                                             double* ymom_vertex_values,
+                                                             double* bed_vertex_values,
+
+                                                             double* centroid_coordinates,
+                                                             double* edge_coordinates, 
+                                                             double* surrogate_neighbours,               
+                                                      
+                                                             double beta_w_dry,
+                                                             double beta_w,
+                                                             double beta_uh_dry, 
+                                                             double beta_uh, 
+                                                             double beta_vh_dry,
+                                                             double beta_vh,
+                                                      
+                                                             double minimum_allowed_height, 
+                                                             int number_of_elements, 
+                                                             int extrapolate_velocity_second_order  
+                                                             ) {
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    if (k < number_of_elements) {
+
+      double a, b; // Gradient vector used to calculate edge values from centroids
+      long k, k0, k1, k2, k3, k6, coord_index, i;
+      double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
+      double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
+      double dqv[3], qmin, qmax, hmin, hmax;
+      double hc, h0, h1, h2, beta_tmp, hfactor;
+      double dk, dk_inv, a_tmp, b_tmp, c_tmp, d_tmp;
+      double edge_values[3];
+      double cv_k, cv_k0, cv_k1, cv_k2;
+
+      double minimum_allowed_height = minimum_allowed_height;
+      long number_of_elements = number_of_elements;
+      long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
+
+      k2 = k * 2;
+      k3 = k * 3;
+      k6 = k * 6;
+
+      // Get the edge coordinates
+      xv0 = edge_coordinates[k6 + 0];
+      yv0 = edge_coordinates[k6 + 1];
+      xv1 = edge_coordinates[k6 + 2];
+      yv1 = edge_coordinates[k6 + 3];
+      xv2 = edge_coordinates[k6 + 4];
+      yv2 = edge_coordinates[k6 + 5];
+
+      // Get the centroid coordinates
+      x = centroid_coordinates[k2 + 0];
+      y = centroid_coordinates[k2 + 1];
+
+      // Store x- and y- differentials for the edges of
+      // triangle k relative to the centroid
+      dxv0 = xv0 - x;
+      dxv1 = xv1 - x;
+      dxv2 = xv2 - x;
+      dyv0 = yv0 - y;
+      dyv1 = yv1 - y;
+      dyv2 = yv2 - y;
+
+      // If no boundaries, auxiliary triangle is formed
+      // from the centroids of the three neighbours
+      // If one boundary, auxiliary triangle is formed
+      // from this centroid and its two neighbours
+
+      k0 = surrogate_neighbours[k3 + 0];
+      k1 = surrogate_neighbours[k3 + 1];
+      k2 = surrogate_neighbours[k3 + 2];
+
+      // Get the auxiliary triangle's vertex coordinates
+      // (normally the centroids of neighbouring triangles)
+      coord_index = 2 * k0;
+      x0 = centroid_coordinates[coord_index + 0];
+      y0 = centroid_coordinates[coord_index + 1];
+
+      coord_index = 2 * k1;
+      x1 = centroid_coordinates[coord_index + 0];
+      y1 = centroid_coordinates[coord_index + 1];
+
+      coord_index = 2 * k2;
+      x2 = centroid_coordinates[coord_index + 0];
+      y2 = centroid_coordinates[coord_index + 1];
+
+      // Store x- and y- differentials for the vertices
+      // of the auxiliary triangle
+      dx1 = x1 - x0;
+      dx2 = x2 - x0;
+      dy1 = y1 - y0;
+      dy2 = y2 - y0;
+
+      // Calculate 2*area of the auxiliary triangle
+      // The triangle is guaranteed to be counter-clockwise
+      area2 = dy2 * dx1 - dy1 * dx2;
+
+      if (((height_centroid_values[k0] < minimum_allowed_height) | (k0 == k)) &
+          ((height_centroid_values[k1] < minimum_allowed_height) | (k1 == k)) &
+          ((height_centroid_values[k2] < minimum_allowed_height) | (k2 == k)))
+        {
+          // printf("Surrounded by dry cells\n");
+          x_centroid_work[k] = 0.;
+          xmom_centroid_values[k] = 0.;
+          y_centroid_work[k] = 0.;
+          ymom_centroid_values[k] = 0.;
+        }
+
+      // Limit the edge values
+      if (number_of_boundaries[k] == 3)
+        {
+          // Very unlikely
+          // No neighbours, set gradient on the triangle to zero
+
+          //printf("%ld 3 boundaries\n",k);
+
+          stage_edge_values[k3 + 0] = stage_centroid_values[k];
+          stage_edge_values[k3 + 1] = stage_centroid_values[k];
+          stage_edge_values[k3 + 2] = stage_centroid_values[k];
+
+          xmom_edge_values[k3 + 0] = xmom_centroid_values[k];
+          xmom_edge_values[k3 + 1] = xmom_centroid_values[k];
+          xmom_edge_values[k3 + 2] = xmom_centroid_values[k];
+
+          ymom_edge_values[k3 + 0] = ymom_centroid_values[k];
+          ymom_edge_values[k3 + 1] = ymom_centroid_values[k];
+          ymom_edge_values[k3 + 2] = ymom_centroid_values[k];
+
+          dk = height_centroid_values[k];
+          height_edge_values[k3 + 0] = dk;
+          height_edge_values[k3 + 1] = dk;
+          height_edge_values[k3 + 2] = dk;
+
+        }
+      else if (number_of_boundaries[k] <= 1)
+        {
+          //==============================================
+          // Number of boundaries <= 1
+          // 'Typical case'
+          //==============================================
+          //printf("%ld boundaries <= 1\n",k);
+
+          // Calculate heights of neighbouring cells
+          hc = height_centroid_values[k];
+          h0 = height_centroid_values[k0];
+          h1 = height_centroid_values[k1];
+          h2 = height_centroid_values[k2];
+
+          hmin = fmin(fmin(h0, fmin(h1, h2)), hc);
+          hmax = fmax(fmax(h0, fmax(h1, h2)), hc);
+
+          // Look for strong changes in cell depth as an indicator of near-wet-dry
+          // Reduce hfactor linearly from 1-0 between depth ratio (hmin/hc) of [a_tmp , b_tmp]
+          // NOTE: If we have a more 'second order' treatment in near dry areas (e.g. with b_tmp being negative), then
+          //       the water tends to dry more rapidly (which is in agreement with analytical results),
+          //       but is also more 'artefacty' in important cases (tendency for high velocities, etc).
+          //
+          // So hfactor = depth_ratio*(c_tmp) + d_tmp, but is clipped between 0 and 1.
+          hfactor = fmax(0., fmin(c_tmp * fmax(hmin, 0.0) / fmax(hc, 1.0e-06) + d_tmp,
+                                  fmin(c_tmp * fmax(hc, 0.) / fmax(hmax, 1.0e-06) + d_tmp, 1.0)));
+          // Set hfactor to zero smothly as hmin--> minimum_allowed_height. This
+          // avoids some 'chatter' for very shallow flows
+          hfactor = fmin(1.2 * fmax(hmin - minimum_allowed_height, 0.) / (fmax(hmin, 0.) + 1. * minimum_allowed_height), hfactor);
+
+          inv_area2 = 1.0 / area2;
+
+          //-----------------------------------
+          // stage
+          //-----------------------------------
+          beta_tmp = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
+
+          cv_k  = stage_centroid_values[k];
+          cv_k0 = stage_centroid_values[k0];
+          cv_k1 = stage_centroid_values[k1];
+          cv_k2 = stage_centroid_values[k2];
+
+          __calc_edge_values(beta_tmp, 
+                             cv_k, 
+                             cv_k0,
+                             cv_k1,
+                             cv_k2,
+                             dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
+                             dx1, dx2, dy1, dy2, inv_area2, edge_values);
+
+          stage_edge_values[k3 + 0] = edge_values[0];
+          stage_edge_values[k3 + 1] = edge_values[1];
+          stage_edge_values[k3 + 2] = edge_values[2];  
+
+          //-----------------------------------
+          // height
+          //-----------------------------------
+
+          cv_k  = height_centroid_values[k];
+          cv_k0 = height_centroid_values[k0];
+          cv_k1 = height_centroid_values[k1];
+          cv_k2 = height_centroid_values[k2];
+
+          __calc_edge_values(beta_tmp, 
+                             cv_k, 
+                             cv_k0,
+                             cv_k1,
+                             cv_k2,
+                             dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
+                             dx1, dx2, dy1, dy2, inv_area2, edge_values);
+
+          height_edge_values[k3 + 0] = edge_values[0];
+          height_edge_values[k3 + 1] = edge_values[1];
+          height_edge_values[k3 + 2] = edge_values[2]; 
+
+    
+          //-----------------------------------
+          // xmomentum
+          //-----------------------------------
+
+          beta_tmp = beta_uh_dry + (beta_uh - beta_uh_dry) * hfactor;
+
+          cv_k  = xmom_centroid_values[k];
+          cv_k0 = xmom_centroid_values[k0];
+          cv_k1 = xmom_centroid_values[k1];
+          cv_k2 = xmom_centroid_values[k2];
+
+          __calc_edge_values(beta_tmp, 
+                             cv_k, 
+                             cv_k0,
+                             cv_k1,
+                             cv_k2,
+                             dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
+                             dx1, dx2, dy1, dy2, inv_area2, edge_values);
+
+          xmom_edge_values[k3 + 0] = edge_values[0];
+          xmom_edge_values[k3 + 1] = edge_values[1];
+          xmom_edge_values[k3 + 2] = edge_values[2]; 
+
+          //-----------------------------------
+          // ymomentum
+          //-----------------------------------
+
+          beta_tmp = beta_vh_dry + (beta_vh - beta_vh_dry) * hfactor;
+
+          cv_k  = ymom_centroid_values[k];
+          cv_k0 = ymom_centroid_values[k0];
+          cv_k1 = ymom_centroid_values[k1];
+          cv_k2 = ymom_centroid_values[k2];
+
+          __calc_edge_values(beta_tmp, 
+                             cv_k, 
+                             cv_k0,
+                             cv_k1,
+                             cv_k2,
+                             dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
+                             dx1, dx2, dy1, dy2, inv_area2, edge_values);
+
+          ymom_edge_values[k3 + 0] = edge_values[0];
+          ymom_edge_values[k3 + 1] = edge_values[1];
+          ymom_edge_values[k3 + 2] = edge_values[2]; 
+
+        } // End number_of_boundaries <=1
+      else
+        {
+          //printf("%ld 2 boundaries\n",k);
+          //==============================================
+          // Number of boundaries == 2
+          //==============================================
+
+          // One internal neighbour and gradient is in direction of the neighbour's centroid
+
+          // Find the only internal neighbour (k1?)
+          for (k2 = k3; k2 < k3 + 3; k2++)
+            {
+              // Find internal neighbour of triangle k
+              // k2 indexes the edges of triangle k
+
+              if (surrogate_neighbours[k2] != k)
+                {
+                  break;
+                }
+            }
+
+          // if ((k2 == k3 + 3))
+          // {
+          //   // If we didn't find an internal neighbour
+          //   // report_python_error(AT, "Internal neighbour not found");
+          //   return -1;
+          // }
+
+          k1 = surrogate_neighbours[k2];
+
+          // The coordinates of the triangle are already (x,y).
+          // Get centroid of the neighbour (x1,y1)
+          coord_index = 2 * k1;
+          x1 = centroid_coordinates[coord_index + 0];
+          y1 = centroid_coordinates[coord_index + 1];
+
+          // Compute x- and y- distances between the centroid of
+          // triangle k and that of its neighbour
+          dx1 = x1 - x;
+          dy1 = y1 - y;
+
+          // Set area2 as the square of the distance
+          area2 = dx1 * dx1 + dy1 * dy1;
+
+          // Set dx2=(x1-x0)/((x1-x0)^2+(y1-y0)^2)
+          // and dy2=(y1-y0)/((x1-x0)^2+(y1-y0)^2) which
+          // respectively correspond to the x- and y- gradients
+          // of the conserved quantities
+          dx2 = 1.0 / area2;
+          dy2 = dx2 * dy1;
+          dx2 *= dx1;
+
+          //-----------------------------------
+          // stage
+          //-----------------------------------
+
+          // Compute differentials
+          dq1 = stage_centroid_values[k1] - stage_centroid_values[k];
+
+          // Calculate the gradient between the centroid of triangle k
+          // and that of its neighbour
+          a = dq1 * dx2;
+          b = dq1 * dy2;
+
+          // Calculate provisional edge jumps, to be limited
+          dqv[0] = a * dxv0 + b * dyv0;
+          dqv[1] = a * dxv1 + b * dyv1;
+          dqv[2] = a * dxv2 + b * dyv2;
+
+          // Now limit the jumps
+          if (dq1 >= 0.0)
+            {
+              qmin = 0.0;
+              qmax = dq1;
+            }
+          else
+            {
+              qmin = dq1;
+              qmax = 0.0;
+            }
+
+          // Limit the gradient
+          __limit_gradient(dqv, qmin, qmax, beta_w);
+
+          stage_edge_values[k3 + 0] = stage_centroid_values[k] + dqv[0];
+          stage_edge_values[k3 + 1] = stage_centroid_values[k] + dqv[1];
+          stage_edge_values[k3 + 2] = stage_centroid_values[k] + dqv[2];
+
+          //-----------------------------------
+          // height
+          //-----------------------------------
+
+          // Compute differentials
+          dq1 = height_centroid_values[k1] - height_centroid_values[k];
+
+          // Calculate the gradient between the centroid of triangle k
+          // and that of its neighbour
+          a = dq1 * dx2;
+          b = dq1 * dy2;
+
+          // Calculate provisional edge jumps, to be limited
+          dqv[0] = a * dxv0 + b * dyv0;
+          dqv[1] = a * dxv1 + b * dyv1;
+          dqv[2] = a * dxv2 + b * dyv2;
+
+          // Now limit the jumps
+          if (dq1 >= 0.0)
+            {
+              qmin = 0.0;
+              qmax = dq1;
+            }
+          else
+            {
+              qmin = dq1;
+              qmax = 0.0;
+            }
+
+          // Limit the gradient
+          __limit_gradient(dqv, qmin, qmax, beta_w);
+
+          height_edge_values[k3 + 0] = height_centroid_values[k] + dqv[0];
+          height_edge_values[k3 + 1] = height_centroid_values[k] + dqv[1];
+          height_edge_values[k3 + 2] = height_centroid_values[k] + dqv[2];
+
+          //-----------------------------------
+          // xmomentum
+          //-----------------------------------
+
+          // Compute differentials
+          dq1 = xmom_centroid_values[k1] - xmom_centroid_values[k];
+
+          // Calculate the gradient between the centroid of triangle k
+          // and that of its neighbour
+          a = dq1 * dx2;
+          b = dq1 * dy2;
+
+          // Calculate provisional edge jumps, to be limited
+          dqv[0] = a * dxv0 + b * dyv0;
+          dqv[1] = a * dxv1 + b * dyv1;
+          dqv[2] = a * dxv2 + b * dyv2;
+
+          // Now limit the jumps
+          if (dq1 >= 0.0)
+            {
+              qmin = 0.0;
+              qmax = dq1;
+            }
+          else
+            {
+              qmin = dq1;
+              qmax = 0.0;
+            }
+
+          // Limit the gradient
+          __limit_gradient(dqv, qmin, qmax, beta_w);
+
+          xmom_edge_values[k3 + 0] = xmom_centroid_values[k] + dqv[0];
+          xmom_edge_values[k3 + 1] = xmom_centroid_values[k] + dqv[1];
+          xmom_edge_values[k3 + 2] = xmom_centroid_values[k] + dqv[2];
+
+          //-----------------------------------
+          // ymomentum
+          //-----------------------------------
+
+          // Compute differentials
+          dq1 = ymom_centroid_values[k1] - ymom_centroid_values[k];
+
+          // Calculate the gradient between the centroid of triangle k
+          // and that of its neighbour
+          a = dq1 * dx2;
+          b = dq1 * dy2;
+
+          // Calculate provisional edge jumps, to be limited
+          dqv[0] = a * dxv0 + b * dyv0;
+          dqv[1] = a * dxv1 + b * dyv1;
+          dqv[2] = a * dxv2 + b * dyv2;
+
+          // Now limit the jumps
+          if (dq1 >= 0.0)
+            {
+              qmin = 0.0;
+              qmax = dq1;
+            }
+          else
+            {
+              qmin = dq1;
+              qmax = 0.0;
+            }
+
+          // Limit the gradient
+          __limit_gradient(dqv, qmin, qmax, beta_w);
+
+          ymom_edge_values[k3 + 0] = ymom_centroid_values[k] + dqv[0];
+          ymom_edge_values[k3 + 1] = ymom_centroid_values[k] + dqv[1];
+          ymom_edge_values[k3 + 2] = ymom_centroid_values[k] + dqv[2];
+
+        } // else [number_of_boundaries]
+
+      // printf("%ld, bed    %e, %e, %e\n",k, bed_edge_values[k3],bed_edge_values[k3 + 1],bed_edge_values[k3 + 2] );
+      // printf("%ld, stage  %e, %e, %e\n",k, stage_edge_values[k3],stage_edge_values[k3 + 1],stage_edge_values[k3 + 2] );
+      // printf("%ld, height %e, %e, %e\n",k, height_edge_values[k3],height_edge_values[k3 + 1],height_edge_values[k3 + 2] );
+      // printf("%ld, xmom   %e, %e, %e\n",k, xmom_edge_values[k3],xmom_edge_values[k3 + 1],xmom_edge_values[k3 + 2] );
+      // printf("%ld, ymom   %e, %e, %e\n",k, ymom_edge_values[k3],ymom_edge_values[k3 + 1],ymom_edge_values[k3 + 2] );
+
+      // If needed, convert from velocity to momenta
+      if (extrapolate_velocity_second_order == 1)
+        {
+          // Re-compute momenta at edges
+          for (i = 0; i < 3; i++)
+            {
+              dk = height_edge_values[k3 + i];
+              xmom_edge_values[k3 + i] = xmom_edge_values[k3 + i] * dk;
+              ymom_edge_values[k3 + i] = ymom_edge_values[k3 + i] * dk;
+            }
+        }
+
+      // Compute new bed elevation
+      bed_edge_values[k3 + 0] = stage_edge_values[k3 + 0] - height_edge_values[k3 + 0];
+      bed_edge_values[k3 + 1] = stage_edge_values[k3 + 1] - height_edge_values[k3 + 1];
+      bed_edge_values[k3 + 2] = stage_edge_values[k3 + 2] - height_edge_values[k3 + 2];
+
+
+      // FIXME SR: Do we need vertex values every inner timestep?
+
+      // Compute stage vertex values
+      stage_vertex_values[k3 + 0] = stage_edge_values[k3 + 1] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 0];
+      stage_vertex_values[k3 + 1] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 1];
+      stage_vertex_values[k3 + 2] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 1] - stage_edge_values[k3 + 2];
+
+      // Compute height vertex values
+      height_vertex_values[k3 + 0] = height_edge_values[k3 + 1] + height_edge_values[k3 + 2] - height_edge_values[k3 + 0];
+      height_vertex_values[k3 + 1] = height_edge_values[k3 + 0] + height_edge_values[k3 + 2] - height_edge_values[k3 + 1];
+      height_vertex_values[k3 + 2] = height_edge_values[k3 + 0] + height_edge_values[k3 + 1] - height_edge_values[k3 + 2];
+
+      // Compute momenta at vertices
+      xmom_vertex_values[k3 + 0] = xmom_edge_values[k3 + 1] + xmom_edge_values[k3 + 2] - xmom_edge_values[k3 + 0];
+      xmom_vertex_values[k3 + 1] = xmom_edge_values[k3 + 0] + xmom_edge_values[k3 + 2] - xmom_edge_values[k3 + 1];
+      xmom_vertex_values[k3 + 2] = xmom_edge_values[k3 + 0] + xmom_edge_values[k3 + 1] - xmom_edge_values[k3 + 2];
+
+      ymom_vertex_values[k3 + 0] = ymom_edge_values[k3 + 1] + ymom_edge_values[k3 + 2] - ymom_edge_values[k3 + 0];
+      ymom_vertex_values[k3 + 1] = ymom_edge_values[k3 + 0] + ymom_edge_values[k3 + 2] - ymom_edge_values[k3 + 1];
+      ymom_vertex_values[k3 + 2] = ymom_edge_values[k3 + 0] + ymom_edge_values[k3 + 1] - ymom_edge_values[k3 + 2];
+
+    
+      bed_vertex_values[k3 + 0] = bed_edge_values[k3 + 1] + bed_edge_values[k3 + 2] - bed_edge_values[k3 + 0];
+      bed_vertex_values[k3 + 1] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 2] - bed_edge_values[k3 + 1];
+      bed_vertex_values[k3 + 2] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 1] - bed_edge_values[k3 + 2];
+
+
+
+
+
+    }
+}
+
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop3(double* stage_edge_values, 
+                                                      double* xmom_edge_values, 
+                                                      double* ymom_edge_values,
+                                                      double* height_edge_values, 
+                                                      double* bed_edge_values, 
+
+                                                      double* stage_centroid_values, 
+                                                      double* xmom_centroid_values,
+                                                      double* ymom_centroid_values, 
+                                                      double* height_centroid_values,
+                                                      double* bed_centroid_values, 
+                                                      double* x_centroid_work,
+                                                      double* y_centroid_work,
+                                                      
+                                                      double* centroid_coordinates,
+                                                      double* edge_coordinates, 
+                                                      double* surrogate_neighbours,               
+                                                      
+                                                       double beta_w_dry, // unused
+                                                       double beta_w, // unused
+                                                      double beta_uh_dry, 
+                                                      double beta_uh, 
+                                                       double beta_vh_dry, // unused
+                                                       double beta_vh, // unused
+                                                      
+                                                      double minimum_allowed_height, 
+                                                      int number_of_elements, 
+                                                      int extrapolate_velocity_second_order  
+                                            ) {
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    if (k < number_of_elements) {
+
+      double a, b; // Gradient vector used to calculate edge values from centroids
+      long k, k0, k1, k2, k3, k6, coord_index, i;
+      double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
+      double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
+      double dqv[3], qmin, qmax, hmin, hmax;
+      double hc, h0, h1, h2, beta_tmp, hfactor;
+      double dk, dk_inv, a_tmp, b_tmp, c_tmp, d_tmp;
+      double edge_values[3];
+      double cv_k, cv_k0, cv_k1, cv_k2;
+
+      double minimum_allowed_height = minimum_allowed_height;
+      long number_of_elements = number_of_elements;
+      long extrapolate_velocity_second_order = extrapolate_velocity_second_order;
+
+      if (extrapolate_velocity_second_order == 1)
+        {
+          // Convert velocity back to momenta at centroids
+          xmom_centroid_values[k] = x_centroid_work[k];
+          ymom_centroid_values[k] = y_centroid_work[k];
+        }
+    }
+}
+
+
+
+
+// FIXME MR: This routine is being replaced by the 3 loop kernels above!
+__global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values,
                                                       double* xmom_edge_values, 
                                                       double* ymom_edge_values,
                                                       double* height_edge_values, 
@@ -1025,10 +1734,10 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
                         beta_tmp = beta_uh_dry;
                     }
 
-                    calc_edge_values(beta_tmp, cv_k, cv_k0, cv_k1, cv_k2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
+                    __calc_edge_values(beta_tmp, cv_k, cv_k0, cv_k1, cv_k2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
                                     dx1, dx2, dy1, dy2, inv_area2, edge_values);
 
-                    limit_gradient(dqv, qmin, qmax, beta_tmp);
+                    __limit_gradient(dqv, qmin, qmax, beta_tmp);
 
                     // Update cv_k's and store in output arrays
                     cv_k = edge_values[coord_index];
@@ -1093,7 +1802,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
                     beta_tmp = beta_uh_dry;
                 }
 
-                calc_edge_values(beta_tmp, cv_k, cv_k0, cv_k1, cv_k2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
+                __calc_edge_values(beta_tmp, cv_k, cv_k0, cv_k1, cv_k2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
                                 dx1, dx2, dy1, dy2, inv_area2, edge_values);
 
                 for (coord_index = 0; coord_index < 3; coord_index++) {
