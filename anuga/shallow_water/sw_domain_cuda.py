@@ -169,7 +169,6 @@ class GPU_interface(object):
 
         self.mod  = cp.RawModule(code=code, options=("--std=c++17",),
                                  name_expressions=("_cuda_compute_fluxes_loop",
-                                                   "_cuda_extrapolate_second_order_edge_sw",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3"))
@@ -177,9 +176,6 @@ class GPU_interface(object):
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
         self.flux_kernel = self.mod.get_function("_cuda_compute_fluxes_loop")
-
-        # FIXME: To be deprecated!
-        self.extrapolate_kernel = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw")
 
         self.extrapolate_kernel1 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop1")
         self.extrapolate_kernel2 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop2")
