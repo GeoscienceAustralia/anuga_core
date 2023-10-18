@@ -155,7 +155,7 @@ class GPU_interface(object):
         sw_dir = os.path.dirname(sw.__file__)
         cu_file = anuga.join(sw_dir,'cuda_anuga.cu')
         #with open('../cuda_anuga.cu') as f:
-        with open('../cuda_anuga.cu') as f:
+        with open(cu_file) as f:
             code = f.read()
 
         self.mod  = cp.RawModule(code=code, options=("--std=c++17",), name_expressions=("_cuda_compute_fluxes_loop","_cuda_extrapolate_second_order_edge_sw"))
@@ -356,11 +356,11 @@ class GPU_interface(object):
         #------------------------------------------------
         if transfer_from_cpu:
             nvtxRangePush('calculate flux: transfer from GPU')
-            cp.asnumpy(self.gpu_stage_centroid_values,  out = self.cpu_stage_centroid_values)
-            cp.asnumpy(self.gpu_xmom_centroid_values,   out = self.cpu_xmom_centroid_values)
-            cp.asnumpy(self.gpu_ymom_centroid_values,   out = self.cpu_ymom_centroid_values)
-            cp.asnumpy(self.gpu_height_centroid_values, out = self.cpu_height_centroid_values)
-            cp.asnumpy(self.gpu_bed_centroid_values,    out = self.cpu_bed_centroid_values)
+            self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
+            self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
+            self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
+            self.gpu_height_centroid_values.set(self.cpu_height_centroid_values)
+            self.gpu_bed_centroid_values.set(self.cpu_bed_centroid_values)
 
             self.gpu_stage_edge_values.set(self.cpu_stage_edge_values)
             self.gpu_xmom_edge_values.set(self.cpu_xmom_edge_values)
@@ -480,11 +480,11 @@ class GPU_interface(object):
         #------------------------------------------------
         if transfer_from_cpu:
             nvtxRangePush('extrapolate kernel: transfer from cpu')
-            cp.asnumpy(self.gpu_stage_centroid_values,  out = self.cpu_stage_centroid_values)
-            cp.asnumpy(self.gpu_xmom_centroid_values,   out = self.cpu_xmom_centroid_values)
-            cp.asnumpy(self.gpu_ymom_centroid_values,   out = self.cpu_ymom_centroid_values)
-            cp.asnumpy(self.gpu_height_centroid_values, out = self.cpu_height_centroid_values)
-            cp.asnumpy(self.gpu_bed_centroid_values,    out = self.cpu_bed_centroid_values)  
+            self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
+            self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
+            self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
+            self.gpu_height_centroid_values.set(self.cpu_height_centroid_values)
+            self.gpu_bed_centroid_values.set(self.cpu_bed_centroid_values)  
             nvtxRangePop()
 
         import math
@@ -492,6 +492,7 @@ class GPU_interface(object):
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
 
         nvtxRangePush('extrapolate kernel: run kernel')
+        # FIXME SR: Check to see if we need to read in vertex_values arrays
         self.extrapolate_kernel( (NO_OF_BLOCKS, 0, 0), 
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
