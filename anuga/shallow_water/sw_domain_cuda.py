@@ -579,23 +579,22 @@ class GPU_interface(object):
                 self.gpu_edge_coordinates, 
                 self.gpu_surrogate_neighbours,               
                 
-                self.gpu_beta_w_dry, 
-                self.gpu_beta_w,
-                self.gpu_beta_uh_dry, 
-                self.gpu_beta_uh, 
-                self.gpu_beta_vh_dry, 
-                self.gpu_beta_vh,
+                #self.gpu_beta_w_dry, 
+                #self.gpu_beta_w,
+                #self.gpu_beta_uh_dry, 
+                #self.gpu_beta_uh, 
+                #self.gpu_beta_vh_dry, 
+                #self.gpu_beta_vh,
                 
                 np.float64 (self.cpu_minimum_allowed_height), 
-                np.int32   (self.cpu_number_of_elements), 
-                np.int32 (self.cpu_extrapolate_velocity_second_order)
+                np.int64   (self.cpu_number_of_elements), 
+                np.int64   (self.cpu_extrapolate_velocity_second_order)
                 ) 
                 )
 
         self.extrapolate_kernel2( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
-                self.gpu_number_of_boundaries,
                 self.gpu_stage_edge_values,
                 self.gpu_xmom_edge_values, 
                 self.gpu_ymom_edge_values,
@@ -608,64 +607,44 @@ class GPU_interface(object):
                 self.gpu_height_centroid_values,
                 self.gpu_bed_centroid_values,
 
+                self.gpu_x_centroid_work,
+                self.gpu_y_centroid_work,
+
                 self.gpu_stage_vertex_values,
                 self.gpu_height_vertex_values,
                 self.gpu_xmom_vertex_values,
                 self.gpu_ymom_vertex_values,
                 self.gpu_bed_vertex_values,
-
-                self.gpu_x_centroid_work,
-                self.gpu_y_centroid_work,
                 
+                self.gpu_number_of_boundaries,
                 self.gpu_centroid_coordinates,
                 self.gpu_edge_coordinates, 
                 self.gpu_surrogate_neighbours,               
                 
-                self.gpu_beta_w_dry, 
-                self.gpu_beta_w,
-                self.gpu_beta_uh_dry, 
-                self.gpu_beta_uh, 
-                self.gpu_beta_vh_dry, 
-                self.gpu_beta_vh,
+                np.float64 (self.cpu_beta_w_dry), 
+                np.float64 (self.cpu_beta_w),
+                np.float64 (self.cpu_beta_uh_dry), 
+                np.float64 (self.cpu_beta_uh), 
+                np.float64 (self.cpu_beta_vh_dry), 
+                np.float64 (self.cpu_beta_vh),
                 
                 np.float64 (self.cpu_minimum_allowed_height), 
-                np.int32   (self.cpu_number_of_elements), 
-                np.int32 (self.cpu_extrapolate_velocity_second_order)
+                np.int64   (self.cpu_number_of_elements), 
+                np.int64   (self.cpu_extrapolate_velocity_second_order)
                 ) 
                 )
 
         self.extrapolate_kernel3( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
-                (  
-                self.gpu_stage_edge_values, 
-                self.gpu_xmom_edge_values, 
-                self.gpu_ymom_edge_values,
-                self.gpu_height_edge_values, 
-                self.gpu_bed_edge_values, 
-
-                self.gpu_stage_centroid_values, 
+                (   
                 self.gpu_xmom_centroid_values,
                 self.gpu_ymom_centroid_values, 
-                self.gpu_height_centroid_values,
-                self.gpu_bed_centroid_values,
 
                 self.gpu_x_centroid_work,
                 self.gpu_y_centroid_work,
                 
-                self.gpu_centroid_coordinates,
-                self.gpu_edge_coordinates, 
-                self.gpu_surrogate_neighbours,               
-                
-                self.gpu_beta_w_dry, 
-                self.gpu_beta_w,
-                self.gpu_beta_uh_dry, 
-                self.gpu_beta_uh, 
-                self.gpu_beta_vh_dry, 
-                self.gpu_beta_vh,
-                
-                np.float64 (self.cpu_minimum_allowed_height), 
-                np.int32   (self.cpu_number_of_elements), 
-                np.int32 (self.cpu_extrapolate_velocity_second_order)
+                    np.int64 (self.cpu_extrapolate_velocity_second_order),
+                    np.int64 (self.cpu_number_of_elements)
                 ) 
                 )
 

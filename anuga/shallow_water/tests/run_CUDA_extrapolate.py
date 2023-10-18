@@ -13,8 +13,8 @@ import math
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
 
-nx = 500
-ny = 500
+nx = 50
+ny = 50
 
 def create_domain(name='domain'):
 
@@ -86,7 +86,7 @@ start = time.time()
 #Evolve the system through time
 #------------------------------
 yieldstep = 0.0002
-finaltime = 0.02
+finaltime = 0.0002
 nvtxRangePush('evolve domain1')
 print('Evolve domain1')
 print('domain1 number of triangles ',domain1.number_of_elements)
@@ -98,7 +98,7 @@ nvtxRangePop()
 #---------------------------------------
 # run domain1 using standard routine
 #---------------------------------------
-timestep = 0.1
+#timestep = 0.1
 
 nvtxRangePush('distribute domain1')
 domain1.distribute_to_vertices_and_edges()
@@ -192,13 +192,13 @@ N = domain1.number_of_elements
 # scale linalg.norm by number of elements
 import math
 
-print('stage edge value L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
-print('xmom  edge value L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
-print('ymom  edge value L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
+print('stage edge diff L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
+print('xmom  edge diff L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
+print('ymom  edge diff L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
 
-print('stage centroid value L2 norm ', num.linalg.norm(stage1.centroid_values-stage2.centroid_values)/N)
-print('xmom  centroid value L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
-print('ymom  centroid value L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
+print('stage centroid diff L2 norm ', num.linalg.norm(stage1.centroid_values-stage2.centroid_values)/N)
+print('xmom  centroid diff L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
+print('ymom  centroid diff L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
 
 
 
