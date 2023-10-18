@@ -1,7 +1,7 @@
 
 import numpy as np
 
-
+import anuga
 
 
 
@@ -110,7 +110,9 @@ class GPU_interface(object):
 
         self.cpu_centroid_coordinates   = domain.centroid_coordinates
         self.cpu_edge_coordinates       = domain.edge_coordinates
-        self.cpu_surrogate_neighbours   = domain.surrogate_neighbours               
+        self.cpu_surrogate_neighbours   = domain.surrogate_neighbours
+        self.cpu_x_centroid_work        = domain.x_centroid_work
+        self.cpu_y_centroid_work        = domain.y_centroid_work
 
         # FIXME SR: check whether these are arrays or scalars   
         self.cpu_beta_w_dry             = domain.beta_w_dry 
@@ -239,6 +241,9 @@ class GPU_interface(object):
         self.gpu_beta_uh                = cp.array(self.cpu_beta_uh)
         self.gpu_beta_vh_dry            = cp.array(self.cpu_beta_vh_dry)
         self.gpu_beta_vh                = cp.array(self.cpu_beta_vh)
+
+        self.gpu_x_centroid_work        = cp.array(self.cpu_x_centroid_work)
+        self.gpu_y_centroid_work        = cp.array(self.cpu_y_centroid_work)
 
         nvtxRangePop()
 
