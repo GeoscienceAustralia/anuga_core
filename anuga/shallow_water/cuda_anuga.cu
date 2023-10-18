@@ -899,7 +899,8 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
 
 */
 
-__global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_values, 
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop1(
+                                                      double* stage_edge_values, 
                                                       double* xmom_edge_values, 
                                                       double* ymom_edge_values,
                                                       double* height_edge_values, 
@@ -909,7 +910,8 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop1(double* stage_edge_
                                                       double* xmom_centroid_values,
                                                       double* ymom_centroid_values, 
                                                       double* height_centroid_values,
-                                                      double* bed_centroid_values, 
+                                                      double* bed_centroid_values,
+                                                       
                                                       double* x_centroid_work,
                                                       double* y_centroid_work,
                                                       
@@ -976,7 +978,8 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
                                                              double* xmom_centroid_values,
                                                              double* ymom_centroid_values, 
                                                              double* height_centroid_values,
-                                                             double* bed_centroid_values, 
+                                                             double* bed_centroid_values,
+
                                                              double* x_centroid_work,
                                                              double* y_centroid_work,
 
@@ -986,10 +989,10 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
                                                              double* ymom_vertex_values,
                                                              double* bed_vertex_values,
 
-                                                             long* number_of_boundaries,
+                                                             long*   number_of_boundaries,
                                                              double* centroid_coordinates,
                                                              double* edge_coordinates, 
-                                                             long* surrogate_neighbours,               
+                                                             long*   surrogate_neighbours,               
                                                       
                                                              double beta_w_dry,
                                                              double beta_w,

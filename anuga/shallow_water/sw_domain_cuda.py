@@ -81,25 +81,28 @@ class GPU_interface(object):
         self.cpu_stage_explicit_update  = stage.explicit_update   
         self.cpu_xmom_explicit_update   = xmom.explicit_update   
         self.cpu_ymom_explicit_update   = ymom.explicit_update
+       
         self.cpu_stage_centroid_values  = stage.centroid_values
+        self.cpu_xmom_centroid_values   = xmom.centroid_values
+        self.cpu_ymom_centroid_values   = ymom.centroid_values
+        self.cpu_height_centroid_values = height.centroid_values
+        self.cpu_bed_centroid_values    = bed.centroid_values
+              
         self.cpu_stage_edge_values      = stage.edge_values
         self.cpu_xmom_edge_values       = xmom.edge_values
         self.cpu_ymom_edge_values       = ymom.edge_values
-        self.cpu_xmom_centroid_values   = xmom.centroid_values
-        self.cpu_ymom_centroid_values   = ymom.centroid_values
-        self.cpu_bed_edge_values        = bed.edge_values
         self.cpu_height_edge_values     = height.edge_values
-        self.cpu_height_centroid_values = height.centroid_values
-        self.cpu_bed_centroid_values    = bed.centroid_values
+        self.cpu_bed_edge_values        = bed.edge_values
+       
         self.cpu_stage_boundary_values  = stage.boundary_values
         self.cpu_xmom_boundary_values   = xmom.boundary_values 
         self.cpu_ymom_boundary_values   = ymom.boundary_values
 
-        self.cpu_stage_vertex_values = stage.vertex_values
-        self.cpu_height_vertex_values = height.vertex_values
-        self.cpu_xmom_vertex_values = xmom.vertex_values
-        self.cpu_ymom_vertex_values = ymom.vertex_values
-        self.cpu_bed_vertex_values = bed.vertex_values
+        self.cpu_stage_vertex_values    = stage.vertex_values
+        self.cpu_height_vertex_values   = height.vertex_values
+        self.cpu_xmom_vertex_values     = xmom.vertex_values
+        self.cpu_ymom_vertex_values     = ymom.vertex_values
+        self.cpu_bed_vertex_values      = bed.vertex_values
 
 
         self.cpu_domain_areas           = domain.areas
@@ -231,11 +234,11 @@ class GPU_interface(object):
         self.gpu_xmom_boundary_values   = cp.array(self.cpu_xmom_boundary_values) 
         self.gpu_ymom_boundary_values   = cp.array(self.cpu_ymom_boundary_values) 
 
-        self.gpu_stage_vertex_values = cp.array(self.cpu_stage_vertex_values)
-        self.gpu_height_vertex_values = cp.array(self.cpu_height_vertex_values)
-        self.gpu_xmom_vertex_values = cp.array(self.cpu_xmom_vertex_values)
-        self.gpu_ymom_vertex_values = cp.array(self.cpu_ymom_vertex_values)
-        self.gpu_bed_vertex_values = cp.array(self.cpu_bed_vertex_values)
+        self.gpu_stage_vertex_values    = cp.array(self.cpu_stage_vertex_values)
+        self.gpu_height_vertex_values   = cp.array(self.cpu_height_vertex_values)
+        self.gpu_xmom_vertex_values     = cp.array(self.cpu_xmom_vertex_values)
+        self.gpu_ymom_vertex_values     = cp.array(self.cpu_ymom_vertex_values)
+        self.gpu_bed_vertex_values      = cp.array(self.cpu_bed_vertex_values)
 
         # These should not change during evolve
         self.gpu_areas                  = cp.array(self.cpu_domain_areas)
@@ -255,15 +258,6 @@ class GPU_interface(object):
         self.gpu_centroid_coordinates   = cp.array(self.cpu_centroid_coordinates)
         self.gpu_edge_coordinates       = cp.array(self.cpu_edge_coordinates)
         self.gpu_surrogate_neighbours   = cp.array(self.cpu_surrogate_neighbours)              
-
-        # FIXME SR: check whether these are arrays or scalars
-        # NOTE MR: They are scalars
-        self.gpu_beta_w_dry             = self.cpu_beta_w_dry
-        self.gpu_beta_w                 = self.cpu_beta_w
-        self.gpu_beta_uh_dry            = self.cpu_beta_uh_dry
-        self.gpu_beta_uh                = self.cpu_beta_uh
-        self.gpu_beta_vh_dry            = self.cpu_beta_vh_dry
-        self.gpu_beta_vh                = self.cpu_beta_vh
 
         self.gpu_x_centroid_work        = cp.array(self.cpu_x_centroid_work)
         self.gpu_y_centroid_work        = cp.array(self.cpu_y_centroid_work)
@@ -395,6 +389,8 @@ class GPU_interface(object):
             self.gpu_ymom_edge_values.set(self.cpu_ymom_edge_values)
             self.gpu_bed_edge_values.set(self.cpu_bed_edge_values)
             self.gpu_height_edge_values.set(self.cpu_height_edge_values)            
+            
+            #FIXME SR: Want about boundary values!
             nvtxRangePop()
 
 
@@ -579,13 +575,6 @@ class GPU_interface(object):
                 self.gpu_edge_coordinates, 
                 self.gpu_surrogate_neighbours,               
                 
-                #self.gpu_beta_w_dry, 
-                #self.gpu_beta_w,
-                #self.gpu_beta_uh_dry, 
-                #self.gpu_beta_uh, 
-                #self.gpu_beta_vh_dry, 
-                #self.gpu_beta_vh,
-                
                 np.float64 (self.cpu_minimum_allowed_height), 
                 np.int64   (self.cpu_number_of_elements), 
                 np.int64   (self.cpu_extrapolate_velocity_second_order)
@@ -643,8 +632,8 @@ class GPU_interface(object):
                 self.gpu_x_centroid_work,
                 self.gpu_y_centroid_work,
                 
-                    np.int64 (self.cpu_extrapolate_velocity_second_order),
-                    np.int64 (self.cpu_number_of_elements)
+                np.int64 (self.cpu_extrapolate_velocity_second_order),
+                np.int64 (self.cpu_number_of_elements)
                 ) 
                 )
 
