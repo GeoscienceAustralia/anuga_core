@@ -13,8 +13,8 @@ import math
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
 
-nx = 500
-ny = 500
+nx = 50
+ny = 50
 
 def create_domain(name='domain'):
 
