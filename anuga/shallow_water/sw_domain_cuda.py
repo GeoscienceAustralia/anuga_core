@@ -144,7 +144,12 @@ class GPU_interface(object):
         # nvcc -arch=sm_70 -cubin -o cuda_anuga.cubin cuda_anuga.cu
         #mod.load_file("../cuda_anuga.cubin")
 
-        # FIXME SR: need to ensure we find location of kernel source 
+        # Locate cuda_anuga.cu code
+        import anuga.shallow_water as sw
+        import os        
+        sw_dir = os.path.dirname(sw.__file__)
+        cu_file = anuga.join(sw_dir,'cuda_anuga.cu')
+        #with open('../cuda_anuga.cu') as f:
         with open('../cuda_anuga.cu') as f:
             code = f.read()
 
