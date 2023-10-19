@@ -1326,7 +1326,7 @@ static inline void __calc_edge_values_2_bdy(double beta, double cv_k, double cv_
 
 
 // Computational routine
-int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
+int _openmp_extrapolate_second_order_edge_sw(struct domain *D, int verbose)
 {
 
   // Local variables
@@ -1348,6 +1348,8 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   double minimum_allowed_height = D->minimum_allowed_height;
   long number_of_elements = D->number_of_elements;
   long extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
+
+  //long verbose = 1;
 
 
   // Parameters used to control how the limiter is forced to first-order near
@@ -1394,7 +1396,20 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
     }
     } // end of for
 
-
+  if (verbose == 1)
+  {
+    printf("x_centroid_work after loop 1\n");
+    for (k=0; k < number_of_elements; k++)
+    {
+     printf("%ld %f \n",k, D->x_centroid_work[k]); 
+    }
+    
+    printf("xmom_centroid_values after loop 1\n");
+    for (k=0; k < number_of_elements; k++)
+    {
+     printf("%ld %f \n",k, D->xmom_centroid_values[k]); 
+    }
+  }
 
   // Begin extrapolation routine
 

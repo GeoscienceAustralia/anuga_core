@@ -89,7 +89,7 @@ cdef extern from "sw_domain_simd.c" nogil:
 
 	double _openmp_compute_fluxes_central(domain* D, double timestep)
 	double _openmp_protect(domain* D)
-	int _openmp_extrapolate_second_order_edge_sw(domain* D)
+	int _openmp_extrapolate_second_order_edge_sw(domain* D, int verbose)
 	int _openmp_fix_negative_cells(domain* D)
 
 
@@ -354,7 +354,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 
 	return timestep
 
-def extrapolate_second_order_edge_sw(object domain_object):
+def extrapolate_second_order_edge_sw(object domain_object, int verbose = 0):
 
 	cdef domain D
 	cdef int e
@@ -363,7 +363,7 @@ def extrapolate_second_order_edge_sw(object domain_object):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		e = _openmp_extrapolate_second_order_edge_sw(&D)
+		e = _openmp_extrapolate_second_order_edge_sw(&D, verbose)
 
 	if e == -1:
 		return None

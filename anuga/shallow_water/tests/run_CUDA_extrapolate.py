@@ -13,8 +13,8 @@ import math
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
 
-nx = 50
-ny = 50
+nx = 2
+ny = 2
 
 def create_domain(name='domain'):
 
@@ -101,7 +101,7 @@ nvtxRangePop()
 #timestep = 0.1
 
 nvtxRangePush('distribute domain1')
-domain1.distribute_to_vertices_and_edges()
+domain1.distribute_to_vertices_and_edges(verbose=1)
 nvtxRangePop()
 
 #nvtxRangePush('update boundary domain1')
@@ -134,42 +134,35 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
 nvtxRangePop()
 
-#nvtxRangePush('distribute domain2')
-#domain2.distribute_to_vertices_and_edges()
-#nvtxRangePop()
-
-
-from anuga.shallow_water.sw_domain_cuda import GPU_interface
-gpu_domain2 = GPU_interface(domain2)
-
-nvtxRangePush('allocate gpu arrays domain2')
-gpu_domain2.allocate_gpu_arrays()
+nvtxRangePush('distribute domain2')
+domain2.distribute_to_vertices_and_edges(verbose=1)
 nvtxRangePop()
 
-nvtxRangePush('compile gpu kernels domain2')
-gpu_domain2.compile_gpu_kernels()
-nvtxRangePop()
 
-nvtxRangePush('distribute_to_vertices_and_edges on gpu domain2')
-timestep2 = domain2.evolve_max_timestep 
+# from anuga.shallow_water.sw_domain_cuda import GPU_interface
+# gpu_domain2 = GPU_interface(domain2)
 
-timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernel()
-nvtxRangePop()
+# nvtxRangePush('allocate gpu arrays domain2')
+# gpu_domain2.allocate_gpu_arrays()
+# nvtxRangePop()
 
-# vol2=domain2.get_water_volume()
-# boundaryFluxInt2=domain2.get_boundary_flux_integral()
-# boundary_flux2 = domain2.boundary_flux_sum[0]
+# nvtxRangePush('compile gpu kernels domain2')
+# gpu_domain2.compile_gpu_kernels()
+# nvtxRangePop()
+
+# nvtxRangePush('distribute_to_vertices_and_edges on gpu domain2')
+# timestep2 = domain2.evolve_max_timestep 
+
+# timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernel()
+# nvtxRangePop()
+
+
 
 end = time.time()
 print('DOMAIN 2 time ' + str(end - start))
 
 
-# print('domain1 timestep ', timestep1)
-# print('domain2 timestep ', timestep2)
-# print('domain2 timestep ', timestep3)
 
-# print('domain1 boundary_flux ', boundary_flux1)
-# print('domain2 boundary_flux ', boundary_flux2)
 
 
 

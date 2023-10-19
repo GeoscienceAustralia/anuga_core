@@ -1896,7 +1896,7 @@ class Domain(Generic_Domain):
         nvtxRangePop()
 
         
-    def distribute_to_vertices_and_edges(self):
+    def distribute_to_vertices_and_edges(self, verbose=0):
         """ Call correct module function """
 
 
@@ -1976,7 +1976,7 @@ class Domain(Generic_Domain):
             else:
                 raise Exception('Not implemented')
 
-            extrapolate_second_order_edge_sw(self)
+            extrapolate_second_order_edge_sw(self, verbose=verbose)
 
             nvtxRangePop()
 
