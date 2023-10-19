@@ -49,8 +49,8 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('quantity_openmp_ext',
                          sources=['quantity_openmp_ext.pyx'],
                          include_dirs=[util_dir],
-                         extra_compile_args=['-fopenmp'],
-                         extra_link_args=['-fopenmp'])
+                         extra_compile_args=None,
+                         extra_link_args=None)
 
     config.add_extension('quantity_openacc_ext',
                            sources=['quantity_openacc_ext.pyx'],
