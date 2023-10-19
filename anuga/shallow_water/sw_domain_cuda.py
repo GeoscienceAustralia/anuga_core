@@ -558,11 +558,6 @@ class GPU_interface(object):
         self.extrapolate_kernel1( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
-                self.gpu_stage_edge_values, 
-                self.gpu_xmom_edge_values, 
-                self.gpu_ymom_edge_values,
-                self.gpu_height_edge_values, 
-                self.gpu_bed_edge_values, 
 
                 self.gpu_stage_centroid_values, 
                 self.gpu_xmom_centroid_values,
@@ -571,11 +566,7 @@ class GPU_interface(object):
                 self.gpu_bed_centroid_values,
 
                 self.gpu_x_centroid_work,
-                self.gpu_y_centroid_work,
-                
-                self.gpu_centroid_coordinates,
-                self.gpu_edge_coordinates, 
-                self.gpu_surrogate_neighbours,               
+                self.gpu_y_centroid_work,              
                 
                 np.float64 (self.cpu_minimum_allowed_height), 
                 np.int64   (self.cpu_number_of_elements), 
