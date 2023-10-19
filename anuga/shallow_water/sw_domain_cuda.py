@@ -585,9 +585,9 @@ class GPU_interface(object):
 
         if verbose:
             print('gpu_x_centroid_work after loop 1')
-            print(gpu_x_centroid_work)
+            print(self.gpu_x_centroid_work)
             print('gpu_x_centroid_work after loop 1')
-            print(gpu_xmom_centroid_values)
+            print(self.gpu_xmom_centroid_values)
 
         self.extrapolate_kernel2( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
