@@ -511,8 +511,8 @@ class GPU_interface(object):
             self.gpu_bed_centroid_values.set(self.cpu_bed_centroid_values)  
             nvtxRangePop()
 
-        import ipdb
-        ipdb.set_trace()
+        #import ipdb
+        #ipdb.set_trace()
 
         import math
         THREADS_PER_BLOCK = 128
@@ -625,8 +625,8 @@ class GPU_interface(object):
                 ) 
                 )
 
-        import ipdb
-        ipdb.set_trace()
+        #import ipdb
+        #ipdb.set_trace()
 
         if verbose:
             print('gpu_stage_edge_values after loop 2')
