@@ -826,18 +826,56 @@ __device__ void limit_gradient(double* dqv, double qmin, double qmax, double bet
 }
 
 __device__ void __calc_edge_values(double beta_tmp, double cv_k, double cv_k0, double cv_k1, double cv_k2,
-                                double dxv0, double dxv1, double dxv2, double dyv0, double dyv1, double dyv2,
-                                double dx1, double dx2, double dy1, double dy2, double inv_area2, double* edge_values) {
-    double htmp1, htmp2, htmp3, htmp4, htmp5;
-    htmp1 = beta_tmp * inv_area2;
-    htmp2 = dx1 * dy2 - dx2 * dy1;
-    htmp3 = dxv0 * dyv1 - dxv1 * dyv0;
-    htmp4 = dxv1 * dyv2 - dxv2 * dyv1;
-    htmp5 = dxv2 * dyv0 - dxv0 * dyv2;
+                        double dxv0, double dxv1, double dxv2, double dyv0, double dyv1, double dyv2,
+                        double dx1, double dx2, double dy1, double dy2, double inv_area2,
+                        double *edge_values)
+{
+  double dqv[3];
+  double dq0, dq1, dq2;
+  double a, b;
+  double qmin, qmax;
 
-    edge_values[0] = cv_k + htmp1 * (dx1 * dy2 * cv_k0 - dxv0 * dyv0 * cv_k + dxv0 * dyv1 * cv_k1 - dxv1 * dyv0 * cv_k0 + dxv1 * dyv2 * cv_k2 - dxv2 * dyv1 * cv_k1);
-    edge_values[1] = cv_k + htmp1 * (dx1 * dy2 * cv_k0 - dxv1 * dyv0 * cv_k + dxv1 * dyv2 * cv_k2 - dxv2 * dyv1 * cv_k1 + dxv2 * dyv0 * cv_k0 - dxv0 * dyv2 * cv_k2);
-    edge_values[2] = cv_k + htmp1 * (dx1 * dy2 * cv_k0 - dxv2 * dyv0 * cv_k + dxv2 * dyv1 * cv_k1 - dxv1 * dyv2 * cv_k2 + dxv1 * dyv0 * cv_k0 - dxv0 * dyv1 * cv_k1);
+  if (beta_tmp > 0.)
+  {
+    // Calculate the difference between vertex 0 of the auxiliary
+    // triangle and the centroid of triangle k
+    dq0 = cv_k0 - cv_k;
+
+    // Calculate differentials between the vertices
+    // of the auxiliary triangle (centroids of neighbouring triangles)
+    dq1 = cv_k1 - cv_k0;
+    dq2 = cv_k2 - cv_k0;
+
+    // Calculate the gradient of stage on the auxiliary triangle
+    a = dy2 * dq1 - dy1 * dq2;
+    a *= inv_area2;
+    b = dx1 * dq2 - dx2 * dq1;
+    b *= inv_area2;
+    // Calculate provisional jumps in stage from the centroid
+    // of triangle k to its vertices, to be limited
+    dqv[0] = a * dxv0 + b * dyv0;
+    dqv[1] = a * dxv1 + b * dyv1;
+    dqv[2] = a * dxv2 + b * dyv2;
+
+    // Now we want to find min and max of the centroid and the
+    // vertices of the auxiliary triangle and compute jumps
+    // from the centroid to the min and max
+    __find_qmin_and_qmax(dq0, dq1, dq2, &qmin, &qmax);
+
+    // Limit the gradient
+    __limit_gradient(dqv, qmin, qmax, beta_tmp);
+
+    edge_values[0] = cv_k + dqv[0];
+    edge_values[1] = cv_k + dqv[1];
+    edge_values[2] = cv_k + dqv[2];
+  }
+  else
+  {
+    // Fast alternative when beta_tmp==0
+    edge_values[0] = cv_k;
+    edge_values[1] = cv_k;
+    edge_values[2] = cv_k;
+  }
 }
 
 __device__ void __calc_edge_values_2_bdy(double beta, double cv_k, double cv_k0, 
