@@ -13,8 +13,8 @@ import math
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
 
-nx = 1
-ny = 1
+nx = 50
+ny = 50
 
 def create_domain(name='domain'):
 
@@ -101,7 +101,7 @@ nvtxRangePop()
 #timestep = 0.1
 
 nvtxRangePush('distribute domain1')
-domain1.distribute_to_vertices_and_edges(verbose=1)
+domain1.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 #nvtxRangePush('update boundary domain1')
@@ -138,7 +138,7 @@ nvtxRangePop()
 # domain2.distribute_to_vertices_and_edges(verbose=1)
 # nvtxRangePop()
 
-domain2.extrapolate_velocity_second_order = 1
+#domain2.extrapolate_velocity_second_order = 1
 
 from anuga.shallow_water.sw_domain_cuda import GPU_interface
 gpu_domain2 = GPU_interface(domain2)
@@ -154,7 +154,7 @@ nvtxRangePop()
 nvtxRangePush('distribute_to_vertices_and_edges on gpu domain2')
 timestep2 = domain2.evolve_max_timestep 
 
-timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernel(verbose=True)
+timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernel()
 nvtxRangePop()
 
 
