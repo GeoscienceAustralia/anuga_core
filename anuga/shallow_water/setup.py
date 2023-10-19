@@ -32,8 +32,8 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('sw_domain_openmp_ext',
                          sources=['sw_domain_openmp_ext.pyx'],
                          include_dirs=[util_dir],
-                         extra_compile_args=None,
-                         extra_link_args=None)
+                         extra_compile_args=['-fopenmp'],
+                         extra_link_args=['-fopenmp'])
 
     config.add_extension('sw_domain_openacc_ext',
                          sources=['sw_domain_openacc_ext.pyx'],
