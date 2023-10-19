@@ -198,6 +198,10 @@ print('stage vertex diff L2 norm ', num.linalg.norm(stage1.vertex_values-stage2.
 print('xmom  vertex diff L2 norm ', num.linalg.norm(xmom1.vertex_values-xmom2.vertex_values)/N)
 print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.vertex_values)/N)
 
+from pprint import pprint
+
+pprint(stage2.vertex_values)
+
 
 
 # print('timestep error                ', abs(timestep1-timestep2))
