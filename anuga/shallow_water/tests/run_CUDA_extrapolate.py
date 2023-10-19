@@ -138,6 +138,7 @@ nvtxRangePop()
 # domain2.distribute_to_vertices_and_edges(verbose=1)
 # nvtxRangePop()
 
+domain2.extrapolate_velocity_second_order = 0
 
 from anuga.shallow_water.sw_domain_cuda import GPU_interface
 gpu_domain2 = GPU_interface(domain2)
