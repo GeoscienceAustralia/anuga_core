@@ -634,6 +634,14 @@ class GPU_interface(object):
         if verbose:
             print('gpu_stage_edge_values after loop 2')
             print(self.gpu_stage_edge_values)
+            print('self.gpu_number_of_boundaries after loop 2')
+            print(self.gpu_number_of_boundaries)
+            print('self.gpu_centroid_coordinates after loop 2')
+            print(self.gpu_centroid_coordinates)
+            print('self.gpu_edge_coordinates after loop 2')
+            print(self.gpu_edge_coordinates)
+            print('self.gpu_surrogate_neighbours after loop 2')
+            print(self.gpu_surrogate_neighbours)
 
         self.extrapolate_kernel3( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
