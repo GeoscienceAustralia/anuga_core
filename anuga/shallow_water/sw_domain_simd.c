@@ -1903,6 +1903,20 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D, int verbose)
 
   }   // for k=0 to number_of_elements-1
 
+
+  if (verbose == 1)
+  {
+    printf("stage_edge_values after loop 2\n");
+    for (k=0; k < number_of_elements; k++)
+    {
+     for (i=0; i<3; i++)
+     {
+      int ki = 3*k+i;
+      printf("%ld %ld %f \n",k, i, D->stage_edge_values[ki]); 
+     }
+    }
+  }
+  
 // Fix xmom and ymom centroid values
 // #pragma omp parallel for simd private(k3, i, dk) firstprivate(extrapolate_velocity_second_order)
   for (k = 0; k < D->number_of_elements; k++)
