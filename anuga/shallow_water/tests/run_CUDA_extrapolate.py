@@ -186,13 +186,17 @@ N = domain1.number_of_elements
 # scale linalg.norm by number of elements
 import math
 
-print('stage edge diff L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
-print('xmom  edge diff L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
-print('ymom  edge diff L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
+print('stage edge      diff L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
+print('xmom  edge      diff L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
+print('ymom  edge      diff L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
 
 print('stage centroid diff L2 norm ', num.linalg.norm(stage1.centroid_values-stage2.centroid_values)/N)
 print('xmom  centroid diff L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
 print('ymom  centroid diff L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
+
+print('stage vertex diff L2 norm ', num.linalg.norm(stage1.vertex_values-stage2.vertex_values)/N)
+print('xmom  vertex diff L2 norm ', num.linalg.norm(xmom1.vertex_values-xmom2.vertex_values)/N)
+print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.vertex_values)/N)
 
 
 
