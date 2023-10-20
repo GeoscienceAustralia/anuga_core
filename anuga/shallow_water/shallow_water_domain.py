@@ -1848,77 +1848,14 @@ class Domain(Generic_Domain):
 
         
     def distribute_to_vertices_and_edges(self):
-        """ Call correct module function """
+        """ extrapolate centroid values to vertices and edges"""
 
+        # Do protection step
+        self.protect_against_infinitesimal_and_negative_heights()
 
-
-        if self.compute_fluxes_method == 'tsunami':
-
-
-            # FIXME SR: Clean up code to just take self (domain) as
-            # input argument
-            from .sw_domain_orig_ext import protect
-
-            # shortcuts
-            wc = self.quantities['stage'].centroid_values
-            wv = self.quantities['stage'].vertex_values
-            zc = self.quantities['elevation'].centroid_values
-            zv = self.quantities['elevation'].vertex_values
-            xmomc = self.quantities['xmomentum'].centroid_values
-            ymomc = self.quantities['ymomentum'].centroid_values
-            areas = self.areas
-
-            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
-
-            if mass_error > 0.0 and self.verbose :
-                print('Cumulative mass protection: %g m^3 '% mass_error)
-
-
-            from .sw_domain_orig_ext import extrapolate_second_order_edge_sw as extrapol2_ext
-
-            # Shortcuts
-            Stage = self.quantities['stage']
-            Xmom = self.quantities['xmomentum']
-            Ymom = self.quantities['ymomentum']
-            Elevation = self.quantities['elevation']
-
-            extrapol2_ext(self,
-                  self.surrogate_neighbours,
-                  self.number_of_boundaries,
-                  self.centroid_coordinates,
-                  Stage.centroid_values,
-                  Xmom.centroid_values,
-                  Ymom.centroid_values,
-                  Elevation.centroid_values,
-                  self.edge_coordinates,
-                  Stage.edge_values,
-                  Xmom.edge_values,
-                  Ymom.edge_values,
-                  Elevation.edge_values,
-                  Stage.vertex_values,
-                  Xmom.vertex_values,
-                  Ymom.vertex_values,
-                  Elevation.vertex_values,
-                  int(self.optimise_dry_cells),
-                  int(self.extrapolate_velocity_second_order))
-
-        elif self.compute_fluxes_method=='DE':
-
-            # Do protection step
-            self.protect_against_infinitesimal_and_negative_heights()
-
-            # Do extrapolation step
-            from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
-            extrapolate_second_order_edge_sw(self)
-
-        else:
-            # Code for original method
-            if self.use_edge_limiter:
-                self.distribute_using_edge_limiter()
-            else:
-                self.distribute_using_vertex_limiter()
-
+        # Do extrapolation step
+        from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
+        extrapolate_second_order_edge_sw(self)
 
 
     def distribute_using_edge_limiter(self):
