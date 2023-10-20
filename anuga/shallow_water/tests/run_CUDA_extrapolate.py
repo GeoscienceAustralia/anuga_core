@@ -136,7 +136,7 @@ nvtxRangePop()
 
 nvtxRangePush('distribute domain2')
 domain2.set_multiprocessor_mode(4)
-domain2.distribute_to_vertices_and_edges(verbose=1)
+domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()
 
 
