@@ -199,7 +199,9 @@ print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.ve
 from pprint import pprint
 
 # FIXME SR: Why are these equal? I didn't think the vertex values had been copied back to the cpu
+print("stage1.vertex_values")
 pprint(stage1.vertex_values)
+print("stage1.vertex_values")
 pprint(stage2.vertex_values)
 
 
