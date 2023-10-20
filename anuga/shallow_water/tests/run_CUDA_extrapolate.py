@@ -134,28 +134,26 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
 nvtxRangePop()
 
-# nvtxRangePush('distribute domain2')
-# domain2.distribute_to_vertices_and_edges(verbose=1)
+nvtxRangePush('distribute domain2')
+domain2.set_multiprocessor_mode(4)
+domain2.distribute_to_vertices_and_edges(verbose=1)
+nvtxRangePop()
+
+
+# from anuga.shallow_water.sw_domain_cuda import GPU_interface
+# gpu_domain2 = GPU_interface(domain2)
+
+# nvtxRangePush('allocate gpu arrays domain2')
+# gpu_domain2.allocate_gpu_arrays()
 # nvtxRangePop()
 
-#domain2.extrapolate_velocity_second_order = 1
+# nvtxRangePush('compile gpu kernels domain2')
+# gpu_domain2.compile_gpu_kernels()
+# nvtxRangePop()
 
-from anuga.shallow_water.sw_domain_cuda import GPU_interface
-gpu_domain2 = GPU_interface(domain2)
-
-nvtxRangePush('allocate gpu arrays domain2')
-gpu_domain2.allocate_gpu_arrays()
-nvtxRangePop()
-
-nvtxRangePush('compile gpu kernels domain2')
-gpu_domain2.compile_gpu_kernels()
-nvtxRangePop()
-
-nvtxRangePush('distribute_to_vertices_and_edges on gpu domain2')
-timestep2 = domain2.evolve_max_timestep 
-
-timestep3 = gpu_domain2.extrapolate_second_order_edge_sw_kernel()
-nvtxRangePop()
+# nvtxRangePush('distribute_to_vertices_and_edges on gpu domain2')
+# gpu_domain2.extrapolate_second_order_edge_sw_kernel()
+# nvtxRangePop()
 
 
 
