@@ -512,97 +512,6 @@ class Domain(Generic_Domain):
         print('#----------------------------')
 
 
-    def _set_tsunami_defaults(self):
-        """Set up the defaults for running the flow_algorithm "tsunami"
-        """
-
-        self._set_config_defaults()
-
-        self.set_CFL(1.0)
-        #self.set_use_kinematic_viscosity(False)
-
-        self.set_timestepping_method(2)
-        self.set_default_order(2)
-        self.set_compute_fluxes_method('tsunami')
-        self.set_extrapolate_velocity()
-        self.set_distribute_to_vertices_and_edges_method('tsunami')
-        self.use_edge_limiter=True
-
-        # The following allows storage of the negative depths associated with this method
-        self.minimum_storable_height=-99999999999.0
-
-
-        # Note that the extrapolation method used in quantity_ext.c (e.g.
-        # extrapolate_second_order_and_limit_by_edge) uses a constant value for
-        # all the betas.
-        self.beta_w=1.0
-        self.beta_w_dry=1.0
-        self.beta_uh=1.0
-        self.beta_uh_dry=1.0
-        self.beta_vh=1.0
-        self.beta_vh_dry=1.0
-
-        #self.optimise_dry_cells=True
-        # "self.optimise_dry_cells=False" presently ensures that the stage is
-        # always >= minimum_bed_edge value.  Actually, we should only need to
-        # apply 'False' on the very first time step (to deal with stage values
-        # that were initialised below the bed by the user). After this, the
-        # algorithm should take care of itself, and 'True' should be okay.
-        self.optimise_dry_cells=False
-
-        # Because gravity is treated within the flux function,
-        # we remove it from the forcing terms.
-        #self.forcing_terms.remove(gravity)
-
-        # We need the edge_coordinates for the extrapolation
-        self.edge_coordinates=self.get_edge_midpoint_coordinates()
-
-        ## (OLD) We demand that vertex values are stored uniquely
-        ##self.set_store_vertices_smoothly(False)
-        # Now we can just store centroids directly
-        self.set_store_centroids(True)
-
-        self.maximum_allowed_speed=0.0
-        #self.minimum_allowed_height=0.01
-
-        #self.forcing_terms.append(manning_friction_explicit)
-        #self.forcing_terms.remove(manning_friction_implicit)
-        if self.processor == 0 and self.verbose:
-            print('##########################################################################')
-            print('#')
-            print("#")
-            print("# Here are some tips on using the 'tsunami' solver")
-            print("#")
-            print("# 1) When plotting outputs, I strongly suggest you examine centroid values, not vertex values")
-            print("# , as the latter can be completely misleading near strong gradients in the flow. ")
-            print("# There is a plot_util.py script in anuga_core/utilities/ which might help you extract")
-            print("# quantities at centroid values from sww files.")
-            print("# Note that to accuractely compute centroid values from sww files, the files need to store ")
-            print("# vertices uniquely. This makes for large sww files (3x), but is the price to pay for the right answer")
-            print("# (unless we alter IO to allow centroids to be written to sww files, which would then affect")
-            print("# ANUGA viewer as well -- I expect this would be lots of work)")
-            print("#")
-            print("# 2) In field scale applications (where the depth is typically > 1m), I suggest you set")
-            print("# domain.minimum_allowed_height=0.01 (the default is 1.0e-3). ")
-            print("#")
-            print("# 3) This solver is not expected to perform well in problems with very")
-            print("# shallow water flowing down steep slopes (such that the stage_centroid_value ")
-            print("# is less than the maximum bed_edge_value on a given triangle). However, analytical tests")
-            print("# suggest it can do typical wetting/drying situations very well (parabolic oscillations test case) ")
-            print("#")
-            print("# 4) This solver allows the stage_centroid_value to drop to slightly below the minimum bed_vertex_value")
-            print("# on it's triangle. In other ANUGA versions (e.g. 1.2.1), the limit would be the")
-            print("# bed_centroid_value. This means that triangles store slightly more water than they are")
-            print("# typically interpreted to store, which might have significance in some applications.")
-            print("#")
-            print("# You will probably be able to tell this is causing you problems by convergence testing")
-            print("#")
-            print('# 5) Note that many options in config.py have been overridden by the solver -- we have ')
-            print('# deliberately attempted to get the solver to perform well with consistent values of ')
-            print('# these parameters -- so I advise against changing them unless you at least check that ')
-            print('# it really does improve things')
-            print('#')
-            print('##########################################################################')
 
 
     def _set_DE0_defaults(self):
@@ -1896,97 +1805,40 @@ class Domain(Generic_Domain):
         nvtxRangePop()
 
         
-    def distribute_to_vertices_and_edges(self, verbose=0):
-        """ Call correct module function """
+    def distribute_to_vertices_and_edges(self):
+        """ extrapolate centroid values to vertices and edges"""
 
+        # Do protection step
+        nvtxRangePush('protect_against_infinities')
+        self.protect_against_infinitesimal_and_negative_heights()
+        nvtxRangePop()
 
+        # Do extrapolation step
+        nvtxRangePush('extrapolate')
+        if self.multiprocessor_mode == 0:
+            from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
+            extrapolate_second_order_edge_sw(self)
 
-        if self.compute_fluxes_method == 'tsunami':
+        elif self.multiprocessor_mode == 1:
+            from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
+            extrapolate_second_order_edge_sw(self)
 
+        elif self.multiprocessor_mode == 2:
+            from .sw_domain_openmp_ext import extrapolate_second_order_edge_sw
+            extrapolate_second_order_edge_sw(self)
 
-            # FIXME SR: Clean up code to just take self (domain) as
-            # input argument
-            from .sw_domain_orig_ext import protect
+        elif self.multiprocessor_mode == 3:
+            from .sw_domain_openacc_ext import extrapolate_second_order_edge_sw
+            extrapolate_second_order_edge_sw(self)
 
-            # shortcuts
-            wc = self.quantities['stage'].centroid_values
-            wv = self.quantities['stage'].vertex_values
-            zc = self.quantities['elevation'].centroid_values
-            zv = self.quantities['elevation'].vertex_values
-            xmomc = self.quantities['xmomentum'].centroid_values
-            ymomc = self.quantities['ymomentum'].centroid_values
-            areas = self.areas
-
-            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
-
-            if mass_error > 0.0 and self.verbose :
-                print('Cumulative mass protection: %g m^3 '% mass_error)
-
-
-            from .sw_domain_orig_ext import extrapolate_second_order_edge_sw as extrapol2_ext
-
-            # Shortcuts
-            Stage = self.quantities['stage']
-            Xmom = self.quantities['xmomentum']
-            Ymom = self.quantities['ymomentum']
-            Elevation = self.quantities['elevation']
-
-            extrapolate_second_order_edge_sw(self,
-                  self.surrogate_neighbours,
-                  self.number_of_boundaries,
-                  self.centroid_coordinates,
-                  Stage.centroid_values,
-                  Xmom.centroid_values,
-                  Ymom.centroid_values,
-                  Elevation.centroid_values,
-                  self.edge_coordinates,
-                  Stage.edge_values,
-                  Xmom.edge_values,
-                  Ymom.edge_values,
-                  Elevation.edge_values,
-                  Stage.vertex_values,
-                  Xmom.vertex_values,
-                  Ymom.vertex_values,
-                  Elevation.vertex_values,
-                  int(self.optimise_dry_cells),
-                  int(self.extrapolate_velocity_second_order))
-
-        elif self.compute_fluxes_method=='DE':
-
-
-            # Do protection step
-            nvtxRangePush('protect_against_infinities')
-            self.protect_against_infinitesimal_and_negative_heights()
-            nvtxRangePop()
-
-            # Do extrapolation step
-            nvtxRangePush('extrapolate')
-            if self.multiprocessor_mode == 0:
-                from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
-            elif self.multiprocessor_mode == 1:
-                from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
-            elif self.multiprocessor_mode == 2:
-                from .sw_domain_openmp_ext import extrapolate_second_order_edge_sw
-            elif self.multiprocessor_mode == 3:
-                from .sw_domain_openacc_ext import extrapolate_second_order_edge_sw
-            elif self.multiprocessor_mode == 4:
-                # change over to cuda routines as developed
-                from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
-            else:
-                raise Exception('Not implemented')
-
+        elif self.multiprocessor_mode == 4:
+            # change over to cuda routines as developed
+            from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
             extrapolate_second_order_edge_sw(self, verbose=verbose)
-
-            nvtxRangePop()
-
         else:
-            # Code for original method
-            if self.use_edge_limiter:
-                self.distribute_using_edge_limiter()
-            else:
-                self.distribute_using_vertex_limiter()
+            raise Exception('Not implemented')
 
+        nvtxRangePop()
 
 
     def distribute_using_edge_limiter(self):
@@ -2089,70 +1941,29 @@ class Domain(Generic_Domain):
         """ Clean up the stage and momentum values to ensure non-negative heights
         """
 
-        if self.flow_algorithm == 'tsunami':
-            from .sw_domain_orig_ext import protect  # FIXME (Ole): Should probably be decommissioned
-        
-            # shortcuts
-            wc = self.quantities['stage'].centroid_values
-            wv = self.quantities['stage'].vertex_values
-            zc = self.quantities['elevation'].centroid_values
-            zv = self.quantities['elevation'].vertex_values
-            xmomc = self.quantities['xmomentum'].centroid_values
-            ymomc = self.quantities['ymomentum'].centroid_values
-            areas = self.areas
-
-            mass_error = protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                self.epsilon, wc, wv, zc,zv, xmomc, ymomc, areas)
-
-            if mass_error > 0.0 and self.verbose :
-                print('Cumulative mass protection: '+str(mass_error)+' m^3 ')
-
-        elif self.compute_fluxes_method == 'DE':
-
-            
-            nvtxRangePush('protect_new')
-            if self.multiprocessor_mode == 0:
-                from .sw_domain_orig_ext import protect_new
-            elif self.multiprocessor_mode == 1:
-                from .sw_domain_simd_ext import protect_new
-            elif self.multiprocessor_mode == 2:
-                from .sw_domain_openmp_ext import  protect_new
-            elif self.multiprocessor_mode == 3:
-                from .sw_domain_openacc_ext import  protect_new
-            elif self.multiprocessor_mode == 4:
-                # change over to cuda routines as developed
-                from .sw_domain_simd_ext import  protect_new
-            else:
-                raise Exception('Not implemented')
-
-
-            mass_error = protect_new(self)
-            nvtxRangePop()
-
-            if mass_error > 0.0 and self.verbose :
-                #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
-                # From https://stackoverflow.com/questions/22397261/cant-convert-float-object-to-str-implicitly
-                print('Cumulative mass protection: {0} m^3'.format(mass_error))
-
+        nvtxRangePush('protect_new')
+        if self.multiprocessor_mode == 0:
+            from .sw_domain_orig_ext import protect_new
+        elif self.multiprocessor_mode == 1:
+            from .sw_domain_simd_ext import protect_new
+        elif self.multiprocessor_mode == 2:
+            from .sw_domain_openmp_ext import  protect_new
+        elif self.multiprocessor_mode == 3:
+            from .sw_domain_openacc_ext import  protect_new
+        elif self.multiprocessor_mode == 4:
+            # change over to cuda routines as developed
+            from .sw_domain_simd_ext import  protect_new
         else:
-
-            from .sw_domain_orig_ext import protect        
-
-            # shortcuts
-            wc = self.quantities['stage'].centroid_values
-            wv = self.quantities['stage'].vertex_values
-            zc = self.quantities['elevation'].centroid_values
-            zv = self.quantities['elevation'].vertex_values
-            xmomc = self.quantities['xmomentum'].centroid_values
-            ymomc = self.quantities['ymomentum'].centroid_values
-
-            
-            protect(self.minimum_allowed_height, self.maximum_allowed_speed,
-                    self.epsilon, wc, zc, xmomc, ymomc)
+            raise Exception('Not implemented')
 
 
-            
+        mass_error = protect_new(self)
+        nvtxRangePop()
 
+        if mass_error > 0.0 and self.verbose :
+            #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
+            # From https://stackoverflow.com/questions/22397261/cant-convert-float-object-to-str-implicitly
+            print('Cumulative mass protection: {0} m^3'.format(mass_error))
 
 
     def balance_deep_and_shallow(self):
