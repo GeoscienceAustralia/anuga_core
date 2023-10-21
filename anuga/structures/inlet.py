@@ -69,7 +69,7 @@ class Inlet(object):
     def get_stages(self):
         
         return self.domain.quantities['stage'].centroid_values.take(self.triangle_indices)
-        
+        # self.domain.quantities['stage'].centroid_values would be called gpu_stage_centroid_values in the gpu_interface
         
     def get_average_stage(self):
 
