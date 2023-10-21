@@ -1517,9 +1517,13 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
                                               long   number_of_elements 
                                                           ) 
   {
-
-  int k = blockIdx.x * blockDim.x + threadIdx.x;
-  if (k < number_of_elements) {
+    long k3;
+    
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if (k < number_of_elements) {
+      
+      k3 = k * 3;
 
       stage_vertex_values[k3 + 0] = stage_edge_values[k3 + 1] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 0];
       stage_vertex_values[k3 + 1] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 1];
