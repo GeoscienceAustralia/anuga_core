@@ -174,7 +174,8 @@ class GPU_interface(object):
                                  name_expressions=("_cuda_compute_fluxes_loop",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
-                                                   "_cuda_extrapolate_second_order_edge_sw_loop3"))
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop3",
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop4"))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
@@ -183,6 +184,7 @@ class GPU_interface(object):
         self.extrapolate_kernel1 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop1")
         self.extrapolate_kernel2 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop2")
         self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
+        self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
 
     #-----------------------------------------------------
     # Allocate GPU arrays
@@ -617,7 +619,7 @@ class GPU_interface(object):
         nvtxRangePop()
 
         nvtxRangePush('extrapolate kernel: loop 4')
-        self.extrapolate_kernel3( (NO_OF_BLOCKS, 0, 0),
+        self.extrapolate_kernel4( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (   
                 self.gpu_stage_edge_values,
