@@ -10,6 +10,8 @@ import warnings
 import time
 import math
 
+from pprint import pprint
+
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
 
@@ -214,7 +216,7 @@ print('stage vertex diff L2 norm ', num.linalg.norm(stage1.vertex_values-stage2.
 print('xmom  vertex diff L2 norm ', num.linalg.norm(xmom1.vertex_values-xmom2.vertex_values)/N)
 print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.vertex_values)/N)
 
-from pprint import pprint
+
 
 # FIXME SR: Why are these equal? I didn't think the vertex values had been copied back to the cpu
 print("stage1.vertex_values")
