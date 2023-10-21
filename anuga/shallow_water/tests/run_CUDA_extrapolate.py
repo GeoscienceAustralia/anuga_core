@@ -146,16 +146,10 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
 nvtxRangePop()
 
-print("stage1.vertex_values")
-pprint(stage1.vertex_values)
-print("stage2.vertex_values")
-pprint(stage2.vertex_values)
-
-print("stage1.edge_values")
-pprint(stage1.edge_values)
-print("stage2.edge_values")
-pprint(stage2.edge_values)
-
+stage1_vertex_values_before = num.copy(stage1.vertex_values)
+stage2_vertex_values_before = num.copy(stage2.vertex_values)
+stage1_edge_values_before = num.copy(stage1.edge_values)
+stage2_edge_values_before = num.copy(stage2.edge_values)
 
 nvtxRangePush('distribute domain2')
 # Now run the distribute procedure on the GPU
@@ -223,16 +217,26 @@ print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.ve
 
 
 # FIXME SR: Why are these equal? I didn't think the vertex values had been copied back to the cpu
-print("stage1.vertex_values")
-pprint(stage1.vertex_values)
-print("stage2.vertex_values")
-pprint(stage2.vertex_values)
 
-print("stage1.edge_values")
-pprint(stage1.edge_values)
-print("stage2.edge_values")
-pprint(stage2.edge_values)
 
+stage1_vertex_values_after = num.copy(stage1.vertex_values)
+stage2_vertex_values_after = num.copy(stage2.vertex_values)
+stage1_edge_values_after = num.copy(stage1.edge_values)
+stage2_edge_values_after = num.copy(stage2.edge_values)
+
+
+
+print("change stage1.vertex_values")
+pprint(stage1_vertex_values_after - stage1_vertex_values_before)
+
+print("change stage2.vertex_values")
+pprint(stage2_vertex_values_after - stage2_vertex_values_before)
+
+print("change stage1.edge_values")
+pprint(stage1_edge_values_after - stage1_edge_values_before)
+
+print("change stage2.edge_values")
+pprint(stage2_edge_values_after - stage2_edge_values_before)
 
 
 # print('timestep error                ', abs(timestep1-timestep2))
