@@ -72,11 +72,21 @@ print(70*'=')
 nvtxRangePush('create domain1')
 domain1 = create_domain('domain_original')
 domain1.set_multiprocessor_mode(1)
+
+quantities1 = domain1.quantities
+stage1 = quantities1["stage"]
+xmom1 = quantities1["xmomentum"]
+ymom1 = quantities1["ymomentum"]
 nvtxRangePop()
 
-nvtxRangePush('create domain1')
+nvtxRangePush('create domain2')
 domain2 = create_domain('domain_cuda')
-domain2.set_multiprocessor_mode(1) # will change to 2 once burn in
+domain2.set_multiprocessor_mode(1) # will change to 4 once burn in
+
+quantities2 = domain2.quantities
+stage2 = quantities2["stage"]
+xmom2 = quantities2["xmomentum"]
+ymom2 = quantities2["ymomentum"]
 nvtxRangePop()
 
 import time
@@ -99,6 +109,9 @@ nvtxRangePop()
 # run domain1 using standard routine
 #---------------------------------------
 #timestep = 0.1
+
+print("stage1.vertex_values")
+pprint(stage1.vertex_values)
 
 nvtxRangePush('distribute domain1')
 domain1.distribute_to_vertices_and_edges()
@@ -133,6 +146,10 @@ print('domain2 number of triangles ',domain2.number_of_elements)
 for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
 nvtxRangePop()
+
+print("stage2.vertex_values")
+pprint(stage2.vertex_values)
+
 
 nvtxRangePush('distribute domain2')
 # Now run the distribute procedure on the GPU
@@ -202,7 +219,7 @@ from pprint import pprint
 # FIXME SR: Why are these equal? I didn't think the vertex values had been copied back to the cpu
 print("stage1.vertex_values")
 pprint(stage1.vertex_values)
-print("stage1.vertex_values")
+print("stage2.vertex_values")
 pprint(stage2.vertex_values)
 
 
