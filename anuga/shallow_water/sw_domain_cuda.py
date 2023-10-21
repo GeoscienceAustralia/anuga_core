@@ -661,6 +661,14 @@ class GPU_interface(object):
             cp.asnumpy(self.gpu_bed_centroid_values,    out = self.cpu_bed_centroid_values)
             nvtxRangePop()
 
+            nvtxRangePush('extrapolate kernel: retrieve gpu vertex results')
+            cp.asnumpy(self.gpu_stage_vertex_values,  out = self.cpu_stage_vertex_values)
+            cp.asnumpy(self.gpu_xmom_vertex_values,   out = self.cpu_xmom_vertex_values)
+            cp.asnumpy(self.gpu_ymom_vertex_values,   out = self.cpu_ymom_vertex_values)
+            cp.asnumpy(self.gpu_height_vertex_values, out = self.cpu_height_vertex_values)
+            cp.asnumpy(self.gpu_bed_vertex_values,    out = self.cpu_bed_vertex_values)
+            nvtxRangePop()
+
 
 
 
