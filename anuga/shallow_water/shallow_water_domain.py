@@ -2774,17 +2774,23 @@ class Domain(Generic_Domain):
     def set_gpu_interface(self):
 
         if self.multiprocessor_mode == 4 and self.gpu_interface is None:
-            try:
-                from .sw_domain_cuda import GPU_interface
-                self.gpu_interface = GPU_interface(self)
-            except:
-                print('=====================================================================')
-                print('WARNING: cupy not available, so falling back to multiprocessor_mode 1')
-                print('=====================================================================')
-                self.set_multiprocessor_mode(1)
-            else:
-                self.gpu_interface.allocate_gpu_arrays()
-                self.gpu_interface.compile_gpu_kernels()
+
+            from .sw_domain_cuda import GPU_interface
+            self.gpu_interface = GPU_interface(self)
+            self.gpu_interface.allocate_gpu_arrays()
+            self.gpu_interface.compile_gpu_kernels()
+
+            # try:
+            #     from .sw_domain_cuda import GPU_interface
+            #     self.gpu_interface = GPU_interface(self)
+            # except:
+            #     print('=====================================================================')
+            #     print('WARNING: cupy not available, so falling back to multiprocessor_mode 1')
+            #     print('=====================================================================')
+            #     self.set_multiprocessor_mode(1)
+            # else:
+            #     self.gpu_interface.allocate_gpu_arrays()
+            #     self.gpu_interface.compile_gpu_kernels()
             
         
 
