@@ -1517,7 +1517,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
                                               long   number_of_elements 
                                                           ) 
   {
-    long k3;
+    //long k3;
     
     int k = blockIdx.x * blockDim.x + threadIdx.x;
     
