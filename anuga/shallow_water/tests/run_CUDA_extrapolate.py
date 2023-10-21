@@ -97,8 +97,8 @@ start = time.time()
 #------------------------------
 #Evolve the system through time
 #------------------------------
-yieldstep = 0.0002
-finaltime = 0.0002
+yieldstep = 0.02
+finaltime = 0.02
 nvtxRangePush('evolve domain1')
 print('Evolve domain1')
 print('domain1 number of triangles ',domain1.number_of_elements)
