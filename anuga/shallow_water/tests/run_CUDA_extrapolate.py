@@ -135,6 +135,7 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
 nvtxRangePop()
 
 nvtxRangePush('distribute domain2')
+# Now run the distribute procedure on the GPU
 domain2.set_multiprocessor_mode(4)
 domain2.distribute_to_vertices_and_edges()
 nvtxRangePop()

@@ -518,46 +518,10 @@ class GPU_interface(object):
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
 
-        nvtxRangePush('extrapolate kernel: run kernel')
         # FIXME SR: Check to see if we need to read in vertex_values arrays
 
-        # self.extrapolate_kernel( (NO_OF_BLOCKS, 0, 0),
-        #         (THREADS_PER_BLOCK, 0, 0), 
-        #         (  
-        #         self.gpu_stage_edge_values, 
-        #         self.gpu_xmom_edge_values, 
-        #         self.gpu_ymom_edge_values,
-        #         self.gpu_height_edge_values, 
-        #         self.gpu_bed_edge_values, 
-
-        #         self.gpu_stage_centroid_values, 
-        #         self.gpu_xmom_centroid_values,
-        #         self.gpu_ymom_centroid_values, 
-        #         self.gpu_height_centroid_values,
-        #         self.gpu_bed_centroid_values,
-
-        #         self.gpu_x_centroid_work,
-        #         self.gpu_y_centroid_work,
-                
-        #         self.gpu_centroid_coordinates,
-        #         self.gpu_edge_coordinates, 
-        #         self.gpu_surrogate_neighbours,               
-                
-        #         self.gpu_beta_w_dry, 
-        #         self.gpu_beta_w,
-        #         self.gpu_beta_uh_dry, 
-        #         self.gpu_beta_uh, 
-        #         self.gpu_beta_vh_dry, 
-        #         self.gpu_beta_vh,
-                
-        #         np.float64 (self.cpu_minimum_allowed_height), 
-        #         np.int32   (self.cpu_number_of_elements), 
-        #         np.int32 (self.cpu_extrapolate_velocity_second_order)
-        #         ) 
-        #         )
-
         
-
+        nvtxRangePush('extrapolate kernel: loop 1')
         self.extrapolate_kernel1( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
@@ -576,6 +540,7 @@ class GPU_interface(object):
                 np.int64   (self.cpu_extrapolate_velocity_second_order)
                 ) 
                 )
+        nvtxRangePop()
 
         if verbose:
             print('gpu_x_centroid_work after loop 1')
@@ -583,6 +548,7 @@ class GPU_interface(object):
             print('gpu_xmom_centroid_values after loop 1')
             print(self.gpu_xmom_centroid_values)
 
+        nvtxRangePush('extrapolate kernel: loop 2')
         self.extrapolate_kernel2( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
@@ -600,12 +566,6 @@ class GPU_interface(object):
 
                 self.gpu_x_centroid_work,
                 self.gpu_y_centroid_work,
-
-                self.gpu_stage_vertex_values,
-                self.gpu_height_vertex_values,
-                self.gpu_xmom_vertex_values,
-                self.gpu_ymom_vertex_values,
-                self.gpu_bed_vertex_values,
                 
                 self.gpu_number_of_boundaries,
                 self.gpu_centroid_coordinates,
@@ -624,7 +584,7 @@ class GPU_interface(object):
                 np.int64   (self.cpu_extrapolate_velocity_second_order)
                 ) 
                 )
-
+        nvtxRangePop()
         #import ipdb
         #ipdb.set_trace()
 
@@ -640,6 +600,7 @@ class GPU_interface(object):
             print('self.gpu_surrogate_neighbours after loop 2')
             print(self.gpu_surrogate_neighbours)
 
+        nvtxRangePush('extrapolate kernel: loop 3')
         self.extrapolate_kernel3( (NO_OF_BLOCKS, 0, 0),
                 (THREADS_PER_BLOCK, 0, 0), 
                 (   
@@ -653,29 +614,49 @@ class GPU_interface(object):
                 np.int64 (self.cpu_number_of_elements)
                 ) 
                 )
-
-
         nvtxRangePop()
+
+        nvtxRangePush('extrapolate kernel: loop 4')
+        self.extrapolate_kernel3( (NO_OF_BLOCKS, 0, 0),
+                (THREADS_PER_BLOCK, 0, 0), 
+                (   
+                self.gpu_stage_edge_values,
+                self.gpu_xmom_edge_values, 
+                self.gpu_ymom_edge_values,
+                self.gpu_height_edge_values, 
+                self.gpu_bed_edge_values, 
+
+                self.gpu_stage_vertex_values,
+                self.gpu_height_vertex_values,
+                self.gpu_xmom_vertex_values,
+                self.gpu_ymom_vertex_values,
+                self.gpu_bed_vertex_values,
+                
+                np.int64 (self.cpu_number_of_elements)
+                ) 
+                )
+        nvtxRangePop()
+
 
         #------------------------------------------------
         # Recover transient values from gpu if necessary
         #------------------------------------------------
         if transfer_gpu_results:
-            nvtxRangePush('extrapolate kernel: transfer gpu results')
-            
+            nvtxRangePush('extrapolate kernel: retrieve gpu edge results')
             cp.asnumpy(self.gpu_stage_edge_values,  out = self.cpu_stage_edge_values)
             cp.asnumpy(self.gpu_xmom_edge_values,   out = self.cpu_xmom_edge_values)
             cp.asnumpy(self.gpu_ymom_edge_values,   out = self.cpu_ymom_edge_values)
             cp.asnumpy(self.gpu_height_edge_values, out = self.cpu_height_edge_values)
             cp.asnumpy(self.gpu_bed_edge_values,    out = self.cpu_bed_edge_values)
+            nvtxRangePop()
 
+            nvtxRangePush('extrapolate kernel: retrieve gpu centroid results')
             # FIXME SR: check to see if we need to transfer all these centroid values
             cp.asnumpy(self.gpu_stage_centroid_values,  out = self.cpu_stage_centroid_values)
             cp.asnumpy(self.gpu_xmom_centroid_values,   out = self.cpu_xmom_centroid_values)
             cp.asnumpy(self.gpu_ymom_centroid_values,   out = self.cpu_ymom_centroid_values)
             cp.asnumpy(self.gpu_height_centroid_values, out = self.cpu_height_centroid_values)
             cp.asnumpy(self.gpu_bed_centroid_values,    out = self.cpu_bed_centroid_values)
-
             nvtxRangePop()
 
 

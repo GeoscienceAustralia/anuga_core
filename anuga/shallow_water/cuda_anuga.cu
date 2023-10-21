@@ -1003,12 +1003,6 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
                                                              double* x_centroid_work,
                                                              double* y_centroid_work,
 
-                                                             double* stage_vertex_values,
-                                                             double* height_vertex_values,
-                                                             double* xmom_vertex_values,
-                                                             double* ymom_vertex_values,
-                                                             double* bed_vertex_values,
-
                                                              long*   number_of_boundaries,
                                                              double* centroid_coordinates,
                                                              double* edge_coordinates, 
@@ -1480,36 +1474,6 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
       bed_edge_values[k3 + 2] = stage_edge_values[k3 + 2] - height_edge_values[k3 + 2];
 
 
-      // FIXME SR: Do we need vertex values every inner timestep?
-
-      // Compute stage vertex values
-      stage_vertex_values[k3 + 0] = stage_edge_values[k3 + 1] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 0];
-      stage_vertex_values[k3 + 1] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 1];
-      stage_vertex_values[k3 + 2] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 1] - stage_edge_values[k3 + 2];
-
-      // Compute height vertex values
-      height_vertex_values[k3 + 0] = height_edge_values[k3 + 1] + height_edge_values[k3 + 2] - height_edge_values[k3 + 0];
-      height_vertex_values[k3 + 1] = height_edge_values[k3 + 0] + height_edge_values[k3 + 2] - height_edge_values[k3 + 1];
-      height_vertex_values[k3 + 2] = height_edge_values[k3 + 0] + height_edge_values[k3 + 1] - height_edge_values[k3 + 2];
-
-      // Compute momenta at vertices
-      xmom_vertex_values[k3 + 0] = xmom_edge_values[k3 + 1] + xmom_edge_values[k3 + 2] - xmom_edge_values[k3 + 0];
-      xmom_vertex_values[k3 + 1] = xmom_edge_values[k3 + 0] + xmom_edge_values[k3 + 2] - xmom_edge_values[k3 + 1];
-      xmom_vertex_values[k3 + 2] = xmom_edge_values[k3 + 0] + xmom_edge_values[k3 + 1] - xmom_edge_values[k3 + 2];
-
-      ymom_vertex_values[k3 + 0] = ymom_edge_values[k3 + 1] + ymom_edge_values[k3 + 2] - ymom_edge_values[k3 + 0];
-      ymom_vertex_values[k3 + 1] = ymom_edge_values[k3 + 0] + ymom_edge_values[k3 + 2] - ymom_edge_values[k3 + 1];
-      ymom_vertex_values[k3 + 2] = ymom_edge_values[k3 + 0] + ymom_edge_values[k3 + 1] - ymom_edge_values[k3 + 2];
-
-    
-      bed_vertex_values[k3 + 0] = bed_edge_values[k3 + 1] + bed_edge_values[k3 + 2] - bed_edge_values[k3 + 0];
-      bed_vertex_values[k3 + 1] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 2] - bed_edge_values[k3 + 1];
-      bed_vertex_values[k3 + 2] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 1] - bed_edge_values[k3 + 2];
-
-
-
-
-
     }
 }
 
@@ -1535,3 +1499,47 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop3(
         }
     }
 }
+
+
+__global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
+                                              double* stage_edge_values,
+                                              double* xmom_edge_values, 
+                                              double* ymom_edge_values,
+                                              double* height_edge_values, 
+                                              double* bed_edge_values, 
+
+                                              double* stage_vertex_values,
+                                              double* height_vertex_values,
+                                              double* xmom_vertex_values,
+                                              double* ymom_vertex_values,
+                                              double* bed_vertex_values,               
+
+                                              long   number_of_elements 
+                                                          ) 
+  {
+
+  int k = blockIdx.x * blockDim.x + threadIdx.x;
+  if (k < number_of_elements) {
+
+      stage_vertex_values[k3 + 0] = stage_edge_values[k3 + 1] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 0];
+      stage_vertex_values[k3 + 1] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 2] - stage_edge_values[k3 + 1];
+      stage_vertex_values[k3 + 2] = stage_edge_values[k3 + 0] + stage_edge_values[k3 + 1] - stage_edge_values[k3 + 2];
+
+      height_vertex_values[k3 + 0] = height_edge_values[k3 + 1] + height_edge_values[k3 + 2] - height_edge_values[k3 + 0];
+      height_vertex_values[k3 + 1] = height_edge_values[k3 + 0] + height_edge_values[k3 + 2] - height_edge_values[k3 + 1];
+      height_vertex_values[k3 + 2] = height_edge_values[k3 + 0] + height_edge_values[k3 + 1] - height_edge_values[k3 + 2];
+
+      xmom_vertex_values[k3 + 0] = xmom_edge_values[k3 + 1] + xmom_edge_values[k3 + 2] - xmom_edge_values[k3 + 0];
+      xmom_vertex_values[k3 + 1] = xmom_edge_values[k3 + 0] + xmom_edge_values[k3 + 2] - xmom_edge_values[k3 + 1];
+      xmom_vertex_values[k3 + 2] = xmom_edge_values[k3 + 0] + xmom_edge_values[k3 + 1] - xmom_edge_values[k3 + 2];
+
+      ymom_vertex_values[k3 + 0] = ymom_edge_values[k3 + 1] + ymom_edge_values[k3 + 2] - ymom_edge_values[k3 + 0];
+      ymom_vertex_values[k3 + 1] = ymom_edge_values[k3 + 0] + ymom_edge_values[k3 + 2] - ymom_edge_values[k3 + 1];
+      ymom_vertex_values[k3 + 2] = ymom_edge_values[k3 + 0] + ymom_edge_values[k3 + 1] - ymom_edge_values[k3 + 2];
+
+    
+      bed_vertex_values[k3 + 0] = bed_edge_values[k3 + 1] + bed_edge_values[k3 + 2] - bed_edge_values[k3 + 0];
+      bed_vertex_values[k3 + 1] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 2] - bed_edge_values[k3 + 1];
+      bed_vertex_values[k3 + 2] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 1] - bed_edge_values[k3 + 2];
+    }
+  }

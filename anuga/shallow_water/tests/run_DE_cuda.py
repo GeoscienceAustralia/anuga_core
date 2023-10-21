@@ -204,7 +204,7 @@ max_speed_2 = domain2.max_speed
 N = domain1.number_of_elements
 # scale linalg.norm by number of elements
 import math
-sqrtN = 1.0/math.sqrt(N)
+sqrtN = 1.0/N
 
 
 print('timestep diff                ', abs(timestep1-timestep2))
