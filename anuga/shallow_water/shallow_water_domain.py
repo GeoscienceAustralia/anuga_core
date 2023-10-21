@@ -1794,8 +1794,8 @@ class Domain(Generic_Domain):
             from .sw_domain_openacc_ext import compute_fluxes_ext_central
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            # from .sw_domain_simd_ext import compute_fluxes_ext_central
-            compute_fluxes_ext_central = self.gpu_interface.compute_fluxes_ext_central_kernel
+            from .sw_domain_simd_ext import compute_fluxes_ext_central
+            #compute_fluxes_ext_central = self.gpu_interface.compute_fluxes_ext_central_kernel
         else:
             raise Exception('Not implemented')
 
