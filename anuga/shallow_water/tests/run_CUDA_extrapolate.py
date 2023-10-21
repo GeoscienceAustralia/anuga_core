@@ -112,9 +112,6 @@ nvtxRangePop()
 #---------------------------------------
 #timestep = 0.1
 
-print("stage1.vertex_values")
-pprint(stage1.vertex_values)
-
 nvtxRangePush('distribute domain1')
 domain1.distribute_to_vertices_and_edges()
 nvtxRangePop()
@@ -149,8 +146,15 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
 nvtxRangePop()
 
+print("stage1.vertex_values")
+pprint(stage1.vertex_values)
 print("stage2.vertex_values")
 pprint(stage2.vertex_values)
+
+print("stage1.edge_values")
+pprint(stage1.edge_values)
+print("stage2.edge_values")
+pprint(stage2.edge_values)
 
 
 nvtxRangePush('distribute domain2')
@@ -223,6 +227,11 @@ print("stage1.vertex_values")
 pprint(stage1.vertex_values)
 print("stage2.vertex_values")
 pprint(stage2.vertex_values)
+
+print("stage1.edge_values")
+pprint(stage1.edge_values)
+print("stage2.edge_values")
+pprint(stage2.edge_values)
 
 
 
