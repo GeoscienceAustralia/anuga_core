@@ -1835,8 +1835,8 @@ class Domain(Generic_Domain):
 
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
-            #extrapolate_second_order_edge_sw = self.gpu_interface.extrapolate_second_order_edge_sw_kernel
+            # from .sw_domain_simd_ext import extrapolate_second_order_edge_sw
+            extrapolate_second_order_edge_sw = self.gpu_interface.extrapolate_second_order_edge_sw_kernel
             extrapolate_second_order_edge_sw(self)
         else:
             raise Exception('Not implemented')
