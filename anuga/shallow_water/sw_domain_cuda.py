@@ -431,13 +431,15 @@ class GPU_interface(object):
                 self.gpu_ymom_explicit_update,
 
                 self.gpu_stage_centroid_values,
+                self.gpu_height_centroid_values,
+                self.gpu_bed_centroid_values,
+
                 self.gpu_stage_edge_values,
                 self.gpu_xmom_edge_values, 
                 self.gpu_ymom_edge_values,
                 self.gpu_bed_edge_values,
                 self.gpu_height_edge_values,
-                self.gpu_height_centroid_values,
-                self.gpu_bed_centroid_values,
+
                 self.gpu_stage_boundary_values, 
                 self.gpu_xmom_boundary_values, 
                 self.gpu_ymom_boundary_values, 
