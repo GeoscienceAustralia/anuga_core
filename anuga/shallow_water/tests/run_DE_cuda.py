@@ -141,37 +141,37 @@ nvtxRangePush('update boundary domain2')
 domain2.update_boundary()
 nvtxRangePop()
 
-nvtxRangePush('initialise gpu_interface domain2')
-domain2.set_multiprocessor_mode(4)
+# nvtxRangePush('initialise gpu_interface domain2')
+# domain2.set_multiprocessor_mode(4)
+# nvtxRangePop()
+
+# nvtxRangePush('compute fluxes domain2')
+# domain2.compute_fluxes()
+# timestep2 = domain2.flux_timestep
+# boundary_flux2 = domain2.boundary_flux_sum[0]
+# nvtxRangePop()
+
+
+# Setup gpu interface (if multiprocessor_mode == 4 and cupy available)
+from anuga.shallow_water.sw_domain_cuda import GPU_interface
+gpu_interface2 = GPU_interface(domain2)
+
+# Some of these arrays are "static" and so only
+# need to be allocated and set once per simulation
+nvtxRangePush('allocate gpu arrays for domain2')
+gpu_interface2.allocate_gpu_arrays()
 nvtxRangePop()
 
-nvtxRangePush('compute fluxes domain2')
-domain2.compute_fluxes()
-timestep2 = domain2.flux_timestep
-boundary_flux2 = domain2.boundary_flux_sum[0]
+
+
+nvtxRangePush('compile gpu kernels for domain2')
+gpu_interface2.compile_gpu_kernels()
 nvtxRangePop()
 
-
-# # Setup gpu interface (if multiprocessor_mode == 4 and cupy available)
-# from anuga.shallow_water.sw_domain_cuda import GPU_interface
-# gpu_interface2 = GPU_interface(domain2)
-
-# # Some of these arrays are "static" and so only
-# # need to be allocated and set once per simulation
-# nvtxRangePush('allocate gpu arrays for domain2')
-# gpu_interface2.allocate_gpu_arrays()
-# nvtxRangePop()
-
-
-
-# nvtxRangePush('compile gpu kernels for domain2')
-# gpu_interface2.compile_gpu_kernels()
-# nvtxRangePop()
-
-# nvtxRangePush('compute fluxes on gpu for domain2')
-# timestep2 = domain2.evolve_max_timestep 
-# timestep2 = gpu_interface2.compute_fluxes_ext_central_kernel(timestep2)
-# nvtxRangePop()
+nvtxRangePush('compute fluxes on gpu for domain2')
+timestep2 = domain2.evolve_max_timestep 
+timestep2 = gpu_interface2.compute_fluxes_ext_central_kernel(timestep2)
+nvtxRangePop()
 
 boundary_flux2 = domain2.boundary_flux_sum[0]
 
