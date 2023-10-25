@@ -1797,7 +1797,7 @@ class Domain(Generic_Domain):
             from .sw_domain_simd_ext import compute_fluxes_ext_central
             # FIXME SR: 2023_10_16 currently compute_fluxes is producing 
             # incorrect results
-            # compute_fluxes_ext_central = self.gpu_interface.compute_fluxes_ext_central_kernel
+            compute_fluxes_ext_central = self.gpu_interface.compute_fluxes_ext_central_kernel
         else:
             raise Exception('Not implemented')
 
