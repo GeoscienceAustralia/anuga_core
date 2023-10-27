@@ -2779,11 +2779,13 @@ class Domain(Generic_Domain):
 
             # first check that cupy is available
             try:
-                import cupy
+                import cupy as cp
+                test_cupy_array = cp.array([1,2,3])
+
             except:
-                print('=====================================================================')
-                print('WARNING: cupy not available, so falling back to multiprocessor_mode 1')
-                print('=====================================================================')
+                print('============================================================================')
+                print('WARNING: cupy or gpu not available, so falling back to multiprocessor_mode 1')
+                print('============================================================================')
                 self.set_multiprocessor_mode(1)
                 return
 
