@@ -1600,10 +1600,10 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
     }
   }
 
-  __global__ void _cuda_fix_negative_cells_sw(long number_of_elements, long *tri_full_flag, double *stage_centroid_values, double *bed_centroid_values, double *xmom_centroid_values, double *ymom_centroid_values)
+  __global__ void _cuda_fix_negative_cells_sw(long number_of_elements, long *tri_full_flag, double *stage_centroid_values, double *bed_centroid_values, double *xmom_centroid_values, double *ymom_centroid_values, int num_negative_cells)
   {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
-
+    
     if (k < N)
     {
       int tff = tri_full_flag[k];

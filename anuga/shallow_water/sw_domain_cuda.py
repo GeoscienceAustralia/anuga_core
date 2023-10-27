@@ -31,7 +31,7 @@ class GPU_interface(object):
     def __init__(self, domain):
     
         self.gpu_arrays_allocated = False
-
+        self.cpu_num_negative_cells = 0
         #--------------------------------
         # create alias to domain variables
         #--------------------------------
@@ -790,16 +790,12 @@ class GPU_interface(object):
             self.gpu_stage_centroid_values,
             self.gpu_bed_centroid_values,
             self.gpu_xmom_centroid_values,
-            self.gpu_ymom_centroid_values
+            self.gpu_ymom_centroid_values,
+            np.int32(self.cpu_num_negative_cells)
         ))
         nvtxRangePop()
 
         if transfer_gpu_results:
             self.gpu_to_cpu_centroid_values()
+            np.asnumpy()
         
-    
-
-
-
-
-
