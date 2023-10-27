@@ -2783,9 +2783,11 @@ class Domain(Generic_Domain):
                 test_cupy_array = cp.array([1,2,3])
 
             except:
-                print('============================================================================')
-                print('WARNING: cupy or gpu not available, so falling back to multiprocessor_mode 1')
-                print('============================================================================')
+                print('+==============================================================================+')
+                print('|                                                                              |')
+                print('| WARNING: cupy or gpu not available, so falling back to multiprocessor_mode 1 |')
+                print('|                                                                              |')
+                print('+==============================================================================+')
                 self.set_multiprocessor_mode(1)
                 return
 
