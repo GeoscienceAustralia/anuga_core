@@ -44,6 +44,8 @@ class GPU_interface(object):
         self.cpu_epsilon             =  domain.epsilon
         self.cpu_H0                  =  domain.H0
 
+        self.cpu_timestep            = domain.timestep
+
         # FIXME SR: Why is this hard coded
         self.cpu_limiting_threshold  =  10.0 * domain.H0
 
@@ -81,6 +83,11 @@ class GPU_interface(object):
         self.cpu_stage_explicit_update  = stage.explicit_update   
         self.cpu_xmom_explicit_update   = xmom.explicit_update   
         self.cpu_ymom_explicit_update   = ymom.explicit_update
+
+        self.cpu_stage_semi_implicit_update  = stage.semi_implicit_update   
+        self.cpu_xmom_semi_implicit_update   = xmom.semi_implicit_update   
+        self.cpu_ymom_semi_implicit_update   = ymom.semi_implicit_update
+
        
         self.cpu_stage_centroid_values  = stage.centroid_values
         self.cpu_xmom_centroid_values   = xmom.centroid_values
@@ -175,7 +182,7 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                   "_cuda_extrapolate_second_order_edge_sw_loop4"))
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop4", "_cuda_update_sw", "_cuda_fix_negative_cells_sw"))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
@@ -185,6 +192,10 @@ class GPU_interface(object):
         self.extrapolate_kernel2 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop2")
         self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
         self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
+
+        self.update_kernal = self.mod.get_function("_cuda_update_sw")
+        self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")
+
 
     #-----------------------------------------------------
     # Allocate GPU arrays
@@ -212,6 +223,11 @@ class GPU_interface(object):
         self.gpu_stage_explicit_update  = cp.array(self.cpu_stage_explicit_update)    #InOut
         self.gpu_xmom_explicit_update   = cp.array(self.cpu_xmom_explicit_update)     #InOut
         self.gpu_ymom_explicit_update   = cp.array(self.cpu_ymom_explicit_update)     #InOut
+        
+        self.gpu_stage_semi_implicit_update  = cp.array(self.cpu_stage_semi_implicit_update)
+        self.gpu_xmom_semi_implicit_update   = cp.array(self.cpu_xmom_semi_implicit_update)
+        self.gpu_ymom_semi_implicit_update   = cp.array(self.cpu_ymom_semi_implicit_update)
+
 
         # centroid values go InOut of extrapolation
         # edge values go Out of extrapolation Into update_boundaries
@@ -366,6 +382,48 @@ class GPU_interface(object):
         cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)
         nvtxRangePop()
 
+    def cpu_to_gpu_explicit_update(self):
+        """
+        Move explicit_update data from cpu to gpu 
+        """
+        nvtxRangePush('cpu_to_gpu explicit_update')
+        self.gpu_stage_explicit_update.set(self.cpu_stage_explicit_update)
+        self.gpu_xmom_explicit_update.set(self.cpu_xmom_explicit_update)  
+        self.gpu_ymom_explicit_update.set(self.cpu_ymom_explicit_update) 
+        nvtxRangePop()
+
+    def gpu_to_cpu_explicit_update(self):
+        """
+        Move explicit data from gpu to cpu
+        """
+        nvtxRangePush("gpu_to_cpu_explicit_update")
+        import cupy as cp
+        cp.asnumpy(self.gpu_stage_explicit_update, out = self.cpu_stage_explicit_update)
+        cp.asnumpy(self.gpu_xmom_explicit_update, out = self.cpu_xmom_explicit_update)
+        cp.asnumpy(self.gpu_ymom_explicit_update, out = self.cpu_ymom_explicit_update)
+        nvtxRangePop()
+
+    def cpu_to_gpu_semi_explicit_update(self):
+        """
+        Move semi_explicit_update data from cpu to gpu
+        """
+        nvtxRangePush("cpu_to_gpu_semi_explicit_update")
+        self.gpu_stage_semi_implicit_update.set(self.cpu_stage_semi_implicit_update)
+        self.gpu_xmom_semi_implicit_update.set(self.cpu_xmom_semi_implicit_update)
+        self.gpu_ymom_semi_implicit_update.set(self.cpu_ymom_semi_implicit_update)
+        nvtxRangePop()
+    
+    def gpu_to_cpu_semi_explicit_update(self):
+        """
+        Move transient semi explicit update data from gpu to cpu
+        """
+        import cupy as cp
+        nvtxRangePush("gpu_to_cpu_semi_explicit_update")
+        cp.asnumpy(self.gpu_stage_semi_implicit_update, out = self.cpu_stage_semi_implicit_update)
+        cp.asnumpy(self.gpu_xmom_semi_implicit_update, out = self.cpu_xmom_semi_implicit_update)
+        cp.asnumpy(self.gpu_ymom_semi_implicit_update, out = self.cpu_ymom_semi_implicit_update)
+        nvtxRangePop()
+     
 
     def compute_fluxes_ext_central_kernel(self, timestep,  transfer_from_cpu=True, transfer_gpu_results=True):
         """
@@ -671,6 +729,75 @@ class GPU_interface(object):
             cp.asnumpy(self.gpu_bed_vertex_values,    out = self.cpu_bed_vertex_values)
             nvtxRangePop()
 
+
+    def update_conserved_quantities_kernal(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
+        """
+        update conserved quantities
+
+        Ensure transient data has been copied to the GPU via cpu_to_gpu routines
+        """
+        if transfer_from_cpu:
+            self.cpu_to_gpu_centroid_values()
+            self.cpu_to_gpu_explicit_update()
+            self.cpu_to_gpu_semi_explicit_update()
+        
+        import math
+        THREADS_PER_BLOCK = 128
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        nvtxRangePush("update : stage")
+        self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_stage_centroid_values,
+                self.gpu_stage_explicit_update,
+                self.gpu_stage_semi_implicit_update                
+        ))
+        nvtxRangePop()
+
+        nvtxRangePush("update : xmom")
+        self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_xmom_centroid_values,
+                self.gpu_xmom_explicit_update,
+                self.gpu_xmom_semi_implicit_update                
+        ))
+        nvtxRangePop()
+
+        nvtxRangePush("update : ymom")
+        self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_ymom_centroid_values,
+                self.gpu_ymom_explicit_update,
+                self.gpu_ymom_semi_implicit_update                
+        ))
+        nvtxRangePop()
+
+        if verbose:
+            print('gpu_stage_centroid_values after update -> ', self.gpu_stage_centroid_values)
+            print('gpu_xmom_centroid_values after update -> ', self.gpu_xmom_centroid_values)
+            print('gpu_ymom_centroid_values after update -> ', self.gpu_ymom_centroid_values)
+
+
+        if transfer_from_cpu:
+            self.cpu_to_gpu_centroid_values()
+
+        nvtxRangePush("fix_negative_cells : kernal")
+        self.fix_negative_cells_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+            np.int64(self.cpu_number_of_elements),
+            self.gpu_tri_full_flag,
+            self.gpu_stage_centroid_values,
+            self.gpu_bed_centroid_values,
+            self.gpu_xmom_centroid_values,
+            self.gpu_ymom_centroid_values
+        ))
+        nvtxRangePop()
+
+        if transfer_gpu_results:
+            self.gpu_to_cpu_centroid_values()
+        
+    
 
 
 

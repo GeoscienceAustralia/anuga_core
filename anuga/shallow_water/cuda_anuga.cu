@@ -1551,3 +1551,68 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
       bed_vertex_values[k3 + 2] = bed_edge_values[k3 + 0] + bed_edge_values[k3 + 1] - bed_edge_values[k3 + 2];
     }
   }
+
+
+
+  // UPDATE CONSERVED QUANTITIES
+  __global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
+  {
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (k < N)
+    {
+      double denominator, x;
+      int err_return = 0;
+
+      // Divide semi_implicit update by conserved quantity
+      x = centroid_values[k];
+      if (x == 0.0)
+      {
+          semi_implicit_update[k] = 0.0;
+      }
+      else
+      {
+          semi_implicit_update[k] /= x;
+      }
+
+      centroid_values[k] += timestep * explicit_update[k];
+
+      // Semi implicit updates
+      denominator = 1.0 - timestep * semi_implicit_update[k];
+      if (denominator <= 0.0)
+      {
+          err_return = -1;
+      }
+      else
+      {
+          // Update conserved quantities from semi-implicit updates
+          centroid_values[k] /= denominator;
+      }
+
+      // Reset semi_implicit_update here for the next time step
+      semi_implicit_update[k] = 0.0;
+
+      // Assuming you have some error handling logic here
+      if (err_return == -1)
+      {
+          // Handle error
+      }
+    }
+  }
+
+  __global__ void _cuda_fix_negative_cells_sw(long number_of_elements, long *tri_full_flag, double *stage_centroid_values, double *bed_centroid_values, double *xmom_centroid_values, double *ymom_centroid_values)
+  {
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (k < N)
+    {
+      int tff = tri_full_flag[k];
+      if ((centroid_values[k] - bed_centroid_values[k] < 0.0) && (tff > 0))
+      {
+          atomicAdd(num_negative_cells, 1);
+          centroid_values[k] = bed_centroid_values[k];
+          xmom_centroid_values[k] = 0.0;
+          ymom_centroid_values[k] = 0.0;
+      }
+    }
+  }
