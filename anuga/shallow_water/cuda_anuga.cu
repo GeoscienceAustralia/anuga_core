@@ -426,21 +426,25 @@ __device__ double atomicMin_double(double* address, double val)
 // Parallel loop in cuda_compute_fluxes
 // Computational function for flux computation
 // need to return local_timestep and boundary_flux_sum_substep
-__global__ void _cuda_compute_fluxes_loop(double* timestep_k_array,    // InOut
+__global__ void _cuda_compute_fluxes_loop(
+                                    double* timestep_k_array,    // InOut
                                     double* boundary_flux_sum_k_array, // InOut
+                                    
                                     double* max_speed,                 // InOut
                                     double* stage_explicit_update,     // InOut
                                     double* xmom_explicit_update,      // InOut
                                     double* ymom_explicit_update,      // InOut
 
-                                    double* stage_centroid_values,     // Rest In
+                                    double* stage_centroid_values,
+                                    double* height_centroid_values,
+                                    double* bed_centroid_values,
+                                    
                                     double* stage_edge_values,
                                     double* xmom_edge_values,
                                     double* ymom_edge_values,
                                     double* bed_edge_values,
                                     double* height_edge_values,
-                                    double* height_centroid_values,
-                                    double* bed_centroid_values,
+
                                     double* stage_boundary_values,
                                     double* xmom_boundary_values,
                                     double* ymom_boundary_values,
