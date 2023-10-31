@@ -1,6 +1,6 @@
 
 import numpy as np
-
+import cupy as cp
 import anuga
 
 
@@ -29,9 +29,8 @@ except:
 class GPU_interface(object):
 
     def __init__(self, domain):
-    
+        import cupy as cp
         self.gpu_arrays_allocated = False
-        self.cpu_num_negative_cells = 0
         #--------------------------------
         # create alias to domain variables
         #--------------------------------
@@ -147,6 +146,8 @@ class GPU_interface(object):
         #---------------------------------------
         self.cpu_local_boundary_flux_sum = np.zeros(self.cpu_number_of_elements, dtype=float) 
         self.cpu_timestep_array = np.zeros(self.cpu_number_of_elements, dtype=float) 
+        self.cpu_num_negative_cells = np.zeros(1, dtype=np.int32)
+
 
 
 
@@ -279,6 +280,8 @@ class GPU_interface(object):
 
         self.gpu_x_centroid_work        = cp.array(self.cpu_x_centroid_work)
         self.gpu_y_centroid_work        = cp.array(self.cpu_y_centroid_work)
+
+        self.gpu_num_negative_cells = cp.array(self.cpu_num_negative_cells)
 
         nvtxRangePop()
 
@@ -770,7 +773,7 @@ class GPU_interface(object):
                 np.int64(self.cpu_timestep),
                 self.gpu_ymom_centroid_values,
                 self.gpu_ymom_explicit_update,
-                self.gpu_ymom_semi_implicit_update                
+                self.gpu_ymom_semi_implicit_update
         ))
         nvtxRangePop()
 
@@ -791,11 +794,16 @@ class GPU_interface(object):
             self.gpu_bed_centroid_values,
             self.gpu_xmom_centroid_values,
             self.gpu_ymom_centroid_values,
-            np.int32(self.cpu_num_negative_cells)
+            np.int32(self.gpu_num_negative_cells)
         ))
         nvtxRangePop()
 
         if transfer_gpu_results:
             self.gpu_to_cpu_centroid_values()
-            np.asnumpy()
+            cp.asnumpy(self.gpu_num_negative_cells,    out = self.cpu_num_negative_cells)
+            # self.cpu_num_negative_cells = cp.sum(self.gpu_num_negative_cells)
+            
+        
+        
+        return np.sum(self.cpu_num_negative_cells)
         

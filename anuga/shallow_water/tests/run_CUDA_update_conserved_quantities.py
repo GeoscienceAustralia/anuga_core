@@ -114,6 +114,38 @@ nvtxRangePop()
 
 # import pdb; pdb.set_trace()
 nvtxRangePush('update conserved quantities kernal : domain2')
-
+timestep2 = domain2.timestep
+from anuga.shallow_water.sw_domain_cuda import GPU_interface
+gpu_domain2 = GPU_interface(domain2)
+gpu_domain2.compile_gpu_kernels()
+gpu_domain2.allocate_gpu_arrays()
+num_negative_ids = gpu_domain2.update_conserved_quantities_kernal()
 nvtxRangePop()
+
+
+
+import numpy as np
+
+# Compare the geometries (elevations, stages, and quantities)
+assert np.allclose(domain1.quantities['elevation'], domain2.quantities['elevation'], rtol=1e-5)
+assert np.allclose(domain1.quantities['stage'], domain2.quantities['stage'], rtol=1e-5)
+assert np.allclose(domain1.quantities['xmomentum'], domain2.quantities['xmomentum'], rtol=1e-5)
+assert np.allclose(domain1.quantities['ymomentum'], domain2.quantities['ymomentum'], rtol=1e-5)
+
+# Compare boundary conditions
+assert domain1.get_boundary_tags() == domain2.get_boundary_tags()
+for tag in domain1.get_boundary_tags():
+    boundary1 = domain1.get_boundary(tag)
+    boundary2 = domain2.get_boundary(tag)
+    assert boundary1.get_name() == boundary2.get_name()
+    # You can add more checks for specific boundary conditions if needed
+
+# Compare time-related properties
+assert np.isclose(domain1.get_time(), domain2.get_time(), rtol=1e-5)
+assert np.isclose(domain1.get_timestep(), domain2.get_timestep(), rtol=1e-5)
+
+# You can add more checks as needed
+
+print("Test passed: domain1 and domain2 are equal or nearly equal.")
+
 
