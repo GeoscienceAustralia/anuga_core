@@ -103,6 +103,7 @@ print('total creation time', (end_time - start))
 #------------------------------
 yieldstep = 0.0002
 finaltime = 0.0002
+
 nvtxRangePush('evolve domain1')
 print('Evolve domain1')
 print('domain1 number of triangles ',domain1.number_of_elements)
@@ -115,18 +116,22 @@ nvtxRangePop()
 #---------------------------------------
 timestep = 0.1
 
-nvtxRangePush('distribute domain1')
-domain1.distribute_to_vertices_and_edges()
-nvtxRangePop()
+# nvtxRangePush('distribute domain1')
+# domain1.distribute_to_vertices_and_edges()
+# nvtxRangePop()
 
-nvtxRangePush('update boundary domain1')
-domain1.update_boundary()
-nvtxRangePop()
+# nvtxRangePush('update boundary domain1')
+# domain1.update_boundary()
+# nvtxRangePop()
 
 nvtxRangePush('update conserved quantities : domain1')
 domain1.update_conserved_quantities()
 nvtxRangePop()
 
+
+#------------------------------
+#Evolve the system through time
+#------------------------------
 nvtxRangePush('evolve domain2')
 print('Evolve domain2')
 print('domain2 number of triangles ',domain2.number_of_elements)
@@ -135,21 +140,21 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
 nvtxRangePop()
 
 #---------------------------------------
-# run domain1 using standard routine
+# run domain2 using standard routine
 #---------------------------------------
 timestep = 0.1
 
-nvtxRangePush('distribute domain1')
-domain2.distribute_to_vertices_and_edges()
-nvtxRangePop()
+# nvtxRangePush('distribute domain1')
+# domain2.distribute_to_vertices_and_edges()
+# nvtxRangePop()
 
-nvtxRangePush('update boundary domain1')
-domain2.update_boundary()
-nvtxRangePop()
+# nvtxRangePush('update boundary domain1')
+# domain2.update_boundary()
+# nvtxRangePop()
 
 
 nvtxRangePush('initialise gpu_interface : domain2')
-domain2.set_multiprocessor_mode(4)
+domain2.set_multiprocessor_mode(1)
 nvtxRangePop()
 
 # import pdb; pdb.set_trace()
@@ -213,6 +218,10 @@ print('stage semi implicit update diff L2 norm ', num.linalg.norm(stage1.semi_im
 print('xmom  semi implicit update diff L2 norm ', num.linalg.norm(xmom1.semi_implicit_update-xmom2.semi_implicit_update)/N)
 print('ymom  semi implicit update diff L2 norm ', num.linalg.norm(ymom1.semi_implicit_update-ymom2.semi_implicit_update)/N)
 
+print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
+print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
+print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
+
 
 stage1_centroid_values_after = num.copy(stage1.centroid_values)
 stage2_centroid_values_after = num.copy(stage2.centroid_values)
@@ -233,3 +242,11 @@ ymom2_centroid_values_after = num.copy(ymom2.centroid_values)
 
 # print("change xmom2.centroid_values")
 # pprint(xmom2_centroid_values_after - xmom2_centroid_values_before)
+
+# print()
+# print()
+# print()
+
+# print('Stage 1 and stage 2 cenrtoid values before')
+# pprint(stage1_centroid_values_before)
+# pprint(stage2_centroid_values_before)

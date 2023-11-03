@@ -1518,9 +1518,8 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
                                               double* ymom_vertex_values,
                                               double* bed_vertex_values,               
 
-                                              long   number_of_elements 
-                                                          ) 
-  {
+                                              long   number_of_elements ) 
+{
     long k3;
     
     int k = blockIdx.x * blockDim.x + threadIdx.x;
@@ -1552,52 +1551,98 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
     }
   }
 
-
   // UPDATE CONSERVED QUANTITIES
-  __global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
+  __global__ void _cuda_update_sw_loop1(int number_of_elements, double *centroid_values, double *semi_implicit_update)
   {
+    // divideSemiImplicitUpdate
     int k = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (k < number_of_elements)
     {
-      double denominator, x;
-      int err_return = 0;
-
-      // Divide semi_implicit update by conserved quantity
-      x = centroid_values[k];
+      double x = centroid_values[k];
       if (x == 0.0)
       {
-          semi_implicit_update[k] = 0.0;
+        semi_implicit_update[k] = 0.0;
       }
       else
       {
-          semi_implicit_update[k] /= x;
-      }
-
-      centroid_values[k] += timestep * explicit_update[k];
-
-      // Semi implicit updates
-      denominator = 1.0 - timestep * semi_implicit_update[k];
-      if (denominator <= 0.0)
-      {
-          err_return = -1;
-      }
-      else
-      {
-          // Update conserved quantities from semi-implicit updates
-          centroid_values[k] /= denominator;
-      }
-
-      // Reset semi_implicit_update here for the next time step
-      semi_implicit_update[k] = 0.0;
-
-      // Assuming you have some error handling logic here
-      if (err_return == -1)
-      {
-          // Handle error h
+        semi_implicit_update[k] /= x;
       }
     }
   }
+
+  __global__ void _cuda_update_sw_loop2(int number_of_elements, double timestep, double *centroid_values, double *explicit_update)
+  { // explicitUpdates
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (k < number_of_elements)
+    {
+      centroid_values[k] += timestep * explicit_update[k];
+    }
+  }
+
+  __global__ void _cuda_update_sw_loop3(int number_of_elements, double timestep, double *centroid_values, double *semi_implicit_update)
+  { // semiImplicitUpdates
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+    if (k < number_of_elements)
+    {
+      double denominator = 1.0 - timestep * semi_implicit_update[k];
+      if (denominator <= 0.0)
+      {
+        // Handle the error here or return an error code if needed
+      }
+      else
+      {
+        centroid_values[k] /= denominator;
+      }
+    }
+  }
+
+  // __global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
+  // {
+  //   int k = blockIdx.x * blockDim.x + threadIdx.x;
+
+  //   if (k < number_of_elements)
+  //   {
+  //     double denominator, x;
+  //     int err_return = 0;
+
+  //     // Divide semi_implicit update by conserved quantity
+  //     x = centroid_values[k];
+  //     if (x == 0.0)
+  //     {
+  //         semi_implicit_update[k] = 0.0;
+  //     }
+  //     else
+  //     {
+  //         semi_implicit_update[k] /= x;
+  //     }
+
+  //     centroid_values[k] += timestep * explicit_update[k];
+
+  //     // Semi implicit updates
+  //     denominator = 1.0 - timestep * semi_implicit_update[k];
+  //     if (denominator <= 0.0)
+  //     {
+  //         err_return = -1;
+  //     }
+  //     else
+  //     {
+  //         // Update conserved quantities from semi-implicit updates
+  //         centroid_values[k] /= denominator;
+  //     }
+
+  //     // Reset semi_implicit_update here for the next time step
+  //     semi_implicit_update[k] = 0.0;
+
+  //     // Assuming you have some error handling logic here
+  //     if (err_return == -1)
+  //     {
+  //         // Handle error h
+  //     }
+  //   }
+  // }
 
 
 

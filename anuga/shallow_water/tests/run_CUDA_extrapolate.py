@@ -180,10 +180,6 @@ print('DOMAIN 2 time ' + str(end - start))
 
 
 
-
-
-
-
 quantities1 = domain1.quantities
 stage1 = quantities1["stage"]
 xmom1 = quantities1["xmomentum"]

@@ -183,7 +183,7 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                   "_cuda_extrapolate_second_order_edge_sw_loop4", "_cuda_update_sw", "_cuda_fix_negative_cells_sw"))
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop4", "_cuda_update_sw_loop1", "_cuda_update_sw_loop2", "_cuda_update_sw_loop3", "_cuda_fix_negative_cells_sw"))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
@@ -194,7 +194,11 @@ class GPU_interface(object):
         self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
         self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
 
-        self.update_kernal = self.mod.get_function("_cuda_update_sw")
+        # self.update_kernal = self.mod.get_function("_cuda_update_sw")
+        self.update_kernal1 = self.mod.get_function("_cuda_update_sw_loop1")
+        self.update_kernal2 = self.mod.get_function("_cuda_update_sw_loop2")
+        self.update_kernal3 = self.mod.get_function("_cuda_update_sw_loop3")
+
         self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")
 
 
@@ -747,6 +751,76 @@ class GPU_interface(object):
         import math
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        
+        nvtxRangePush("Update kernal 1,2,3 for Stage")
+        # Here we are calling the three kernals for stage quantity
+        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                self.gpu_stage_centroid_values,
+                self.gpu_stage_semi_implicit_update                
+        ))
+        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_stage_centroid_values,
+                self.gpu_stage_explicit_update
+        ))
+        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_stage_centroid_values,
+                self.gpu_stage_semi_implicit_update                
+        ))
+        nvtxRangePop()
+
+        
+        # Here we are calling the three kernals for xmom quantity
+        nvtxRangePush("Update kernal 1,2,3 for xmom")
+        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                self.gpu_xmom_centroid_values,
+                self.gpu_xmom_semi_implicit_update                
+        ))
+        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_xmom_centroid_values,
+                self.gpu_xmom_explicit_update
+        ))
+        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_xmom_centroid_values,
+                self.gpu_xmom_semi_implicit_update                
+        ))
+        nvtxRangePop()
+
+
+        # Here we are calling the three kernals for ymom quantity
+        nvtxRangePush("Update kernal 1,2,3 for ymom")
+        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                self.gpu_ymom_centroid_values,
+                self.gpu_ymom_semi_implicit_update
+        ))
+        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_ymom_centroid_values,
+                self.gpu_ymom_explicit_update
+        ))
+        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
+                np.int64(self.cpu_number_of_elements),
+                np.int64(self.cpu_timestep),
+                self.gpu_ymom_centroid_values,
+                self.gpu_ymom_semi_implicit_update
+        ))
+        nvtxRangePop()
+
+
+
+        """  Commented this for the three kernal approach
+        # Here we're calling the update kernal for stage,xmom,ymom quantity
         nvtxRangePush("update : stage")
         self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
                 np.int64(self.cpu_number_of_elements),
@@ -776,6 +850,8 @@ class GPU_interface(object):
                 self.gpu_ymom_semi_implicit_update
         ))
         nvtxRangePop()
+        """
+
 
         if verbose:
             print('gpu_stage_centroid_values after update -> ', self.gpu_stage_centroid_values)
