@@ -1553,7 +1553,6 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
   }
 
 
-
   // UPDATE CONSERVED QUANTITIES
   __global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
   {
