@@ -6,10 +6,10 @@
 
 
 
-// FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in 
-// extrapolation
-__device__ int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
-  double *qmin, double *qmax)
+    // FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in
+    // extrapolation
+    __device__ int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
+                                        double *qmin, double *qmax)
 {
 // Considering the centroid of an FV triangle and the vertices of its
 // auxiliary triangle, find
@@ -1559,7 +1559,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
   {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
 
-    if (k < N)
+    if (k < number_of_elements)
     {
       double denominator, x;
       int err_return = 0;
@@ -1595,24 +1595,26 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
       // Assuming you have some error handling logic here
       if (err_return == -1)
       {
-          // Handle error
+          // Handle error h
       }
     }
   }
 
+
+
   __global__ void _cuda_fix_negative_cells_sw(long number_of_elements, long *tri_full_flag, double *stage_centroid_values, double *bed_centroid_values, double *xmom_centroid_values, double *ymom_centroid_values, int num_negative_cells)
   {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
-    
-    if (k < N)
+    num_negative_cells = 0;
+    if (k < number_of_elements)
     {
       int tff = tri_full_flag[k];
-      if ((centroid_values[k] - bed_centroid_values[k] < 0.0) && (tff > 0))
+      if ((stage_centroid_values[k] - bed_centroid_values[k] < 0.0) && (tff > 0))
       {
-          atomicAdd(num_negative_cells, 1);
-          centroid_values[k] = bed_centroid_values[k];
-          xmom_centroid_values[k] = 0.0;
-          ymom_centroid_values[k] = 0.0;
+        atomicAdd(&num_negative_cells, 1);
+        stage_centroid_values[k] = bed_centroid_values[k];
+        xmom_centroid_values[k] = 0.0;
+        ymom_centroid_values[k] = 0.0;
       }
     }
   }

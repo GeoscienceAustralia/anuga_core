@@ -9,6 +9,7 @@ import numpy as num
 import warnings
 import time
 import math
+from pprint import pprint
 
 from anuga.shallow_water.sw_domain_cuda import nvtxRangePush, nvtxRangePop
 
@@ -81,6 +82,19 @@ domain2 = create_domain('domain_cuda')
 domain2.set_multiprocessor_mode(1) # will change to 2 once burn in
 nvtxRangePop()
 
+quantities1 = domain1.quantities
+stage1 = quantities1["stage"]
+xmom1 = quantities1["xmomentum"]
+ymom1 = quantities1["ymomentum"]
+max_speed_1 = domain1.max_speed
+
+
+quantities2 = domain2.quantities
+stage2 = quantities2["stage"]
+xmom2 = quantities2["xmomentum"]
+ymom2 = quantities2["ymomentum"]
+max_speed_2 = domain2.max_speed
+
 end_time =time.time()
 print('total creation time', (end_time - start))
 
@@ -96,6 +110,19 @@ for t in domain1.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain1.print_timestepping_statistics()
 nvtxRangePop()
 
+#---------------------------------------
+# run domain1 using standard routine
+#---------------------------------------
+timestep = 0.1
+
+nvtxRangePush('distribute domain1')
+domain1.distribute_to_vertices_and_edges()
+nvtxRangePop()
+
+nvtxRangePush('update boundary domain1')
+domain1.update_boundary()
+nvtxRangePop()
+
 nvtxRangePush('update conserved quantities : domain1')
 domain1.update_conserved_quantities()
 nvtxRangePop()
@@ -107,45 +134,102 @@ for t in domain2.evolve(yieldstep=yieldstep,finaltime=finaltime):
     domain2.print_timestepping_statistics()
 nvtxRangePop()
 
+#---------------------------------------
+# run domain1 using standard routine
+#---------------------------------------
+timestep = 0.1
+
+nvtxRangePush('distribute domain1')
+domain2.distribute_to_vertices_and_edges()
+nvtxRangePop()
+
+nvtxRangePush('update boundary domain1')
+domain2.update_boundary()
+nvtxRangePop()
+
 
 nvtxRangePush('initialise gpu_interface : domain2')
 domain2.set_multiprocessor_mode(4)
 nvtxRangePop()
 
 # import pdb; pdb.set_trace()
-nvtxRangePush('update conserved quantities kernal : domain2')
 timestep2 = domain2.timestep
 from anuga.shallow_water.sw_domain_cuda import GPU_interface
 gpu_domain2 = GPU_interface(domain2)
-gpu_domain2.compile_gpu_kernels()
+
+nvtxRangePush('allocate gpu arrays for domain2')
 gpu_domain2.allocate_gpu_arrays()
+nvtxRangePop()
+
+nvtxRangePush('compile gpu kernels for domain2')
+gpu_domain2.compile_gpu_kernels()
+nvtxRangePop()
+
+
+stage1_centroid_values_before = num.copy(stage1.centroid_values)
+stage2_centroid_values_before = num.copy(stage2.centroid_values)
+xmom1_centroid_values_before = num.copy(xmom1.centroid_values)
+xmom2_centroid_values_before = num.copy(xmom2.centroid_values)
+ymom1_centroid_values_before = num.copy(ymom1.centroid_values)
+ymom2_centroid_values_before = num.copy(ymom2.centroid_values)
+
+
+nvtxRangePush('update conserved quantities kernal : domain2')
 num_negative_ids = gpu_domain2.update_conserved_quantities_kernal()
+
+
+
+if num_negative_ids > 0:
+# FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
+    import warnings
+    msg = 'Negative cells being set to zero depth, possible loss of conservation. \n' +\
+                      'Consider using domain.report_water_volume_statistics() to check the extent of the problem'
+    warnings.warn(msg)
+
 nvtxRangePop()
 
 
 
-import numpy as np
-
-# Compare the geometries (elevations, stages, and quantities)
-assert np.allclose(domain1.quantities['elevation'], domain2.quantities['elevation'], rtol=1e-5)
-assert np.allclose(domain1.quantities['stage'], domain2.quantities['stage'], rtol=1e-5)
-assert np.allclose(domain1.quantities['xmomentum'], domain2.quantities['xmomentum'], rtol=1e-5)
-assert np.allclose(domain1.quantities['ymomentum'], domain2.quantities['ymomentum'], rtol=1e-5)
-
-# Compare boundary conditions
-assert domain1.get_boundary_tags() == domain2.get_boundary_tags()
-for tag in domain1.get_boundary_tags():
-    boundary1 = domain1.get_boundary(tag)
-    boundary2 = domain2.get_boundary(tag)
-    assert boundary1.get_name() == boundary2.get_name()
-    # You can add more checks for specific boundary conditions if needed
-
-# Compare time-related properties
-assert np.isclose(domain1.get_time(), domain2.get_time(), rtol=1e-5)
-assert np.isclose(domain1.get_timestep(), domain2.get_timestep(), rtol=1e-5)
-
-# You can add more checks as needed
-
-print("Test passed: domain1 and domain2 are equal or nearly equal.")
+N = domain1.number_of_elements
+# scale linalg.norm by number of elements
+import math
+sqrtN = 1.0/N
 
 
+print('stage edge      diff L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
+print('xmom  edge      diff L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
+print('ymom  edge      diff L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
+
+print('stage centroid diff L2 norm ', num.linalg.norm(stage1.centroid_values-stage2.centroid_values)/N)
+print('xmom  centroid diff L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
+print('ymom  centroid diff L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
+
+print('stage vertex diff L2 norm ', num.linalg.norm(stage1.vertex_values-stage2.vertex_values)/N)
+print('xmom  vertex diff L2 norm ', num.linalg.norm(xmom1.vertex_values-xmom2.vertex_values)/N)
+print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.vertex_values)/N)
+
+
+print('stage semi implicit update diff L2 norm ', num.linalg.norm(stage1.semi_implicit_update-stage2.semi_implicit_update)/N)
+print('xmom  semi implicit update diff L2 norm ', num.linalg.norm(xmom1.semi_implicit_update-xmom2.semi_implicit_update)/N)
+print('ymom  semi implicit update diff L2 norm ', num.linalg.norm(ymom1.semi_implicit_update-ymom2.semi_implicit_update)/N)
+
+
+stage1_centroid_values_after = num.copy(stage1.centroid_values)
+stage2_centroid_values_after = num.copy(stage2.centroid_values)
+xmom1_centroid_values_after = num.copy(xmom1.centroid_values)
+xmom2_centroid_values_after = num.copy(xmom2.centroid_values)
+ymom1_centroid_values_after = num.copy(ymom1.centroid_values)
+ymom2_centroid_values_after = num.copy(ymom2.centroid_values)
+
+
+# print("change stage1.centroid_values")
+# pprint(stage1_centroid_values_after - stage1_centroid_values_before)
+
+# print("change stage2.centroid_values")
+# pprint(stage2_centroid_values_after - stage2_centroid_values_before)
+
+# print("change xmom1.centroid_values")
+# pprint(xmom1_centroid_values_after - xmom1_centroid_values_before)
+
+# print("change xmom2.centroid_values")
+# pprint(xmom2_centroid_values_after - xmom2_centroid_values_before)

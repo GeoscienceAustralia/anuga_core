@@ -794,7 +794,7 @@ class GPU_interface(object):
             self.gpu_bed_centroid_values,
             self.gpu_xmom_centroid_values,
             self.gpu_ymom_centroid_values,
-            np.int32(self.gpu_num_negative_cells)
+            self.gpu_num_negative_cells
         ))
         nvtxRangePop()
 

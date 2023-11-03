@@ -351,8 +351,8 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
         """
         
         Stage = domain.quantities['stage']
-        #Elev  = domain.quantities['elevation']
-        #Height= domain.quantities['height']
+        Elev  = domain.quantities['elevation']
+        Height= domain.quantities['height']
         Xmom  = domain.quantities['xmomentum']
         Ymom  = domain.quantities['ymomentum']
 
