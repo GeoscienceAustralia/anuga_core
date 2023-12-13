@@ -2294,6 +2294,7 @@ class Generic_Domain(object):
         quantity in domain.
         """
 
+        #import pdb; pdb.set_trace()
         for tag in self.tag_boundary_cells:
             B = self.boundary_map[tag]
 
@@ -2418,7 +2419,7 @@ class Generic_Domain(object):
         they should be defined in Domain subclass and appended to
         the list self.forcing_terms
         """
-
+    
         # The parameter self.flux_timestep should be updated
         # by the forcing_terms to ensure stability
 

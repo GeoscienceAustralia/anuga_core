@@ -3,8 +3,6 @@ import numpy as np
 import cupy as cp
 import anuga
 
-
-
 #-----------------------------------------------------
 # Code for profiling cuda version
 #-----------------------------------------------------
@@ -24,7 +22,6 @@ try:
     from nvtx import range_pop  as nvtxRangePop
 except:
     pass
-
 
 class GPU_interface(object):
 
@@ -183,7 +180,9 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                   "_cuda_extrapolate_second_order_edge_sw_loop4", "_cuda_update_sw_loop1", "_cuda_update_sw_loop2", "_cuda_update_sw_loop3", "_cuda_fix_negative_cells_sw"))
+                                                    "_cuda_extrapolate_second_order_edge_sw_loop4", #"_cuda_update_sw_loop1", "_cuda_update_sw_loop2", "_cuda_update_sw_loop3",
+                                                "_cuda_update_sw", 
+                                                "_cuda_fix_negative_cells_sw"))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
@@ -194,10 +193,10 @@ class GPU_interface(object):
         self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
         self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
 
-        # self.update_kernal = self.mod.get_function("_cuda_update_sw")
-        self.update_kernal1 = self.mod.get_function("_cuda_update_sw_loop1")
-        self.update_kernal2 = self.mod.get_function("_cuda_update_sw_loop2")
-        self.update_kernal3 = self.mod.get_function("_cuda_update_sw_loop3")
+        self.update_kernal = self.mod.get_function("_cuda_update_sw")
+        # self.update_kernal1 = self.mod.get_function("_cuda_update_sw_loop1")
+        # self.update_kernal2 = self.mod.get_function("_cuda_update_sw_loop2")
+        # self.update_kernal3 = self.mod.get_function("_cuda_update_sw_loop3")
 
         self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")
 
@@ -461,6 +460,8 @@ class GPU_interface(object):
             nvtxRangePop()
 
 
+	     
+
 
         #-------------------------------------
         # FIXME SR: Need to calc substep_count
@@ -482,8 +483,7 @@ class GPU_interface(object):
 
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
-
-
+        nvtxRangePush('calculate flux: kernal')
         self.flux_kernel( (NO_OF_BLOCKS, 0, 0), 
                 (THREADS_PER_BLOCK, 0, 0), 
                 (  
@@ -531,7 +531,9 @@ class GPU_interface(object):
                 np.float64(self.cpu_limiting_threshold)
                 ) 
                 )
-
+        nvtxRangePop()
+        
+        
         nvtxRangePush('calculate flux: cupy reductions')
         # FIXME SR: Does gpu_reduce_timestep live on the GPU or CPU?
         gpu_reduce_timestep = self.gpu_timestep_array.min()
@@ -752,6 +754,8 @@ class GPU_interface(object):
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
         
+
+        """
         nvtxRangePush("Update kernal 1,2,3 for Stage")
         # Here we are calling the three kernals for stage quantity
         self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
@@ -816,10 +820,10 @@ class GPU_interface(object):
                 self.gpu_ymom_semi_implicit_update
         ))
         nvtxRangePop()
+        """
 
 
-
-        """  Commented this for the three kernal approach
+        # """  Commented this for the three kernal approach
         # Here we're calling the update kernal for stage,xmom,ymom quantity
         nvtxRangePush("update : stage")
         self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
@@ -850,7 +854,7 @@ class GPU_interface(object):
                 self.gpu_ymom_semi_implicit_update
         ))
         nvtxRangePop()
-        """
+        # """
 
 
         if verbose:
