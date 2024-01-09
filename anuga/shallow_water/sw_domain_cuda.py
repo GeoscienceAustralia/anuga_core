@@ -863,10 +863,11 @@ class GPU_interface(object):
             print('gpu_ymom_centroid_values after update -> ', self.gpu_ymom_centroid_values)
 
 
-        if transfer_from_cpu:
-            self.cpu_to_gpu_centroid_values()
+        # if transfer_from_cpu:
+        #     self.cpu_to_gpu_centroid_values()
 
         nvtxRangePush("fix_negative_cells : kernal")
+        
         self.fix_negative_cells_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
             np.int64(self.cpu_number_of_elements),
             self.gpu_tri_full_flag,
