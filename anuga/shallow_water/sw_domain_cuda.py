@@ -828,7 +828,7 @@ class GPU_interface(object):
         nvtxRangePush("update : stage")
         self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
                 np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
+                np.float64(self.cpu_timestep),
                 self.gpu_stage_centroid_values,
                 self.gpu_stage_explicit_update,
                 self.gpu_stage_semi_implicit_update                
@@ -838,7 +838,7 @@ class GPU_interface(object):
         nvtxRangePush("update : xmom")
         self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
                 np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
+                np.float64(self.cpu_timestep),
                 self.gpu_xmom_centroid_values,
                 self.gpu_xmom_explicit_update,
                 self.gpu_xmom_semi_implicit_update                
@@ -848,7 +848,7 @@ class GPU_interface(object):
         nvtxRangePush("update : ymom")
         self.update_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
                 np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
+                np.float64(self.cpu_timestep),
                 self.gpu_ymom_centroid_values,
                 self.gpu_ymom_explicit_update,
                 self.gpu_ymom_semi_implicit_update
