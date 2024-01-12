@@ -12,8 +12,8 @@ import sys
 import os
 import shutil
 from distutils.command.clean import clean as Clean
-os.environ["CC"] = "nvc -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
-os.environ["CXX"] = "nvc++ -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
+os.environ["CC"] = "nvc -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -arch sm_11"
+os.environ["CXX"] = "nvc++ -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -arch sm_11"
 os.environ["FC"] = "nvfortran -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
 
 #==============================================================================

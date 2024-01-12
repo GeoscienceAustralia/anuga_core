@@ -1782,7 +1782,7 @@ class Domain(Generic_Domain):
         # Flux calculation and gravity incorporated in same
         # procedure
 
-        nvtxRangePush("Compute Fluxes (Domain)")
+        # nvtxRangePush("Compute Fluxes (Domain)")
 
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import compute_fluxes_ext_central
@@ -1804,7 +1804,7 @@ class Domain(Generic_Domain):
         timestep = self.evolve_max_timestep
         self.flux_timestep = compute_fluxes_ext_central(self, timestep)
 
-        nvtxRangePop()
+        # nvtxRangePop()
 
         
     def distribute_to_vertices_and_edges(self):
@@ -1816,7 +1816,7 @@ class Domain(Generic_Domain):
         nvtxRangePop()
 
         # Do extrapolation step
-        nvtxRangePush('extrapolate')
+        # nvtxRangePush('extrapolate')
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
             extrapolate_second_order_edge_sw(self)
@@ -1841,7 +1841,7 @@ class Domain(Generic_Domain):
         else:
             raise Exception('Not implemented')
 
-        nvtxRangePop()
+        # nvtxRangePop()
 
 
     def distribute_using_edge_limiter(self):
@@ -1944,7 +1944,7 @@ class Domain(Generic_Domain):
         """ Clean up the stage and momentum values to ensure non-negative heights
         """
 
-        nvtxRangePush('protect_new')
+        # nvtxRangePush('protect_new')
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import protect_new
         elif self.multiprocessor_mode == 1:
@@ -1961,7 +1961,7 @@ class Domain(Generic_Domain):
 
 
         mass_error = protect_new(self)
-        nvtxRangePop()
+        # nvtxRangePop()
 
         if mass_error > 0.0 and self.verbose :
             #print('Cumulative mass protection: ' + str(mass_error) + ' m^3 ')
@@ -2012,7 +2012,7 @@ class Domain(Generic_Domain):
         computed fluxes and specified forcing functions.
         """
 
-        nvtxRangePush('update_conserved_quantities')
+        # nvtxRangePush('update_conserved_quantities')
 
         timestep = self.timestep
 
@@ -2025,9 +2025,9 @@ class Domain(Generic_Domain):
 
         # FIXME SR: Should pull this together with fix_negative_cells and implemented in 
         # in sw_domain_orig_..._.c
-        Stage.update(timestep)
-        Xmom.update(timestep)
-        Ymom.update(timestep)
+        # Stage.update(timestep)
+        # Xmom.update(timestep)
+        # Ymom.update(timestep)
 
         if self.get_using_discontinuous_elevation():
 
@@ -2041,9 +2041,16 @@ class Domain(Generic_Domain):
                 from .sw_domain_openacc_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 4:
+                
+                # nvtxRangePush('update_conserved_quantities_kernal')
+
+                update_conserved_quantities_fix_negative_cells = self.gpu_interface.update_conserved_quantities_kernal
+                num_negative_ids = update_conserved_quantities_fix_negative_cells(self)
+                # nvtxRangePop()
+                
                 # change over to cuda routines as developed
-                from .sw_domain_simd_ext import fix_negative_cells
-                num_negative_ids = fix_negative_cells(self)
+                # from .sw_domain_simd_ext import fix_negative_cells
+                # num_negative_ids = fix_negative_cells(self)
             else:
                 tff = self.tri_full_flag
 
@@ -2063,7 +2070,7 @@ class Domain(Generic_Domain):
                       'Consider using domain.report_water_volume_statistics() to check the extent of the problem'
                 warnings.warn(msg)
 
-        nvtxRangePop()
+        # nvtxRangePop()
 
     def update_other_quantities(self):
         """ There may be a need to calculates some of the other quantities

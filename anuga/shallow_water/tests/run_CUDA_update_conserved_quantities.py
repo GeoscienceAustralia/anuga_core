@@ -182,7 +182,7 @@ ymom2_centroid_values_before = num.copy(ymom2.centroid_values)
 nvtxRangePush('update conserved quantities kernal : domain2')
 num_negative_ids = gpu_domain2.update_conserved_quantities_kernal()
 
-
+print('num_negative_ids => ', num_negative_ids)
 
 if num_negative_ids > 0:
 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
@@ -201,26 +201,26 @@ import math
 sqrtN = 1.0/N
 
 
-print('stage edge      diff L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
-print('xmom  edge      diff L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
-print('ymom  edge      diff L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
+# print('stage edge      diff L2 norm ', num.linalg.norm(stage1.edge_values-stage2.edge_values)/N)
+# print('xmom  edge      diff L2 norm ', num.linalg.norm(xmom1.edge_values-xmom2.edge_values)/N)
+# print('ymom  edge      diff L2 norm ', num.linalg.norm(ymom1.edge_values-ymom2.edge_values)/N)
 
 print('stage centroid diff L2 norm ', num.linalg.norm(stage1.centroid_values-stage2.centroid_values)/N)
 print('xmom  centroid diff L2 norm ', num.linalg.norm(xmom1.centroid_values-xmom2.centroid_values)/N)
 print('ymom  centroid diff L2 norm ', num.linalg.norm(ymom1.centroid_values-ymom2.centroid_values)/N)
 
-print('stage vertex diff L2 norm ', num.linalg.norm(stage1.vertex_values-stage2.vertex_values)/N)
-print('xmom  vertex diff L2 norm ', num.linalg.norm(xmom1.vertex_values-xmom2.vertex_values)/N)
-print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.vertex_values)/N)
+# print('stage vertex diff L2 norm ', num.linalg.norm(stage1.vertex_values-stage2.vertex_values)/N)
+# print('xmom  vertex diff L2 norm ', num.linalg.norm(xmom1.vertex_values-xmom2.vertex_values)/N)
+# print('ymom  vertex diff L2 norm ', num.linalg.norm(ymom1.vertex_values-ymom2.vertex_values)/N)
 
 
-print('stage semi implicit update diff L2 norm ', num.linalg.norm(stage1.semi_implicit_update-stage2.semi_implicit_update)/N)
-print('xmom  semi implicit update diff L2 norm ', num.linalg.norm(xmom1.semi_implicit_update-xmom2.semi_implicit_update)/N)
-print('ymom  semi implicit update diff L2 norm ', num.linalg.norm(ymom1.semi_implicit_update-ymom2.semi_implicit_update)/N)
+# print('stage semi implicit update diff L2 norm ', num.linalg.norm(stage1.semi_implicit_update-stage2.semi_implicit_update)/N)
+# print('xmom  semi implicit update diff L2 norm ', num.linalg.norm(xmom1.semi_implicit_update-xmom2.semi_implicit_update)/N)
+# print('ymom  semi implicit update diff L2 norm ', num.linalg.norm(ymom1.semi_implicit_update-ymom2.semi_implicit_update)/N)
 
-print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
-print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
-print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
+# print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
+# print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
+# print('stage explicit update diff L2 norm ', num.linalg.norm(stage1.explicit_update-stage2.explicit_update)/N)
 
 
 stage1_centroid_values_after = num.copy(stage1.centroid_values)

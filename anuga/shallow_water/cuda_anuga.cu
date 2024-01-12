@@ -1599,66 +1599,52 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
   //   }
   // }
 
-__device__ double atomicExchDouble(double* address, double val)
-{
-    unsigned long long int* address_as_ull = (unsigned long long int*)address;
-    unsigned long long int old = *address_as_ull;
+// __device__ double atomicExchDouble(double* address, double val)
+// {
+//     unsigned long long int* address_as_ull = (unsigned long long int*)address;
+//     unsigned long long int old = *address_as_ull;
 
-    do {
-        old = atomicCAS(address_as_ull, old, __double_as_longlong(val));
-    } while (old != *address_as_ull);
+//     do {
+//         old = atomicCAS(address_as_ull, old, __double_as_longlong(val));
+//     } while (old != *address_as_ull);
 
-    return __longlong_as_double(old);
-}
+//     return __longlong_as_double(old);
+// }
 
 
-
-  __global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
+__global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
   {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (k < number_of_elements)
     {
-      double denominator, x;
+      double x = centroid_values[k];
       int err_return = 0;
-
-      // Divide semi_implicit update by conserved quantity
-      x = centroid_values[k];
-      if (x == 0.0)
-      {
-          semi_implicit_update[k] = 0.0;
-      }
-      else
-      {
-            atomicAdd(&semi_implicit_update[k], -semi_implicit_update[k] * (1.0 / x));
-          // semi_implicit_update[k] /= x;
+      if (x == 0.0) {
+        semi_implicit_update[k] = 0.0;
+      } else {
+        semi_implicit_update[k] /= x;
       }
 
-      atomicExchDouble(&centroid_values[k], atomicAdd(&centroid_values[k], timestep * explicit_update[k]));
-
-      // centroid_values[k] += timestep * explicit_update[k];
+      centroid_values[k] += timestep*explicit_update[k];
 
       // Semi implicit updates
-      denominator = 1.0 - timestep * semi_implicit_update[k];
-      if (denominator <= 0.0)
-      {
-          err_return = -1;
+      double denominator = 1.0 - timestep*semi_implicit_update[k];
+      if (denominator <= 0.0) {
+        err_return = -1;
+      } else {
+        //Update conserved_quantities from semi implicit updates
+        centroid_values[k] /= denominator;
       }
-      else
-      {
-          // Update conserved quantities from semi-implicit updates
-          atomicAdd(&centroid_values[k], -centroid_values[k] / denominator);
-          // centroid_values[k] /= denominator;
-      }
-
-      // Reset semi_implicit_update here for the next time step
+		
+      // Reset semi_implicit_update here ready for next time step
       semi_implicit_update[k] = 0.0;
 
-      // Assuming you have some error handling logic here
       if (err_return == -1)
-      {
+        {
           // Handle error h
-      }
+        }
+
     }
   }
 
@@ -1675,7 +1661,8 @@ __device__ double atomicExchDouble(double* address, double val)
       int tff = tri_full_flag[k];
       if ((stage_centroid_values[k] - bed_centroid_values[k] < 0.0) && (tff > 0))
       {
-        atomicAdd(&num_negative_cells, 1);
+        // atomicAdd(&num_negative_cells, 1);
+        num_negative_cells = num_negative_cells + 1;
         stage_centroid_values[k] = bed_centroid_values[k];
         xmom_centroid_values[k] = 0.0;
         ymom_centroid_values[k] = 0.0;
