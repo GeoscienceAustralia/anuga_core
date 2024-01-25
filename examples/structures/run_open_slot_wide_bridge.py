@@ -43,7 +43,7 @@ dx = dy = 2.5          # Resolution: Length of subdivisions on both axes
 # dx = dy = .5           # Resolution: Length of subdivisions on both axes
 # dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
-domain = rectangular_cross_domain(int(length/dx), int(width/dy),
+domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
                                   len1=length, len2=width)
 
 domain.set_name('Test_open_slot_wide_bridge')                 # Output name
