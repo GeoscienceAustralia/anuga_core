@@ -145,7 +145,8 @@ class GPU_interface(object):
         self.cpu_timestep_array = np.zeros(self.cpu_number_of_elements, dtype=float) 
         self.cpu_num_negative_cells = np.zeros(1, dtype=np.int32)
 
-
+        # mass_error attribute of protect_kernal for returning the value
+        self.cpu_mass_error = np.zeros([] , dtype=float)
 
 
     def compile_gpu_kernels(self):
@@ -168,9 +169,11 @@ class GPU_interface(object):
 
         # Locate cuda_anuga.cu code
         import anuga.shallow_water as sw
-        import os        
-        sw_dir = os.path.dirname(sw.__file__)
-        cu_file = anuga.join(sw_dir,'cuda_anuga.cu')
+        import os
+        #sw_dir = os.path.dirname(sw.__file__)
+        sw_dir = os.environ.get('PROJECT_ROOT')
+        cu_file = anuga.join(sw_dir,'anuga/shallow_water/cuda_anuga.cu')
+        print(cu_file)
         #with open('../cuda_anuga.cu') as f:
         with open(cu_file) as f:
             code = f.read()
@@ -180,9 +183,11 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                    "_cuda_extrapolate_second_order_edge_sw_loop4", #"_cuda_update_sw_loop1", "_cuda_update_sw_loop2", "_cuda_update_sw_loop3",
-                                                "_cuda_update_sw", 
-                                                "_cuda_fix_negative_cells_sw"))
+                                                    "_cuda_extrapolate_second_order_edge_sw_loop4"                                     
+                                                    # "_cuda_update_sw",
+                                                    # "_cuda_fix_negative_cells_sw"
+                                                    # "_cuda_protect_against_infinitesimal_and_negative_heights"
+                                                    ))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
@@ -193,12 +198,10 @@ class GPU_interface(object):
         self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
         self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
 
-        self.update_kernal = self.mod.get_function("_cuda_update_sw")
-        # self.update_kernal1 = self.mod.get_function("_cuda_update_sw_loop1")
-        # self.update_kernal2 = self.mod.get_function("_cuda_update_sw_loop2")
-        # self.update_kernal3 = self.mod.get_function("_cuda_update_sw_loop3")
+        # self.update_kernal = self.mod.get_function("_cuda_update_sw")
+        # self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")        
 
-        self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")
+        # self.protect_kernal = self.mod.get_function("_cuda_protect_against_infinitesimal_and_negative_heights")
 
 
     #-----------------------------------------------------
@@ -745,82 +748,14 @@ class GPU_interface(object):
 
         Ensure transient data has been copied to the GPU via cpu_to_gpu routines
         """
-        # if transfer_from_cpu:
-        #     self.cpu_to_gpu_centroid_values()
-        #     self.cpu_to_gpu_explicit_update()
-        #     self.cpu_to_gpu_semi_explicit_update()
+        if transfer_from_cpu:
+            self.cpu_to_gpu_centroid_values()
+            self.cpu_to_gpu_explicit_update()
+            self.cpu_to_gpu_semi_explicit_update()
         
         import math
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
-        
-
-        """
-        nvtxRangePush("Update kernal 1,2,3 for Stage")
-        # Here we are calling the three kernals for stage quantity
-        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                self.gpu_stage_centroid_values,
-                self.gpu_stage_semi_implicit_update                
-        ))
-        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_stage_centroid_values,
-                self.gpu_stage_explicit_update
-        ))
-        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_stage_centroid_values,
-                self.gpu_stage_semi_implicit_update                
-        ))
-        nvtxRangePop()
-
-        
-        # Here we are calling the three kernals for xmom quantity
-        nvtxRangePush("Update kernal 1,2,3 for xmom")
-        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                self.gpu_xmom_centroid_values,
-                self.gpu_xmom_semi_implicit_update                
-        ))
-        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_xmom_centroid_values,
-                self.gpu_xmom_explicit_update
-        ))
-        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_xmom_centroid_values,
-                self.gpu_xmom_semi_implicit_update                
-        ))
-        nvtxRangePop()
-
-
-        # Here we are calling the three kernals for ymom quantity
-        nvtxRangePush("Update kernal 1,2,3 for ymom")
-        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                self.gpu_ymom_centroid_values,
-                self.gpu_ymom_semi_implicit_update
-        ))
-        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_ymom_centroid_values,
-                self.gpu_ymom_explicit_update
-        ))
-        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_ymom_centroid_values,
-                self.gpu_ymom_semi_implicit_update
-        ))
-        nvtxRangePop()
-        """
 
 
         # """  Commented this for the three kernal approach
@@ -866,7 +801,7 @@ class GPU_interface(object):
         nvtxRangePop()
 
         # if transfer_from_cpu:
-        #     self.cpu_to_gpu_centroid_values()
+        #     self.cpu_to_gpu_centroid_values() // why reset values
 
         # nvtxRangePush("fix_negative_cells : kernal")
         self.fix_negative_cells_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
@@ -888,6 +823,44 @@ class GPU_interface(object):
             # self.cpu_num_negative_cells = cp.sum(self.gpu_num_negative_cells)
         nvtxRangePop()    
         
+        if verbose:
+            print('gpu_stage_centroid_values after fix_negative_cells_kernal -> ', self.gpu_stage_centroid_values)
+            print('gpu_xmom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_xmom_centroid_values)
+            print('gpu_ymom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_ymom_centroid_values)
         
         return np.sum(self.cpu_num_negative_cells)
+    
+    def protect_against_infinitesimal_and_negative_heights_kernal(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
+
+        """
+        protect against infinities
+        Testing against the CPU version
+        Ensure transient data has been copied to the GPU via cpu_to_gpu routines
+        """
+        nvtxRangePush("protect against infinities")
+
+        if transfer_from_cpu:
+            self.cpu_to_gpu_centroid_values()
+            self.cpu_to_gpu_explicit_update()
+            self.cpu_to_gpu_semi_explicit_update()
+        
+        import math
+        THREADS_PER_BLOCK = 128
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        self.protect_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), 
+                            (
+                                np.int64(self.cpu_minimum_allowed_height),
+                                np.int64(self.cpu_number_of_elements),
+                                self.gpu_stage_centroid_values,
+                                self.gpu_bed_centroid_values,
+                                self.gpu_xmom_centroid_values,
+                                self.gpu_areas,
+                                self.gpu_stage_vertex_values                                         
+                            ))
+        nvtxRangePop()
+
+        return 0.0
+        
+
+
         
