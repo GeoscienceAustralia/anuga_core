@@ -1,5 +1,5 @@
 
-.. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=main
+.. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=develop
     :target: https://app.travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
    
