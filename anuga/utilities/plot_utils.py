@@ -1122,7 +1122,12 @@ def Make_Geotif(swwFile=None,
         index_qFun = scipy.interpolate.NearestNDInterpolator(
             swwXY,
             numpy.arange(len(swwX),dtype='int64').transpose())
-        gridqInd = index_qFun(gridXY_array)
+        gridqInd = index_qFun(gridXY_array).astype(int)
+
+        #from pprint import pprint
+        #print(72*"=")
+        #pprint(gridqInd)
+        
         # Function to do the interpolation
         def myInterpFun(quantity):
             return quantity[gridqInd]
