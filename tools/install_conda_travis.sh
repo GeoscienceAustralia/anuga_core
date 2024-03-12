@@ -31,7 +31,7 @@ source ~/.bashrc
 conda update --yes conda
 
 # Configure the conda environment
-conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill gitpython Pmw pymetis utm pyproj affine mpi4py
+conda create -n anuga_env --yes python=$PYTHON_VERSION pip numpy scipy meshpy cython netcdf4 pytest matplotlib gdal dill gitpython Pmw pymetis utm pyproj affine xarray mpi4py
 conda activate anuga_env
 
 # Useful for debugging any issues with conda
