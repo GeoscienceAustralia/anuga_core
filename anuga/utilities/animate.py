@@ -13,24 +13,34 @@ class Domain_plotter(object):
     """
 
 
-    def __init__(self, domain, plot_dir='_plot', min_depth=0.01):
+    def __init__(self, domain, plot_dir='_plot', min_depth=0.01, absolute=False):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
+
+        self.zone = domain.geo_reference.zone
 
         self.min_depth = min_depth
         
         self.nodes = domain.nodes
         self.triangles = domain.triangles
-        self.x = domain.nodes[:, 0]
-        self.y = domain.nodes[:, 1]
-
-        self.xc = domain.centroid_coordinates[:, 0]
-        self.yc = domain.centroid_coordinates[:, 1]
 
         self.xllcorner = domain.geo_reference.xllcorner
         self.yllcorner = domain.geo_reference.yllcorner
-        self.zone = domain.geo_reference.zone
+
+        if absolute is False:
+            self.x = domain.nodes[:, 0]
+            self.y = domain.nodes[:, 1]
+
+            self.xc = domain.centroid_coordinates[:, 0]
+            self.yc = domain.centroid_coordinates[:, 1]
+        else:
+            self.x = domain.nodes[:, 0] + self.xllcorner
+            self.y = domain.nodes[:, 1] + self.yllcorner
+
+            self.xc = domain.centroid_coordinates[:, 0] + self.xllcorner
+            self.yc = domain.centroid_coordinates[:, 1] + self.xllcorner
+
 
         import matplotlib.tri as tri
         self.triang = tri.Triangulation(self.x, self.y, self.triangles)
@@ -62,7 +72,7 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
         
-        self.depth = self.stage - self.elev
+        self.depth[:] = self.stage - self.elev
 
         md = self.min_depth
 
@@ -160,7 +170,7 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
         
-        self.depth = self.stage - self.elev
+        self.depth[:] = self.stage - self.elev
 
         md = self.min_depth
 
@@ -260,7 +270,7 @@ class Domain_plotter(object):
 
         md = self.min_depth
         
-        self.depth = self.stage - self.elev
+        self.depth[:] = self.stage - self.elev
 
         with np.errstate(invalid='ignore'):
             self.xvel = np.where(self.depth > self.min_depth,
@@ -391,7 +401,8 @@ class SWW_plotter(object):
 
     def __init__(self, swwfile='domain.sww', plot_dir='_plot',
                  min_depth = 0.01,
-                 minimum_allowed_depth=1.0e-03):
+                 minimum_allowed_depth=1.0e-03,
+                 absolute=False):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
@@ -423,6 +434,14 @@ class SWW_plotter(object):
         self.xllcorner = p.xllcorner
         self.yllcorner = p.yllcorner
         self.zone = p.zone
+
+        if absolute is True:
+            self.x[:] = self.x + self.xllcorner
+            self.y[:] = self.y + self.yllcorner
+
+            self.xc[:] = self.xc + self.xllcorner
+            self.yc[:] = self.yc + self.xllcorner
+
 
         self.elev = np.array(p.variables['elevation_c'])
         self.stage = np.array(p.variables['stage_c'])

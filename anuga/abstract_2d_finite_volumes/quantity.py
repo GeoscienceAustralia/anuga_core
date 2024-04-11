@@ -921,7 +921,7 @@ class Quantity(object):
                 max_read_lines = default_block_line_size
             filename_ext = os.path.splitext(filename)[1]
             # pts file in the format of .txt or .pts
-            if filename_ext in ['.txt', '.pts', '.csv']:
+            if filename_ext in ['.txt', '.pts', '.csv', '.xya']:
                 self.set_values_from_file(filename, attribute_name, alpha, location,
                                       indices, verbose=verbose,
                                       max_read_lines=max_read_lines,
@@ -932,7 +932,7 @@ class Quantity(object):
             elif filename_ext in ['.tif']:
                 self.set_values_from_tif_file(filename, location, indices, verbose=verbose)
             else:
-                raise Exception('Extension should be .pts .dem, .csv, .txt, .asc, .grd or .tif')
+                raise Exception('Extension should be .pts .dem, .csv, .txt, .xya, .asc, .grd or .tif')
 
         elif raster is not None:
             self.set_values_from_utm_raster(raster,
@@ -1255,7 +1255,7 @@ class Quantity(object):
         assert isinstance(filename, str), msg
 
         msg = 'Extension should be .pts .dem, .csv, or txt'
-        assert os.path.splitext(filename)[1] in ['.pts', '.dem', '.csv', '.txt'], msg
+        assert os.path.splitext(filename)[1] in ['.pts', '.csv', '.txt', '.xya'], msg
 
 
         if location != 'vertices':

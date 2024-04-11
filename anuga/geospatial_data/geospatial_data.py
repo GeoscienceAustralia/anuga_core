@@ -56,7 +56,7 @@ class Geospatial_data(object):
 
         data_points: x,y coordinates in meters. Type must be either a
         sequence of 2-tuples or an Mx2 numeric array of floats.  A file name
-        with extension .txt, .cvs or .pts can also be passed in here.
+        with extension .txt, .cvs, .xya or .pts can also be passed in here.
 
         attributes: Associated values for each data point. The type
         must be either a list or an array of length M or a dictionary
@@ -86,9 +86,10 @@ class Geospatial_data(object):
         load_file_now:  If true the file is automatically loaded
         into the geospatial instance. Used when blocking.
 
-        file_name: Name of input netCDF file or .txt file. netCDF file must
+        file_name: Name of input netCDF file or  text file (.xya, .txt). An netCDF file must
         have dimensions "points" etc.
-        .txt file is a comma seperated file with x, y and attribute
+        
+        Text file is a comma seperated file with x, y and attribute
         data.
 
         The first line has the titles of the columns.  The first two
@@ -99,7 +100,7 @@ class Geospatial_data(object):
         and y, and the title names acually used are ignored.
 
 
-        The format for a .txt file is:
+        The format for a text file is:
             1st line:     [column names]
             other lines:  x y [attributes]
 
@@ -476,7 +477,7 @@ class Geospatial_data(object):
 ################################################################################
 
     def import_points_file(self, file_name, delimiter=None, verbose=False):
-        """ load an .txt, .csv or .pts file
+        """ load an .txt, .xya, .csv or .pts file
 
         Note: will throw an IOError/SyntaxError if it can't load the file.
         Catch these!
@@ -496,7 +497,7 @@ class Geospatial_data(object):
             except IOError as e:
                 msg = 'Could not open file %s ' % file_name
                 raise IOError(msg)
-        elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv":
+        elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv" or file_name[-4:] == ".xya":
             try:
                 data_points, attributes, geo_reference = \
                     _read_csv_file(file_name, verbose)
@@ -550,7 +551,7 @@ class Geospatial_data(object):
                                 self.get_data_points(absolute),
                                 self.get_all_attributes(),
                                 self.get_geo_reference())
-        elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv":
+        elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv" or file_name[-4:] == ".xya":
             msg = "ERROR: trying to write a .txt file with relative data."
             assert absolute, msg
             _write_csv_file(file_name,
