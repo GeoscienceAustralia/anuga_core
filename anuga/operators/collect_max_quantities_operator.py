@@ -18,7 +18,7 @@ from anuga.config import velocity_protection
 from anuga.config import max_float
 
 
-class collect_max_quantities_operator(Operator):
+class Collect_max_quantities_operator(Operator):
     """
     Simple operator to collect the max stage, depth, speed, and speed*depth during a run.
 
@@ -87,7 +87,9 @@ class collect_max_quantities_operator(Operator):
         Calculate max_quantities at every 'update_frequency' timesteps once time > collection_start_time
         """
 
-        if(self.domain.time > self.collection_start_time):
+        t = self.domain.get_time()
+
+        if(t > self.collection_start_time):
             self.counter+=1
 
             if(self.counter==self.update_frequency):
