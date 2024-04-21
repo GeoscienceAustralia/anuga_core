@@ -2,6 +2,11 @@
 // in evolve loop
 
 //for extrapolate
+
+#ifdef __INTELLISENSE__
+#define __CUDACC__
+#endif
+
 #include <cuda_runtime.h>
 
 
