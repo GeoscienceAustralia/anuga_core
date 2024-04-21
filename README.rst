@@ -3,7 +3,6 @@
     :target: https://app.travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
     :width: 10%
-
 .. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/main?svg=true
     :target: https://ci.appveyor.com/project/stoiver/anuga-core-nwgr0
     :alt: appveyor status
