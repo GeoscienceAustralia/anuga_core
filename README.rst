@@ -1,33 +1,33 @@
 
-.. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=main
+.. |badge1| image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=main
     :target: https://app.travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
-    :width: 10%
-.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/main?svg=true
+
+.. |badge2| image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/main?svg=true
     :target: https://ci.appveyor.com/project/stoiver/anuga-core-nwgr0
     :alt: appveyor status
-    :width: 10%
 
-.. image:: https://img.shields.io/pypi/v/anuga.svg
+.. |badge3| image:: https://img.shields.io/pypi/v/anuga.svg
     :target: https://pypi.python.org/pypi/anuga/
     :alt: Latest PyPi Version
 
-.. image:: https://img.shields.io/pypi/dm/anuga.svg
+.. |badge4| image:: https://img.shields.io/pypi/dm/anuga.svg
     :target: https://pypistats.org/packages/anuga
     :alt: PyPi download statistics
 
-.. image:: https://img.shields.io/conda/vn/conda-forge/anuga.svg
+.. |badge5| image:: https://img.shields.io/conda/vn/conda-forge/anuga.svg
     :target: https://anaconda.org/conda-forge/anuga
     :alt: Latest Conda Version
  
-.. image:: https://img.shields.io/conda/dn/conda-forge/anuga.svg
+.. |badge6| image:: https://img.shields.io/conda/dn/conda-forge/anuga.svg
     :target: https://anaconda.org/conda-forge/anuga
     :alt: Conda Forge download statistics
 
-.. image:: https://readthedocs.org/projects/anuga/badge/?version=latest
+.. |badge7| image:: https://readthedocs.org/projects/anuga/badge/?version=latest
     :target: https://anuga.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+|badge1| |badge2| |badge3| |badge3| |badge4| |badge5| |badge6| |badge7|
 
 =====
 ANUGA
