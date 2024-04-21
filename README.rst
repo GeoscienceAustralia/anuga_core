@@ -1,4 +1,7 @@
-
+.. image:: https://badges.gitter.im/gitterHQ/gitter.png
+    :target: https://app.gitter.im/#/room/#anuga-community:gitter.im
+    :alt: Community Chat
+    
 .. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=develop
     :target: https://app.travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
