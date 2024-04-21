@@ -47,12 +47,9 @@ def earthquake_tsunami(ns, NSMAX, length, width, strike, depth,
 
     x0 = num.zeros(ns, float)
     y0 = num.zeros(ns, float)
-    if ns == 1:
-        x0[0] = xi
-        y0[0] = yi
-    else:
-        x0 = xi
-        y0 = yi
+    x0[:] = xi
+    y0[:] = yi
+
     if domain is not None:
         xllcorner = domain.geo_reference.get_xllcorner()
         yllcorner = domain.geo_reference.get_yllcorner()
@@ -156,6 +153,7 @@ class Okada_func(object):
         disp0 = num.zeros(3, float)
         strain0 = num.zeros(6, float)
         tilt0 = num.zeros(2, float)
+
         dislocations = num.zeros(ns, float)
         depths = num.zeros(ns, float)
         strikes = num.zeros(ns, float)
@@ -164,38 +162,26 @@ class Okada_func(object):
         rakes = num.zeros(ns, float)
         widths = num.zeros(ns, float)
         dips = num.zeros(ns, float)
-        strikes = num.zeros(ns, float)
-        strikes = num.zeros(ns, float)
+        xs = num.zeros(ns, float)
+        ys = num.zeros(ns, float)
+
         strain = num.zeros((N, 6), float)
         disp = num.zeros((N, 3), float)
         tilt = num.zeros((N, 2), float)
-        xs = num.zeros(ns, float)
-        ys = num.zeros(ns, float)
+
         z = []
-        if ns == 1:
-            dislocations[0] = dislocation
-            depths[0] = depth
-            strikes[0] = strike
-            lengths[0] = length
-            rakes[0] = rake
-            widths[0] = width
-            dips[0] = dip
-            try:
-                xs[0] = x0
-                ys[0] = y0
-            except:
-                xs[0] = x0[0]
-                ys[0] = y0[0]
-        else:
-            dislocations = dislocation
-            strikes = strike
-            lengths = length
-            rakes = rake
-            widths = width
-            dips = dip
-            xs = x0
-            ys = y0
-            depths = depth
+
+        dislocations[:] = dislocation
+        depths[:] = depth
+        strikes[:] = strike
+        lengths[:] = length
+        rakes[:] = rake
+        widths[:] = width
+        dips[:] = dip
+        xs[:] = x0
+        ys[:] = y0
+        
+
         # double Gaussian calculation assumes water displacement is oriented
         # E-W, so, for displacement at some angle alpha clockwise from the E-W
         # direction, rotate (x,y) coordinates anti-clockwise by alpha
