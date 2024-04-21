@@ -78,16 +78,17 @@ Run the installation script:
 
     bash Miniforge3.sh
 
-and then activate `miniconda` by running 
+and then activate `miniforge` by running 
 
 .. code-block:: bash
 
-    source miniconda3/bin/activate
+    source miniforge3/bin/activate
 
 .. note::
 
     During the `Miniforge` installation you will be asked to accept the licence 
-    (essentially apache 2.0) and whether to run `conda init` to change your `.bashrc` file to allow activation of the 
+    (essentially apache 2.0) and whether to run `conda init` to change your `.bashrc` 
+    file to allow activation of the 
     base conda environment when opening a new terminal.
     
     If you choose not to run `conda init` you will need to run the 
@@ -95,7 +96,7 @@ and then activate `miniconda` by running
 
     .. code-block:: bash
 
-        source miniconda3/bin/activate 
+        source miniforge3/bin/activate 
 
 
 Once `Miniforge` is installed and activated we can now create an environment to run ANUGA. 

@@ -404,9 +404,12 @@ class Rate_operator(Operator):
     def _prepare_xarray_rate(self, xa):
 
         import numpy as np
+        import pandas
 
         # to speed up parallel code it helps to load the xarray
         self.xa = xa.load()
+
+        self.xa['time'] = pandas.to_datetime(xa['time'], utc=True)
 
         # these are absolute coord (since we haven't implemented offsets)
         # Convert to relative coords to domain xllcorner and yllcorner
@@ -438,7 +441,12 @@ class Rate_operator(Operator):
     def _update_Q_xarray(self):
 
         import pandas
-        current_utc_datetime64 = pandas.to_datetime(self.domain.get_datetime()).tz_convert('UTC').replace(tzinfo=None)
+        current_utc_datetime64 = pandas.to_datetime(self.domain.get_datetime()).tz_convert('UTC')#.replace(tzinfo=None)
+
+        if self.verbose:
+            print(f"{self.domain.get_time()} {self.domain.get_datetime()}")
+            print(f"UTC time {current_utc_datetime64} type {type(current_utc_datetime64)} ")
+            print(self.xa.sel(time=current_utc_datetime64, method='nearest'))
       
         try:
             Q_ref = self.xa.sel(time=current_utc_datetime64, method="ffill", tolerance='5m')
