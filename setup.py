@@ -13,9 +13,9 @@ import os
 import shutil
 from distutils.command.clean import clean as Clean
 os.environ["PROJECT_ROOT"] = os.getcwd()
-os.environ["CC"] = "nvc -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -arch sm_11 -std=c++17"
+os.environ["CC"] = "nvc -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -arch sm_11 "
 os.environ["CXX"] = "nvc++ -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -arch sm_11 -std=c++17"
-os.environ["FC"] = "nvfortran -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -std=c++17"
+os.environ["FC"] = "nvfortran -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info "
 
 #==============================================================================
 DISTNAME = 'anuga'

@@ -1955,8 +1955,8 @@ class Domain(Generic_Domain):
             from .sw_domain_openacc_ext import  protect_new
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            from .sw_domain_simd_ext import  protect_new
-            # protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
+            # from .sw_domain_simd_ext import  protect_new
+            protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
         else:
             raise Exception('Not implemented')
 
@@ -2817,8 +2817,7 @@ class Domain(Generic_Domain):
             self.gpu_interface = GPU_interface(self)
             self.gpu_interface.allocate_gpu_arrays()
             self.gpu_interface.compile_gpu_kernels()
-
-            
+           
         
 
 ################################################################################

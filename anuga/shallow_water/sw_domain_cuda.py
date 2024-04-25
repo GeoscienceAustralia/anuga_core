@@ -183,10 +183,10 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                    "_cuda_extrapolate_second_order_edge_sw_loop4"                                     
-                                                    # "_cuda_update_sw",
-                                                    # "_cuda_fix_negative_cells_sw"
-                                                    # "_cuda_protect_against_infinitesimal_and_negative_heights"
+                                                    "_cuda_extrapolate_second_order_edge_sw_loop4"  ,                                   
+                                                    "_cuda_update_sw",
+                                                    "_cuda_fix_negative_cells_sw"
+                                                    "_cuda_protect_against_infinitesimal_and_negative_heights"
                                                     ))
 
         #FIXME SR: Only flux_kernel defined at present
@@ -198,10 +198,10 @@ class GPU_interface(object):
         self.extrapolate_kernel3 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop3")
         self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
 
-        # self.update_kernal = self.mod.get_function("_cuda_update_sw")
-        # self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")        
+        self.update_kernal = self.mod.get_function("_cuda_update_sw")
+        self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")        
 
-        # self.protect_kernal = self.mod.get_function("_cuda_protect_against_infinitesimal_and_negative_heights")
+        self.protect_kernal = self.mod.get_function("_cuda_protect_against_infinitesimal_and_negative_heights")
 
 
     #-----------------------------------------------------
@@ -860,7 +860,3 @@ class GPU_interface(object):
         nvtxRangePop()
 
         return 0.0
-        
-
-
-        
