@@ -4,6 +4,7 @@ associated with an ANUGA domain and SWW file.
 """
 import numpy as np
 import os
+import matplotlib.pyplot as plt
 
 
 class Domain_plotter(object):
@@ -13,24 +14,34 @@ class Domain_plotter(object):
     """
 
 
-    def __init__(self, domain, plot_dir='_plot', min_depth=0.01):
+    def __init__(self, domain, plot_dir='_plot', min_depth=0.01, absolute=False):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
+
+        self.zone = domain.geo_reference.zone
 
         self.min_depth = min_depth
         
         self.nodes = domain.nodes
         self.triangles = domain.triangles
-        self.x = domain.nodes[:, 0]
-        self.y = domain.nodes[:, 1]
-
-        self.xc = domain.centroid_coordinates[:, 0]
-        self.yc = domain.centroid_coordinates[:, 1]
 
         self.xllcorner = domain.geo_reference.xllcorner
         self.yllcorner = domain.geo_reference.yllcorner
-        self.zone = domain.geo_reference.zone
+
+        if absolute is False:
+            self.x = domain.nodes[:, 0]
+            self.y = domain.nodes[:, 1]
+
+            self.xc = domain.centroid_coordinates[:, 0]
+            self.yc = domain.centroid_coordinates[:, 1]
+        else:
+            self.x = domain.nodes[:, 0] + self.xllcorner
+            self.y = domain.nodes[:, 1] + self.yllcorner
+
+            self.xc = domain.centroid_coordinates[:, 0] + self.xllcorner
+            self.yc = domain.centroid_coordinates[:, 1] + self.xllcorner
+
 
         import matplotlib.tri as tri
         self.triang = tri.Triangulation(self.x, self.y, self.triangles)
@@ -57,12 +68,11 @@ class Domain_plotter(object):
 
     def _depth_frame(self, figsize, dpi, vmin, vmax):
 
-        import matplotlib.pyplot as plt
 
         name = self.domain.get_name()
         time = self.domain.get_time()
         
-        self.depth = self.stage - self.elev
+        self.depth[:] = self.stage - self.elev
 
         md = self.min_depth
 
@@ -84,22 +94,26 @@ class Domain_plotter(object):
 
         plt.colorbar()
 
+        return fig
+
     def save_depth_frame(self, figsize=(10, 6), dpi=80,
                          vmin=0.0, vmax=20):
 
-        import matplotlib.pyplot as plt
+        
 
         plot_dir = self.plot_dir
         name = self.domain.get_name()
         time = self.domain.get_time()
 
-        self._depth_frame(figsize, dpi, vmin, vmax)
+        fig = self._depth_frame(figsize, dpi, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_depth_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_depth_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_depth_{0:0>10}.png'.format(int(time))))
+
+        fig.clf()
         plt.close()
 
     def plot_depth_frame(self, figsize=(5, 3), dpi=80,
@@ -107,7 +121,7 @@ class Domain_plotter(object):
 
         import matplotlib.pyplot as plt
 
-        self._depth_frame(figsize, dpi, vmin, vmax)
+        fig = self._depth_frame(figsize, dpi, vmin, vmax)
 
         plt.show()
 
@@ -155,12 +169,10 @@ class Domain_plotter(object):
 
     def _stage_frame(self, figsize, dpi, vmin, vmax):
 
-        import matplotlib.pyplot as plt
-
         name = self.domain.get_name()
         time = self.domain.get_time()
         
-        self.depth = self.stage - self.elev
+        self.depth[:] = self.stage - self.elev
 
         md = self.min_depth
 
@@ -181,6 +193,8 @@ class Domain_plotter(object):
 
         plt.colorbar()
 
+        return fig
+
     def save_stage_frame(self, figsize=(10, 6), dpi=80,
                          vmin=-20.0, vmax=20.0):
 
@@ -190,13 +204,15 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
 
-        self._stage_frame(figsize, dpi, vmin, vmax)
+        fig = self._stage_frame(figsize, dpi, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_stage_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_stage_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_stage_{0:0>10}.png'.format(int(time))))
+        
+        fig.clf()
         plt.close()
 
     def plot_stage_frame(self, figsize=(5, 3), dpi=80,
@@ -204,7 +220,7 @@ class Domain_plotter(object):
 
         import matplotlib.pyplot as plt
 
-        self._stage_frame(figsize, dpi, vmin, vmax)
+        fig = self._stage_frame(figsize, dpi, vmin, vmax)
 
         plt.show()
 
@@ -253,14 +269,13 @@ class Domain_plotter(object):
 
     def _speed_frame(self, figsize, dpi, vmin, vmax):
 
-        import matplotlib.pyplot as plt
 
         name = self.domain.get_name()
         time = self.domain.get_time()
 
         md = self.min_depth
         
-        self.depth = self.stage - self.elev
+        self.depth[:] = self.stage - self.elev
 
         with np.errstate(invalid='ignore'):
             self.xvel = np.where(self.depth > self.min_depth,
@@ -287,6 +302,8 @@ class Domain_plotter(object):
 
         plt.colorbar()
 
+        return fig
+
     def save_speed_frame(self, figsize=(10, 6), dpi=80,
                          vmin=-20.0, vmax=20.0):
 
@@ -296,13 +313,14 @@ class Domain_plotter(object):
         name = self.domain.get_name()
         time = self.domain.get_time()
 
-        self._speed_frame(figsize, dpi, vmin, vmax)
+        fig = self._speed_frame(figsize, dpi, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_speed_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_speed_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_speed_{0:0>10}.png'.format(int(time))))
+        fig.clf()
         plt.close()
 
     def plot_speed_frame(self, figsize=(5, 3), dpi=80,
@@ -310,7 +328,7 @@ class Domain_plotter(object):
 
         import matplotlib.pyplot as plt
 
-        self._speed_frame(figsize, dpi, vmin, vmax)
+        fig = self._speed_frame(figsize, dpi, vmin, vmax)
 
         plt.show()
 
@@ -391,7 +409,8 @@ class SWW_plotter(object):
 
     def __init__(self, swwfile='domain.sww', plot_dir='_plot',
                  min_depth = 0.01,
-                 minimum_allowed_depth=1.0e-03):
+                 minimum_allowed_depth=1.0e-03,
+                 absolute=False):
 
         self.plot_dir = plot_dir
         self.make_plot_dir()
@@ -424,6 +443,14 @@ class SWW_plotter(object):
         self.yllcorner = p.yllcorner
         self.zone = p.zone
 
+        if absolute is True:
+            self.x[:] = self.x + self.xllcorner
+            self.y[:] = self.y + self.yllcorner
+
+            self.xc[:] = self.xc + self.xllcorner
+            self.yc[:] = self.yc + self.xllcorner
+
+
         self.elev = np.array(p.variables['elevation_c'])
         self.stage = np.array(p.variables['stage_c'])
         self.xmom = np.array(p.variables['xmomentum_c'])
@@ -452,8 +479,6 @@ class SWW_plotter(object):
     # Depth procedures
     #------------------------------------------
     def _depth_frame(self, figsize, dpi, frame, vmin, vmax):
-
-        import matplotlib.pyplot as plt
 
         name = self.name
         time = self.time[frame]
@@ -485,6 +510,8 @@ class SWW_plotter(object):
 
         plt.colorbar()
 
+        return fig
+
     def save_depth_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=0.0, vmax=20.0):
 
@@ -494,21 +521,22 @@ class SWW_plotter(object):
         time = self.time[frame]
         plot_dir = self.plot_dir
 
-        self._depth_frame(figsize, dpi, frame, vmin, vmax)
+        fig = self._depth_frame(figsize, dpi, frame, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_depth_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_depth_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_depth_{0:0>10}.png'.format(int(time))))
         plt.close()
+        fig.clf()
 
     def plot_depth_frame(self, figsize=(5, 3), dpi = 80, frame=-1,
                          vmin=0.0, vmax=20.0):
 
         import matplotlib.pyplot as plt
 
-        self._depth_frame(figsize, dpi, frame, vmin, vmax)
+        fig = self._depth_frame(figsize, dpi, frame, vmin, vmax)
 
         plt.show()
 
@@ -550,6 +578,8 @@ class SWW_plotter(object):
                       vmin=vmin, vmax=vmax)
 
         plt.colorbar()
+        
+        return fig
 
     def save_stage_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=-20.0, vmax=20.0):
@@ -560,87 +590,25 @@ class SWW_plotter(object):
         time = self.time[frame]
         plot_dir = self.plot_dir
 
-        self._stage_frame(figsize, dpi, frame, vmin, vmax)
+        fig = self._stage_frame(figsize, dpi, frame, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_stage_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_stage_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_stage_{0:0>10}.png'.format(int(time))))
         plt.close()
+        fig.clf()
 
     def plot_stage_frame(self, figsize=(5, 3), dpi=80, frame=-1,
                          vmin=-20, vmax=20.0):
 
         import matplotlib.pyplot as plt
 
-        self._stage_frame(figsize, dpi, frame, vmin, vmax)
+        fig = self._stage_frame(figsize, dpi, frame, vmin, vmax)
 
         plt.show()
 
-    # #------------------------------------------
-    # # Depth procedures
-    # #------------------------------------------
-    # def _depth_frame(self, figsize, dpi, frame, vmin, vmax):
-
-    #     import matplotlib.pyplot as plt
-
-    #     name = self.name
-    #     time = self.time[frame]
-    #     depth = self.depth[frame, :]
-        
-    #     md = self.min_depth
-        
-    #     try:
-    #         elev = self.elev[frame, :]
-    #     except:
-    #         elev = self.elev
-
-    #     ims = []
-
-    #     fig = plt.figure(figsize=figsize, dpi=dpi)
-
-    #     plt.title('Depth: Time {0:0>4}'.format(time))
-
-    #     self.triang.set_mask(depth > md)
-    #     plt.tripcolor(self.triang,
-    #                   facecolors=elev,
-    #                   cmap='Greys_r')
-
-    #     self.triang.set_mask(depth < md)
-    #     plt.tripcolor(self.triang,
-    #                   facecolors=depth,
-    #                   cmap='viridis',
-    #                   vmin=vmin, vmax=vmax)
-
-    #     plt.colorbar()
-
-    # def save_depth_frame(self, figsize=(10, 6), dpi=160, frame=-1,
-    #                      vmin=0.0, vmax=20.0):
-
-    #     import matplotlib.pyplot as plt
-
-    #     name = self.name
-    #     time = self.time[frame]
-    #     plot_dir = self.plot_dir
-
-    #     self._depth_frame(figsize, dpi, frame, vmin, vmax)
-
-    #     if plot_dir is None:
-    #         plt.savefig(name+'_depth_{0:0>10}.png'.format(int(time)))
-    #     else:
-    #         plt.savefig(os.path.join(plot_dir, name
-    #                                  + '_depth_{0:0>10}.png'.format(int(time))))
-    #     plt.close()
-
-    # def plot_depth_frame(self, figsize=(5, 3), dpi = 80, frame=-1,
-    #                      vmin=0.0, vmax=20.0):
-
-    #     import matplotlib.pyplot as plt
-
-    #     self._depth_frame(figsize, dpi, frame, vmin, vmax)
-
-    #     plt.show()
 
     #------------------------------------------
     # Depth Speed procedures
@@ -681,6 +649,8 @@ class SWW_plotter(object):
 
         plt.colorbar()
 
+        return fig
+
     def save_speed_depth_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=-20.0, vmax=20.0):
 
@@ -690,14 +660,15 @@ class SWW_plotter(object):
         time = self.time[frame]
         plot_dir = self.plot_dir
 
-        self._speed_depth_frame(figsize, dpi, frame, vmin, vmax)
+        fig = self._speed_depth_frame(figsize, dpi, frame, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_speed_depth_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_speed_depth_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_speed_depth_{0:0>10}.png'.format(int(time))))
         plt.close()
+        fig.clf()
 
     def plot_speed_depth_frame(self, figsize=(5, 3), dpi=80, frame=-1,
                          vmin=-20, vmax=20.0):
@@ -746,23 +717,24 @@ class SWW_plotter(object):
 
         plt.colorbar()
 
+        return fig
+
     def save_speed_frame(self, figsize=(10, 6), dpi=160, frame=-1,
                          vmin=0.0, vmax=10.0):
-
-        import matplotlib.pyplot as plt
 
         name = self.name
         time = self.time[frame]
         plot_dir = self.plot_dir
 
-        self._speed_frame(figsize, dpi, frame, vmin, vmax)
+        fig = self._speed_frame(figsize, dpi, frame, vmin, vmax)
 
         if plot_dir is None:
-            plt.savefig(name+'_speed_{0:0>10}.png'.format(int(time)))
+            fig.savefig(name+'_speed_{0:0>10}.png'.format(int(time)))
         else:
-            plt.savefig(os.path.join(plot_dir, name
+            fig.savefig(os.path.join(plot_dir, name
                                      + '_speed_{0:0>10}.png'.format(int(time))))
         plt.close()
+        fig.clf()
 
     def plot_speed_frame(self, figsize=(5, 3), dpi=80, frame=-1,
                          vmin=0.0, vmax=10.0):

@@ -1,9 +1,13 @@
 
-.. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=main
+.. image:: https://badges.gitter.im/gitterHQ/gitter.png
+    :target: https://app.gitter.im/#/room/#anuga-community:gitter.im
+    :alt: Community Chat
+
+.. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=develop_hackathon
     :target: https://app.travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
    
-.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/main?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/develop_hackathon?svg=true
     :target: https://ci.appveyor.com/project/stoiver/anuga-core-nwgr0
     :alt: appveyor status
 

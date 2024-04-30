@@ -16,15 +16,6 @@ print ('Starting.... Importing Modules...')
 #------------------------------------------------------------------------------
 import anuga
 
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.shallow_water.forcing import Rainfall, Inflow
-#from anuga.shallow_water.forcing import Reflective_boundary
-#from anuga.shallow_water.forcing import Dirichlet_boundary
-#from anuga.shallow_water.forcing import Transmissive_boundary, Time_boundary
-
-
-#from anuga.culvert_flows.culvert_routines import weir_orifice_channel_culvert_model
 from math import pi,pow,sqrt
 
 import numpy as num
@@ -43,15 +34,9 @@ dx = dy = 2.0          # Resolution: Length of subdivisions on both axes
 #dx = dy = .5           # Resolution: Length of subdivisions on both axes
 #dx = dy = .1           # Resolution: Length of subdivisions on both axes
 
-points, vertices, boundary = rectangular_cross(int(length/dx), int(width/dy),
+domain = anuga.rectangular_cross_domain(int(length/dx), int(width/dy),
                                                     len1=length, len2=width)
-domain = Domain(points, vertices, boundary)   
 domain.set_name('Test_WIDE_BRIDGE')                 # Output name
-#domain.set_default_order(2)
-#omain.H0 = 0.01
-#domain.tight_slope_limiters = 1
-
-domain.set_flow_algorithm('2_0')
 
 print ('Size', len(domain))
 
@@ -142,40 +127,6 @@ print ('DEFINING any Structures if Required')
 
 #  DEFINE CULVERT INLET AND OUTLETS
 
-"""
-culvert_rating = Culvert_flow(domain,
-    culvert_description_filename='example_rating_curve.csv',
-    end_point0=[0.0, 75.0], 
-    end_point1=[50.0, 75.0],
-    verbose=True)
-
-culvert_energy = Culvert_flow(domain,
-    label='Culvert No. 1',
-    description='This culvert is a test unit 4m diameter',   
-    end_point0=[40.0, 75.0], 
-    end_point1=[50.0, 75.0],
-    width=4.0,
-    culvert_routine=boyd_generalised_culvert_model,  #culvert_routine=weir_orifice_channel_culvert_model,     
-    number_of_barrels=1,
-    number_of_smoothing_steps=10,
-    #update_interval=0.25,
-    log_file=True,
-    discharge_hydrograph=True,
-    use_velocity_head=False,
-    use_momentum_jet=False,
-    verbose=True)
-
-domain.forcing_terms.append(culvert_energy)
-"""
-#from anuga.structures.boyd_box_operator import Boyd_box_operator
-#culvert0 = Culvert_operator(domain,
-#                            end_point0=[40.0, 75.0],
-#                            end_point1=[50.0, 75.0],
-#                            width=50.0,
-#                            depth=10.0,
-#                            apron=5.0,
-#                            verbose=False)
-
 
 #------------------------------------------------------------------------------
 # Setup culverts
@@ -198,36 +149,6 @@ for i in range(number_of_culverts):
                                             description='bridge culvert',
                                             verbose=False))
 
-#culvert2 = Culvert_operator(domain,
-#                            end_point0=[40.0, 62.5],
-#                            end_point1=[50.0, 62.5],
-#                            width=25.0,
-#                            depth=10.0,
-#                            apron=5.0,
-#                            manning=0.013,
-#                            verbose=False)
-
-
-
-"""
-culvert_energy = Culvert_flow(domain,
-    label='Culvert No. 1',
-    description='This culvert is a test unit 50m Wide by 5m High',   
-    end_point0=[40.0, 75.0],
-    end_point1=[50.0, 75.0],
-    width=50.0,depth=5.0,
-    culvert_routine=boyd_generalised_culvert_model,  #culvert_routine=weir_orifice_channel_culvert_model,     
-    number_of_barrels=1,
-    number_of_smoothing_steps=10,
-    #update_interval=0.25,
-    log_file=True,
-    discharge_hydrograph=True,
-    use_velocity_head=False,
-    use_momentum_jet=False,
-    verbose=True)
-
-domain.forcing_terms.append(culvert_energy)
-"""
 
 #------------------------------------------------------------------------------
 # Setup boundary conditions

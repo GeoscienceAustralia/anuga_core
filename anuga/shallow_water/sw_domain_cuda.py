@@ -801,9 +801,16 @@ class GPU_interface(object):
         nvtxRangePop()
 
         # if transfer_from_cpu:
+<<<<<<< HEAD
         #     self.cpu_to_gpu_centroid_values() // why reset values
 
         # nvtxRangePush("fix_negative_cells : kernal")
+=======
+        #     self.cpu_to_gpu_centroid_values()
+
+        nvtxRangePush("fix_negative_cells : kernal")
+        
+>>>>>>> develop_hackathon
         self.fix_negative_cells_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
             np.int64(self.cpu_number_of_elements),
             self.gpu_tri_full_flag,

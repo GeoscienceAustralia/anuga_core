@@ -117,8 +117,11 @@ class Inlet_operator(anuga.Operator):
             self.domain.fractional_step_volume_integral+=volume
             if self.velocity is not None:
                 depths = self.inlet.get_depths()
-                self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
-                self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
+                #self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
+                #self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
+                self.inlet.set_xmoms(depths*self.velocity[0])
+                self.inlet.set_ymoms(depths*self.velocity[1])
+ 
             if self.zero_velocity:
                 self.inlet.set_xmoms(0.0)
                 self.inlet.set_ymoms(0.0)

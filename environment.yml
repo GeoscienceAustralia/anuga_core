@@ -1,4 +1,4 @@
-name: anuga_env
+name: anuga_env_39
 channels:
   - conda-forge
 dependencies:
@@ -24,3 +24,4 @@ dependencies:
   - pyproj
   - affine
   - xarray
+  - cartopy

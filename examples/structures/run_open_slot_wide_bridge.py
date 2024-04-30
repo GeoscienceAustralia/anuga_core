@@ -15,8 +15,8 @@ import numpy as num
 from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
 from anuga.culvert_flows.culvert_class import Culvert_flow
 from anuga.shallow_water.forcing import Rainfall, Inflow
-from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+from anuga import Domain
+from anuga import rectangular_cross_domain
 import anuga
 print('Starting.... Importing Modules...')
 # ------------------------------------------------------------------------------

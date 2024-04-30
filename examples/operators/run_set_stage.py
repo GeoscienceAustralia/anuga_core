@@ -10,7 +10,7 @@ import anuga
 
 
 from math import cos
-from numpy import zeros, float, where
+from numpy import zeros, where
 import numpy
 from time import localtime, strftime, gmtime
 
@@ -32,9 +32,9 @@ domain = anuga.rectangular_cross_domain(int(L/dx), int(W/dy), L, W, (-L/2.0, -W/
 domain.set_name()                
 
 #------------------------------------------------------------------------------
-# Setup Algorithm
+# Setup Algorithm (Usual choices DE0 and DE1)
 #------------------------------------------------------------------------------
-domain.set_flow_algorithm(2.0)
+domain.set_flow_algorithm('DE0')
 
 #------------------------------------------------------------------------------
 # Setup initial conditions

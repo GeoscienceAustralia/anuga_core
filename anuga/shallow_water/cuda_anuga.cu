@@ -2,6 +2,11 @@
 // in evolve loop
 
 //for extrapolate
+
+#ifdef __INTELLISENSE__
+#define __CUDACC__
+#endif
+
 #include <cuda_runtime.h>
 
     // FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in
@@ -1500,6 +1505,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop3(
     int k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k < number_of_elements) {
 
+      // FIXME SR: Should pull this out of the kernel 
       if (extrapolate_velocity_second_order == 1)
         {
           // Convert velocity back to momenta at centroids
@@ -1559,7 +1565,11 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
 
 
 
-__global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
+__global__ void _cuda_update_sw(long number_of_elements, 
+                                double timestep, 
+                                double *centroid_values, 
+                                double *explicit_update, 
+                                double *semi_implicit_update)
   {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
 
@@ -1599,7 +1609,14 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
 
 
 
-  __global__ void _cuda_fix_negative_cells_sw(long number_of_elements, long *tri_full_flag, double *stage_centroid_values, double *bed_centroid_values, double *xmom_centroid_values, double *ymom_centroid_values, int num_negative_cells)
+  __global__ void _cuda_fix_negative_cells_sw(
+                                              long number_of_elements, 
+                                              long *tri_full_flag, 
+                                              double *stage_centroid_values, 
+                                              double *bed_centroid_values,
+                                              double *xmom_centroid_values, 
+                                              double *ymom_centroid_values, 
+                                              long num_negative_cells)  // Is this the way to pass back and is it int or long
   {
     int k = blockIdx.x * blockDim.x + threadIdx.x;
     num_negative_cells = 0;
@@ -1620,7 +1637,14 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
 
 
   // Protect against the water elevation falling below the triangle bed
-  __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(double domain_minimum_allowed_height, long number_of_elements, double* stage_centroid_values, double* bed_centroid_values, double* xmom_centroid_values, double* areas, double* stage_vertex_values) {
+  __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(
+                                                                           double domain_minimum_allowed_height, 
+                                                                           long number_of_elements, 
+                                                                           double* stage_centroid_values, 
+                                                                           double* bed_centroid_values, 
+                                                                           double* xmom_centroid_values, 
+                                                                           double* areas, 
+                                                                           double* stage_vertex_values) {
     int k, k3, K;
     double hc, bmin;
     double mass_error = 0.;
