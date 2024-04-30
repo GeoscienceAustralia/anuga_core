@@ -183,10 +183,10 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                    "_cuda_extrapolate_second_order_edge_sw_loop4"  ,                                   
-                                                    "_cuda_update_sw",
-                                                    "_cuda_fix_negative_cells_sw"
-                                                    "_cuda_protect_against_infinitesimal_and_negative_heights"
+                                                   "_cuda_extrapolate_second_order_edge_sw_loop4"  ,                                   
+                                                   "_cuda_update_sw",
+                                                   "_cuda_fix_negative_cells_sw"
+                                                   "_cuda_protect_against_infinitesimal_and_negative_heights"
                                                     ))
 
         #FIXME SR: Only flux_kernel defined at present
@@ -849,7 +849,7 @@ class GPU_interface(object):
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
         self.protect_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), 
                             (
-                                np.int64(self.cpu_minimum_allowed_height),
+                                np.float64(self.cpu_minimum_allowed_height),
                                 np.int64(self.cpu_number_of_elements),
                                 self.gpu_stage_centroid_values,
                                 self.gpu_bed_centroid_values,
