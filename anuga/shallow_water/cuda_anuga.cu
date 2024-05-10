@@ -3,6 +3,7 @@
 
 //for extrapolate
 #include <cuda_runtime.h>
+#include "util_ext.h"
 
     // FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in
     // extrapolation
@@ -1621,7 +1622,7 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
 
   // Protect against the water elevation falling below the triangle bed
   __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(double domain_minimum_allowed_height, long number_of_elements, double* stage_centroid_values, double* bed_centroid_values, double* xmom_centroid_values, double* areas, double* stage_vertex_values) {
-    int k, k3, K;
+    int k3, K;
     double hc, bmin;
     double mass_error = 0.;
   // This acts like minimum_allowed height, but scales with the vertical
@@ -1665,3 +1666,40 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
     }
     // return mass_error as out variable
   }
+
+  // COMPUTE FORCING TERMS
+  __global__ void cft_manning_friction_flat(double g, double eps, int N,
+        double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom, double* ymom) {
+
+    int k3;
+    double S, h, z, z0, z1, z2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if ( k < N ) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom[k] += S * uh[k];
+                ymom[k] += S * vh[k];
+            }
+        }
+    }
+}

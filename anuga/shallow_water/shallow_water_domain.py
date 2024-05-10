@@ -2033,32 +2033,30 @@ class Domain(Generic_Domain):
         if self.get_using_discontinuous_elevation():
 
             if self.multiprocessor_mode == 1:
-                #Stage.update(timestep)
-                #Xmom.update(timestep)
-                #Ymom.update(timestep)
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
                 from .sw_domain_simd_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 2:
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)                
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)                
                 from .sw_domain_openmp_ext import fix_negative_cells
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 3:
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
                 from .sw_domain_openacc_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 4:
                 
                 # nvtxRangePush('update_conserved_quantities_kernal')
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)      
+                     
                  update_conserved_quantities_fix_negative_cells = self.gpu_interface.update_conserved_quantities_kernal
                  num_negative_ids = update_conserved_quantities_fix_negative_cells(self)
                 # nvtxRangePop()
@@ -2893,8 +2891,52 @@ def distribute_using_vertex_limiter(domain):
 # Standard forcing terms
 ################################################################################
 
-
+#compute_forcing_terms
 def manning_friction_implicit(domain):
+    manning_friction_implicit_cpu(domain)
+
+    # if self.multiprocessor_mode == 0:
+    #     manning_friction_implicit_cpu(domain)
+    # else :
+    #      manning_friction_implicit_gpu(domain)
+
+
+#GPU version of manning_friction_implicit that'll call the kernal written in sw_domain_cuda
+def manning_friction_implicit_gpu(domain):
+    """Apply (Manning) friction to water momentum
+    Wrapper for c version
+    """
+
+    from .sw_domain_orig_ext import manning_friction_flat
+    from .sw_domain_orig_ext import manning_friction_sloped
+
+    xmom = domain.quantities['xmomentum']
+    ymom = domain.quantities['ymomentum']
+
+    x = domain.get_vertex_coordinates() # cpu_x
+
+    w = domain.quantities['stage'].centroid_values # cpu_stage_centroid_values
+    z = domain.quantities['elevation'].vertex_values # cpu_bed_centroid_values
+
+    uh = xmom.centroid_values #cpu_xmom_centroid_values
+    vh = ymom.centroid_values #cpu_ymom_centroid_values
+    eta = domain.quantities['friction'].centroid_values # cpu_friction_centroid_values
+
+    xmom_update = xmom.semi_implicit_update # cpu_xmom_semi_implicit_update
+    ymom_update = ymom.semi_implicit_update # cpu_ymom_semi_implicit_update
+
+    eps = domain.minimum_allowed_height # cpu_minimum_allowed_height
+    g = domain.g # cpu_g
+
+    if domain.use_sloped_mannings:
+        manning_friction_sloped(g, eps, x, w, uh, vh, z, eta, xmom_update, \
+                                ymom_update)
+    else:
+        manning_friction_flat(g, eps, w, uh, vh, z, eta, xmom_update, \
+                                ymom_update)
+
+
+def manning_friction_implicit_cpu(domain):
     """Apply (Manning) friction to water momentum
     Wrapper for c version
     """
@@ -2926,7 +2968,6 @@ def manning_friction_implicit(domain):
     else:
         manning_friction_flat(g, eps, w, uh, vh, z, eta, xmom_update, \
                                 ymom_update)
-
 
 def manning_friction_explicit(domain):
     """Apply (Manning) friction to water momentum
