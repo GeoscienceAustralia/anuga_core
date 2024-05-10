@@ -2895,9 +2895,9 @@ def distribute_using_vertex_limiter(domain):
 def manning_friction_implicit(domain):
     
 
-    if self.multiprocessor_mode == 0:
+    if domain.multiprocessor_mode == [0,1,2,3]:
         manning_friction_implicit_cpu(domain)
-    else :
+    elif domain.multiprocessor_mode == 4:
         manning_friction_implicit_gpu(domain)
 
 
@@ -2907,10 +2907,9 @@ def manning_friction_implicit_gpu(domain):
     Wrapper for c version
     """
     if domain.use_sloped_mannings:
-        manning_friction_sloped(g, eps, x, w, uh, vh, z, eta, xmom_update, \
-                                ymom_update)
+        domain.gpu_interface.compute_forcing_terms_manning_friction_sloped()
     else:
-        domain.gpu_interface.compute_forcing_terms_manning_friction_flat(domain)
+        domain.gpu_interface.compute_forcing_terms_manning_friction_flat()
 
 
 def manning_friction_implicit_cpu(domain):

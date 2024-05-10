@@ -210,7 +210,8 @@ class GPU_interface(object):
                                                     "_cuda_update_sw",
                                                     "_cuda_fix_negative_cells_sw",
                                                     "_cuda_protect_against_infinitesimal_and_negative_heights",
-                                                    "cft_manning_friction_flat"
+                                                    "cft_manning_friction_flat",
+                                                    "cft_manning_friction_sloped"
                                                     ))
 
         #FIXME SR: Only flux_kernel defined at present
@@ -228,6 +229,8 @@ class GPU_interface(object):
         self.protect_kernal = self.mod.get_function("_cuda_protect_against_infinitesimal_and_negative_heights")
         
         self.manning_flat_kernal = self.mod.get_function("cft_manning_friction_flat")
+        self.manning_sloped_kernal = self.mod.get_function("cft_manning_friction_sloped")
+
 
     #-----------------------------------------------------
     # Allocate GPU arrays
@@ -319,7 +322,8 @@ class GPU_interface(object):
         nvtxRangePop()
 
         self.gpu_arrays_allocated = True
-    
+
+        self.gpu_x = cp.array(self.cpu_x)
 
     def cpu_to_gpu_centroid_values(self):
         """
@@ -908,18 +912,64 @@ class GPU_interface(object):
         import math
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
-        self.manning_flat_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0),(
-            np.float64(self.cpu_g)
-            np.float64(self.cpu_eps) 
-            np.int64(self.cpu_N)
-            self.gpu_stage_centroid_values
-            self.gpu_bed_centroid_values
-            self.gpu_xmom_centroid_values
-            self.gpu_ymom_centroid_values
-            self.gpu_friction_centroid_values
-            self.gpu_xmom_semi_implicit_update
+        self.manning_flat_kernal(
+            (NO_OF_BLOCKS, 0, 0), 
+            (THREADS_PER_BLOCK, 0, 0),
+            (
+            np.float64(self.cpu_g),
+            np.float64(self.cpu_eps) ,
+            np.int64(self.cpu_N),
+            self.gpu_stage_centroid_values,
+            self.gpu_bed_centroid_values,
+            self.gpu_xmom_centroid_values,
+            self.gpu_ymom_centroid_values,
+            self.gpu_friction_centroid_values,
+            self.gpu_xmom_semi_implicit_update,
             self.gpu_ymom_semi_implicit_update
         ))    
+
+        nvtxRangePush('CFT: transfer from GPU')
+
+        if transfer_gpu_results:
+            self.gpu_to_cpu_centroid_values()
+            cp.asnumpy(self.gpu_xmom_semi_implicit_update,    out = self.cpu_xmom_semi_implicit_update)
+            cp.asnumpy(self.gpu_ymom_semi_implicit_update,    out = self.cpu_ymom_semi_implicit_update)
+
+        nvtxRangePop()   
+
+
+        nvtxRangePop()
+
+
+    def compute_forcing_terms_manning_friction_sloped(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
+        nvtxRangePush("compute forcing manning sloped - kernal")
+
+        self.gpu_x.set(self.cpu_x)
+        self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
+        self.gpu_bed_centroid_values.set(self.cpu_bed_vertex_values)
+        self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
+        self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
+        self.gpu_friction_centroid_values.set(self.cpu_friction_centroid_values)
+        self.gpu_xmom_semi_implicit_update.set(self.cpu_xmom_semi_implicit_update)
+        self.gpu_ymom_semi_implicit_update.set(self.cpu_ymom_semi_implicit_update)
+
+        import math
+        THREADS_PER_BLOCK = 128
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        self.manning_flat_kernal(
+            (NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0),
+            np.float64(self.cpu_g),
+            np.float64(self.cpu_eps) ,
+            np.int64(self.cpu_N),
+            self.gpu_x,
+            self.gpu_stage_centroid_values,
+            self.gpu_bed_centroid_values,
+            self.gpu_xmom_centroid_values,
+            self.gpu_ymom_centroid_values,
+            self.gpu_friction_centroid_values,
+            self.gpu_xmom_semi_implicit_update,
+            self.gpu_ymom_semi_implicit_update,
+        )    
 
         nvtxRangePush('CFT: transfer from GPU')
 
