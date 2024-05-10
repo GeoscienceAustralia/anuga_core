@@ -1703,3 +1703,4 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
         }
     }
 }
+

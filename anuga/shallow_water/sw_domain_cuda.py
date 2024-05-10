@@ -896,9 +896,7 @@ class GPU_interface(object):
 
     def compute_forcing_terms_manning_friction_flat(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
         nvtxRangePush("compute forcing manning flat - kernal")
-        self.cpu_g
-        self.cpu_eps
-        self.cpu_N
+    
         self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
         self.gpu_bed_centroid_values.set(self.cpu_bed_vertex_values)
         self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
