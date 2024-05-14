@@ -1660,3 +1660,141 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
       }
     }
   }
+
+
+
+
+  // Protect against the water elevation falling below the triangle bed
+  __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(double domain_minimum_allowed_height, long number_of_elements, double* stage_centroid_values, double* bed_centroid_values, double* xmom_centroid_values, double* areas, double* stage_vertex_values) {
+    int k3, K;
+    double hc, bmin;
+    double mass_error = 0.;
+  // This acts like minimum_allowed height, but scales with the vertical
+  // distance between the bed_centroid_value and the max bed_edge_value of
+  // every triangle.
+    double minimum_allowed_height;
+    minimum_allowed_height = domain_minimum_allowed_height;
+    K = number_of_elements;
+    // Protect against inifintesimal and negative heights
+    int k = blockIdx.x * blockDim.x * threadIdx.x;
+    if ( k < number_of_elements) 
+    {
+      k3 = 3*k;
+      hc = stage_centroid_values[k] - bed_centroid_values[k];
+      if(hc < minimum_allowed_height * 1.0) {
+
+      // Set momentum to zero and ensure h is non negative
+        xmom_centroid_values[k] = 0.;
+        // xmom_centroid_values[k] = 0.;
+        if(hc <= 0.0) {
+          bmin = bed_centroid_values[k];
+        // Minimum allowed stage = bmin
+        
+        // WARNING: ADDING MASS if wc[k]<bmin
+          if ( stage_centroid_values[k] < bmin)
+          {
+            mass_error += (bmin - stage_centroid_values[k]) * areas[k];
+            // mass_added = 1; //Flag to warn of added mass
+
+            stage_centroid_values[k] = bmin;
+            // FIXME: Set vertex values as well. Seems that this shouldn't be
+            // needed. However, from memory this is important at the first
+            // time step, for 'dry' areas where the designated stage is
+            // less than the bed centroid value
+            stage_vertex_values[k3] = bmin;     // min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
+            stage_vertex_values[k3 + 1] = bmin; // min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
+            stage_vertex_values[k3 + 2] = bmin; // min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
+          }
+        }
+      }
+    }
+    // return mass_error as out variable
+  }
+
+  // COMPUTE FORCING TERMS
+  __global__ void cft_manning_friction_flat(double g, double eps, int N,
+        double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom, double* ymom) {
+
+    int k3;
+    double S, h, z, z0, z1, z2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if ( k < N ) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom[k] += S * uh[k];
+                ymom[k] += S * vh[k];
+            }
+        }
+    }
+}
+
+
+__global__ void cft_manning_friction_sloped(double g, double eps, int N,
+        double* x, double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom_update, double* ymom_update) {
+
+    int k3, k6;
+    double S, h, z, z0, z1, z2, zs, zx, zy;
+    double x0, y0, x1, y1, x2, y2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    if (k < N) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+
+            // Compute bed slope
+            k6 = 6 * k; // base index
+
+            x0 = x[k6 + 0];
+            y0 = x[k6 + 1];
+            x1 = x[k6 + 2];
+            y1 = x[k6 + 3];
+            x2 = x[k6 + 4];
+            y2 = x[k6 + 5];
+
+            _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+            zs = sqrt(1.0 + zx * zx + zy * zy);
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * zs * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom_update[k] += S * uh[k];
+                ymom_update[k] += S * vh[k];
+            }
+        }
+    }
+}
