@@ -745,8 +745,8 @@ class Quantity(object):
 
 
         filename:
-          Name of a points file or dem file (.asc or .grd or .dem) containing data points and attributes for
-          use with fit_interpolate.fit.
+          Name of a points file (extension .pts, .csv, .txt or .xya) or dem file (ext .dem, .asc, .grd or .tif) 
+          containing data points and attributes for use with fit_interpolate.fit.
 
         raster:
           A class or a tuple (x,y,Z)
