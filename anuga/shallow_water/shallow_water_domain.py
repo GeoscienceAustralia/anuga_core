@@ -1955,7 +1955,8 @@ class Domain(Generic_Domain):
             from .sw_domain_openacc_ext import  protect_new
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            # from .sw_domain_simd_ext import  protect_new
+            # # from .sw_domain_simd_ext import  protect_new
+            protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
             protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
         else:
             raise Exception('Not implemented')
@@ -2033,32 +2034,30 @@ class Domain(Generic_Domain):
         if self.get_using_discontinuous_elevation():
 
             if self.multiprocessor_mode == 1:
-                #Stage.update(timestep)
-                #Xmom.update(timestep)
-                #Ymom.update(timestep)
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
                 from .sw_domain_simd_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 2:
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)                
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)                
                 from .sw_domain_openmp_ext import fix_negative_cells
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 3:
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
                 from .sw_domain_openacc_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 4:
                 
                 # nvtxRangePush('update_conserved_quantities_kernal')
-                # Stage.update(timestep)
-                # Xmom.update(timestep)
-                # Ymom.update(timestep)      
+                     
                  update_conserved_quantities_fix_negative_cells = self.gpu_interface.update_conserved_quantities_kernal
                  num_negative_ids = update_conserved_quantities_fix_negative_cells(self)
                 # nvtxRangePop()
@@ -2893,8 +2892,28 @@ def distribute_using_vertex_limiter(domain):
 # Standard forcing terms
 ################################################################################
 
-
+#compute_forcing_terms
 def manning_friction_implicit(domain):
+    
+
+    if domain.multiprocessor_mode == [0,1,2,3]:
+        manning_friction_implicit_cpu(domain)
+    elif domain.multiprocessor_mode == 4:
+        manning_friction_implicit_gpu(domain)
+
+
+#GPU version of manning_friction_implicit that'll call the kernal written in sw_domain_cuda
+def manning_friction_implicit_gpu(domain):
+    """Apply (Manning) friction to water momentum
+    Wrapper for c version
+    """
+    if domain.use_sloped_mannings:
+        domain.gpu_interface.compute_forcing_terms_manning_friction_sloped()
+    else:
+        domain.gpu_interface.compute_forcing_terms_manning_friction_flat()
+
+
+def manning_friction_implicit_cpu(domain):
     """Apply (Manning) friction to water momentum
     Wrapper for c version
     """
@@ -2926,7 +2945,6 @@ def manning_friction_implicit(domain):
     else:
         manning_friction_flat(g, eps, w, uh, vh, z, eta, xmom_update, \
                                 ymom_update)
-
 
 def manning_friction_explicit(domain):
     """Apply (Manning) friction to water momentum
