@@ -1955,7 +1955,8 @@ class Domain(Generic_Domain):
             from .sw_domain_openacc_ext import  protect_new
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
-            # from .sw_domain_simd_ext import  protect_new
+            # # from .sw_domain_simd_ext import  protect_new
+            protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
             protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
         else:
             raise Exception('Not implemented')
@@ -2910,7 +2911,6 @@ def manning_friction_implicit_gpu(domain):
         domain.gpu_interface.compute_forcing_terms_manning_friction_sloped()
     else:
         domain.gpu_interface.compute_forcing_terms_manning_friction_flat()
-
 
 
 def manning_friction_implicit_cpu(domain):

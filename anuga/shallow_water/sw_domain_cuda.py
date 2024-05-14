@@ -71,6 +71,7 @@ class GPU_interface(object):
         bed    = quantities["elevation"]
         height = quantities["height"]
         friction = quantities["friction"]
+        friction = quantities["friction"]
 
         riverwallData = domain.riverwallData
 
@@ -201,7 +202,7 @@ class GPU_interface(object):
         with open('/home/cdacapps01/rutvik/anuga_core/anuga/shallow_water/cuda_anuga.cu') as f:
             code = f.read()
 
-        self.mod  = cp.RawModule(code=code, options=("--std=c++17",),
+        self.mod  = cp.RawModule(code=code, options=("--std=++17",),
                                  name_expressions=("_cuda_compute_fluxes_loop",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
@@ -862,6 +863,10 @@ class GPU_interface(object):
             print('gpu_stage_centroid_values after fix_negative_cells_kernal -> ', self.gpu_stage_centroid_values)
             print('gpu_xmom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_xmom_centroid_values)
             print('gpu_ymom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_ymom_centroid_values)
+        if verbose:
+            print('gpu_stage_centroid_values after fix_negative_cells_kernal -> ', self.gpu_stage_centroid_values)
+            print('gpu_xmom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_xmom_centroid_values)
+            print('gpu_ymom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_ymom_centroid_values)
         
         return np.sum(self.cpu_num_negative_cells)
     
@@ -902,7 +907,7 @@ class GPU_interface(object):
         nvtxRangePush("compute forcing manning flat - kernal")
     
         self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
-        self.gpu_bed_vertex_values.set(self.cpu_bed_vertex_values)
+        self.gpu_bed_centroid_values.set(self.cpu_bed_vertex_values)
         self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
         self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
         self.gpu_friction_centroid_values.set(self.cpu_friction_centroid_values)
@@ -914,7 +919,8 @@ class GPU_interface(object):
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
         self.manning_flat_kernal(
             (NO_OF_BLOCKS, 0, 0), 
-            (THREADS_PER_BLOCK, 0, 0), (
+            (THREADS_PER_BLOCK, 0, 0),
+            (
             np.float64(self.cpu_g),
             np.float64(self.cpu_eps) ,
             np.int64(self.cpu_N),
@@ -945,7 +951,7 @@ class GPU_interface(object):
 
         self.gpu_x.set(self.cpu_x)
         self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
-        self.gpu_bed_vertex_values.set(self.cpu_bed_vertex_values)
+        self.gpu_bed_centroid_values.set(self.cpu_bed_vertex_values)
         self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
         self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
         self.gpu_friction_centroid_values.set(self.cpu_friction_centroid_values)
@@ -955,9 +961,8 @@ class GPU_interface(object):
         import math
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
-        self.manning_sloped_kernal(
+        self.manning_flat_kernal(
             (NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0),
-            (
             np.float64(self.cpu_g),
             np.float64(self.cpu_eps) ,
             np.int64(self.cpu_N),
@@ -969,7 +974,7 @@ class GPU_interface(object):
             self.gpu_friction_centroid_values,
             self.gpu_xmom_semi_implicit_update,
             self.gpu_ymom_semi_implicit_update,
-        ))    
+        )    
 
         nvtxRangePush('CFT: transfer from GPU')
 
@@ -1080,3 +1085,6 @@ class GPU_interface(object):
         domain.y_centroid_work = self.cpu_y_centroid_work
 
         return domain
+
+
+
