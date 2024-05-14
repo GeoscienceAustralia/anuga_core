@@ -9,7 +9,7 @@ import Cython.Compiler.Options
 Cython.Compiler.Options.annotate = False
 
 os.environ["CC"] = "nvc -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
-os.environ["CXX"] = "nvc++ -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
+os.environ["CXX"] = "nvc++ -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -std=c++17"
 os.environ["FC"] = "nvfortran -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
 
 def configuration(parent_package='',top_path=None):

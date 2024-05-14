@@ -4,8 +4,6 @@
 //for extrapolate
 #include <cuda_runtime.h>
 
-
-
     // FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in
     // extrapolation
     __device__ int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
@@ -420,6 +418,51 @@ __device__ double atomicMin_double(double* address, double val)
 		} while (assumed != old);
 
 	return __longlong_as_double(old);
+}
+
+// _gradient from util_ext.h required by cft_manning_friction_sloped
+__device__ int _gradient(double x0, double y0, 
+	      double x1, double y1, 
+	      double x2, double y2, 
+	      double q0, double q1, double q2, 
+	      double *a, double *b) {
+	      
+  /*Compute gradient (a,b) based on three points (x0,y0), (x1,y1) and (x2,y2) 
+  with values q0, q1 and q2.
+  
+  Extrapolation formula (q0 is selected as an arbitrary origin)
+    q(x,y) = q0 + a*(x-x0) + b*(y-y0)                    (1)
+  
+  Substituting the known values for q1 and q2 into (1) yield the 
+  equations for a and b 
+  
+      q1-q0 = a*(x1-x0) + b*(y1-y0)                      (2)
+      q2-q0 = a*(x2-x0) + b*(y2-y0)                      (3)      
+      
+  or in matrix form
+  
+  /               \  /   \   /       \  
+  |  x1-x0  y1-y0 |  | a |   | q1-q0 |
+  |               |  |   | = |       | 
+  |  x2-x0  y2-y0 |  | b |   | q2-q0 |
+  \               /  \   /   \       /
+   
+  which is solved using the standard determinant technique    
+      
+  */
+	      
+
+  double det;
+  
+  det = (y2-y0)*(x1-x0) - (y1-y0)*(x2-x0);
+
+  *a = (y2-y0)*(q1-q0) - (y1-y0)*(q2-q0);
+  *a /= det;
+
+  *b = (x1-x0)*(q2-q0) - (x2-x0)*(q1-q0);
+  *b /= det;
+
+  return 0;
 }
 
 
@@ -1037,6 +1080,13 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
       double edge_values[3];
       double cv_k, cv_k0, cv_k1, cv_k2;
 
+      // Parameters used to control how the limiter is forced to first-order near
+      // wet-dry regions
+      a_tmp = 0.3; // Highest depth ratio with hfactor=1
+      b_tmp = 0.1; // Highest depth ratio with hfactor=0
+      c_tmp = 1.0 / (a_tmp - b_tmp);
+      d_tmp = 1.0 - (c_tmp * a_tmp);
+
       k2 = k * 2;
       k3 = k * 3;
       k6 = k * 6;
@@ -1551,65 +1601,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
     }
   }
 
-  // // UPDATE CONSERVED QUANTITIES
-  // __global__ void _cuda_update_sw_loop1(int number_of_elements, double *centroid_values, double *semi_implicit_update)
-  // {
-  //   // divideSemiImplicitUpdate
-  //   int k = blockIdx.x * blockDim.x + threadIdx.x;
 
-  //   if (k < number_of_elements)
-  //   {
-  //     double x = centroid_values[k];
-  //     if (x == 0.0)
-  //     {
-  //       semi_implicit_update[k] = 0.0;
-  //     }
-  //     else
-  //     {
-  //       semi_implicit_update[k] /= x;
-  //     }
-  //   }
-  // }
-
-  // __global__ void _cuda_update_sw_loop2(int number_of_elements, double timestep, double *centroid_values, double *explicit_update)
-  // { // explicitUpdates
-  //   int k = blockIdx.x * blockDim.x + threadIdx.x;
-
-  //   if (k < number_of_elements)
-  //   {
-  //     centroid_values[k] += timestep * explicit_update[k];
-  //   }
-  // }
-
-  // __global__ void _cuda_update_sw_loop3(int number_of_elements, double timestep, double *centroid_values, double *semi_implicit_update)
-  // { // semiImplicitUpdates
-  //   int k = blockIdx.x * blockDim.x + threadIdx.x;
-
-  //   if (k < number_of_elements)
-  //   {
-  //     double denominator = 1.0 - timestep * semi_implicit_update[k];
-  //     if (denominator <= 0.0)
-  //     {
-  //       // Handle the error here or return an error code if needed
-  //     }
-  //     else
-  //     {
-  //       centroid_values[k] /= denominator;
-  //     }
-  //   }
-  // }
-
-// __device__ double atomicExchDouble(double* address, double val)
-// {
-//     unsigned long long int* address_as_ull = (unsigned long long int*)address;
-//     unsigned long long int old = *address_as_ull;
-
-//     do {
-//         old = atomicCAS(address_as_ull, old, __double_as_longlong(val));
-//     } while (old != *address_as_ull);
-
-//     return __longlong_as_double(old);
-// }
 
 
 __global__ void _cuda_update_sw(long number_of_elements, double timestep, double *centroid_values, double *explicit_update, double *semi_implicit_update)
@@ -1661,11 +1653,148 @@ __global__ void _cuda_update_sw(long number_of_elements, double timestep, double
       int tff = tri_full_flag[k];
       if ((stage_centroid_values[k] - bed_centroid_values[k] < 0.0) && (tff > 0))
       {
-        // atomicAdd(&num_negative_cells, 1);
-        num_negative_cells = num_negative_cells + 1;
+        atomicAdd(&num_negative_cells, 1);
         stage_centroid_values[k] = bed_centroid_values[k];
         xmom_centroid_values[k] = 0.0;
         ymom_centroid_values[k] = 0.0;
       }
     }
   }
+
+
+
+
+  // Protect against the water elevation falling below the triangle bed
+  __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(double domain_minimum_allowed_height, long number_of_elements, double* stage_centroid_values, double* bed_centroid_values, double* xmom_centroid_values, double* areas, double* stage_vertex_values) {
+    int k3, K;
+    double hc, bmin;
+    double mass_error = 0.;
+  // This acts like minimum_allowed height, but scales with the vertical
+  // distance between the bed_centroid_value and the max bed_edge_value of
+  // every triangle.
+    double minimum_allowed_height;
+    minimum_allowed_height = domain_minimum_allowed_height;
+    K = number_of_elements;
+    // Protect against inifintesimal and negative heights
+    int k = blockIdx.x * blockDim.x * threadIdx.x;
+    if ( k < number_of_elements) 
+    {
+      k3 = 3*k;
+      hc = stage_centroid_values[k] - bed_centroid_values[k];
+      if(hc < minimum_allowed_height * 1.0) {
+
+      // Set momentum to zero and ensure h is non negative
+        xmom_centroid_values[k] = 0.;
+        // xmom_centroid_values[k] = 0.;
+        if(hc <= 0.0) {
+          bmin = bed_centroid_values[k];
+        // Minimum allowed stage = bmin
+        
+        // WARNING: ADDING MASS if wc[k]<bmin
+          if ( stage_centroid_values[k] < bmin)
+          {
+            mass_error += (bmin - stage_centroid_values[k]) * areas[k];
+            // mass_added = 1; //Flag to warn of added mass
+
+            stage_centroid_values[k] = bmin;
+            // FIXME: Set vertex values as well. Seems that this shouldn't be
+            // needed. However, from memory this is important at the first
+            // time step, for 'dry' areas where the designated stage is
+            // less than the bed centroid value
+            stage_vertex_values[k3] = bmin;     // min(bmin, wc[k]); //zv[3*k]-minimum_allowed_height);
+            stage_vertex_values[k3 + 1] = bmin; // min(bmin, wc[k]); //zv[3*k+1]-minimum_allowed_height);
+            stage_vertex_values[k3 + 2] = bmin; // min(bmin, wc[k]); //zv[3*k+2]-minimum_allowed_height);
+          }
+        }
+      }
+    }
+    // return mass_error as out variable
+  }
+
+  // COMPUTE FORCING TERMS
+  __global__ void cft_manning_friction_flat(double g, double eps, int N,
+        double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom, double* ymom) {
+
+    int k3;
+    double S, h, z, z0, z1, z2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    
+    if ( k < N ) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom[k] += S * uh[k];
+                ymom[k] += S * vh[k];
+            }
+        }
+    }
+}
+
+
+__global__ void cft_manning_friction_sloped(double g, double eps, int N,
+        double* x, double* w, double* zv,
+        double* uh, double* vh,
+        double* eta, double* xmom_update, double* ymom_update) {
+
+    int k3, k6;
+    double S, h, z, z0, z1, z2, zs, zx, zy;
+    double x0, y0, x1, y1, x2, y2;
+    const double one_third = 1.0/3.0; 
+    const double seven_thirds = 7.0/3.0;
+
+    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    if (k < N) {
+        if (eta[k] > eps) {
+            k3 = 3 * k;
+            // Get bathymetry
+            z0 = zv[k3 + 0];
+            z1 = zv[k3 + 1];
+            z2 = zv[k3 + 2];
+
+            // Compute bed slope
+            k6 = 6 * k; // base index
+
+            x0 = x[k6 + 0];
+            y0 = x[k6 + 1];
+            x1 = x[k6 + 2];
+            y1 = x[k6 + 3];
+            x2 = x[k6 + 4];
+            y2 = x[k6 + 5];
+
+            _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
+
+            zs = sqrt(1.0 + zx * zx + zy * zy);
+            z = (z0 + z1 + z2) * one_third;
+            h = w[k] - z;
+            if (h >= eps) {
+                S = -g * eta[k] * eta[k] * zs * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+                S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
+                //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
+                //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
+
+
+                //Update momentum
+                xmom_update[k] += S * uh[k];
+                ymom_update[k] += S * vh[k];
+            }
+        }
+    }
+}

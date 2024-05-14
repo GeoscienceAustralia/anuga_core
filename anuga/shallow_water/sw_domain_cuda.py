@@ -70,6 +70,7 @@ class GPU_interface(object):
         ymom   = quantities["ymomentum"]
         bed    = quantities["elevation"]
         height = quantities["height"]
+        friction = quantities["friction"]
 
         riverwallData = domain.riverwallData
 
@@ -90,6 +91,7 @@ class GPU_interface(object):
         self.cpu_ymom_centroid_values   = ymom.centroid_values
         self.cpu_height_centroid_values = height.centroid_values
         self.cpu_bed_centroid_values    = bed.centroid_values
+        self.cpu_friction_centroid_values = friction.centroid_values
               
         self.cpu_stage_edge_values      = stage.edge_values
         self.cpu_xmom_edge_values       = xmom.edge_values
@@ -145,7 +147,29 @@ class GPU_interface(object):
         self.cpu_timestep_array = np.zeros(self.cpu_number_of_elements, dtype=float) 
         self.cpu_num_negative_cells = np.zeros(1, dtype=np.int32)
 
+        # mass_error attribute of protect_kernal for returning the value
+        self.cpu_mass_error = np.zeros([] , dtype=float)
 
+        #for compute forcing terms
+        # self.cpu_xmom = domain.quantities['xmomentum']
+        # self.cpu_ymom = domain.quantities['ymomentum']
+
+        self.cpu_x = domain.get_vertex_coordinates()
+
+        # self.cpu_w = domain.quantities['stage'].centroid_values
+        
+        # variable zv in the cuda c code its bed_vertex_values
+        # self.cpu_z = domain.quantities['elevation'].vertex_values
+
+        # self.cpu_uh = self.cpu_xmom.centroid_values
+        # self.cpu_vh = self.cpu_ymom.centroid_values
+        self.cpu_eta = domain.quantities['friction'].centroid_values
+
+        # self.cpu_xmom_update = self.cpu_xmom.semi_implicit_update
+        # self.cpu_ymom_update = self.cpu_ymom.semi_implicit_update
+        
+        self.cpu_eps = domain.minimum_allowed_height
+        self.cpu_N = self.cpu_stage_centroid_values.shape[0]
 
 
     def compile_gpu_kernels(self):
@@ -168,11 +192,13 @@ class GPU_interface(object):
 
         # Locate cuda_anuga.cu code
         import anuga.shallow_water as sw
-        import os        
-        sw_dir = os.path.dirname(sw.__file__)
-        cu_file = anuga.join(sw_dir,'cuda_anuga.cu')
+        import os
+        #sw_dir = os.path.dirname(sw.__file__)
+        # sw_dir = os.environ.get('PROJECT_ROOT')
+        # cu_file = anuga.join(sw_dir,'anuga/shallow_water/cuda_anuga.cu')
+        # print(cu_file)
         #with open('../cuda_anuga.cu') as f:
-        with open(cu_file) as f:
+        with open('/home/cdacapps01/rutvik/anuga_core/anuga/shallow_water/cuda_anuga.cu') as f:
             code = f.read()
 
         self.mod  = cp.RawModule(code=code, options=("--std=c++17",),
@@ -180,9 +206,13 @@ class GPU_interface(object):
                                                    "_cuda_extrapolate_second_order_edge_sw_loop1",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop2",
                                                    "_cuda_extrapolate_second_order_edge_sw_loop3",
-                                                    "_cuda_extrapolate_second_order_edge_sw_loop4", #"_cuda_update_sw_loop1", "_cuda_update_sw_loop2", "_cuda_update_sw_loop3",
-                                                "_cuda_update_sw", 
-                                                "_cuda_fix_negative_cells_sw"))
+                                                    "_cuda_extrapolate_second_order_edge_sw_loop4",                                   
+                                                    "_cuda_update_sw",
+                                                    "_cuda_fix_negative_cells_sw",
+                                                    "_cuda_protect_against_infinitesimal_and_negative_heights",
+                                                    "cft_manning_friction_flat",
+                                                    "cft_manning_friction_sloped"
+                                                    ))
 
         #FIXME SR: Only flux_kernel defined at present
         #FIXME SR: other kernels should be added to the file cuda_anuga.cu 
@@ -194,11 +224,12 @@ class GPU_interface(object):
         self.extrapolate_kernel4 = self.mod.get_function("_cuda_extrapolate_second_order_edge_sw_loop4")
 
         self.update_kernal = self.mod.get_function("_cuda_update_sw")
-        # self.update_kernal1 = self.mod.get_function("_cuda_update_sw_loop1")
-        # self.update_kernal2 = self.mod.get_function("_cuda_update_sw_loop2")
-        # self.update_kernal3 = self.mod.get_function("_cuda_update_sw_loop3")
+        self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")        
 
-        self.fix_negative_cells_kernal = self.mod.get_function("_cuda_fix_negative_cells_sw")
+        self.protect_kernal = self.mod.get_function("_cuda_protect_against_infinitesimal_and_negative_heights")
+        
+        self.manning_flat_kernal = self.mod.get_function("cft_manning_friction_flat")
+        self.manning_sloped_kernal = self.mod.get_function("cft_manning_friction_sloped")
 
 
     #-----------------------------------------------------
@@ -252,6 +283,8 @@ class GPU_interface(object):
         self.gpu_height_centroid_values = cp.array(self.cpu_height_centroid_values)
         self.gpu_height_edge_values     = cp.array(self.cpu_height_edge_values)
         
+        self.gpu_friction_centroid_values = cp.array(self.cpu_friction_centroid_values)
+
         self.gpu_stage_boundary_values  = cp.array(self.cpu_stage_boundary_values)  
         self.gpu_xmom_boundary_values   = cp.array(self.cpu_xmom_boundary_values) 
         self.gpu_ymom_boundary_values   = cp.array(self.cpu_ymom_boundary_values) 
@@ -289,7 +322,8 @@ class GPU_interface(object):
         nvtxRangePop()
 
         self.gpu_arrays_allocated = True
-    
+
+        self.gpu_x = cp.array(self.cpu_x)
 
     def cpu_to_gpu_centroid_values(self):
         """
@@ -745,82 +779,16 @@ class GPU_interface(object):
 
         Ensure transient data has been copied to the GPU via cpu_to_gpu routines
         """
-        # if transfer_from_cpu:
-        #     self.cpu_to_gpu_centroid_values()
-        #     self.cpu_to_gpu_explicit_update()
-        #     self.cpu_to_gpu_semi_explicit_update()
+        if transfer_from_cpu:
+            self.cpu_to_gpu_centroid_values()
+            self.cpu_to_gpu_explicit_update()
+            self.cpu_to_gpu_semi_explicit_update()
         
+
+        nvtxRangePush("Update_Kernal")
         import math
         THREADS_PER_BLOCK = 128
         NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
-        
-
-        """
-        nvtxRangePush("Update kernal 1,2,3 for Stage")
-        # Here we are calling the three kernals for stage quantity
-        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                self.gpu_stage_centroid_values,
-                self.gpu_stage_semi_implicit_update                
-        ))
-        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_stage_centroid_values,
-                self.gpu_stage_explicit_update
-        ))
-        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_stage_centroid_values,
-                self.gpu_stage_semi_implicit_update                
-        ))
-        nvtxRangePop()
-
-        
-        # Here we are calling the three kernals for xmom quantity
-        nvtxRangePush("Update kernal 1,2,3 for xmom")
-        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                self.gpu_xmom_centroid_values,
-                self.gpu_xmom_semi_implicit_update                
-        ))
-        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_xmom_centroid_values,
-                self.gpu_xmom_explicit_update
-        ))
-        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_xmom_centroid_values,
-                self.gpu_xmom_semi_implicit_update                
-        ))
-        nvtxRangePop()
-
-
-        # Here we are calling the three kernals for ymom quantity
-        nvtxRangePush("Update kernal 1,2,3 for ymom")
-        self.update_kernal1((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                self.gpu_ymom_centroid_values,
-                self.gpu_ymom_semi_implicit_update
-        ))
-        self.update_kernal2((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_ymom_centroid_values,
-                self.gpu_ymom_explicit_update
-        ))
-        self.update_kernal3((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
-                np.int64(self.cpu_number_of_elements),
-                np.int64(self.cpu_timestep),
-                self.gpu_ymom_centroid_values,
-                self.gpu_ymom_semi_implicit_update
-        ))
-        nvtxRangePop()
-        """
 
 
         # """  Commented this for the three kernal approach
@@ -855,18 +823,20 @@ class GPU_interface(object):
         ))
         # nvtxRangePop()
         # """
+        nvtxRangePop()
 
-        nvtxRangePush('update_conserved_quantities: transfer from GPU')
+
+        # nvtxRangePush('update_conserved_quantities: transfer from GPU')
 
         if verbose:
             print('gpu_stage_centroid_values after update -> ', self.gpu_stage_centroid_values)
             print('gpu_xmom_centroid_values after update -> ', self.gpu_xmom_centroid_values)
             print('gpu_ymom_centroid_values after update -> ', self.gpu_ymom_centroid_values)
 
-        nvtxRangePop()
+        # nvtxRangePop()
 
         # if transfer_from_cpu:
-        #     self.cpu_to_gpu_centroid_values()
+        #     self.cpu_to_gpu_centroid_values() // why reset values
 
         # nvtxRangePush("fix_negative_cells : kernal")
         self.fix_negative_cells_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), (
@@ -878,7 +848,7 @@ class GPU_interface(object):
             self.gpu_ymom_centroid_values,
             self.gpu_num_negative_cells
         ))
-        # nvtxRangePop()
+        nvtxRangePop()
 
         nvtxRangePush('fix_negative_cells: transfer from GPU')
 
@@ -888,6 +858,225 @@ class GPU_interface(object):
             # self.cpu_num_negative_cells = cp.sum(self.gpu_num_negative_cells)
         nvtxRangePop()    
         
+        if verbose:
+            print('gpu_stage_centroid_values after fix_negative_cells_kernal -> ', self.gpu_stage_centroid_values)
+            print('gpu_xmom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_xmom_centroid_values)
+            print('gpu_ymom_centroid_values after fix_negative_cells_kernal -> ', self.gpu_ymom_centroid_values)
         
         return np.sum(self.cpu_num_negative_cells)
+    
+    def protect_against_infinitesimal_and_negative_heights_kernal(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
+
+        """
+        protect against infinities
+        Testing against the CPU version
+        Ensure transient data has been copied to the GPU via cpu_to_gpu routines
+        """
+        nvtxRangePush("protect against infinities - kernal")
+
+        if transfer_from_cpu:
+            self.cpu_to_gpu_centroid_values()
+            self.cpu_to_gpu_explicit_update()
+            self.cpu_to_gpu_semi_explicit_update()
         
+        import math
+        THREADS_PER_BLOCK = 128
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        self.protect_kernal((NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0), 
+                            (
+                                np.int64(self.cpu_minimum_allowed_height),
+                                np.int64(self.cpu_number_of_elements),
+                                self.gpu_stage_centroid_values,
+                                self.gpu_bed_centroid_values,
+                                self.gpu_xmom_centroid_values,
+                                self.gpu_areas,
+                                self.gpu_stage_vertex_values                                         
+                            ))
+        nvtxRangePop()
+        
+        # returning zero as a placeholder for now
+        return 0.0
+
+
+    def compute_forcing_terms_manning_friction_flat(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
+        nvtxRangePush("compute forcing manning flat - kernal")
+    
+        self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
+        self.gpu_bed_vertex_values.set(self.cpu_bed_vertex_values)
+        self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
+        self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
+        self.gpu_friction_centroid_values.set(self.cpu_friction_centroid_values)
+        self.gpu_xmom_semi_implicit_update.set(self.cpu_xmom_semi_implicit_update)
+        self.gpu_ymom_semi_implicit_update.set(self.cpu_ymom_semi_implicit_update)
+
+        import math
+        THREADS_PER_BLOCK = 128
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        self.manning_flat_kernal(
+            (NO_OF_BLOCKS, 0, 0), 
+            (THREADS_PER_BLOCK, 0, 0), (
+            np.float64(self.cpu_g),
+            np.float64(self.cpu_eps) ,
+            np.int64(self.cpu_N),
+            self.gpu_stage_centroid_values,
+            self.gpu_bed_centroid_values,
+            self.gpu_xmom_centroid_values,
+            self.gpu_ymom_centroid_values,
+            self.gpu_friction_centroid_values,
+            self.gpu_xmom_semi_implicit_update,
+            self.gpu_ymom_semi_implicit_update
+        ))    
+
+        nvtxRangePush('CFT: transfer from GPU')
+
+        if transfer_gpu_results:
+            self.gpu_to_cpu_centroid_values()
+            cp.asnumpy(self.gpu_xmom_semi_implicit_update,    out = self.cpu_xmom_semi_implicit_update)
+            cp.asnumpy(self.gpu_ymom_semi_implicit_update,    out = self.cpu_ymom_semi_implicit_update)
+
+        nvtxRangePop()   
+
+
+        nvtxRangePop()
+
+
+    def compute_forcing_terms_manning_friction_sloped(self, transfer_from_cpu=True, transfer_gpu_results=True, verbose=False):
+        nvtxRangePush("compute forcing manning sloped - kernal")
+
+        self.gpu_x.set(self.cpu_x)
+        self.gpu_stage_centroid_values.set(self.cpu_stage_centroid_values)
+        self.gpu_bed_vertex_values.set(self.cpu_bed_vertex_values)
+        self.gpu_xmom_centroid_values.set(self.cpu_xmom_centroid_values)
+        self.gpu_ymom_centroid_values.set(self.cpu_ymom_centroid_values)
+        self.gpu_friction_centroid_values.set(self.cpu_friction_centroid_values)
+        self.gpu_xmom_semi_implicit_update.set(self.cpu_xmom_semi_implicit_update)
+        self.gpu_ymom_semi_implicit_update.set(self.cpu_ymom_semi_implicit_update)
+
+        import math
+        THREADS_PER_BLOCK = 128
+        NO_OF_BLOCKS = int(math.ceil(self.cpu_number_of_elements/THREADS_PER_BLOCK))
+        self.manning_sloped_kernal(
+            (NO_OF_BLOCKS, 0, 0), (THREADS_PER_BLOCK, 0, 0),
+            (
+            np.float64(self.cpu_g),
+            np.float64(self.cpu_eps) ,
+            np.int64(self.cpu_N),
+            self.gpu_x,
+            self.gpu_stage_centroid_values,
+            self.gpu_bed_centroid_values,
+            self.gpu_xmom_centroid_values,
+            self.gpu_ymom_centroid_values,
+            self.gpu_friction_centroid_values,
+            self.gpu_xmom_semi_implicit_update,
+            self.gpu_ymom_semi_implicit_update,
+        ))    
+
+        nvtxRangePush('CFT: transfer from GPU')
+
+        if transfer_gpu_results:
+            self.gpu_to_cpu_centroid_values()
+            cp.asnumpy(self.gpu_xmom_semi_implicit_update,    out = self.cpu_xmom_semi_implicit_update)
+            cp.asnumpy(self.gpu_ymom_semi_implicit_update,    out = self.cpu_ymom_semi_implicit_update)
+
+        nvtxRangePop()   
+
+
+        nvtxRangePop()
+
+
+
+    # This function serves functionality of assigning updated values back to Domain object for further calculation that occur off the GPU.
+    # Call this function after the kernal call to update the Domain
+    # this method accepts the domain object as an argument and updates only the relevant attributes. It returns the updated domain object, keeping the rest of its attributes intact.
+    def update_domain_values(self, domain):
+        """
+        Assign CPU values back to the given domain object.
+
+        Args:
+        - domain: The domain object to update with CPU values.
+        """
+        domain.number_of_elements = self.cpu_number_of_elements
+        domain.number_of_boundaries = self.cpu_number_of_boundaries
+        domain.boundary_length = self.cpu_boundary_length
+        domain.number_of_riverwall_edges = self.cpu_number_of_riverwall_edges
+        domain.epsilon = self.cpu_epsilon
+        domain.H0 = self.cpu_H0
+        domain.timestep = self.cpu_timestep
+        domain.limiting_threshold = self.cpu_limiting_threshold
+        domain.g = self.cpu_g
+        domain.optimise_dry_cells = self.cpu_optimise_dry_cells
+        domain.evolve_max_timestep = self.cpu_evolve_max_timestep
+        domain.timestep_fluxcalls = self.cpu_timestep_fluxcalls
+        domain.low_froude = self.cpu_low_froude
+        domain.max_speed = self.cpu_max_speed
+        domain.minimum_allowed_height = self.cpu_minimum_allowed_height
+        domain.maximum_allowed_speed = self.cpu_maximum_allowed_speed
+        domain.extrapolate_velocity_second_order = self.cpu_extrapolate_velocity_second_order
+        domain.beta_w = self.cpu_beta_w
+        domain.beta_w_dry = self.cpu_beta_w_dry
+        domain.beta_uh = self.cpu_beta_uh
+        domain.beta_uh_dry = self.cpu_beta_uh_dry
+        domain.beta_vh = self.cpu_beta_vh
+        domain.beta_vh_dry = self.cpu_beta_vh_dry
+        domain.max_flux_update_frequency = self.cpu_max_flux_update_frequency
+
+        quantities = domain.quantities
+        stage = quantities["stage"]
+        xmom = quantities["xmomentum"]
+        ymom = quantities["ymomentum"]
+        bed = quantities["elevation"]
+        height = quantities["height"]
+
+        stage.explicit_update = self.cpu_stage_explicit_update
+        xmom.explicit_update = self.cpu_xmom_explicit_update
+        ymom.explicit_update = self.cpu_ymom_explicit_update
+
+        stage.semi_implicit_update = self.cpu_stage_semi_implicit_update
+        xmom.semi_implicit_update = self.cpu_xmom_semi_implicit_update
+        ymom.semi_implicit_update = self.cpu_ymom_semi_implicit_update
+
+        stage.centroid_values = self.cpu_stage_centroid_values
+        xmom.centroid_values = self.cpu_xmom_centroid_values
+        ymom.centroid_values = self.cpu_ymom_centroid_values
+        height.centroid_values = self.cpu_height_centroid_values
+        bed.centroid_values = self.cpu_bed_centroid_values
+
+        stage.edge_values = self.cpu_stage_edge_values
+        xmom.edge_values = self.cpu_xmom_edge_values
+        ymom.edge_values = self.cpu_ymom_edge_values
+        height.edge_values = self.cpu_height_edge_values
+        bed.edge_values = self.cpu_bed_edge_values
+
+        stage.boundary_values = self.cpu_stage_boundary_values
+        xmom.boundary_values = self.cpu_xmom_boundary_values
+        ymom.boundary_values = self.cpu_ymom_boundary_values
+
+        stage.vertex_values = self.cpu_stage_vertex_values
+        height.vertex_values = self.cpu_height_vertex_values
+        xmom.vertex_values = self.cpu_xmom_vertex_values
+        ymom.vertex_values = self.cpu_ymom_vertex_values
+        bed.vertex_values = self.cpu_bed_vertex_values
+
+        domain.areas = self.cpu_domain_areas
+        domain.normals = self.cpu_domain_normals
+        domain.edgelengths = self.cpu_domain_edgelengths
+        domain.radii = self.cpu_domain_radii
+        domain.tri_full_flag = self.cpu_domain_tri_full_flag
+        domain.neighbours = self.cpu_domain_neighbours
+        domain.neighbour_edges = self.cpu_domain_neighbour_edges
+        domain.edge_flux_type = self.cpu_domain_edge_flux_type
+        domain.edge_river_wall_counter = self.cpu_domain_edge_river_wall_counter
+
+        riverwallData = domain.riverwallData
+        riverwallData.ncol_hydraulic_properties = self.cpu_riverwall_ncol_hydraulic_properties
+        riverwallData.riverwall_elevation = self.cpu_riverwall_elevation
+        riverwallData.hydraulic_properties_rowIndex = self.cpu_riverwall_rowIndex
+        riverwallData.hydraulic_properties = self.cpu_riverwall_hydraulic_properties
+
+        domain.centroid_coordinates = self.cpu_centroid_coordinates
+        domain.edge_coordinates = self.cpu_edge_coordinates
+        domain.surrogate_neighbours = self.cpu_surrogate_neighbours
+        domain.x_centroid_work = self.cpu_x_centroid_work
+        domain.y_centroid_work = self.cpu_y_centroid_work
+
+        return domain
