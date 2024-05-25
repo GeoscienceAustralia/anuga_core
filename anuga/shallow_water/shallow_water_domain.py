@@ -2924,6 +2924,7 @@ def manning_friction_implicit_cpu(domain):
     xmom = domain.quantities['xmomentum']
     ymom = domain.quantities['ymomentum']
 
+    # really only need this if using sloped mannings
     x = domain.get_vertex_coordinates()
 
     w = domain.quantities['stage'].centroid_values

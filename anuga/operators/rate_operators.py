@@ -174,7 +174,6 @@ class Rate_operator(Operator):
             rate = self.get_non_spatial_rate(t)
 
 
-
         fid = self.full_indices
         if num.all(rate >= 0.0):
             # Record the local flux for mass conservation tracking
@@ -187,7 +186,7 @@ class Rate_operator(Operator):
                 self.local_influx=(local_rates*self.areas)[fid].sum()
                 self.stage_c[indices] = self.stage_c[indices] \
                        + local_rates
-        else: # Be more careful if rate < 0
+        else: # Be more careful if rate < 0 
             if indices is None:
                 #self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[:]-self.elev_c[:])*self.areas)[fid].sum()
                 #self.stage_c[:] = num.maximum(self.stage_c  \
