@@ -263,6 +263,151 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(float(rr[1]), -1.0)
         assert num.allclose(float(rr[2]), -80.0)
 
+    def test_rate_operator_some_negative_rates(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 10.0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('xmomentum', 1.0)
+        domain.set_quantity('ymomentum', 2.0)
+
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        rate = num.array([ 10.0, 0.0, -10, -2.0])
+        factor = 1.0
+        default_rate= 0.0
+
+        operator = Rate_operator(domain, rate=rate, factor=factor, \
+                      indices=None, default_rate = default_rate)
+
+
+        # Apply Operator
+        domain.timestep = 2.0
+        operator()
+
+        print(domain.quantities['stage'].centroid_values)
+
+        stage_ex = [ 30.0,  10.0,   0.0,  6.0]
+        xmom_ex  = [ 1.0, 1.0, 0.0, 0.6]
+        ymom_ex  = [ 2.0, 2.0, 0.0, 1.2]
+
+        step_integral = 12.0
+
+        #print domain.quantities['elevation'].centroid_values
+        #print domain.quantities['stage'].centroid_values
+        #print domain.quantities['xmomentum'].centroid_values
+        #print domain.quantities['ymomentum'].centroid_values
+        #print domain.fractional_step_volume_integral
+
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, xmom_ex)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, ymom_ex)
+        assert num.allclose(domain.fractional_step_volume_integral, step_integral)
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        print(stats)
+
+        import re
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), -10.0)
+        assert num.allclose(float(rr[2]), 10.0)
+        assert num.allclose(float(rr[3]), -4.0)
+
+
+
+    def test_rate_operator_some_negative_rates_with_indices(self):
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi, cos, sin
+
+        a = [0.0, 0.0]
+        b = [0.0, 2.0]
+        c = [2.0, 0.0]
+        d = [0.0, 4.0]
+        e = [2.0, 2.0]
+        f = [4.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+        #             bac,     bce,     ecf,     dbe
+        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+
+        domain = Domain(points, vertices)
+
+        #Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 10.0)
+        domain.set_quantity('friction', 0)
+        domain.set_quantity('xmomentum', 1.0)
+        domain.set_quantity('ymomentum', 2.0)
+
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'exterior': Br})
+
+        indices = [0,2,3]
+
+        rate = num.array([ 10.0, 0.0, -10, -2.0])
+        factor = 1.0
+        default_rate= 0.0
+
+        operator = Rate_operator(domain, rate=rate, factor=factor, \
+                      indices=indices, default_rate = default_rate)
+
+
+        # Apply Operator
+        domain.timestep = 2.0
+        operator()
+
+        print(domain.quantities['stage'].centroid_values)
+
+        stage_ex = [ 30.0,  10.0,   0.0,  6.0]
+        xmom_ex  = [ 1.0, 1.0, 0.0, 0.6]
+        ymom_ex  = [ 2.0, 2.0, 0.0, 1.2]
+
+        step_integral = 12.0
+
+        #print domain.quantities['elevation'].centroid_values
+        #print domain.quantities['stage'].centroid_values
+        #print domain.quantities['xmomentum'].centroid_values
+        #print domain.quantities['ymomentum'].centroid_values
+        #print domain.fractional_step_volume_integral
+
+
+        assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
+        assert num.allclose(domain.quantities['xmomentum'].centroid_values, xmom_ex)
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, ymom_ex)
+        assert num.allclose(domain.fractional_step_volume_integral, step_integral)
+
+        # test timestepping_statistics
+        stats = operator.timestepping_statistics()
+        print(stats)
+        
+        import re
+        rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
+        assert num.allclose(float(rr[1]), -10.0)
+        assert num.allclose(float(rr[2]), 10.0)
+        assert num.allclose(float(rr[3]), 0.0)       
+    
+
     def test_rate_operator_rate_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin

@@ -123,6 +123,8 @@ class Rate_operator(Operator):
         self.set_default_rate(default_rate)
         self.default_rate_invoked = False    # Flag
 
+
+
         # ----------------
         # Mass tracking
         #-----------------
@@ -173,7 +175,9 @@ class Rate_operator(Operator):
         else:
             rate = self.get_non_spatial_rate(t)
 
-
+        # FIXME SR: 20240525 I think we need to adjust the velocities especially if rate < 0 since then 
+        # the xmom and ymom stay the same but height -> 0 so xvel, yvel -> infty
+        
 
         fid = self.full_indices
         if num.all(rate >= 0.0):
@@ -192,17 +196,33 @@ class Rate_operator(Operator):
                 #self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[:]-self.elev_c[:])*self.areas)[fid].sum()
                 #self.stage_c[:] = num.maximum(self.stage_c  \
                 #       + factor*rate*timestep, self.elev_c )
-                local_rates = num.maximum(factor*timestep*rate, self.elev_c[:]-self.stage_c[:])
+                self.height_c[:] = self.stage_c[:] - self.elev_c[:]
+                local_rates = num.maximum(factor*timestep*rate, -self.height_c)
+                local_factors = num.where(local_rates < 0.0, (local_rates+self.height_c)/(self.height_c+1.0e-10), 1.0)
+
+                #print(local_factors, local_rates)
                 self.local_influx = (local_rates*self.areas)[fid].sum()
                 self.stage_c[:] = self.stage_c + local_rates
+                self.xmom_c[:] = self.xmom_c[:]*local_factors
+                self.ymom_c[:] = self.ymom_c[:]*local_factors
             else:
                 #self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[indices]-self.elev_c[indices])*self.areas)[fid].sum()
                 #self.stage_c[indices] = num.maximum(self.stage_c[indices] \
                 #       + factor*rate*timestep, self.elev_c[indices])
 
-                local_rates = num.maximum(factor*timestep*rate, self.elev_c[indices]-self.stage_c[indices])
+                #local_rates = num.maximum(factor*timestep*rate, self.elev_c[indices]-self.stage_c[indices])
+
+                heights = self.stage_c[indices] - self.elev_c[indices]
+                local_rates = num.maximum(factor*timestep*rate, -heights)
+                local_factors = num.where(local_rates < 0.0, (local_rates+heights)/(heights+1.0e-10), 1.0)
+
+                print(local_factors, local_rates, fid)
+
                 self.local_influx = (local_rates*self.areas)[fid].sum()
                 self.stage_c[indices] = self.stage_c[indices] + local_rates
+                self.xmom_c[indices] = self.xmom_c[indices]*local_factors
+                self.ymom_c[indices] = self.ymom_c[indices]*local_factors
+
         # Update mass inflows from fractional steps
         self.domain.fractional_step_volume_integral+=self.local_influx
         
@@ -342,6 +362,8 @@ class Rate_operator(Operator):
         """ Calculate current overall discharge
         """
 
+        # FIXME SR: this does not take into account the zeroing of large negative rates
+        
         if full_only:
             if self.rate_spatial:
                 rate = self.get_spatial_rate() # rate is an array
