@@ -123,13 +123,14 @@ class Rate_operator(Operator):
         self.set_default_rate(default_rate)
         self.default_rate_invoked = False    # Flag
 
-
-
         # ----------------
         # Mass tracking
         #-----------------
         self.monitor = monitor
+        self.cumulative_influx = 0.0
         self.local_influx=0.0
+        self.local_max = 0.0
+        self.local_min = 0.0
 
     def __call__(self):
         """
@@ -185,12 +186,13 @@ class Rate_operator(Operator):
             if indices is None:
                 local_rates = factor*timestep*rate
                 self.local_influx = (local_rates*self.areas)[fid].sum()
+
                 self.stage_c[:] = self.stage_c[:] + local_rates
             else:
                 local_rates = factor*timestep*rate
                 self.local_influx=(local_rates*self.areas)[fid].sum()
-                self.stage_c[indices] = self.stage_c[indices] \
-                       + local_rates
+
+                self.stage_c[indices] = self.stage_c[indices] + local_rates
         else: # Be more careful if rate < 0
             if indices is None:
                 #self.local_influx=(num.minimum(factor*timestep*rate, self.stage_c[:]-self.elev_c[:])*self.areas)[fid].sum()
@@ -202,6 +204,7 @@ class Rate_operator(Operator):
 
                 #print(local_factors, local_rates)
                 self.local_influx = (local_rates*self.areas)[fid].sum()
+
                 self.stage_c[:] = self.stage_c + local_rates
                 self.xmom_c[:] = self.xmom_c[:]*local_factors
                 self.ymom_c[:] = self.ymom_c[:]*local_factors
@@ -216,12 +219,26 @@ class Rate_operator(Operator):
                 local_rates = num.maximum(factor*timestep*rate, -heights)
                 local_factors = num.where(local_rates < 0.0, (local_rates+heights)/(heights+1.0e-10), 1.0)
 
-                print(local_factors, local_rates, fid)
+                #print(local_factors, local_rates, fid)
 
                 self.local_influx = (local_rates*self.areas)[fid].sum()
+
                 self.stage_c[indices] = self.stage_c[indices] + local_rates
                 self.xmom_c[indices] = self.xmom_c[indices]*local_factors
                 self.ymom_c[indices] = self.ymom_c[indices]*local_factors
+
+
+        try:
+            self.local_max = local_rates[fid].max()/timestep
+            self.local_min = local_rates[fid].min()/timestep
+        except ValueError:
+            self.local_max = 0.0
+            self.local_min = 0.0
+        except:
+            self.local_max = local_rates/timestep
+            self.local_min = local_rates/timestep
+        
+        self.cumulative_influx += self.local_influx
 
         # Update mass inflows from fractional steps
         self.domain.fractional_step_volume_integral+=self.local_influx
@@ -510,38 +527,45 @@ class Rate_operator(Operator):
 
     def timestepping_statistics(self):
 
-        if self.rate_spatial:
-            rate = self.get_spatial_rate()
-            try:
-                min_rate = num.min(rate)
-            except ValueError:
-                min_rate = 0.0
-            try:
-                max_rate = num.max(rate)
-            except ValueError:
-                max_rate = 0.0
+        # retrieve data from last __call__ call
+        message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3'% (self.local_min, self.local_max, self.local_influx)
 
-            Q = self.get_Q()
-            message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
 
-        elif self.rate_type == 'quantity':
-            rate = self.get_non_spatial_rate() # return quantity
-            min_rate = rate.get_minimum_value()
-            max_rate = rate.get_maximum_value()
-            Q = self.get_Q()
-            message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
+        # if self.rate_spatial:
+        #     rate = self.get_spatial_rate()
+        #     try:
+        #         min_rate = num.min(rate)
+        #     except ValueError:
+        #         min_rate = 0.0
+        #     try:
+        #         max_rate = num.max(rate)
+        #     except ValueError:
+        #         max_rate = 0.0
 
-        elif self.rate_type == 'centroid_array':
-            rate = self.get_non_spatial_rate() # return centroid_array
-            min_rate = rate.min()
-            max_rate = rate.max()
-            Q = self.get_Q()
-            message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
+        #     Q = self.get_Q()
+        #     message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
 
-        else:
-            rate = self.get_non_spatial_rate()
-            Q = self.get_Q()
-            message  = indent + self.label + ': Rate = %g m/s, Total Q = %g m^3/s' % (rate, Q)
+        # elif self.rate_type == 'quantity':
+        #     rate = self.get_non_spatial_rate() # return quantity
+        #     min_rate = rate.get_minimum_value()
+        #     max_rate = rate.get_maximum_value()
+        #     Q = self.get_Q()
+        #     message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
+
+        # elif self.rate_type == 'centroid_array':
+        #     rate = self.get_non_spatial_rate() # return centroid_array
+        #     min_rate = rate.min()
+        #     max_rate = rate.max()
+        #     Q = self.get_Q()
+        #     message  = indent + self.label + ': Min rate = %g m/s, Max rate = %g m/s, Total Q = %g m^3/s'% (min_rate,max_rate, Q)
+
+        # else:
+        #     rate = self.get_non_spatial_rate()
+        #     Q = self.get_Q()
+        #     message  = indent + self.label + ': Rate = %g m/s, Total Q = %g m^3/s' % (rate, Q)
+
+
+        #print(message)
 
         return message
 
