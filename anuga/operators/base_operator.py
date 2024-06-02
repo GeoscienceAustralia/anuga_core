@@ -25,6 +25,7 @@ class Operator(object):
 
         # useful aliases
         self.stage_c = self.domain.quantities['stage'].centroid_values
+        self.height_c = self.domain.quantities['height'].centroid_values
         self.xmom_c  = self.domain.quantities['xmomentum'].centroid_values
         self.ymom_c  = self.domain.quantities['ymomentum'].centroid_values
         self.elev_c  = self.domain.quantities['elevation'].centroid_values
