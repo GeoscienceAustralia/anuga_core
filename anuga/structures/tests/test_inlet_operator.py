@@ -135,6 +135,64 @@ class Test_inlet_operator(unittest.TestCase):
         assert numpy.allclose((Q1+Q2)*finaltime, vol1-vol0, rtol=1.0e-8) 
         assert numpy.allclose((Q1+Q2)*finaltime, domain.fractional_step_volume_integral, rtol=1.0e-8) 
 
+    def test_inlet_negative_Q(self):
+        """test_inlet_Q
+        
+        This tests that the inlet operator adds the correct amount of water
+        """
+
+        stage_0 = 11.0
+        stage_1 = 10.0
+        elevation_0 = 10.0
+        elevation_1 = 10.0
+
+        domain_length = 200.0
+        domain_width = 200.0
+        
+
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 10.0,
+                                     dy = 10.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
+
+        vol0 = domain.compute_total_volume()
+
+        finaltime = 3.0
+        line1 = [[95.0, 10.0], [105.0, 10.0]]
+        Q1 = 10.0
+        
+        line2 = [[10.0, 90.0], [20.0, 90.0]]
+        Q2 = -1000.0
+        
+        inlet0 = Inlet_operator(domain, line1, Q1, logging=False)
+        inlet1 = Inlet_operator(domain, line2, Q2)
+
+        for t in domain.evolve(yieldstep = 1.0, finaltime = finaltime):
+            #domain.write_time()
+            #print domain.volumetric_balance_statistics()
+            pass
+
+        requested0 = inlet0.total_requested_volume
+        actual0 = inlet0.total_applied_volume
+
+        requested1 = inlet1.total_requested_volume
+        actual1 = inlet1.total_applied_volume
+
+        vol1 = domain.compute_total_volume()
+
+        # print(vol0)
+        # print(vol1)
+        # print(requested1)
+        # print(actual1)
+
+        # print(vol0+actual0+actual1)        
+
+        assert numpy.allclose(actual0+actual1, vol1-vol0, rtol=1.0e-8) 
+        assert numpy.allclose(actual0+actual1, domain.fractional_step_volume_integral, rtol=1.0e-8) 
 
 
     def test_inlet_constant_Q_polygon(self):
