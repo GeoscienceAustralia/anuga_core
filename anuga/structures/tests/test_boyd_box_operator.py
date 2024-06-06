@@ -225,7 +225,8 @@ class Test_boyd_box_operator(unittest.TestCase):
         
         el0 = numpy.array([[a, 100.0 - culvert_width/2], [a, 100.0 + culvert_width/2]])
         el1 = numpy.array([[b, 100.0 - culvert_width/2], [b, 100.0 + culvert_width/2]])
-        
+
+
         culvert = Boyd_box_operator(domain,
                                     losses=culvert_losses,
                                     width=culvert_width,
@@ -251,6 +252,81 @@ class Test_boyd_box_operator(unittest.TestCase):
         assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
         assert numpy.allclose(d, expected_d, rtol=1.0e-2) #depth at outlet used to calc v         
 
+
+
+    def test_boyd_skew_end_points(self):
+        """test_boyd_skew_end_point
+        
+        This tests the Boyd routine with data obtained from culvertw application 1.1 by IceMindserer  BD Parkinson, 
+        calculation code by MJ Boyd 
+        """
+
+        stage_0 = 11.0
+        stage_1 = 10.0
+        elevation_0 = 10.0
+        elevation_1 = 10.0
+
+        domain_length = 200.0
+        domain_width = 200.0
+
+        culvert_length = 20.0
+        culvert_width = 3.66
+        culvert_height = 3.66
+        culvert_losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
+        culvert_mannings = 0.013
+        
+        culvert_apron = 0.0
+        enquiry_gap = 5.0
+        
+        expected_Q = 6.23
+        expected_v = 2.55
+        expected_d = 0.66
+        
+
+        domain = self._create_domain(d_length=domain_length,
+                                     d_width=domain_width,
+                                     dx = 5.0,
+                                     dy = 5.0,
+                                     elevation_0 = elevation_0,
+                                     elevation_1 = elevation_1,
+                                     stage_0 = stage_0,
+                                     stage_1 = stage_1)
+
+        #print 'Defining Structures'
+        
+        a = domain_length/2 - culvert_length/2
+        b = domain_length/2 + culvert_length/2
+        
+        el0 = numpy.array([[a, 100.0 - culvert_width/2], [a, 100.0 + culvert_width/2]])
+        el1 = numpy.array([[b, 100.0 - culvert_width/2], [b, 100.0 + culvert_width/2]])
+
+        ep0 = [a, 100.0]
+        ep1 = [b, 100.0]
+        
+        culvert = Boyd_box_operator(domain,
+                                    losses=culvert_losses,
+                                    width=culvert_width,
+                                    end_points=[ep0, ep1],
+                                    height=culvert_height,
+                                    apron=culvert_apron,
+                                    enquiry_gap=enquiry_gap,
+                                    use_momentum_jet=False,
+                                    use_velocity_head=False,
+                                    manning=culvert_mannings,
+                                    label='3.6x3.6RCBC',
+                                    verbose=False)
+
+        #culvert.determine_inflow_outflow()
+        
+        ( Q, v, d ) = culvert.discharge_routine()
+        
+        if verbose:
+            print('test_boyd_skew')
+            print('Q: ', Q, 'expected_Q: ', expected_Q)
+
+        assert numpy.allclose(Q, expected_Q, rtol=1.0e-2) #inflow
+        assert numpy.allclose(v, expected_v, rtol=1.0e-2) #outflow velocity
+        assert numpy.allclose(d, expected_d, rtol=1.0e-2) #depth at outlet used to calc v  
 
     def test_boyd_non_skew_enquiry_points(self):
         """test_boyd_skew_enquiry_points
