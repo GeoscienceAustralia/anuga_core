@@ -322,8 +322,8 @@ class Structure_operator(anuga.Operator):
             
         # Stats
 
-        print('gain', gain)
-        
+        #print('gain', gain)
+
         self.accumulated_flow += gain
         self.discharge  = Q*timestep_star/timestep 
         self.discharge_abs_timemean += gain/self.domain.yieldstep
