@@ -215,7 +215,9 @@ class Structure_operator(anuga.Operator):
     def __call__(self):
 
         timestep = self.domain.get_timestep()
-        
+
+        # implement different types of structures by redefining 
+        # the discharge_routine
         Q, barrel_speed, outlet_depth = self.discharge_routine()
 
         old_inflow_depth = self.inflow.get_average_depth()
@@ -324,6 +326,7 @@ class Structure_operator(anuga.Operator):
         self.discharge_abs_timemean += gain/self.domain.yieldstep
         self.velocity =   barrel_speed
         self.outlet_depth = outlet_depth
+        
 
         new_outflow_depth = self.outflow.get_average_depth() + outflow_extra_depth
 

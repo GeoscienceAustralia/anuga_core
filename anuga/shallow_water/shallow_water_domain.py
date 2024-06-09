@@ -383,6 +383,13 @@ class Domain(Generic_Domain):
         # extrapolation/flux updating is used)
         self.allow_timestep_increase=num.zeros(1).astype(int)+1
 
+
+        #-----------------------------------
+        # parameters for structures
+        #-----------------------------------
+        self.use_new_velocity_head = False
+
+
     def _set_config_defaults(self):
         """Set the default values in this routine. That way we can inherit class
         and just redefine the defaults for the new class
