@@ -27,7 +27,12 @@ from sys import path
 from math import floor
 
 import numpy as num
-import numpy.lib.arraysetops as numset
+
+try:
+    import numpy.lib.arraysetops as numset
+except:
+    import numpy as numset
+
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga import indent
@@ -658,7 +663,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     gl0 = num.extract(num.logical_or(
         nghb0 < tlower, nghb0 >= tupper), new_ghost_list)
     nghb0 = mesh.neighbours[gl0, 0]
-    flag = numset.in1d(nghb0, new_ghost_list)
+    flag = numset.isin(nghb0, new_ghost_list)
     gl0 = num.extract(num.logical_not(flag), gl0)
     edge0 = 0*num.ones_like(gl0)
     n0 = len(edge0)
@@ -669,7 +674,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     gl1 = num.extract(num.logical_or(
         nghb1 < tlower, nghb1 >= tupper), new_ghost_list)
     nghb1 = mesh.neighbours[gl1, 1]
-    flag = numset.in1d(nghb1, new_ghost_list)
+    flag = numset.isin(nghb1, new_ghost_list)
     gl1 = num.extract(num.logical_not(flag), gl1)
     edge1 = 1*num.ones_like(gl1)
     n1 = len(edge1)
@@ -680,7 +685,7 @@ def ghost_bnd_layer(ghosttri, tlower, tupper, mesh, p):
     gl2 = num.extract(num.logical_or(
         nghb2 < tlower, nghb2 >= tupper), new_ghost_list)
     nghb2 = mesh.neighbours[gl2, 2]
-    flag = numset.in1d(nghb2, new_ghost_list)
+    flag = numset.isin(nghb2, new_ghost_list)
     gl2 = num.extract(num.logical_not(flag), gl2)
     edge2 = 2*num.ones_like(gl2)
     n2 = len(edge2)
