@@ -1505,13 +1505,20 @@ class Quantity(object):
         if location == 'centroids':
             points = self.domain.centroid_coordinates
 
+            if indices is not None:
+                indices = num.array(indices)
+                points = points[indices,:]
+
         else:
             points = self.domain.vertex_coordinates
 
+            if indices is not None:
+                indices = num.array(indices)
+                points = points[tuple(indices),:]
+
         #print(points.shape)
 
-        if indices is not None:
-            points = points[indices,:]
+        
 
         #print(points.shape)
 
@@ -1559,6 +1566,7 @@ class Quantity(object):
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
+                #print(values.shape, indices)
                 assert values.shape[0] == indices.shape[0], msg
 
                 # Brute force

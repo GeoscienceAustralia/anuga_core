@@ -2261,6 +2261,115 @@ Parameters
         import os
         os.remove(tif_file)
 
+    def test_set_values_from_ll_tif_file_north_indices(self):
+
+        from pprint import pprint
+
+        # We need to make a .tif with ll coord which covers domain
+        #
+        from anuga.utilities import plot_utils as util
+        import numpy
+        #
+        # Use Make_Geotif to make tif file
+        # Pick a domain that makes sense in EPSG:32656
+        lat_ll, lon_ll = 34.37, 150.90
+        lat_ur, lon_ur = 34.39, 150.92
+
+        import utm
+        utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
+        utm_east_ur, utm_north_ur, zone_ur, zone_letter_ur = utm.from_latlon(lat_ur, lon_ur)
+
+        hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
+        hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
+        
+        lat = numpy.linspace(lat_ll, lat_ur, 11)
+        lon = numpy.linspace(lon_ll, lon_ur, 11)
+        
+        xG, yG = numpy.meshgrid(lon, lat)
+        
+        xG = xG.flatten()
+        yG = yG.flatten()
+        # Surface is z=x+y
+
+        fakeZ = (xG-min(xG))/(max(xG)-min(xG))+(yG - min(yG))/(max(yG)-min(yG))
+
+        #pprint(fakeZ.reshape((11,11)))
+
+        dataToGrid = numpy.vstack([xG, yG, fakeZ]).transpose()
+        #
+        # Create file PointData_lat_long.tif
+        util.Make_Geotif(dataToGrid, output_quantities=['lat_long'],
+                        EPSG_CODE=4326, output_dir='.', CellSize=0.0001)
+
+        tif_file = 'PointData_lat_long.tif'
+
+        # Create a domain and quantity
+        x0 = utm_east_ll
+        y0 = utm_north_ll
+
+        a = [0.0, 0.0]
+        b = [0.0, 500.0]
+        c = [500.0, 0.0]
+        d = [0.0, 1000.0]
+        e = [500.0, 500.0]
+        f = [1000.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+
+        #bac, bce, ecf, dbe
+        elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
+
+        mesh4 = Generic_Domain(points, elements,
+                               geo_reference=Geo_reference(56, x0, y0, hemisphere=hemisphere_ll))
+        mesh4.check_integrity()
+
+        quantity1 = Quantity(mesh4)
+
+        # Read in an interpolate from tif file
+        quantity1.set_values_from_tif_file(filename=tif_file , location='vertices', indices=[0,1,2])
+
+        #pprint(quantity1.centroid_values)
+        #pprint(quantity1.vertex_values)
+
+
+        centroid_values_ex = numpy.array(
+            [0.17639186, 0.17639186, 0.17639186, 0. ])
+
+        vertex_values_ex = numpy.array(
+            [[0.23654294, 0.        , 0.29263264],
+            [0.23654294, 0.        , 0.29263264],
+            [0.23654294, 0.        , 0.29263264],
+            [0.        , 0.        , 0.        ]])                                     
+
+
+        assert num.allclose(quantity1.centroid_values, centroid_values_ex)
+        assert num.allclose(quantity1.vertex_values, vertex_values_ex)
+
+        quantity2 = Quantity(mesh4)
+
+        # Read in an interpolate from tif file
+        quantity2.set_values(filename=tif_file , location='centroids', indices=[1])
+
+        #pprint(quantity2.centroid_values)
+        #pprint(quantity2.vertex_values)
+
+        centroid_values_ex = numpy.array(
+            [0.        , 0.34097296, 0.        , 0.        ])
+        vertex_values_ex = numpy.array(
+            [[0.        , 0.        , 0.        ],
+            [0.34097296, 0.34097296, 0.34097296],
+            [0.        , 0.        , 0.        ],
+            [0.        , 0.        , 0.        ]])
+
+
+        assert num.allclose(quantity2.centroid_values, centroid_values_ex)
+        assert num.allclose(quantity2.vertex_values, vertex_values_ex)
+
+        #Cleanup
+        import os
+        os.remove(tif_file)
+
+
     def test_set_values_from_ll_tif_file_south(self):
 
         #Mesh in zone 56 (relative coords) southern hemisphere
