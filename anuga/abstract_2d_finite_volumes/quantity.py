@@ -1508,6 +1508,13 @@ class Quantity(object):
         else:
             points = self.domain.vertex_coordinates
 
+        #print(points.shape)
+
+        if indices is not None:
+            points = points[indices,:]
+
+        #print(points.shape)
+
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
 
         points = ensure_absolute(points, geo_reference=self.domain.geo_reference)
