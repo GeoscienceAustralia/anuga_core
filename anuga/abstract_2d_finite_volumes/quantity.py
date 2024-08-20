@@ -1579,7 +1579,6 @@ class Quantity(object):
                              filename,
                              location='centroids',
                              indices=None,
-                             northern=False,
                              verbose=False):
 
         """Read Digital model from the following ASCII format (.asc or .grd)
@@ -1723,6 +1722,11 @@ class Quantity(object):
             print(self.domain.geo_reference)
 
         utm_zone = self.domain.geo_reference.get_zone()
+        utm_hemisphere = self.domain.geo_reference.get_hemisphere()
+
+        northern = True
+        if utm_hemisphere == 'southern':
+            northern = False
 
         #import re
         #utm_zone_number = re.findall(r'\d+', utm_zone)[0]
