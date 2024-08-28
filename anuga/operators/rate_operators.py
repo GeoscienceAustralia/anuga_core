@@ -525,17 +525,19 @@ class Rate_operator(Operator):
 
 
         # Determine data timestep from xarray. We assume the timestep is constant, so just test first 2 timeslices.
-        data_dt = (self.xa['time'][1].values.astype('int64')-self.xa['time'][0].values.astype('int64'))/1.0e9
-        self.domain.set_evolve_max_timestep(min(data_dt, self.domain.get_evolve_max_timestep()))
-
+        try:
+            data_dt = (self.xa['time'][1].values.astype('int64')-self.xa['time'][0].values.astype('int64'))/1.0e9
+            self.domain.set_evolve_max_timestep(min(data_dt, self.domain.get_evolve_max_timestep()))
+        except:  # if we can't determine the timestep probably means there is just one timeslice so just
+            pass
 
         from scipy.spatial import KDTree
         tree = KDTree(self.xy)
         if self.verbose:
             print(tree.size, self.xy.shape)
 
-        #FIXME SR: Is this right or do we need to take into account the xll and yll offsets?
-        dd, ii = tree.query(self.domain.centroid_coordinates)
+        #dd, ii = tree.query(self.domain.centroid_coordinates)
+        dd, ii = tree.query(self.domain.get_centroid_coordinates(absolute=True))
 
         self.ii = ii
 
