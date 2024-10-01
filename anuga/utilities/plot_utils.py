@@ -1164,7 +1164,7 @@ def Make_Geotif(swwFile=None,
         if(verbose):
             print('Reduction = ', myTSi)
         for output_quantity in output_quantities:
-            if (verbose): print(output_quantity)
+            if (verbose): print(f'output_quantity {output_quantity}')
 
             if(myTSi != 'max'):
                 myTS = myTSi
@@ -1216,6 +1216,7 @@ def Make_Geotif(swwFile=None,
 
             if(verbose):
                 print('Making raster ...')
+
             gridq.shape = (len(desiredY),len(desiredX))
             make_grid(numpy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
                       proj4string=proj4string, creation_options=creation_options)
