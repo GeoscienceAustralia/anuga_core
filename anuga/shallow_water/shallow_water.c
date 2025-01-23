@@ -1763,7 +1763,8 @@ int _extrapolate_second_order_sw_old(int number_of_elements,
     double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
     double dqv[3], qmin, qmax, hmin, hmax;
     double hc, h0, h1, h2, beta_tmp, hfactor;
-    double xmom_centroid_store[number_of_elements], ymom_centroid_store[number_of_elements];
+    double *xmom_centroid_store = (double *)malloc(number_of_elements * sizeof(double)); 
+    double *ymom_centroid_store = (double *)malloc(number_of_elements * sizeof(double)); 
     double dk, dv0, dv1, dv2;
 
     if (extrapolate_velocity_second_order == 1) {
@@ -2236,6 +2237,8 @@ int _extrapolate_second_order_sw_old(int number_of_elements,
         }
     }
 
+    free(xmom_centroid_store);
+    free(ymom_centroid_store);
     return 0;
 }
 
