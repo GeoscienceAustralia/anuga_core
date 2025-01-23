@@ -27,7 +27,7 @@ from sys import path
 from math import floor
 
 import numpy as num
-import numpy.lib.arraysetops as numset
+import numpy.lib._arraysetops_impl as numset
 
 from anuga.abstract_2d_finite_volumes.neighbour_mesh import Mesh
 from anuga import indent
