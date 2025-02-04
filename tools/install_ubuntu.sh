@@ -27,3 +27,8 @@ then
     bash install_ubuntu_22_04.sh
 fi
 
+if [[ "$VERSION_ID" == "24.04" ]] 
+then 
+    cd "$(dirname "${BASH_SOURCE[0]}")";
+    bash install_ubuntu_24_04.sh
+fi
