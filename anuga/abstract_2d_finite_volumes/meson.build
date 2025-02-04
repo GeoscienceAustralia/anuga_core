@@ -34,9 +34,10 @@ py3.extension_module('neighbour_mesh_ext',
 
 py3.extension_module('neighbour_table_ext',
   sources: ['neighbour_table_ext.pyx'],
+  override_options : ['cython_language=cpp'],
   include_directories: inc_dir,
   dependencies: dep_py,
-  install: true
+  install: true,
 )
 
 py3.extension_module('pmesh2domain_ext',
@@ -46,7 +47,7 @@ py3.extension_module('pmesh2domain_ext',
   install: true
 )
 
-py3.extension_module('quantity_ext.pyx',
+py3.extension_module('quantity_ext',
   sources: ['quantity_ext.pyx'],
   include_directories: inc_dir,
   dependencies: dep_py,
