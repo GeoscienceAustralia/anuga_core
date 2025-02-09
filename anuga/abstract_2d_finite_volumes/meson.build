@@ -1,21 +1,4 @@
-# meson.build inside anuga/abstract_2d_finite_volumes
 
-# project('anuga', 'cython', version: '1.0')
-
-# # Import python and cython modules
-# py3 = import('python').find_installation()
-# dep_py = py3.dependency()
-
-
-# #cython = import('cython')
-
-# # Find NumPy
-# dep_numpy = dependency('numpy')
-
-# dependencies = [dep_py, dep_numpy]
-
-# Cython to C conversion
-#cython_files = cython.generate(pyx_sources: files('*.pyx'))
 
 inc_dir = include_directories('../utilities')
 

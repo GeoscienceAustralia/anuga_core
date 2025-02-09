@@ -37,7 +37,7 @@ py3.install_sources(
 
 # Add subdirectories for each module
 subdir('abstract_2d_finite_volumes')
-# subdir('advection')
+subdir('advection')
 # subdir('alpha_shape')
 # subdir('caching')
 # subdir('coordinate_transforms')
