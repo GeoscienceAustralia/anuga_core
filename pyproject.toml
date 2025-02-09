@@ -1,11 +1,21 @@
 [build-system]
-requires = ["setuptools <= 60", "Cython", "wheel", "numpy", "gitpython", "dill"]
-build-backend = "setuptools.build_meta"
+build-backend = 'mesonpy'
+requires = ['meson-python', 'Cython', 'wheel', 'numpy', 'gitpython', 'dill']
+
+[project]
+name = 'anuga'
+version = '3.2.0dev'
+description = 'A set of python modules for tsunami and flood modelling'
+readme = 'README.rst'
+license = {file = 'LISENSE.txt'}
+authors = [
+  {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
+]
 
 
 [tool.pytest.ini_options]
-minversion = "6.0"
+minversion = '6.0'
 testpaths = [
-    "anuga"
+    'anuga'
 ]
 
