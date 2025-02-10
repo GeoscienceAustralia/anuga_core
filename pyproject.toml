@@ -1,6 +1,13 @@
 [build-system]
 build-backend = 'mesonpy'
-requires = ['meson-python', 'Cython', 'wheel', 'numpy', 'gitpython', 'dill']
+requires = [
+    "meson-python",
+    "meson", 
+    "ninja",
+    "Cython",   
+    "pybind11",
+    "numpy",
+]
 
 [project]
 name = 'anuga'
@@ -11,7 +18,37 @@ license = {file = 'LICENSE.txt'}
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
+requires-python = '>=3.7'
+dependencies = [
+    'numpy>=1.25.2',
+]
+classifiers = [
+    'Intended Audience :: Science/Research',
+    'Intended Audience :: Developers',
+    'License :: OSI Approved',
+    'Programming Language :: C',
+    'Programming Language :: C++',
+    'Programming Language :: Python',
+    'Topic :: Software Development',
+    'Topic :: Scientific/Engineering',
+    'Operating System :: Microsoft :: Windows',
+    'Operating System :: POSIX',
+    'Operating System :: Unix',
+    'Operating System :: MacOS',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
+]
 
+[project.urls]
+homepage      = "https://en.wikipedia.org/wiki/ANUGA_Hydro"
+documentation = "https://anuga-viewer.readthedocs.io"
+source        = "https://github.com/anuga-community/anuga_core"
+download      = "https://github.com/anuga-community/anuga_core/releases"
+tracker       = "https://github.com/anuga-community/anuga_core/issues"
 
 [tool.pytest.ini_options]
 minversion = '6.0'

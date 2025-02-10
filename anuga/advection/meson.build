@@ -1,4 +1,10 @@
+py3 = import('python').find_installation(pure: false)
+dep_py = py3.dependency()
 
+# Find NumPy
+dep_numpy = dependency('numpy')
+
+dependencies = [dep_py, dep_numpy]
 
 inc_dir = include_directories('../utilities')
 
@@ -14,7 +20,8 @@ py3.extension_module('advection_ext',
 python_sources = ['advection.py', '__init__.py']
 
 py3.install_sources(
-  python_sources
+  python_sources,
+  subdir: 'anuga/advection'
 )
 
 subdir('tests')

@@ -22,5 +22,5 @@ python_sources = [
 
 py3.install_sources(
   python_sources,
-  subdir: 'anuga/abstract_2d_finite_volumes'
+  subdir: 'anuga/abstract_2d_finite_volumes/tests'
 )

@@ -1,5 +1,4 @@
 
-
 inc_dir = include_directories('../utilities')
 
 # Compile the Cython-generated C code and additional C code
@@ -66,7 +65,8 @@ python_sources = [
 
 
 py3.install_sources(
-  python_sources
+  python_sources,
+  subdir: 'anuga/abstract_2d_finite_volumes'
 )
 
 subdir('tests')
