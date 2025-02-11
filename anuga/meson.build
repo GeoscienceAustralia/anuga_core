@@ -17,7 +17,6 @@
 
 python_sources = [
     'anuga_exceptions.py',
-    '__config__.py',
     'config.py',
     'error_api.py',
     'extras.py',
