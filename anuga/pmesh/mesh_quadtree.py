@@ -25,7 +25,7 @@ from anuga.geometry.aabb import AABB
 
 import numpy as num
 from anuga.utilities.numerical_tools import ensure_numeric
-import anuga.fit_interpolate.fitsmooth as fitsmooth
+import anuga.fit_interpolate.fitsmooth_ext as fitsmooth
 
 
 # PADARN NOTE: I don't think much from Cell is used anymore, if

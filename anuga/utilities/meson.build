@@ -30,7 +30,7 @@ py3.extension_module('sparse_matrix_ext',
 )
 
 py3.extension_module('util_ext',
-  sources: ['util_ext_c.pyx'],
+  sources: ['util_ext.pyx'],
   dependencies: dependencies,
   subdir: 'anuga/utilities',
   install: true,

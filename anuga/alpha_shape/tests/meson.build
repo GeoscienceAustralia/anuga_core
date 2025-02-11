@@ -1,9 +1,9 @@
 
 python_sources = [
-  'test_advection.py',
+  'test_alpha_shape.py',
 ]
 
 py3.install_sources(
   python_sources,
-  subdir: 'anuga/advection/tests'
+  subdir: 'anuga/alpha_shape/tests'
 )
