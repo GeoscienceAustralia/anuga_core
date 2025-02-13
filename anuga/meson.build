@@ -1,18 +1,3 @@
-# project('anuga', 'cython', version: '1.0')
-
-# # Import python and cython modules
-# py3 = import('python').find_installation()
-# dep_py = py3.dependency()
-
-
-# #cython = import('cython')
-
-# # Find NumPy
-# dep_numpy = dependency('numpy')
-
-# dependencies = [dep_py, dep_numpy]
-
-
 
 
 python_sources = [
@@ -25,7 +10,6 @@ python_sources = [
     'old_setup.py',
     'revision.py',
 ]
-
 
 
 py3.install_sources(

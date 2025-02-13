@@ -1,4 +1,4 @@
-project('anuga', 'c', 'cpp', 'cython', version: '1.0')
+project('anuga', 'c', 'cpp', 'cython', version: '3.2.dev0')
 
 # Import python and cython modules
 py3 = import('python').find_installation(pure: false)
