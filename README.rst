@@ -32,17 +32,10 @@
     :target: https://anuga.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
-<<<<<<< HEAD
 |badge0| |badge1| |badge2| |badge3| |badge3| |badge4| |badge5| |badge6| |badge7|
 
 
 
-
-
-
-=======
-|badge1| |badge2| |badge3| |badge3| |badge4| |badge5| |badge6| |badge7|
->>>>>>> main
 
 =====
 ANUGA
