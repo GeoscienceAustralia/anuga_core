@@ -6,7 +6,7 @@
 #
 #  To run in parallel on 4 processes, use the following
 #
-#  mpiexec -np 4 python -u run_parallel_sw_rectangular_cross.py
+#  mpiexec -np 4 python -u run_parallel_rectangular.py
 #
 #
 #  Note the use of "if myid == 0" to restrict some calculations 
