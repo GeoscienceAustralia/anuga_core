@@ -1,14 +1,4 @@
 
-
-# Compile the Cython-generated C code and additional C code
-# py3.extension_module('advection_ext',
-#   sources: ['advection_ext.pyx'],
-#   include_directories: inc_dir,
-#   dependencies: dependencies,
-#   subdir: 'anuga/advection',
-#   install: true,
-# )
-
 python_sources = [
   'config.py',
   'distribute_mesh.py',

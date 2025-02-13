@@ -1,10 +1,3 @@
-py3 = import('python').find_installation(pure: false)
-dep_py = py3.dependency()
-
-# Find NumPy
-dep_numpy = dependency('numpy')
-
-dependencies = [dep_py, dep_numpy]
 
 inc_dir = include_directories('../utilities')
 
