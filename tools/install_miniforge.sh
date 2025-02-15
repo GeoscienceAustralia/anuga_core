@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-PYTHON_VERSION=${PYTHON_VERSION:-"3.10"}
+PY=${PY:-"3.10"}
 
 set -e 
 
@@ -20,15 +20,15 @@ cd $HOME
 echo "#=========================================="
 echo "# create conda/mamba environment anuga_env"
 echo "#=========================================="
-mamba create -n anuga_env_test_3 --yes python=${PYTHON_VERSION} compilers pip numpy scipy cython netcdf4 \
+mamba create -n anuga_env_${PY} --yes python=${PY} compilers pip numpy scipy cython netcdf4 \
      nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
      meson-python meson ninja xarray future
 
 echo "#================================"
-echo "# activate environment anuga_env"
+echo "# activate environment anuga_env_${PY}"
 echo "#================================"
 
-source ./miniforge3/bin/activate anuga_env_test_3
+source ./miniforge3/bin/activate anuga_env_${PY}
 
 
 # echo "#================================================"
@@ -59,10 +59,10 @@ echo "# Congratulations, Looks like you have successfully installed anuga"
 echo "#=================================================================="
 
 echo "#=================================================================="
-echo "# To use anuga you must activate the python environment anuga_env"
+echo "# To use anuga you must activate the python environment anuga_env_${PY}"
 echo "# that has just been created. Run the command"
 echo "# "
-echo "# source ~/miniforge3/bin/activate anuga_env"
+echo "# source ~/miniforge3/bin/activate anuga_env_${PY}"
 echo "# "
 echo "#=================================================================="
 
@@ -75,7 +75,7 @@ echo "# (which will change your .bashrc file) "
 echo "# then in new terminals you will be able to use "
 echo "# the mamba command"
 echo "# "
-echo "# mamba activate anuga_env"
+echo "# mamba activate anuga_env_${PY}"
 echo "# "
 echo "# to activate the anuga_env environment"
 echo "#=================================================================="
