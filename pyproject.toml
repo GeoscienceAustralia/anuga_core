@@ -4,7 +4,6 @@ requires = [
     "meson-python",
     "meson", 
     "ninja",
-    "python",
     "Cython",   
     "pybind11",
     "numpy",
