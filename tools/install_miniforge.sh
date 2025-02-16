@@ -43,7 +43,7 @@ echo "#======================================"
 echo "# activate environment anuga_env_${PY}"
 echo "#======================================"
 echo "..."
-./miniforge3/bin/activate anuga_env_${PY}
+source ./miniforge3/bin/activate anuga_env_${PY}
 
 
 echo "#================================================================"
