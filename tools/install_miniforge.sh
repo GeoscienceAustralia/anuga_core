@@ -27,7 +27,7 @@ if [ -d "$HOME/miniforge3" ]; then
      echo "miniforge3 already exists."
 else
      echo "Miniforge does not exist. Installing from Miniforge3.sh..."
-     bash Miniforge3.sh
+     bash Miniforge3.sh -b
 fi
 
 
