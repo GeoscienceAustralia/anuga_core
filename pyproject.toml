@@ -7,7 +7,6 @@ requires = [
     "Cython",   
     "pybind11",
     "numpy",
-    "pkg-config",
 ]
 
 [project]
