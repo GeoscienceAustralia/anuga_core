@@ -4,9 +4,11 @@ requires = [
     "meson-python",
     "meson", 
     "ninja",
+    "python",
     "Cython",   
     "pybind11",
     "numpy",
+    "pkg-config",
 ]
 
 [project]
@@ -35,7 +37,6 @@ classifiers = [
     'Operating System :: POSIX',
     'Operating System :: Unix',
     'Operating System :: MacOS',
-    'Programming Language :: Python :: 3.7',
     'Programming Language :: Python :: 3.8',
     'Programming Language :: Python :: 3.9',
     'Programming Language :: Python :: 3.10',
@@ -49,6 +50,7 @@ documentation = "https://anuga-viewer.readthedocs.io"
 source        = "https://github.com/anuga-community/anuga_core"
 download      = "https://github.com/anuga-community/anuga_core/releases"
 tracker       = "https://github.com/anuga-community/anuga_core/issues"
+
 
 [tool.pytest.ini_options]
 minversion = '6.0'

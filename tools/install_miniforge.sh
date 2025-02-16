@@ -35,9 +35,9 @@ echo "#==============================================="
 echo "# create conda/mamba environment anuga_env_${PY}"
 echo "#==============================================="
 echo "..."
-./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers pip numpy scipy cython netcdf4 \
+./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers numpy scipy cython netcdf4 \
      nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
-     meson-python meson ninja xarray future
+     meson-python meson ninja xarray future pkg-config
 
 echo "#======================================"
 echo "# activate environment anuga_env_${PY}"
