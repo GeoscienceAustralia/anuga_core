@@ -12,8 +12,8 @@ ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 echo $PY
 
 #test PY>3.8 and <3.13
-if [ $(echo "$PY > 3.8" | bc) -eq 1 ] && [ $(echo "$PY < 3.13" | bc) -eq 1 ]; then
-    echo "Python version is $PY"
+if [[ "$PY" =~ ^3\.(1[0-2]|[9])$ ]]; then
+     echo "Python version is $PY"
 else
     echo "Python version must be greater than 3.8 and less than 3.13"
     exit 1
