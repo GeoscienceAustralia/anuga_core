@@ -18,7 +18,7 @@ license = {file = 'LICENSE.txt'}
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
-requires-python = '>3.8 <3.13'
+requires-python = ">3.8, <3.13"
 dependencies = [
     'numpy>=1.25.2',
 ]
