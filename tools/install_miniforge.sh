@@ -9,6 +9,7 @@ SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 
+echo $PY
 
 #test PY>3.8 and <3.13
 if [ $(echo "$PY > 3.8" | bc) -eq 1 ] && [ $(echo "$PY < 3.13" | bc) -eq 1 ]; then
