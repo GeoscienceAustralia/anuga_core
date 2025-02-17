@@ -10,6 +10,15 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 
 
+#test PY>3.8 and <3.13
+if [ $(echo "$PY > 3.8" | bc) -eq 1 ] && [ $(echo "$PY < 3.13" | bc) -eq 1 ]; then
+    echo "Python version is $PY"
+else
+    echo "Python version must be greater than 3.8 and less than 3.13"
+    exit 1
+fi
+
+
 echo "#==========================="
 echo "# Install miniforge3"
 echo "#==========================="
