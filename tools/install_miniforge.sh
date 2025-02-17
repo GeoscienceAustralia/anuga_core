@@ -9,7 +9,6 @@ SCRIPT=$(realpath "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 
-echo $PY
 
 #test PY>3.8 and <3.13
 if [[ "$PY" =~ ^3\.(1[0-2]|[9])$ ]]; then
