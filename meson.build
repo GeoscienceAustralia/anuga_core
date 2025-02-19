@@ -8,9 +8,10 @@ message('Python found at ' + py3.get_variable('prefix'))
 dep_py = py3.dependency()
 
 # Find NumPy
-dep_numpy = dependency('numpy', method : 'config-tool', required : true)
+dep_numpy = dependency('numpy', required : true)
 
-dependencies = [dep_py, dep_numpy]
+# important to put the numpy dependency first to avoid picking up the system numpy
+dependencies = [dep_numpy, dep_py]
 
 # Add subdirectories which contains python sources
 subdir('anuga')

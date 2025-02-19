@@ -9,7 +9,7 @@ echo "#==========================="
 echo "# Install packages via apt"
 echo "#==========================="
 
-sudo apt install -y -q gfortran netcdf-bin libnetcdf-dev libhdf5-serial-dev gdal-bin libgdal-dev libopenmpi-dev openmpi-bin
+sudo apt install -y -q gfortran netcdf-bin libnetcdf-dev libhdf5-serial-dev gdal-bin libgdal-dev libopenmpi-dev openmpi-bin python3-venv
 
 echo "#==========================="
 echo "# Create a virtual environment and then"

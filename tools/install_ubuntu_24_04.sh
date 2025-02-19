@@ -19,7 +19,7 @@ echo "#==========================="
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
 python3 -m venv anuga_env
 source anuga_env/bin/activate
-pip install wheel scipy gdal==3.4.1 matplotlib pytest cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython utm affine mpi4py
+pip install wheel scipy gdal==3.4.1 matplotlib pytest cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython utm affine
 
 echo "#==========================="
 echo "# Installing anuga from the anuga_core directory"
@@ -34,7 +34,14 @@ echo "# To use anuga you must activate the"
 echo "# python environment anuga_env that has been"
 echo "# created in your anuga_core directory by"
 echo "# changing to anuga_core directory then running:"
+echo "# "
 echo "# source anuga_env/bin/activate"
+echo "# "
+echo "# After activating environment use:"
+echo "# "
+echo "# pip install mpi4py "
+echo "# "
+echo "# to enable parallel execution"
 echo "#================================================"
 
 
