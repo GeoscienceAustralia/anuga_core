@@ -17,16 +17,23 @@ echo "# install python packages via pip"
 echo "#======================================="
 
 cd "$(dirname "${BASH_SOURCE[0]}")"/..
+
+ANUGA_CORE_PATH=`pwd`
+echo "ANUGA_CORE_PATH: $ANUGA_CORE_PATH"
+
+# ensure meson picks pip installed numpy and not system numpy
+PKG_CONFIG_PATH="${ANUGA_CORE_PATH}/anuga_env/lib/python3.10/site-packages/numpy/_core/lib/pkgconfig"
+#echo "$PKG_CONFIG_PATH"
+
 python3 -m venv anuga_env
 source anuga_env/bin/activate
-pip install wheel numpy==1.26 scipy gdal==3.4.1 matplotlib pytest cython netcdf4 matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython utm affine mpi4py
+pip install wheel numpy==1.26 scipy gdal==3.4.1 matplotlib pytest cython netcdf4 \
+     matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython \
+     utm affine mpi4py xarray meson meson-python ninja
 
 echo "#============================================"
 echo "# Install anuga from the anuga_core directory"
 echo "#============================================"
-
-# ensure meson picks pip installed numpy and not system numpy
-export PKG_CONFIG_PATH=~/anuga_core/anuga_env/lib/python3.10/site-packages/numpy/_core/lib/pkgconfig
 
 pip install .
 
@@ -42,5 +49,6 @@ echo "# created in your anuga_core directory by"
 echo "# changing to anuga_core directory then running:"
 echo "# source anuga_env/bin/activate"
 echo "#================================================"
+
 
 
