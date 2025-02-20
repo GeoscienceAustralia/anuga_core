@@ -35,9 +35,6 @@ echo "#==============================================="
 echo "# Installing anuga from the anuga_core directory"
 echo "#==============================================="
 
-# ensure meson picks pip installed numpy and not system numpy
-export PKG_CONFIG_PATH=~/anuga_core/anuga_env/lib/python3.12/site-packages/numpy/_core/lib/pkgconfig
-
 pip install .
 
 echo "#==========================="
