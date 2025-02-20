@@ -977,7 +977,14 @@ class Domain(Generic_Domain):
 
         param: timestamp: return datetime corresponding to given timestamp"""
 
-        from datetime import datetime, UTC
+        from datetime import datetime
+        
+        try:
+            from datetime import UTC
+        except:
+            from datetime import timezone
+            UTC = timezone.utc 
+
 
         if timestamp is None:
             timestamp = self.get_time()
