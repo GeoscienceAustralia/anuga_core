@@ -29,7 +29,7 @@ npymath_path = incdir_numpy / '..' / 'lib'
 npymath_lib = meson.get_compiler('c').find_library('npymath', dirs: npymath_path)
 
 my_inc = include_directories(incdir_numpy)
-my_lib = static_library(npymath_lib)
+my_lib = shared_library(npymath_path / 'libnpymath.a')
 my_dep = declare_dependency(link_with : my_lib,
   include_directories : my_inc)
 
