@@ -19,7 +19,7 @@ incdir_numpy = run_command(py3,
   check: true
 ).stdout().strip()
 
-inc_np = include_directories(incdir_numpy)
+#inc_np = include_directories(incdir_numpy)
 
 #incdir_f2py = incdir_numpy / '..' / '..' / 'f2py' / 'src'
 #inc_f2py = include_directories(incdir_f2py)
@@ -28,7 +28,7 @@ inc_np = include_directories(incdir_numpy)
 npymath_path = incdir_numpy / '..' / 'lib'
 npymath_lib = meson.get_compiler('c').find_library('npymath', dirs: npymath_path)
 
-my_inc = include_directories(inc_np)
+my_inc = include_directories(incdir_numpy)
 my_lib = static_library(npymath_lib)
 my_dep = declare_dependency(link_with : my_lib,
   include_directories : my_inc)
