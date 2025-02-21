@@ -49,13 +49,18 @@ PKG_CONFIG_PATH="${ANUGA_CORE_PATH}/anuga_env/lib/python3.12/site-packages/numpy
 
 python3 -m venv anuga_env
 source anuga_env/bin/activate
-pip install wheel numpy==1.26.4 --force-reinstall scipy gdal==3.8 matplotlib pytest cython netcdf4 \
+pip install wheel numpy==2.2 --force-reinstall scipy gdal==3.11 matplotlib pytest cython netcdf4 \
      matplotlib dill future gitpython pyproj pymetis pybind11 meshpy Pmw ipython \
      utm affine mpi4py xarray meson meson-python ninja
 
 echo "#==============================================="
 echo "# Installing anuga from the anuga_core directory"
 echo "#==============================================="
+
+# get numpy include path
+NUMPY_INCLUDE_PATH=$(python3 -c "import numpy; print(numpy.get_include())")
+
+
 
 pip install .
 

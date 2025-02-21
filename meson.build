@@ -1,7 +1,7 @@
 project('anuga', 'c', 'cpp', 'cython', version: '3.2.dev0')
 
 # Import python
-py3 = import('python').find_installation(pure: false, module: 'numpy')
+py3 = import('python').find_installation(pure: false, modules: ['numpy'])
 
 message('Python found at ' + py3.get_variable('prefix'))
 
