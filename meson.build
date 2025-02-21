@@ -8,7 +8,7 @@ message('Python found at ' + py3.get_variable('prefix'))
 dep_py = py3.dependency()
 
 # Find NumPy
-dep_numpy = dependency('numpy', required : true)
+dep_numpy = dependency('numpy', method: numpy-config, required : true)
 
 
 # incdir_numpy = run_command(py3,
