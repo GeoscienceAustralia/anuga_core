@@ -66,6 +66,9 @@ pip install .
 
 echo "#==========================="
 echo "# Run unittests"
+echo "# "
+echo "# At present 22/02/2025 the tests are failing"
+echo "# due to a problem with numpy 2.2 and gdal"
 echo "#==========================="
 pytest -q --pyargs anuga
 
