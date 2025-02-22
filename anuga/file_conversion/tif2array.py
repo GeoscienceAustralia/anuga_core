@@ -1,6 +1,6 @@
 import numpy as np
 
-from osgeo import gdal
+
 
 def tif2array(filename, variable_name='elevation',
               easting_min=None, easting_max=None,
@@ -8,6 +8,8 @@ def tif2array(filename, variable_name='elevation',
              use_cache=False, verbose=False,):
     
     import os
+    from osgeo import gdal
+    
     raster= gdal.Open(filename)
     ncols= raster.RasterXSize
     nrows= raster.RasterYSize

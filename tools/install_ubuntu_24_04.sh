@@ -9,15 +9,15 @@ echo "#==========================="
 echo "# Install packages via apt"
 echo "#==========================="
 
-# sudo apt install -y -q build-essential python-dev-is-python3 gfortran netcdf-bin \
-#     libnetcdf-dev libhdf5-serial-dev gdal-bin libgdal-dev libopenmpi-dev openmpi-bin \
-#     python3-venv
+sudo apt install -y -q build-essential python-dev-is-python3 gfortran netcdf-bin \
+    libnetcdf-dev libhdf5-serial-dev gdal-bin libgdal-dev libopenmpi-dev openmpi-bin \
+    python3-venv
 
-sudo apt-get install -y build-essential cmake python3-dev python-dev-is-python3 \
-     netcdf-bin libnetcdf-dev libhdf5-serial-dev libpq-dev libgeos-dev libexpat-dev \
-    libxerces-c-dev libwebp-dev libpng-dev libzstd-dev libssl-dev libopenjp2-7-dev \
-    libspatialite-dev libmuparser-dev autoconf automake sqlite3 bash-completion swig \
-    libopenmpi-dev openmpi-bin python3-venv
+# sudo apt-get install -y build-essential cmake python3-dev python-dev-is-python3 \
+#      netcdf-bin libnetcdf-dev libhdf5-serial-dev libpq-dev libgeos-dev libexpat-dev \
+#     libxerces-c-dev libwebp-dev libpng-dev libzstd-dev libssl-dev libopenjp2-7-dev \
+#     libspatialite-dev libmuparser-dev autoconf automake sqlite3 bash-completion swig \
+#     libopenmpi-dev openmpi-bin python3-venv
 
 #build gdal from source
 # cd /tmp
