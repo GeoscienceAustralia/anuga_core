@@ -29,14 +29,23 @@ build_script:
   - conda info -a
 
   # install the dependencies
-  - conda create -n anuga_env --yes --quiet python=3.10 gxx numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine backports.zoneinfo pymetis mpi4py msmpi Pmw meson meson-python ninja > conda_install.log 2>&1
-  
+  - conda create -n anuga_env --yes --quiet python=3.10 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine backports.zoneinfo pymetis mpi4py msmpi Pmw meson meson-python ninja > conda_install.log 2>&1
   - type conda_install.log
   
   - conda activate anuga_env
   # test python
   - python --version
-  # setup for mingw compiler 
+  # setup for mingw compiler
+  - conda install m2w64-gcc m2w64-gcc-fortran m2w64-gcc-libgfortran m2w64-gcc-libs m2w64-libwinpthread-git 
+  - set PATH=%PATH%;%UserProfile%\Miniforge3\Library\mingw-w64\bin
+  - set CC=gcc
+  - set CXX=g++
+  - set FC=gfortran
+
+  - gcc --version
+  - g++ --version
+  - gfortran --version
+  
   #- conda install -c conda-forge libpython m2w64-toolchain
   # there seems to be a bug with distutil by not picking the mingw comiler for anuga
   #- cp windows_setup.cfg setup.cfg
