@@ -1,4 +1,4 @@
-project('anuga', 'c', 'cpp', 'cython', version: '3.2.dev0')
+project('anuga', 'c', 'cpp', 'cython', version: '3.2.dev0', default_options: ['cpp_std=c++11'])
 
 # Import python
 py3 = import('python').find_installation(pure: false, modules: ['numpy'])
