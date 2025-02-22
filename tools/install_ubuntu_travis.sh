@@ -170,6 +170,12 @@ echo "..."
 python -m pip  install -q utm
 
 echo "+===============================================+"
+echo "|  Using pip to install xarray                  |"
+echo "+===============================================+"
+echo "..."
+python -m pip  install -q xarray
+
+echo "+===============================================+"
 echo "|  Using pip to install nbsphinx                |"
 echo "+===============================================+"
 echo "..."
