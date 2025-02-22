@@ -20,7 +20,7 @@ build_script:
   - CMD: SET
   - conda config --set always_yes yes
   - conda update conda
-  - conda create -n anuga_env -c conda-forge python=3.8 brotlipy numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine backports.zoneinfo pymetis mpi4py msmpi Pmw
+  - conda create -n anuga_env -c conda-forge python=3.8 brotlipy numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine backports.zoneinfo pymetis mpi4py msmpi Pmw meson meson-package ninja
   - conda activate anuga_env
   # test python
   - python --version
@@ -29,7 +29,7 @@ build_script:
   # there seems to be a bug with distutil by not picking the mingw comiler for anuga
   - cp windows_setup.cfg setup.cfg
   # install locally so that the pytest will work
-  - pip install -e .
+  - pip install .
 
 test_script:
-  - pytest --pyargs anuga
+  - pytest -q --pyargs anuga
