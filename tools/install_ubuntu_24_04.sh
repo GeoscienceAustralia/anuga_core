@@ -68,7 +68,9 @@ echo "#==========================="
 echo "# Run unittests"
 echo "# "
 echo "# At present 22/02/2025 the tests are failing"
-echo "# due to a problem with numpy 2.2 and gdal"
+echo "# due to a incompatiblity between numpy 2.2 and gdal 3.4.1"
+echo "# Suggest installing anuga in a miniforge3 environment"
+echo "# using the script install_miniforge.sh"
 echo "#==========================="
 pytest -q --pyargs anuga
 

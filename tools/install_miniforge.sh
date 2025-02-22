@@ -40,7 +40,7 @@ else
      bash Miniforge3.sh -b
 fi
 
-
+echo " "
 echo "#==============================================="
 echo "# create conda/mamba environment anuga_env_${PY}"
 echo "#==============================================="
