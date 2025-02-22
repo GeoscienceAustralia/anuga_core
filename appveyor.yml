@@ -29,7 +29,7 @@ build_script:
   - conda info -a
 
   # install the dependencies
-  - conda create -n anuga_env --yes --quiet python=3.10 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine backports.zoneinfo pymetis mpi4py msmpi Pmw meson meson-python ninja > conda_install.log 2>&1
+  - conda create -n anuga_env --yes --quiet python=3.10 gxx numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine backports.zoneinfo pymetis mpi4py msmpi Pmw meson meson-python ninja > conda_install.log 2>&1
   
   - type conda_install.log
   
@@ -37,7 +37,7 @@ build_script:
   # test python
   - python --version
   # setup for mingw compiler 
-  - conda install -c conda-forge libpython m2w64-toolchain
+  #- conda install -c conda-forge libpython m2w64-toolchain
   # there seems to be a bug with distutil by not picking the mingw comiler for anuga
   #- cp windows_setup.cfg setup.cfg
   # install locally so that the pytest will work
