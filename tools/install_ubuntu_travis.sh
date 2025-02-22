@@ -72,11 +72,8 @@ echo "+===============================================+"
 echo "|  Using apt-get to install gdal                |"
 echo "+===============================================+"
 echo "..."
-#sudo add-apt-repository -y ppa:ubuntugis/ppa
-#sudo apt-get update
-sudo apt-get install -y gdal-bin libgdal-dev python3-gdal
+sudo apt-get install -y python3-gdal gdal-bin libgdal-dev gcc g++ python3.8-dev git
 
-#sudo apt-get install -y libgdal1-dev
 
 echo "+===============================================+"
 echo "|  GDAL version                                 |"
@@ -99,18 +96,6 @@ echo "|  Using pip to install matplotlib              |"
 echo "+===============================================+"
 echo "..."
 python -m pip  install -q matplotlib
-
-echo "+===============================================+"
-echo "|  Using pip to install gdal                    |"
-echo "+===============================================+"
-echo "..."
-
-
-
-# #python -m pip  install setuptools==58
-python -m pip  install -q GDAL==3.0.4
-python -c "from osgeo import gdal; print(gdal.__version__)"
-# #python -m pip  install -q pygdal==3.0.4.11
 
 echo "+===============================================+"
 echo "|  Using pip to install pytest                  |"
@@ -196,6 +181,9 @@ echo "|  Using pip to install meson                   |"
 echo "+===============================================+"
 echo "..."
 python -m pip  install -q meson meson-python ninja
+
+
+
     
 ##########################################################
 # Setup for various versions of MPI
@@ -247,6 +235,17 @@ if [[ "$PYPAR_AVAILABLE" == "mpi4py" ]]; then
     echo "..."
     python -m pip  install -q mpi4py
 fi
+
+
+echo "+===============================================+"
+echo "|  Using pip to install gdal                    |"
+echo "+===============================================+"
+echo "..."
+
+python -m pip install --upgrade --no-cache-dir setuptools==58.0.2
+#python3 -m pip install --upgrade --no-cache-dir numpy wheel requests
+python -m pip install --no-cache-dir pygdal==3.0.4.*
+
 
 #########################################################
 # Build and install anuga
