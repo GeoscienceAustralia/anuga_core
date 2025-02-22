@@ -100,12 +100,16 @@ echo "+===============================================+"
 echo "..."
 python -m pip  install -q matplotlib
 
-# echo "+===============================================+"
-# echo "|  Using pip to install gdal                    |"
-# echo "+===============================================+"
-# echo "..."
+echo "+===============================================+"
+echo "|  Using pip to install gdal                    |"
+echo "+===============================================+"
+echo "..."
+
+
+
 # #python -m pip  install setuptools==58
-# python -m pip  install -q GDAL==3.4.1
+python -m pip  install -q GDAL==3.0.4
+python -c "from osgeo import gdal; print(gdal.__version__)"
 # #python -m pip  install -q pygdal==3.0.4.11
 
 echo "+===============================================+"
