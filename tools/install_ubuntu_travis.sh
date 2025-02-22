@@ -74,7 +74,7 @@ echo "+===============================================+"
 echo "..."
 #sudo add-apt-repository -y ppa:ubuntugis/ppa
 #sudo apt-get update
-sudo apt-get install -y gdal-bin libgdal-dev
+sudo apt-get install -y gdal-bin libgdal-dev python3-gdal
 
 #sudo apt-get install -y libgdal1-dev
 
@@ -100,13 +100,13 @@ echo "+===============================================+"
 echo "..."
 python -m pip  install -q matplotlib
 
-echo "+===============================================+"
-echo "|  Using pip to install gdal                    |"
-echo "+===============================================+"
-echo "..."
-python -m pip  install setuptools==58
-python -m pip  install -q GDAL==3.4.1
-#python -m pip  install -q pygdal==3.0.4.11
+# echo "+===============================================+"
+# echo "|  Using pip to install gdal                    |"
+# echo "+===============================================+"
+# echo "..."
+# #python -m pip  install setuptools==58
+# python -m pip  install -q GDAL==3.4.1
+# #python -m pip  install -q pygdal==3.0.4.11
 
 echo "+===============================================+"
 echo "|  Using pip to install pytest                  |"
