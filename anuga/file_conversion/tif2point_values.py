@@ -3,14 +3,14 @@ __date__= '2020/06/08'
 
 # Adapted by Stephen Roberts 2023
 
-import numpy as np
-from osgeo import gdal, osr
-from pyproj import Proj, CRS, transform
-from affine import Affine
-
 from pprint import pprint
 
 def tif2point_values(filename, zone=None, south=True, points=None, verbose=False):
+
+    import numpy as np
+    from osgeo import gdal, osr
+    from pyproj import Proj, CRS, transform
+    from affine import Affine
 
     raster= gdal.Open(filename)
     ncols= raster.RasterXSize
