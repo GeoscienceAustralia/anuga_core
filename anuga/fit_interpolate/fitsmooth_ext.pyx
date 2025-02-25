@@ -1,11 +1,7 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
-
 from libc.stdlib cimport malloc, free
-from libc.stdint cimport int64_t
-
 from cpython.pycapsule cimport *
-
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
@@ -47,16 +43,16 @@ cdef extern from "fitsmooth.c":
 		int num_rows
 		int num_entries
 	void delete_quad_tree(quad_tree* tree)
-	quad_tree* _build_quad_tree(int64_t n, int64_t* triangles, double* vertex_coordinates, double* extents)
+	quad_tree* _build_quad_tree(int n, long* triangles, double* vertex_coordinates, double* extents)
 	void delete_dok_matrix(sparse_dok* mat)
 	sparse_dok* make_dok()
-	int64_t _build_smoothing_matrix(int64_t n, int64_t* triangles, double* areas, double* vertex_coordinates, int64_t* strides, sparse_dok* smoothing_mat)
-	int64_t _build_matrix_AtA_Atz_points(int64_t N, int64_t* triangles, double* point_coordinates, double* point_values, int64_t zdims, int64_t npts, sparse_dok* AtA, double** Atz, quad_tree* quadtree)
-	void _combine_partial_AtA_Atz(sparse_dok* dok_AtA1, sparse_dok* dok_AtA2, double* Atz1, double* Atz2, int64_t n, int64_t zdim)
+	int _build_smoothing_matrix(int n, long* triangles, double* areas, double* vertex_coordinates, int* strides, sparse_dok* smoothing_mat)
+	int _build_matrix_AtA_Atz_points(int N, long* triangles, double* point_coordinates, double* point_values, int zdims, int npts, sparse_dok* AtA, double** Atz, quad_tree* quadtree)
+	void _combine_partial_AtA_Atz(sparse_dok* dok_AtA1, sparse_dok* dok_AtA2, double* Atz1, double* Atz2, int n, int zdim)
 	triangle* search(quad_tree* node ,double xp, double yp)
 	double* calculate_sigma(triangle* T, double x, double y)
-	int64_t quad_tree_node_count(quad_tree* tree)
-	int64_t get_dok_rows(sparse_dok* dok);
+	int quad_tree_node_count(quad_tree* tree)
+	int get_dok_rows(sparse_dok* dok);
 	edge_t* find_dok_entry(sparse_dok* edgetable, edge_key_t key)
 	void add_sparse_dok(sparse_dok* dok1, double mult1, sparse_dok* dok2, double mult2)
 	sparse_csr* make_csr()
@@ -73,8 +69,8 @@ cdef delete_dok_cap(object cap):
 	if kill != NULL:
 		delete_dok_matrix(kill)
 
-cdef c_double_array_to_list(double* mat, int64_t cols):
-	cdef int64_t j
+cdef c_double_array_to_list(double* mat, int cols):
+	cdef int j
 	cdef list lst
 	lst = []
 	if not(isinstance(lst, list)):
@@ -86,8 +82,8 @@ cdef c_double_array_to_list(double* mat, int64_t cols):
 			return None
 	return lst
 
-cdef c_int_array_to_list(int64_t* mat, int64_t cols):
-	cdef int64_t j
+cdef c_int_array_to_list(int* mat, int cols):
+	cdef int j
 	cdef list lst
 	lst = []
 	if not(isinstance(lst, list)):
@@ -99,47 +95,47 @@ cdef c_int_array_to_list(int64_t* mat, int64_t cols):
 			return None
 	return lst
 
-def build_quad_tree(np.ndarray[int64_t, ndim=2, mode="c"] triangles not None,\
+def build_quad_tree(np.ndarray[long, ndim=2, mode="c"] triangles not None,\
 					np.ndarray[double, ndim=2, mode="c"] vertex_coordinates not None,\
 					np.ndarray[double, ndim=1, mode="c"] extents not None):
 	
-	cdef int64_t n
+	cdef int n
 
 	n = triangles.shape[0]
 
 	return PyCapsule_New(<void* > _build_quad_tree(n, &triangles[0,0], &vertex_coordinates[0,0], &extents[0]), "quad tree", <PyCapsule_Destructor> delete_quad_tree_cap)
 
-def build_smoothing_matrix(np.ndarray[int64_t, ndim=2, mode="c"] triangles not None,\
+def build_smoothing_matrix(np.ndarray[long, ndim=2, mode="c"] triangles not None,\
 							np.ndarray[double, ndim=1, mode="c"] areas not None,\
 							np.ndarray[double, ndim=2, mode="c"] vertex_coordinates not None):
 	
-	cdef int64_t err, n
+	cdef int err, n
 	cdef sparse_dok* smoothing_mat
 
 	n = triangles.shape[0]
 	smoothing_mat = make_dok()
 
-	err = _build_smoothing_matrix(n, &triangles[0,0], &areas[0], &vertex_coordinates[0,0], <int64_t* > &vertex_coordinates.strides[0], smoothing_mat)
+	err = _build_smoothing_matrix(n, &triangles[0,0], &areas[0], &vertex_coordinates[0,0], <int* > &vertex_coordinates.strides[0], smoothing_mat)
 
 	assert err == 0, "Unknown Error"
 
 	return PyCapsule_New(<void* > smoothing_mat, "sparse dok", <PyCapsule_Destructor> delete_dok_cap)
 
 
-def build_matrix_AtA_Atz_points(object tree, int64_t N,\
-							np.ndarray[int64_t, ndim=2, mode="c"] triangles not None,\
+def build_matrix_AtA_Atz_points(object tree, int N,\
+							np.ndarray[long, ndim=2, mode="c"] triangles not None,\
 							np.ndarray[double, ndim=2, mode="c"] point_coordinates not None,\
 							np.ndarray z not None,\
-							int64_t zdims,\
-							int64_t npts):
+							int zdims,\
+							int npts):
 
 	cdef quad_tree* quadtree
 	cdef sparse_dok* dok_AtA
 	cdef object AtA_cap
 	cdef double** Atz
 	cdef list Atz_ret
-	cdef int64_t err
-	cdef int64_t i
+	cdef int err
+	cdef int i
 
 	z = np.ascontiguousarray(z)
 
@@ -175,8 +171,8 @@ def build_matrix_AtA_Atz_points(object tree, int64_t N,\
 def combine_partial_AtA_Atz(object AtA_cap1, object AtA_cap2,\
 							np.ndarray[double, ndim=1, mode="c"] Atz1,\
 							np.ndarray[double, ndim=1, mode="c"] Atz2,\
-							int64_t zdim,\
-							int64_t n):
+							int zdim,\
+							int n):
 	
 	cdef sparse_dok* dok_AtA1
 	cdef sparse_dok* dok_AtA2
@@ -192,8 +188,8 @@ def individual_tree_search(object tree, np.ndarray[double, ndim=1, mode="c"] poi
 	cdef double xp,yp
 	cdef double* sigma
 	cdef triangle* T
-	cdef int64_t found
-	cdef int64_t index
+	cdef long found
+	cdef long index
 	cdef list sigmalist
 
 	quadtree = <quad_tree* > PyCapsule_GetPointer(tree, "quad tree")
@@ -224,10 +220,10 @@ def items_in_tree(object tree):
 
 	return quadtree.count
 
-def return_full_D(object D_cap, int64_t n):
+def return_full_D(object D_cap, int n):
 
 	cdef sparse_dok* D_mat
-	cdef int64_t i,j
+	cdef int i,j
 	cdef edge_key_t key
 	cdef edge_t* s
 	cdef list ret_D
