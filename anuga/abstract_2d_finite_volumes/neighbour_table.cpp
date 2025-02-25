@@ -1,6 +1,7 @@
 #include <cstdio>   /* gets */
 #include <cstdlib>  /* atoi, malloc */
 #include <cstring>  /* strcpy */
+#include <cstdint>  /* uint64_t int64_t*/
 //#include <cmath>    /* math!!! */
 
 // Hack to avoid ::hypot error using mingw on windows
