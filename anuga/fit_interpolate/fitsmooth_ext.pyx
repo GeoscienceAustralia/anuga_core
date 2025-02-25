@@ -1,7 +1,8 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 
-from libc.stdlib cimport malloc, free, int64_t
+from libc.stdlib cimport malloc, free
+from libc.stdint cimport int64_t
 
 from cpython.pycapsule cimport *
 
@@ -12,7 +13,7 @@ cimport numpy as np
 cdef extern from "fitsmooth.c":
 	ctypedef struct quad_tree:
 		double xmin, xmax, ymin, ymax
-		int64_t count
+		int count
 		quad_tree* parent
 		quad_tree* q[4]
 		triangle* leaves
@@ -20,31 +21,31 @@ cdef extern from "fitsmooth.c":
 	ctypedef struct UT_hash_handle:
 		pass
 	ctypedef struct edge_key_t:
-		int64_t i
-		int64_t j
+		int i
+		int j
 	ctypedef struct edge_t:
 		edge_key_t key
 		double entry
 		UT_hash_handle hh
 	ctypedef struct sparse_dok:
 		edge_t* edgetable
-		int64_t num_entries
-		int64_t num_rows
+		int num_entries
+		int num_rows
 	ctypedef struct triangle:
 		double x1, y1
 		double x2, y2
 		double x3, y3
-		int64_t index
+		int index
 		double nx1, ny1
 		double nx2, ny2
 		double nx3, ny3
 		triangle* next
 	ctypedef struct sparse_csr:
 		double* data
-		int64_t* colind
-		int64_t* row_ptr
-		int64_t num_rows
-		int64_t num_entries
+		int* colind
+		int* row_ptr
+		int num_rows
+		int num_entries
 	void delete_quad_tree(quad_tree* tree)
 	quad_tree* _build_quad_tree(int64_t n, int64_t* triangles, double* vertex_coordinates, double* extents)
 	void delete_dok_matrix(sparse_dok* mat)

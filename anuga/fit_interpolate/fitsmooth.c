@@ -34,14 +34,14 @@ int64_t _build_smoothing_matrix(int64_t n,
 		      {
 
 
-    int64_t k;
-    int64_t k3,k6;
-    int64_t err = 0;
+    int k;
+    int k3,k6;
+    int err = 0;
     edge_key_t key;
 
     double det,area,x0,x1,x2,y0,y1,y2;
     double a0,b0,a1,b1,a2,b2,e01,e12,e20;
-    int64_t v0,v1,v2;
+    int v0,v1,v2;
     double smoothing_val;
 
     
@@ -146,7 +146,7 @@ quad_tree * _build_quad_tree(int64_t n,
                       double* extents)               
 {   
     
-    int64_t k,k6;
+    int k,k6;
     double x0,y0,x1,y1,x2,y2;
 
     // set up quad tree and allocate memory
@@ -185,11 +185,9 @@ int64_t _build_matrix_AtA_Atz_points(int64_t N, int64_t  * triangles,
 
 
 
-    int64_t k;
+    int k;
+    int i,w;
 
-
-
-    int64_t i,w;
     for(w=0;w<zdims;w++){
         for(i=0;i<N;i++){
             Atz[w][i]=0;
@@ -243,14 +241,14 @@ int64_t _build_matrix_AtA_Atz_points(int64_t N, int64_t  * triangles,
 }
 
 // Combines two sparse_dok matricies and two vectors of doubles. 
-void _combine_partial_AtA_Atz(sparse_dok * dok_AtA1,sparse_dok * dok_AtA2,
+void _combine_partial_AtA_Atz(sparse_dok * dok_AtA1, sparse_dok * dok_AtA2,
                              double* Atz1,
                              double* Atz2,
-                             int64_t n, int64_t zdim){
+                             int n, int zdim){
 
     add_sparse_dok(dok_AtA1,1,dok_AtA2,1);
 
-    int64_t i;
+    int i;
     for(i=0;i<n*zdim;i++){
         Atz1[i]+=Atz2[i];
     }

@@ -1,6 +1,8 @@
 #include <cstdio>   /* gets */
 #include <cstdlib>  /* atoi, malloc */
 #include <cstring>  /* strcpy */
+#include <cstdint>  /* int64_t uint64_t */
+
 //#include <cmath>    /* math!!! */
 
 // Hack to avoid ::hypot error using mingw on windows
@@ -61,7 +63,7 @@ struct edge_t {
 //==============================================================================
 int _build_neighbour_structure(keyint N, keyint M,
                       int64_t* triangles,
-		      int64_t* neighbours,
+		              int64_t* neighbours,
                       int64_t* neighbour_edges,
                       int64_t* number_of_boundaries)
 		      {
