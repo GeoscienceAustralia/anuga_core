@@ -5,6 +5,7 @@
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
 #include "math.h"
+#include "stdint.h"
 
 #include "sparse_dok.h" /* in utilities */
 #include "quad_tree.h"  /* in utilities */
@@ -24,8 +25,8 @@
 
 // Builds the matrix D used to smooth the interpolation 
 // of a variables from scattered data points to a mesh. See fit.py for more details.s
-int _build_smoothing_matrix(int n,
-                      long* triangles,
+int64_t _build_smoothing_matrix(int64_t n,
+                      int64_t * triangles,
         		      double* areas,
                       double* vertex_coordinates,
                       int* strides,
@@ -33,14 +34,14 @@ int _build_smoothing_matrix(int n,
 		      {
 
 
-    int k;
-    int k3,k6;
-    int err = 0;
+    int64_t k;
+    int64_t k3,k6;
+    int64_t err = 0;
     edge_key_t key;
 
     double det,area,x0,x1,x2,y0,y1,y2;
     double a0,b0,a1,b1,a2,b2,e01,e12,e20;
-    int v0,v1,v2;
+    int64_t v0,v1,v2;
     double smoothing_val;
 
     
@@ -139,13 +140,13 @@ int _build_smoothing_matrix(int n,
 
 // Builds a quad tree out of a list of triangles for quick 
 // searching. 
-quad_tree * _build_quad_tree(int n,
-                      long* triangles,
+quad_tree * _build_quad_tree(int64_t n,
+                      int64_t * triangles,
                       double* vertex_coordinates,
                       double* extents)               
 {   
     
-    int k,k6;
+    int64_t k,k6;
     double x0,y0,x1,y1,x2,y2;
 
     // set up quad tree and allocate memory
@@ -175,20 +176,20 @@ quad_tree * _build_quad_tree(int n,
 // and residual. Uses a quad_tree for fast access to the triangles of the mesh.
 // This function takes a list of point coordinates, and associated point values
 // (for any number of attributes).
-int _build_matrix_AtA_Atz_points(int N, long * triangles,
+int64_t _build_matrix_AtA_Atz_points(int64_t N, int64_t  * triangles,
                       double * point_coordinates, double * point_values,
-                      int zdims, int npts,
+                      int64_t zdims, int64_t npts,
                       sparse_dok * AtA,
                       double ** Atz,quad_tree * quadtree)
               {
 
 
 
-    int k;
+    int64_t k;
 
 
 
-    int i,w;
+    int64_t i,w;
     for(w=0;w<zdims;w++){
         for(i=0;i<N;i++){
             Atz[w][i]=0;
@@ -210,7 +211,7 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
 
         if(T!=NULL){
             double * sigma = calculate_sigma(T,x,y);
-            int js[3];
+            int64_t js[3];
             for(i=0;i<3;i++){
                 js[i]=triangles[3*(T->index)+i];
             }
@@ -245,11 +246,11 @@ int _build_matrix_AtA_Atz_points(int N, long * triangles,
 void _combine_partial_AtA_Atz(sparse_dok * dok_AtA1,sparse_dok * dok_AtA2,
                              double* Atz1,
                              double* Atz2,
-                             int n, int zdim){
+                             int64_t n, int64_t zdim){
 
     add_sparse_dok(dok_AtA1,1,dok_AtA2,1);
 
-    int i;
+    int64_t i;
     for(i=0;i<n*zdim;i++){
         Atz1[i]+=Atz2[i];
     }

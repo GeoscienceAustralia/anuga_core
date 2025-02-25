@@ -19,7 +19,7 @@
 // basic type used for keys and counters
 // should be the same type as triangle/coordinate ids
 // used by the passed in arrays.
-typedef long keyint;
+typedef int64_t keyint;
 
 struct edge_key_t {
     keyint i;
@@ -60,10 +60,10 @@ struct edge_t {
 // Code to calculate neighbour structure
 //==============================================================================
 int _build_neighbour_structure(keyint N, keyint M,
-                      long* triangles,
-		      long* neighbours,
-                      long* neighbour_edges,
-                      long* number_of_boundaries)
+                      int64_t* triangles,
+		      int64_t* neighbours,
+                      int64_t* neighbour_edges,
+                      int64_t* number_of_boundaries)
 		      {
     keyint k;
     keyint k3;

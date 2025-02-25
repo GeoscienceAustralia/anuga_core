@@ -1,6 +1,7 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from cython cimport typeof
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -30,8 +31,8 @@ cdef extern from "pmesh2domain.c":
 	void sort_by_vol_id()
 	void sort_by_key()
 
-def build_boundary_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not None,\
-							np.ndarray[long, ndim=2, mode="c"] segments not None,\
+def build_boundary_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles not None,\
+							np.ndarray[int64_t, ndim=2, mode="c"] segments not None,\
 							list segment_tags,\
 							dict tag_dict):
 	"""
@@ -139,9 +140,9 @@ def build_boundary_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not N
 	delete_segment_all()
 	return tag_dict
 
-def build_sides_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not None, dict sides):
+def build_sides_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles not None, dict sides):
 
-	cdef long i, numTriangle, a, b, c
+	cdef int64_t i, numTriangle, a, b, c
 
 	numTriangle = triangles.shape[0]
 
