@@ -1,10 +1,10 @@
-project('anuga', 'c', 'cpp', 'cython', version: '3.2.dev0', default_options: ['cpp_std=c++11'])
+project('anuga', 'c', 'cpp', 'cython', version: '3.2.dev0', default_options: ['cpp_std=c++17'])
 
 add_project_arguments('-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION', language: 'cpp')
 add_project_arguments('-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION', language: 'c')
 # if windows
-add_project_arguments('-DMS_WIN64', language: 'cpp')
-add_project_arguments('-DMS_WIN64', language: 'c')
+#add_project_arguments('-DMS_WIN64', language: 'cpp')
+#add_project_arguments('-DMS_WIN64', language: 'c')
 
 # Import python
 py3 = import('python').find_installation(pure: false, modules: ['numpy'])
