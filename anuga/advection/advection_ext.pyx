@@ -1,5 +1,6 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -7,23 +8,23 @@ cimport numpy as np
 
 # declare the interface to the C code
 cdef extern from "advection.c":
-	double _compute_fluxes(double* quantity_update, double* quantity_edge, double* quantity_bdry, long* domain_neighbours, long* domain_neighbour_edges, double* domain_normals, double* domain_areas, double* domain_radii, double* domain_edgelengths, long* domain_tri_full_flag, double* domain_velocity, double huge_timestep, double max_timestep, int ntri, int nbdry)
+	double _compute_fluxes(double* quantity_update, double* quantity_edge, double* quantity_bdry, int64_t* domain_neighbours, int64_t* domain_neighbour_edges, double* domain_normals, double* domain_areas, double* domain_radii, double* domain_edgelengths, int64_t* domain_tri_full_flag, double* domain_velocity, double huge_timestep, double max_timestep, int64_t ntri, int64_t nbdry)
 
 def compute_fluxes(object domain, object quantity, double huge_timestep, double max_timestep):
 
 	cdef np.ndarray[double, ndim=2, mode="c"] quantity_edge
 	cdef np.ndarray[double, ndim=1, mode="c"] quantity_bdry
 	cdef np.ndarray[double, ndim=1, mode="c"] quantity_update
-	cdef np.ndarray[long, ndim=2, mode="c"] domain_neighbours
-	cdef np.ndarray[long, ndim=2, mode="c"] domain_neighbour_edges
+	cdef np.ndarray[int64_t, ndim=2, mode="c"] domain_neighbours
+	cdef np.ndarray[int64_t, ndim=2, mode="c"] domain_neighbour_edges
 	cdef np.ndarray[double, ndim=2, mode="c"] domain_normals
 	cdef np.ndarray[double, ndim=1, mode="c"] domain_areas
 	cdef np.ndarray[double, ndim=1, mode="c"] domain_radii
 	cdef np.ndarray[double, ndim=2, mode="c"] domain_edgelengths
-	cdef np.ndarray[long, ndim=1, mode="c"] domain_tri_full_flag
+	cdef np.ndarray[int64_t, ndim=1, mode="c"] domain_tri_full_flag
 	cdef np.ndarray[double, ndim=1, mode="c"] domain_velocity
 
-	cdef int ntri, nbdry
+	cdef int64_t ntri, nbdry
 	cdef double timestep
 
 	quantity_edge = quantity.edge_values

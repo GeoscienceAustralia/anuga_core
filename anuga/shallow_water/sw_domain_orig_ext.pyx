@@ -1,5 +1,6 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -7,40 +8,40 @@ cimport numpy as np
 
 cdef extern from "sw_domain_orig.c" nogil:
         struct domain:
-                long number_of_elements
+                int64_t number_of_elements
                 double epsilon
                 double H0
                 double g
-                long optimise_dry_cells
+                int64_t optimise_dry_cells
                 double evolve_max_timestep
-                long extrapolate_velocity_second_order
+                int64_t extrapolate_velocity_second_order
                 double minimum_allowed_height
                 double maximum_allowed_speed
-                long low_froude
-                long timestep_fluxcalls
+                int64_t low_froude
+                int64_t timestep_fluxcalls
                 double beta_w
                 double beta_w_dry
                 double beta_uh
                 double beta_uh_dry
                 double beta_vh
                 double beta_vh_dry
-                long max_flux_update_frequency
-                long ncol_riverwall_hydraulic_properties
-                long* neighbours
-                long* neighbour_edges
-                long* surrogate_neighbours
+                int64_t max_flux_update_frequency
+                int64_t ncol_riverwall_hydraulic_properties
+                int64_t* neighbours
+                int64_t* neighbour_edges
+                int64_t* surrogate_neighbours
                 double* normals
                 double* edgelengths
                 double* radii
                 double* areas
-                long* edge_flux_type
-                long* tri_full_flag
-                long* already_computed_flux
+                int64_t* edge_flux_type
+                int64_t* tri_full_flag
+                int64_t* already_computed_flux
                 double* max_speed
                 double* vertex_coordinates
                 double* edge_coordinates
                 double* centroid_coordinates
-                long* number_of_boundaries
+                int64_t* number_of_boundaries
                 double* stage_edge_values
                 double* xmom_edge_values
                 double* ymom_edge_values
@@ -63,35 +64,35 @@ cdef extern from "sw_domain_orig.c" nogil:
                 double* stage_explicit_update
                 double* xmom_explicit_update
                 double* ymom_explicit_update
-                long* flux_update_frequency
-                long* update_next_flux
-                long* update_extrapolation
+                int64_t* flux_update_frequency
+                int64_t* update_next_flux
+                int64_t* update_extrapolation
                 double* edge_timestep
                 double* edge_flux_work
                 double* pressuregrad_work
                 double* x_centroid_work
                 double* y_centroid_work
                 double* boundary_flux_sum
-                long* allow_timestep_increase
+                int64_t* allow_timestep_increase
                 double* riverwall_elevation
-                long* riverwall_rowIndex
+                int64_t* riverwall_rowIndex
                 double* riverwall_hydraulic_properties
 
         struct edge:
                 pass
 
-        int _compute_flux_update_frequency(domain* D, double timestep)
+        int64_t _compute_flux_update_frequency(domain* D, double timestep)
         double _compute_fluxes_central(domain* D, double timestep)
         double _protect_new(domain* D)
-        int _extrapolate_second_order_edge_sw(domain* D)
-        int _extrapolate_second_order_sw(domain* D)
-        int _rotate(double *q, double n1, double n2)
-        int _gravity(domain* D)
-        int _gravity_wb(domain* D)
-        void _manning_friction_flat(double g, double eps, int N, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom, double* ymom)
-        void _manning_friction_sloped(double g, double eps, int N, double* x, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom_update, double* ymom_update)
+        int64_t _extrapolate_second_order_edge_sw(domain* D)
+        int64_t _extrapolate_second_order_sw(domain* D)
+        int64_t _rotate(double *q, double n1, double n2)
+        int64_t _gravity(domain* D)
+        int64_t _gravity_wb(domain* D)
+        void _manning_friction_flat(double g, double eps, int64_t N, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom, double* ymom)
+        void _manning_friction_sloped(double g, double eps, int64_t N, double* x, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom_update, double* ymom_update)
 
-        int _flux_function_central(double *q_left, double *q_right,
+        int64_t _flux_function_central(double *q_left, double *q_right,
                                    double h_left, double h_right,
                            	   double hle, double hre,
                            	   double n1, double n2,
@@ -102,11 +103,11 @@ cdef extern from "sw_domain_orig.c" nogil:
                            	   double *edgeflux, double *max_speed,
                            	   double *pressure_flux, double hc,
                            	   double hc_n,
-                           	   long low_froude)
+                           	   int64_t low_froude)
 
 
-cdef int pointer_flag = 0
-cdef int parameter_flag = 0
+cdef int64_t pointer_flag = 0
+cdef int64_t parameter_flag = 0
 
 cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
@@ -132,25 +133,25 @@ cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
 cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
-        cdef long[:,::1]   neighbours
-        cdef long[:,::1]   neighbour_edges
+        cdef int64_t[:,::1]   neighbours
+        cdef int64_t[:,::1]   neighbour_edges
         cdef double[:,::1] normals
         cdef double[:,::1] edgelengths
         cdef double[::1]   radii
         cdef double[::1]   areas
-        cdef long[::1]     edge_flux_type
-        cdef long[::1]     tri_full_flag
-        cdef long[:,::1]   already_computed_flux
+        cdef int64_t[::1]     edge_flux_type
+        cdef int64_t[::1]     tri_full_flag
+        cdef int64_t[:,::1]   already_computed_flux
         cdef double[:,::1] vertex_coordinates
         cdef double[:,::1] edge_coordinates
         cdef double[:,::1] centroid_coordinates
-        cdef long[::1]     number_of_boundaries
-        cdef long[:,::1]   surrogate_neighbours
+        cdef int64_t[::1]     number_of_boundaries
+        cdef int64_t[:,::1]   surrogate_neighbours
         cdef double[::1]   max_speed
-        cdef long[::1]     flux_update_frequency
-        cdef long[::1]     update_next_flux
-        cdef long[::1]     update_extrapolation
-        cdef long[::1]     allow_timestep_increase
+        cdef int64_t[::1]     flux_update_frequency
+        cdef int64_t[::1]     update_next_flux
+        cdef int64_t[::1]     update_extrapolation
+        cdef int64_t[::1]     allow_timestep_increase
         cdef double[::1]   edge_timestep
         cdef double[::1]   edge_flux_work
         cdef double[::1]   pressuregrad_work
@@ -158,7 +159,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
         cdef double[::1]   y_centroid_work
         cdef double[::1]   boundary_flux_sum
         cdef double[::1]   riverwall_elevation
-        cdef long[::1]     riverwall_rowIndex
+        cdef int64_t[::1]     riverwall_rowIndex
         cdef double[:,::1] riverwall_hydraulic_properties
         cdef double[:,::1] edge_values
         cdef double[::1]   centroid_values
@@ -342,7 +343,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 #===============================================================================
 
-def rotate(np.ndarray[double, ndim=1, mode="c"] q not None, np.ndarray[double, ndim=1, mode="c"] normal not None, int direction):
+def rotate(np.ndarray[double, ndim=1, mode="c"] q not None, np.ndarray[double, ndim=1, mode="c"] normal not None, int64_t direction):
 
         assert normal.shape[0] == 2, "Normal vector must have 2 components"
 
@@ -376,10 +377,10 @@ def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
                           double H0,\
 			  double hc,\
 			  double hc_n,\
-			  long low_froude):
+			  int64_t low_froude):
 
         cdef double h0, limiting_threshold, max_speed, pressure_flux
-        cdef int err
+        cdef int64_t err
 
         h0 = H0*H0
         limiting_threshold = 10*H0
@@ -412,7 +413,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 def extrapolate_second_order_sw(object domain_object):
 
         cdef domain D
-        cdef int e
+        cdef int64_t e
 
         get_python_domain_parameters(&D, domain_object)
         get_python_domain_pointers(&D, domain_object)
@@ -427,7 +428,7 @@ def extrapolate_second_order_sw(object domain_object):
 def extrapolate_second_order_edge_sw(object domain_object):
 
         cdef domain D
-        cdef int e
+        cdef int64_t e
 
         get_python_domain_parameters(&D, domain_object)
         get_python_domain_pointers(&D, domain_object)
@@ -498,7 +499,7 @@ def manning_friction_flat(double g,\
                                                 np.ndarray[double, ndim=1, mode="c"] ymom not None):
 
 
-        cdef int N
+        cdef int64_t N
 
         N = w.shape[0]
 
@@ -522,7 +523,7 @@ def manning_friction_sloped(double g,\
                                                         np.ndarray[double, ndim=1, mode="c"] xmom not None,\
                                                         np.ndarray[double, ndim=1, mode="c"] ymom not None):
 
-        cdef int N
+        cdef int64_t N
 
         N = w.shape[0]
 

@@ -47,7 +47,7 @@ double sign(double x) {
   else return 0.0;
 }
 
-int _gradient(double x0, double y0, 
+int64_t _gradient(double x0, double y0, 
 	      double x1, double y1, 
 	      double x2, double y2, 
 	      double q0, double q1, double q2, 
@@ -92,7 +92,7 @@ int _gradient(double x0, double y0,
 }
 
 
-int _gradient2(double x0, double y0, 
+int64_t _gradient2(double x0, double y0, 
 	       double x1, double y1, 
 	       double q0, double q1, 
 	       double *a, double *b) {
@@ -148,11 +148,11 @@ int _gradient2(double x0, double y0,
 }
 
 
-void _limit_old(int N, double beta, double* qc, double* qv, 
+void _limit_old(int64_t N, double beta, double* qc, double* qv, 
 	    double* qmin, double* qmax) { 
 
   //N are the number of elements
-  int k, i, k3;
+  int64_t k, i, k3;
   double dq, dqa[3], phi, r;
   
   //printf("INSIDE\n");
@@ -182,9 +182,9 @@ void _limit_old(int N, double beta, double* qc, double* qv,
 }
 
 
-void  print_double_array(char* name, double* array, int n, int m){
+void  print_double_array(char* name, double* array, int64_t n, int64_t m){
 
-    int k,i,km;
+    int64_t k,i,km;
 
     printf("%s = [",name);
     for (k=0; k<n; k++){
@@ -201,9 +201,9 @@ void  print_double_array(char* name, double* array, int n, int m){
     printf("]\n");
 }
 
-void  print_int_array(char* name, int* array, int n, int m){
+void  print_int_array(char* name, int32_t* array, int64_t n, int64_t m){
 
-    int k,i,km;
+    int64_t k,i,km;
 
     printf("%s = [",name);
     for (k=0; k<n; k++){
@@ -221,16 +221,16 @@ void  print_int_array(char* name, int* array, int n, int m){
 }
 
 
-void  print_long_array(char* name, long* array, int n, int m){
+void  print_long_array(char* name, int64_t * array, int64_t n, int64_t m){
 
-    int k,i,km;
+    int64_t k,i,km;
 
     printf("%s = [",name);
     for (k=0; k<n; k++){
 	km = m*k;
 	printf("[");
 	for (i=0; i<m ; i++){
-	  printf("%i ",(int) array[km+i]);
+	  printf("%li ",array[km+i]);
 	}
 	if (k==(n-1))
 	    printf("]");

@@ -61,7 +61,7 @@ struct edge_t {
 //==============================================================================
 // Code to calculate neighbour structure
 //==============================================================================
-int _build_neighbour_structure(keyint N, keyint M,
+int64_t _build_neighbour_structure(keyint N, keyint M,
                       int64_t* triangles,
 		              int64_t* neighbours,
                       int64_t* neighbour_edges,
@@ -72,7 +72,7 @@ int _build_neighbour_structure(keyint N, keyint M,
     keyint n0,n1,n2;
     keyint vol_id;
     keyint edge_id;
-    int err = 0;
+    int64_t err = 0;
     edge_key_t key;
 
     std::unordered_map<edge_key_t,edge_t> edgetable;

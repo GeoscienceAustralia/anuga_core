@@ -9,10 +9,11 @@
 //
 // Ole Nielsen, GA 2004
 //
-// NOTE: We use long* instead of int* for numeric arrays as this will work both 
+// NOTE: We use int64_t* instead of int64_t* for numeric arrays as this will work both 
 //       for 64 as well as 32 bit systems
 
 #include "math.h"
+#include "stdint.h"
 
 #define YES 1
 #define NO 0
@@ -25,7 +26,7 @@ double dist(double x,
 }
 
 
-int __point_on_line(double x, double y,
+int64_t __point_on_line(double x, double y,
 		    double x0, double y0,
 		    double x1, double y1,
 		    double rtol,
@@ -41,7 +42,7 @@ int __point_on_line(double x, double y,
   double a0, a1, a_normal0, a_normal1, b0, b1, len_a, len_b;
   double a_dot_b, len_ba;
   double nominator, denominator;
-  int is_parallel;
+  int64_t is_parallel;
 
 
   a0 = x - x0;
@@ -104,7 +105,7 @@ int __point_on_line(double x, double y,
 //  Returns NO if there is no determinable intersection point, in which case X,Y will
 //  be unmodified.
 
-int __line_segment_intersection(
+int64_t __line_segment_intersection(
         double Ax, double Ay,
         double Bx, double By,
         double Cx, double Cy,
@@ -162,7 +163,7 @@ int __line_segment_intersection(
 
 /*
 WORK IN PROGRESS TO OPTIMISE INTERSECTION
-int __intersection(double x0, double y0,
+int64_t __intersection(double x0, double y0,
 		   double x1, double y1) {
 
 
@@ -266,17 +267,17 @@ int __intersection(double x0, double y0,
 
 
 
-int __interpolate_polyline(int number_of_nodes,
-		int number_of_points,
+int64_t __interpolate_polyline(int64_t number_of_nodes,
+		int64_t number_of_points,
 		double* data,
 		double* polyline_nodes,
-		long* gauge_neighbour_id,
+		int64_t* gauge_neighbour_id,
 		double* interpolation_points,
 		double* interpolated_values,
 		double rtol,
 		double atol) {
 
-	int j, i, neighbour_id;
+	int64_t j, i, neighbour_id;
 	double x0, y0, x1, y1, x, y;
 	double segment_len, segment_delta, slope, alpha;
 
@@ -317,11 +318,11 @@ int __interpolate_polyline(int number_of_nodes,
 }			       			       
 
 
-int __triangle_polygon_overlap(double* polygon,
+int64_t __triangle_polygon_overlap(double* polygon,
                                double* triangle,
-                               int polygon_number_of_vertices)
+                               int64_t polygon_number_of_vertices)
 {
-    int i, ii, j, jj, A, B;
+    int64_t i, ii, j, jj, A, B;
     double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
     double t0_x, t0_y, t1_x, t1_y, tp_x, tp_y;
     double u_x, u_y, v_x, v_y, w_x, w_y;
@@ -408,14 +409,14 @@ int __triangle_polygon_overlap(double* polygon,
 }
                  
 
-int __polygon_overlap(double* polygon,
+int64_t __polygon_overlap(double* polygon,
                       double* triangles,
-                      long* indices,
-                      int M, //number of triangles
-                      int polygon_number_of_vertices)
+                      int64_t* indices,
+                      int64_t M, //number of triangles
+                      int64_t polygon_number_of_vertices)
 {
     double* triangle;
-    int i, inside_index, outside_index;
+    int64_t i, inside_index, outside_index;
     
     inside_index = 0;    // Keep track of triangles that overlap
     outside_index = M - 1; // Keep track of triangles that don't overlap (starting from end)
@@ -442,10 +443,10 @@ int __polygon_overlap(double* polygon,
 }              
 
 
-int __triangle_line_intersect(double* line,
+int64_t __triangle_line_intersect(double* line,
                               double* triangle)
 {
-    int j, jj, A, B;
+    int64_t j, jj, A, B;
     double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
     double t0_x, t0_y, t1_x, t1_y, tp_x, tp_y;
     double u_x, u_y, v_x, v_y, w_x, w_y;
@@ -523,13 +524,13 @@ int __triangle_line_intersect(double* line,
 }
                  
 
-int __line_intersect(double* line,
+int64_t __line_intersect(double* line,
                      double* triangles,
-                     long* indices,
-                     int M) //number of triangles
+                     int64_t* indices,
+                     int64_t M) //number of triangles
 {
     double* triangle;
-    int i, inside_index, outside_index;
+    int64_t i, inside_index, outside_index;
     
     inside_index = 0;    // Keep track of triangles that intersect
     outside_index = M - 1; // Keep track of triangles that don't intersect (starting from end)
@@ -556,9 +557,9 @@ int __line_intersect(double* line,
 
 
 
-int __is_inside_triangle(double* point,
+int64_t __is_inside_triangle(double* point,
 			 double* triangle,
-			 int closed,
+			 int64_t closed,
 			 double rtol,
 			 double atol) {
 			 
@@ -567,7 +568,7 @@ int __is_inside_triangle(double* point,
   double denom, alpha, beta;
   
   double x, y; // Point coordinates
-  int i, j, res;
+  int64_t i, j, res;
 
   x = point[0];
   y = point[1];
@@ -638,16 +639,16 @@ int __is_inside_triangle(double* point,
 }			  			       			       
 
 
-int __separate_points_by_polygon(int M,     // Number of points
-				 int N,     // Number of polygon vertices
+int64_t __separate_points_by_polygon(int64_t M,     // Number of points
+				 int64_t N,     // Number of polygon vertices
 				 double* points,
 				 double* polygon,
-				 long* indices,  // M-Array for storage indices
-				 int closed,
-				 int verbose) {
+				 int64_t* indices,  // M-Array for storage indices
+				 int64_t closed,
+				 int64_t verbose) {
 
   double minpx, maxpx, minpy, maxpy, x, y, px_i, py_i, px_j, py_j, rtol=0.0, atol=0.0;
-  int i, j, k, outside_index, inside_index, inside;
+  int64_t i, j, k, outside_index, inside_index, inside;
 
   // Find min and max of poly used for optimisation when points
   // are far away from polygon

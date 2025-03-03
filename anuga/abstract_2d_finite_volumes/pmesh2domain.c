@@ -13,20 +13,20 @@
 //==============================================================================
 
 typedef struct {
-    int i;
-    int j;
+    int64_t i;
+    int64_t j;
 } segment_key_t;
 
 typedef struct {
     segment_key_t key; /* key of form i , j */
-    int vol_id; /* id of vol containing this segement */
-    int edge_id; /* edge_id of segement in this vol */
+    int64_t vol_id; /* id of vol containing this segement */
+    int64_t edge_id; /* edge_id of segement in this vol */
     UT_hash_handle hh; /* makes this structure hashable */
 } segment_t;
 
 segment_t *segment_table = NULL;
 
-void add_segment(segment_key_t key, int vol_id, int edge_id) {
+void add_segment(segment_key_t key, int64_t vol_id, int64_t edge_id) {
     segment_t *s;
 
     s = (segment_t*) malloc(sizeof (segment_t));
@@ -63,16 +63,16 @@ void print_segments(void) {
     segment_t *s;
 
     for (s = segment_table; s != NULL; s = (segment_t*) (s->hh.next)) {
-        printf("segment key i %d j %d vol_id %d  edge_id %d\n",
+        printf("segment key i %ld j %ld vol_id %ld  edge_id %ld\n",
                 s->key.i, s->key.j, s->vol_id, s->edge_id);
     }
 }
 
-int vol_id_sort(segment_t *a, segment_t *b) {
+int64_t vol_id_sort(segment_t *a, segment_t *b) {
     return (a->vol_id - b->vol_id);
 }
 
-int key_sort(segment_t *a, segment_t *b) {
+int64_t key_sort(segment_t *a, segment_t *b) {
     return (a->key.i - b->key.i);
 }
 

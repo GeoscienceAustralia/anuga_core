@@ -10,7 +10,7 @@ def boundary_dictionary_construct(int64_t numTriangle, defaultTag,\
                                 np.ndarray[int64_t, ndim=2, mode="c"] neighbours not None,\
                                 dict boundary):
 
-	cdef int a, b, vol_id, edge_id
+	cdef int64_t a, b, vol_id, edge_id
 
 	#defaultTag = defaultTag.encode('utm-f')
 
@@ -35,8 +35,8 @@ def check_integrity_c(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_indices
 					np.ndarray[int64_t, ndim=1, mode="c"] node_index not None,\
 					np.ndarray[int64_t, ndim=1, mode="c"] number_of_triangles_per_node not None):
 
-	cdef int nt, nt3, tri, n_node, n_node_1
-	cdef int current_node, k, i, index
+	cdef int64_t nt, nt3, tri, n_node, n_node_1
+	cdef int64_t current_node, k, i, index
 
 	cdef int64_t cumsum
 

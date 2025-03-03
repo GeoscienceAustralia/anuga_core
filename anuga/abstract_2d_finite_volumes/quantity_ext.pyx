@@ -10,29 +10,29 @@ ctypedef int64_t keyint
 
 # declare the interface to the C code
 cdef extern from "quantity.c":
-  int _compute_gradients(keyint N, double* centroids, double* centroid_values, int64_t* number_of_boundaries, int64_t* surrogate_neighbours, double* a, double* b)
-  int _compute_local_gradients(keyint N, double* vertex_coordinates, double* vertex_values, double* a, double* b)
-  int _extrapolate_from_gradient(keyint N, double* centroids, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* a, double* b)
-  int _extrapolate_and_limit_from_gradient(keyint N, double beta, double* centroids, int64_t* neighbours, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* phi, double* x_gradient, double* y_gradient) 
-  int _limit_vertices_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient)
-  int _limit_edges_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient)
-  int _limit_edges_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours)
-  int _limit_gradient_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient, int64_t* neighbours)
-  int _bound_vertices_below_by_constant(keyint N, double bound, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient)
-  int _bound_vertices_below_by_quantity(keyint N, double* bound_vertex_values, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient)
-  int _interpolate(keyint N, double* vertex_values, double* edge_values, double* centroid_values)
-  int _interpolate_from_vertices_to_edges(keyint N, double* vertex_values, double* edge_values)
-  int _interpolate_from_edges_to_vertices(keyint N, double* vertex_values, double* edge_values)
-  int _backup_centroid_values(keyint N, double* centroid_values, double* centroid_backup_values)
-  int _saxpy_centroid_values(keyint N, double a, double b, double* centroid_values, double* centroid_backup_values)
-  int _update(keyint N, double timestep, double* centroid_values, double* explicit_update, double* semi_implicit_update)
-  int _average_vertex_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* vertex_values, double* A)
-  int _average_centroid_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* centroid_values, double* A)
-  int _set_vertex_values_c(keyint num_verts, int64_t* vertices, int64_t* node_index, int64_t* number_of_triangles_per_node, int64_t* vertex_value_indices, double* vertex_values, double* A)
-  int _min_and_max_centroid_values(keyint N, double* qc, double* qv, int64_t* neighbours, double* qmin, double* qmax)
+  int64_t _compute_gradients(keyint N, double* centroids, double* centroid_values, int64_t* number_of_boundaries, int64_t* surrogate_neighbours, double* a, double* b)
+  int64_t _compute_local_gradients(keyint N, double* vertex_coordinates, double* vertex_values, double* a, double* b)
+  int64_t _extrapolate_from_gradient(keyint N, double* centroids, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* a, double* b)
+  int64_t _extrapolate_and_limit_from_gradient(keyint N, double beta, double* centroids, int64_t* neighbours, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* phi, double* x_gradient, double* y_gradient) 
+  int64_t _limit_vertices_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient)
+  int64_t _limit_edges_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient)
+  int64_t _limit_edges_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours)
+  int64_t _limit_gradient_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient, int64_t* neighbours)
+  int64_t _bound_vertices_below_by_constant(keyint N, double bound, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient)
+  int64_t _bound_vertices_below_by_quantity(keyint N, double* bound_vertex_values, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient)
+  int64_t _interpolate(keyint N, double* vertex_values, double* edge_values, double* centroid_values)
+  int64_t _interpolate_from_vertices_to_edges(keyint N, double* vertex_values, double* edge_values)
+  int64_t _interpolate_from_edges_to_vertices(keyint N, double* vertex_values, double* edge_values)
+  int64_t _backup_centroid_values(keyint N, double* centroid_values, double* centroid_backup_values)
+  int64_t _saxpy_centroid_values(keyint N, double a, double b, double* centroid_values, double* centroid_backup_values)
+  int64_t _update(keyint N, double timestep, double* centroid_values, double* explicit_update, double* semi_implicit_update)
+  int64_t _average_vertex_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* vertex_values, double* A)
+  int64_t _average_centroid_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* centroid_values, double* A)
+  int64_t _set_vertex_values_c(keyint num_verts, int64_t* vertices, int64_t* node_index, int64_t* number_of_triangles_per_node, int64_t* vertex_value_indices, double* vertex_values, double* A)
+  int64_t _min_and_max_centroid_values(keyint N, double* qc, double* qv, int64_t* neighbours, double* qmin, double* qmax)
 
 cdef extern from "util_ext.h":
-  void _limit_old(int N, double beta, double* qc, double* qv, double* qmin, double* qmax)
+  void _limit_old(int64_t N, double beta, double* qc, double* qv, double* qmin, double* qmax)
 
 
 def update(object quantity, double timestep):
@@ -72,7 +72,7 @@ def update(object quantity, double timestep):
   cdef np.ndarray[double, ndim=1, mode="c"] semi_implicit_update
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   centroid_values = quantity.centroid_values
   explicit_update = quantity.explicit_update
@@ -91,7 +91,7 @@ def backup_centroid_values(object quantity):
   cdef np.ndarray[double, ndim=1, mode="c"] centroid_backup_values
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   centroid_values = quantity.centroid_values
   centroid_backup_values = quantity.centroid_backup_values
@@ -106,7 +106,7 @@ def saxpy_centroid_values(object quantity, double a, double b):
   cdef np.ndarray[double, ndim=1, mode="c"] centroid_backup_values
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   centroid_values = quantity.centroid_values
   centroid_backup_values = quantity.centroid_backup_values
@@ -127,7 +127,7 @@ def set_vertex_values_c(object quantity, np.ndarray[int64_t, ndim=1, mode="c"] v
   cdef np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_indices
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
   cdef keyint num_verts
 
   domain = quantity.domain
@@ -150,7 +150,7 @@ def interpolate(object quantity):
   cdef np.ndarray[double, ndim=1, mode="c"] centroid_values
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   vertex_values = quantity.vertex_values
   edge_values = quantity.edge_values
@@ -168,7 +168,7 @@ def interpolate_from_vertices_to_edges(object quantity):
   cdef np.ndarray[double, ndim=2, mode="c"] edge_values
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   vertex_values = quantity.vertex_values
   edge_values = quantity.edge_values
@@ -185,7 +185,7 @@ def interpolate_from_edges_to_vertices(object quantity):
   cdef np.ndarray[double, ndim=2, mode="c"] edge_values
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   vertex_values = quantity.vertex_values
   edge_values = quantity.edge_values
@@ -199,7 +199,7 @@ def interpolate_from_edges_to_vertices(object quantity):
 def average_vertex_values(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_indices not None, np.ndarray[int64_t, ndim=1, mode="c"] number_of_triangles_per_node not None, np.ndarray[double, ndim=2, mode="c"] vertex_values not None, np.ndarray[double, ndim=1, mode="c"] A not None):
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   N = vertex_value_indices.shape[0]
 
@@ -210,7 +210,7 @@ def average_vertex_values(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_ind
 def average_centroid_values(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_indices not None, np.ndarray[int64_t, ndim=1, mode="c"] number_of_triangles_per_node not None, np.ndarray[double, ndim=1, mode="c"] centroid_values not None, np.ndarray[double, ndim=1, mode="c"] A not None):
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   N = vertex_value_indices.shape[0]
 
@@ -233,7 +233,7 @@ def extrapolate_from_gradient(object quantity):
   cdef np.ndarray[double, ndim=1, mode="c"] y_gradient
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -270,7 +270,7 @@ def compute_local_gradients(object quantity):
   cdef np.ndarray[double, ndim=1, mode="c"] y_gradient
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -304,7 +304,7 @@ def extrapolate_second_order_and_limit_by_edge(object quantity):
 
   cdef keyint ntri
   cdef double beta
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.object
 
@@ -375,7 +375,7 @@ def extrapolate_second_order_and_limit_by_vertex(object quantity):
 
   cdef keyint ntri
   cdef double beta
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.object
 
@@ -442,7 +442,7 @@ def compute_gradients(object quantity):
   cdef np.ndarray[double, ndim=1, mode="c"] y_gradient
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -478,7 +478,7 @@ def limit_old(object quantity):
 
   cdef keyint N
   cdef double beta_w
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -513,7 +513,7 @@ def limit_vertices_by_all_neighbours(object quantity):
 
   cdef double beta_w
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -552,7 +552,7 @@ def limit_edges_by_all_neighbours(object quantity):
 
   cdef double beta_w
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -589,7 +589,7 @@ def bound_vertices_below_by_constant(object quantity, double bound):
   cdef np.ndarray[double, ndim=1, mode="c"] y_gradient
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -622,7 +622,7 @@ def bound_vertices_below_by_quantity(object quantity, object bounding_quantity):
   cdef np.ndarray[double, ndim=2, mode="c"] bound_vertex_values
 
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -656,7 +656,7 @@ def limit_edges_by_neighbour(object quantity):
 
   cdef double beta_w
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 
@@ -690,7 +690,7 @@ def limit_gradient_by_neighbour(object quantity):
 
   cdef double beta_w
   cdef keyint N
-  cdef int err
+  cdef int64_t err
 
   domain = quantity.domain
 

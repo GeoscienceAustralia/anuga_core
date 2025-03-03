@@ -11,16 +11,17 @@
 	
 #include "math.h"
 #include "stdio.h"
+#include <stdint.h>
 
 //Matrix-vector routine
-int _csr_mv(int M,
+int64_t _csr_mv(int64_t M,
 	    double* data, 
-	    long* colind,
-	    long* row_ptr,
+	    int64_t* colind,
+	    int64_t* row_ptr,
 	    double* x,
 	    double* y) {
   		
-  long i, j, ckey;
+  int64_t i, j, ckey;
 
   for (i=0; i<M; i++ ) 
     for (ckey=row_ptr[i]; ckey<row_ptr[i+1]; ckey++) {
@@ -32,15 +33,15 @@ int _csr_mv(int M,
 }            
 
 //Matrix-matrix routine
-int _csr_mm(int M,
-	    int columns, 
+int64_t _csr_mm(int64_t M,
+	    int64_t columns, 
 	    double* data, 
-	    long* colind,
-	    long* row_ptr,
+	    int64_t* colind,
+	    int64_t* row_ptr,
 	    double* x,
 	    double* y) {
   		
-  long i, j, ckey, c, rowind_i, rowind_j;
+  int64_t i, j, ckey, c, rowind_i, rowind_j;
 
   for (i=0; i<M; i++ ) {
     rowind_i = i*columns;
