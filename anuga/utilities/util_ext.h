@@ -11,6 +11,8 @@
 	
 #include "math.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 
 #ifndef ANUGA_UTIL_EXT_H
@@ -22,21 +24,21 @@
 #define AT __FILE__ ":" TOSTRING(__LINE__)
 #define P_ERROR_BUFFER_SIZE 100
 
-
-double max(double x, double y) {  
-  //Return maximum of two doubles
+// provided by stdlib.h 
+// double max(double x, double y) {  
+//   //Return maximum of two doubles
   
-  if (x > y) return x;
-  else return y;
-}
+//   if (x > y) return x;
+//   else return y;
+// }
 
-
-double min(double x, double y) {  
-  //Return minimum of two doubles
+// provided by stdlib.h
+// double min(double x, double y) {  
+//   //Return minimum of two doubles
   
-  if (x < y) return x;
-  else return y;
-}
+//   if (x < y) return x;
+//   else return y;
+// }
 
 
 double sign(double x) {
