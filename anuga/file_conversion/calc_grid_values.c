@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <math.h>
+#include <stdint.h>
 
 #define MIN(a, b) (((a)<=(b))?(a):(b))
 #define MAX(a, b) (((a)>(b))?(a):(b))
@@ -50,8 +51,8 @@ void get_tri_extent(double *vertices, PTR_EXTENT out)
 }
 
 void get_tri_vertices( double *x, double *y,\
-			long *volumes, \
-			int tri_id, \
+			int64_t *volumes, \
+			int64_t tri_id, \
 			double *out, \
 			double *v1,  \
 			double *v2,  \
@@ -79,7 +80,7 @@ void get_tri_vertices( double *x, double *y,\
 	}
 }
 
-void get_tri_norms( double *norms, int tri_id, 
+void get_tri_norms( double *norms, int64_t tri_id, 
 		       double *n1, double *n2, double *n3)
 {
 	n1[0] = norms[tri_id*6];
@@ -90,9 +91,9 @@ void get_tri_norms( double *norms, int tri_id,
 	n3[1] = norms[tri_id*6+5];
 }
 
-void init_norms( double *x, double *y, double *norms, long *volumes, int num_tri  )
+void init_norms( double *x, double *y, double *norms, int64_t *volumes, int64_t num_tri  )
 {
-	int i;
+	int64_t i;
 	double x1, x2, x3, y1, y2, y3;
 	double xn1, yn1, xn2, yn2, xn3, yn3;
 	double l1, l2, l3;
@@ -138,12 +139,12 @@ void init_norms( double *x, double *y, double *norms, long *volumes, int num_tri
 }
 
 // remove nodes that are not in any triangles
-void remove_lone_verts( double **verts, int *volumes )
+void remove_lone_verts( double **verts, int64_t *volumes )
 {
 	
 }
 
-int _point_on_line(double x, double y,
+int64_t _point_on_line(double x, double y,
 		   double x0, double y0,
 		   double x1, double y1,
 		   double rtol,
@@ -152,7 +153,7 @@ int _point_on_line(double x, double y,
 
   double a0, a1, a_normal0, a_normal1, b0, b1, len_a, len_b;
   double nominator, denominator;
-  int is_parallel;
+  int64_t is_parallel;
 
   a0 = x - x0;
   a1 = y - y0;
@@ -197,9 +198,9 @@ int _point_on_line(double x, double y,
   }
 }
 
-int _is_inside_triangle(double *point,
+int64_t _is_inside_triangle(double *point,
 			double *triangle,
-			int closed,
+			int64_t closed,
 			double rtol,
 			double atol) 
 {			 
@@ -208,7 +209,7 @@ int _is_inside_triangle(double *point,
   double denom, alpha, beta;
   
   double x, y; // Point coordinates
-  int i, j, res;
+  int64_t i, j, res;
 
   x = point[0];
   y = point[1];
@@ -279,17 +280,17 @@ int _is_inside_triangle(double *point,
 }
 
 void _calc_grid_values( double *x, double *y, double *norms,
-				 int num_vert,
-				 long *volumes, 
-				 int num_tri, 
+				 int64_t num_vert,
+				 int64_t *volumes, 
+				 int64_t num_tri, 
 				 double cell_size,
-				 int nrow,
-				 int ncol,
+				 int64_t nrow,
+				 int64_t ncol,
 				 double *vertex_val,
 				 double *grid_val )
 {
-	int i, j, k;
-	int x_min, x_max, y_min, y_max, point_index;
+	int64_t i, j, k;
+	int64_t x_min, x_max, y_min, y_max, point_index;
 	double x_dist, y_dist, x_base, y_base;
 	double sigma0, sigma1, sigma2;
 	double fraction;
