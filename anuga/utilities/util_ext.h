@@ -25,20 +25,20 @@
 #define P_ERROR_BUFFER_SIZE 100
 
 // provided by stdlib.h 
-// double max(double x, double y) {  
-//   //Return maximum of two doubles
+double anuga_max(double x, double y) {  
+  //Return maximum of two doubles
   
-//   if (x > y) return x;
-//   else return y;
-// }
+  if (x > y) return x;
+  else return y;
+}
 
 // provided by stdlib.h
-// double min(double x, double y) {  
-//   //Return minimum of two doubles
+double anuga_min(double x, double y) {  
+  //Return minimum of two doubles
   
-//   if (x < y) return x;
-//   else return y;
-// }
+  if (x < y) return x;
+  else return y;
+}
 
 
 double sign(double x) {
@@ -173,7 +173,7 @@ void _limit_old(int64_t N, double beta, double* qc, double* qv,
       if (dq < 0.0) r = (qmin[k] - qc[k])/dq;      
   
   
-      phi = min( min(r*beta, 1.0), phi);    
+      phi = anuga_min( anuga_min(r*beta, 1.0), phi);    
     }
     
     //Then update using phi limiter

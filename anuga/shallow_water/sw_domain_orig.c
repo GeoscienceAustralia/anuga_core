@@ -97,7 +97,7 @@ int64_t _rotate(double *q, double n1, double n2) {
 //    if(sign(a)!=sign(b)){
 //        return 0.0;
 //    }else{
-//        return min(fabs(a), fabs(b))*sign(a);
+//        return fmax(fabs(a), fabs(b))*sign(a);
 //    }
 //
 //
@@ -408,7 +408,7 @@ int64_t _flux_function_central(double *q_left, double *q_right,
   // We will use this to scale the diffusive component of the UH/VH fluxes.
 
   //local_fr = sqrt(
-  //    max(0.001, min(1.0,
+  //    max(0.001, fmax(1.0,
   //        (u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
   //        (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
   if (low_froude == 1)
@@ -1470,7 +1470,7 @@ int64_t _extrapolate_second_order_sw(int64_t number_of_elements,
         // extrapolation This will be changed back at the end of the routine
         for (k = 0; k < number_of_elements; k++) {
 
-            dk = max(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
+            dk = fmax(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
             xmom_centroid_store[k] = xmom_centroid_values[k];
             xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
 
@@ -1593,7 +1593,7 @@ int64_t _extrapolate_second_order_sw(int64_t number_of_elements,
             h0 = stage_centroid_values[k0] - bed_centroid_values[k0];
             h1 = stage_centroid_values[k1] - bed_centroid_values[k1];
             h2 = stage_centroid_values[k2] - bed_centroid_values[k2];
-            hmin = min(min(h0, min(h1, h2)), hc);
+            hmin = fmax(fmax(h0, fmax(h1, h2)), hc);
             //hfactor = hc/(hc + 1.0);
 
             hfactor = 0.0;
@@ -1605,7 +1605,7 @@ int64_t _extrapolate_second_order_sw(int64_t number_of_elements,
                 // Check if linear reconstruction is necessary for triangle k
                 // This check will exclude dry cells.
 
-                hmax = max(h0, max(h1, h2));
+                hmax = fmax(h0, fmax(h1, h2));
                 if (hmax < epsilon) {
                     continue;
                 }
@@ -1919,12 +1919,12 @@ int64_t _extrapolate_second_order_sw(int64_t number_of_elements,
         // Convert back from velocity to momentum
         for (k = 0; k < number_of_elements; k++) {
             k3 = 3 * k;
-            //dv0 = max(stage_vertex_values[k3]-bed_vertex_values[k3],minimum_allowed_height);
-            //dv1 = max(stage_vertex_values[k3+1]-bed_vertex_values[k3+1],minimum_allowed_height);
-            //dv2 = max(stage_vertex_values[k3+2]-bed_vertex_values[k3+2],minimum_allowed_height);
-            dv0 = max(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
-            dv1 = max(stage_vertex_values[k3 + 1] - bed_vertex_values[k3 + 1], 0.);
-            dv2 = max(stage_vertex_values[k3 + 2] - bed_vertex_values[k3 + 2], 0.);
+            //dv0 = fmax(stage_vertex_values[k3]-bed_vertex_values[k3],minimum_allowed_height);
+            //dv1 = fmax(stage_vertex_values[k3+1]-bed_vertex_values[k3+1],minimum_allowed_height);
+            //dv2 = fmax(stage_vertex_values[k3+2]-bed_vertex_values[k3+2],minimum_allowed_height);
+            dv0 = fmax(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
+            dv1 = fmax(stage_vertex_values[k3 + 1] - bed_vertex_values[k3 + 1], 0.);
+            dv2 = fmax(stage_vertex_values[k3 + 2] - bed_vertex_values[k3 + 2], 0.);
 
             //Correct centroid and vertex values
             xmom_centroid_values[k] = xmom_centroid_store[k];
@@ -2183,7 +2183,7 @@ int64_t _extrapolate_second_order_edge_sw(struct domain *D) {
           D->stage_edge_values[k3+1] = D->stage_centroid_values[k];
           D->stage_edge_values[k3+2] = D->stage_centroid_values[k];
 
-          dk= D->height_centroid_values[k]; //max(stage_centroid_values[k]-bed_centroid_values[k],0.);
+          dk= D->height_centroid_values[k]; //fmax(stage_centroid_values[k]-bed_centroid_values[k],0.);
           D->height_edge_values[k3] = dk;
           D->height_edge_values[k3+1] = dk;
           D->height_edge_values[k3+2] = dk;
