@@ -1,6 +1,5 @@
 #include <math.h>
 #include <stdio.h>
-#include <unistd.h>
 #include <stdint.h>
 
 //Rough quicksort implementation (for build_operator_matrix)
