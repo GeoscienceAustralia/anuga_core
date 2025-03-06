@@ -344,19 +344,19 @@ void _calc_grid_values( double *x, double *y, double *norms,
 */
 
 		fraction = modf( (extent->x_min - x_base)/x_dist, &intpart );
-		x_min = intpart;
+		x_min = (int64_t) intpart;
 		x_min = (x_min < 0) ? 0 : x_min; 
 
 		fraction = modf( ABS(extent->x_max - x_base)/x_dist, &intpart );
-		x_max = intpart;
+		x_max = (int64_t) intpart;
 		x_max = (x_max > (ncol-1)) ? (ncol-1) : x_max;
 
 		fraction = modf( (extent->y_min - y_base)/y_dist, &intpart );
-		y_min = intpart;
+		y_min = (int64_t) intpart;
 		y_min = (y_min < 0 ) ? 0 : y_min;
 
 		fraction = modf( ABS(extent->y_max - y_base)/y_dist, &intpart );
-		y_max = intpart;
+		y_max = (int64_t) intpart;
 		y_max = (y_max > (nrow-1)) ? (nrow-1) : y_max;
 		
 		if ( x_max >= 0 && y_max >= 0 ) {

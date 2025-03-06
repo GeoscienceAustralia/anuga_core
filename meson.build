@@ -7,7 +7,7 @@ add_project_arguments('-DNPY_NO_DEPRECATED_API=NPY_1_7_API_VERSION', language: '
 #add_project_arguments('-DMS_WIN64', language: 'c')
 
 # Import python
-py3 = import('python').find_installation(pure: false, modules: ['numpy'])
+py3 = import('python').find_installation(pure: false)
 
 message('Python found at ' + py3.get_variable('prefix'))
 
@@ -41,6 +41,7 @@ dep_numpy = dependency('numpy')
 
 # important to put the numpy dependency first to avoid picking up the system numpy
 dependencies = [dep_numpy, dep_py]
+#dependencies = [dep_py]
 
 # Add subdirectories which contains python sources
 subdir('anuga')
