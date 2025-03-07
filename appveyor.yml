@@ -9,16 +9,8 @@ environment:
       PYTHON_ARCH: "x86_64"
 
 build_script:
-# If there's a newer build queued for the same PR, cancel this one
-#   - ps: if ($env:APPVEYOR_PULL_REQUEST_NUMBER -and $env:APPVEYOR_BUILD_NUMBER -ne ((Invoke-RestMethod `
-#         https://ci.appveyor.com/api/projects/$env:APPVEYOR_ACCOUNT_NAME/$env:APPVEYOR_PROJECT_SLUG/history?recordsNumber=50).builds | `
-#         Where-Object pullRequestId -eq $env:APPVEYOR_PULL_REQUEST_NUMBER)[0].buildNumber) { `
-#         throw "There are newer queued builds for this pull request, failing early." }
-#   - ps: Start-FileDownload "https://repo.continuum.io/miniconda/Miniconda$env:PY_MAJOR_VER-latest-Windows-$env:PYTHON_ARCH.exe" C:\Miniconda.exe; echo "Finished downloading miniconda"
-#   - cmd: C:\Miniconda.exe /S /D=C:\Py
-#   - cmd: C:\Py\Scripts\activate.bat
 
-# install:
+  # install:
   - cmd: curl -fsSLo Miniforge3.exe https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-Windows-x86_64.exe
   - cmd: start /wait "" Miniforge3.exe /InstallationType=JustMe /RegisterPython=0 /S /D=%UserProfile%\Miniforge3
   - cmd: call %UserProfile%\Miniforge3\Scripts\activate.bat
@@ -26,36 +18,24 @@ build_script:
   - CMD: SET
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
-  - conda info -a
+  #- conda info -a
 
   # install the dependencies
-  - conda create -n anuga_env --yes --quiet python=3.10 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine pymetis mpi4py msmpi Pmw meson meson-python ninja pkg-config > conda_install.log 2>&1
+  - conda create -n anuga_env --yes --quiet python=3.10 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine pymetis mpi4py msmpi Pmw meson meson-python ninja pkg-config xarray > conda_install.log 2>&1
   - type conda_install.log
   
   - conda activate anuga_env
   # test python
   - python --version
 
-  # see if MSVC compiler works
-
-
-  # setup for mingw compiler
-  #- conda install m2w64-gcc m2w64-gcc-fortran m2w64-gcc-libgfortran m2w64-gcc-libs m2w64-libwinpthread-git > conda_compilers.log 2>&1
-  #- type conda_compilers.log
-
-  # - set PATH=%PATH%;%UserProfile%\Miniforge3\Library\mingw-w64\bin
-  # - set CC=gcc
-  # - set CXX=g++
-  # - set FC=gfortran
-
-  # - gcc --version
-  # - g++ --version
-  # - gfortran --version
-  
+  # If using m2w64 gcc compiler for windows uncomment the following
   #- conda install -c conda-forge libpython m2w64-toolchain
+
   # there seems to be a bug with distutil by not picking the mingw comiler for anuga
   #- cp windows_setup.cfg setup.cfg
-  # install locally so that the pytest will work
+
+
+  # Use MSVC compiler by default
   - pip install -v .
 
 test_script:
