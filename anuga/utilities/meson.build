@@ -1,8 +1,10 @@
 
+inc_dir = include_directories('../utilities', incdir_numpy)
 
 # Compile the Cython-generated C code and additional C code
 py3.extension_module('cg_ext',
   sources: ['cg_ext.pyx'],
+  include_directories: inc_dir,
   dependencies: dependencies,
   subdir: 'anuga/utilities',
   install: true,
@@ -10,6 +12,7 @@ py3.extension_module('cg_ext',
 
 py3.extension_module('quad_tree_ext',
   sources: ['quad_tree_ext.pyx'],
+  include_directories: inc_dir,
   dependencies: dependencies,
   subdir: 'anuga/utilities',
   install: true,
@@ -17,6 +20,7 @@ py3.extension_module('quad_tree_ext',
 
 py3.extension_module('sparse_ext',
   sources: ['sparse_ext.pyx'],
+  include_directories: inc_dir,
   dependencies: dependencies,
   subdir: 'anuga/utilities',
   install: true,
@@ -24,6 +28,7 @@ py3.extension_module('sparse_ext',
 
 py3.extension_module('sparse_matrix_ext',
   sources: ['sparse_matrix_ext.pyx'],
+  include_directories: inc_dir,
   dependencies: dependencies,
   subdir: 'anuga/utilities',
   install: true,
@@ -31,6 +36,7 @@ py3.extension_module('sparse_matrix_ext',
 
 py3.extension_module('util_ext',
   sources: ['util_ext.pyx'],
+  include_directories: inc_dir,
   dependencies: dependencies,
   subdir: 'anuga/utilities',
   install: true,

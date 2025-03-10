@@ -1,5 +1,5 @@
 
-inc_dir = include_directories('../utilities')
+inc_dir = include_directories('../utilities', incdir_numpy)
 
 util_srcs = ['../utilities/quad_tree.c',
                  '../utilities/sparse_dok.c',

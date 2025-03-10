@@ -1,5 +1,5 @@
 
-inc_dir = include_directories('../utilities')
+inc_dir = include_directories('../utilities', incdir_numpy)
 
 # Compile the Cython-generated C code and additional C code
 py3.extension_module('mannings_operator_ext',
