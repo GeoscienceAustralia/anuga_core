@@ -1,27 +1,32 @@
-name: anuga_env_39
+name: anuga_env
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
-  - openpyxl
-  - pybind11
-  - cython
-  - gdal
-  - pmw
-  - matplotlib
-  - netcdf4
-  - mpi4py
-  - pymetis
-  - pytest
-  - utm
-  - scipy
-  - dill
+  - python
   - numpy
+  - gdal
+  - pytest
   - meshpy
+  - cython
+  - scipy
+  - netcdf4
+  - matplotlib
+  - dill
+  - future
   - gitpython
-  - xarray
-  - wget
+  - utm
   - pyproj
   - affine
+  - openpyxl
+  - pybind11
+  - pymetis
+  - mpi4py
+  - msmpi
+  - Pmw
+  - meson
+  - meson-python
+  - ninja
+  - pkg-config
   - xarray
   - cartopy
+

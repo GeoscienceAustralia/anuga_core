@@ -1,24 +1,31 @@
 # Requirements to install anuga in read the docs
 
-# Requirements to install anuga in read the docs
+# Note: This file is used by read the docs to install the required packages
+#       to build the documentation. It is not used to install anuga itself.
 
+numpy
+gdal
+pytest
+meshpy
 cython
-pybind11
+scipy
+netcdf4
+matplotlib
 dill
 future
 gitpython
-matplotlib
-meshpy
-nbsphinx
-netcdf4
-numpy
-Pmw
-pymetis
-pytest
-pytz
-scipy
-setuptools
-sphinx
 utm
-wheel
-
+pyproj
+affine
+openpyxl
+pybind11
+pymetis
+mpi4py
+msmpi
+Pmw
+meson
+meson-python
+ninja
+pkg-config
+xarray
+cartopy
