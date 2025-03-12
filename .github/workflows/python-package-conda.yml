@@ -21,6 +21,7 @@ jobs:
     - name: Install dependencies
       run: |
         conda init
+        source /home/runner/.bashrc
         conda env update --name base
         conda env create -f environment.yml --name anuga_env
         conda activate anuga_env
