@@ -35,4 +35,6 @@ jobs:
     - name: Test with pytest
       run: |
         cd ..
+        python -c "import pyproj; print(pyproj.__version__)"
+        proj
         pytest -q --pyargs anuga
