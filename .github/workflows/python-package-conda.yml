@@ -29,9 +29,9 @@ jobs:
         conda create -n anuga_env --yes -c conda-forge python=3.12 compilers numpy scipy \
             cython netcdf4 nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis \
             meshpy pytest pyproj affine meson-python meson ninja xarray future pkg-config
-        source /usr/share/miniconda/bin/activate anuga_env
     - name: Build with pip (using meson)
       run: |
+        source /usr/share/miniconda/bin/activate anuga_env
         which python
         which pip
         conda env list
