@@ -46,6 +46,7 @@ jobs:
 
     - name: Test with pytest
       run: |
+        source /usr/share/miniconda/bin/activate anuga_env
         cd ..
         python -c "import pyproj; print(pyproj.__version__)"
         proj
