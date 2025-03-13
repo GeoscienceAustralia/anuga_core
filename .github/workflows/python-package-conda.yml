@@ -32,7 +32,10 @@ jobs:
         source /usr/share/miniconda/bin/activate anuga_env
     - name: Build with pip (using meson)
       run: |
-        pip install .
+        which python
+        which pip
+        conda env list
+        python -m pip install .
     # - name: Lint with flake8
     #   run: |
     #     conda install flake8
