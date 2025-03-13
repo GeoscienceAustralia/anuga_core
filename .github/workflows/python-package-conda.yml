@@ -32,6 +32,7 @@ jobs:
         
     - name: Build with pip (using meson)
       run: |
+        which conda
         conda activate anuga_env
         pip install .
     # - name: Lint with flake8
