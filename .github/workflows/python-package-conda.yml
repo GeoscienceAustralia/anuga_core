@@ -14,27 +14,19 @@ jobs:
       uses: actions/setup-python@v3
       with:
         python-version: '3.12'
-    - name: Deactivate the system python
-      run: |
-        deactivate || echo "deactivate failed"
     - name: Add conda to system path
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         echo $CONDA/bin >> $GITHUB_PATH
     - name: Install dependencies
       run: |
-        conda init bash
-        source ~/.bashrc
         conda update --yes conda
         conda create -n anuga_env --yes -c conda-forge python=3.12 compilers numpy scipy \
             cython netcdf4 nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis \
             meshpy pytest pyproj affine meson-python meson ninja xarray future pkg-config
     - name: Build with pip (using meson)
       run: |
-        source /usr/share/miniconda/bin/activate anuga_env
-        which python
-        which pip
-        conda env list
+        source $CONDA/bin/activate anuga_env
         python -m pip install .
     # - name: Lint with flake8
     #   run: |
@@ -46,8 +38,8 @@ jobs:
 
     - name: Test with pytest
       run: |
-        source /usr/share/miniconda/bin/activate anuga_env
+        source $CONDA/bin/activate anuga_env
+        # check where we are
+        pwd
         cd ..
-        python -c "import pyproj; print(pyproj.__version__)"
-        proj
         pytest -q --pyargs anuga
