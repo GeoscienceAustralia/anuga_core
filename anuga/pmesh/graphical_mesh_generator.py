@@ -3,6 +3,9 @@
 import Pmw, math, time, string, marshal
 import anuga.pmesh.AppShell as AppShell
 
+import sys
+print(sys.version)
+
 try:
     from .toolbarbutton import ToolBarButton
     from . import visualmesh
