@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
-import  Pmw, AppShell, math, time, string, marshal
+import Pmw
+import anuga.pmesh.AppShell
+import math, time, string, marshal
 
 try:
     from .toolbarbutton import ToolBarButton
