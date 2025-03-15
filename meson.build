@@ -24,7 +24,7 @@ message('NumPy include directory: ' + incdir_numpy)
 dependencies = [dep_py, dep_numpy]
 
 conf = configuration_data()
-conf.set('PYTHON', python.path())
+conf.set('PYTHON', py3.path())
 
 configure_file(
     input: 'anuga/pmesh/graphical_mesh_generator.py',
