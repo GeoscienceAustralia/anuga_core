@@ -48,10 +48,10 @@ jobs:
 
     # Dedicated environments with protections for publishing are strongly recommended.
     # For more information, see: https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment#deployment-protection-rules
-    environment:
-      name: pypi
+    #environment:
+      #name: some-environment-name
       # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      url: https://pypi.org/p/anuga
+      #url: https://pypi.org/p/anuga
       #
       # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
       # ALTERNATIVE: exactly, uncomment the following line instead:

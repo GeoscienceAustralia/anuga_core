@@ -672,11 +672,11 @@ int64_t __separate_points_by_polygon(int64_t M,     // Number of points
   inside_index = 0;    // Keep track of points inside
   outside_index = M-1; // Keep track of points outside (starting from end)   
   if (verbose){
-     printf("Separating %d points\n", M);
+     printf("Separating %ld points\n", M);
   }  
   for (k=0; k<M; k++) {
     if (verbose){
-      if (k %((M+10)/10)==0) printf("Doing %d of %d\n", k, M);
+      if (k %((M+10)/10)==0) printf("Doing %ld of %ld\n", k, M);
     }
     
     x = points[2*k];

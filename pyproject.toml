@@ -7,7 +7,7 @@ requires = [
     "Cython",   
     "pybind11",
     "numpy",
-    "libpython" # [win]
+    "libpython; sys_platform == 'win32'",
 ]
 
 [project]
@@ -19,7 +19,7 @@ license = {file = 'LICENSE.txt'}
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
-requires-python = ">3.8, <3.13"
+requires-python = ">3.8, <3.14"
 dependencies = [
     'numpy>=1.25.2',
 ]
