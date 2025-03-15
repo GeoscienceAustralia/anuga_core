@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 import  Pmw, AppShell, math, time, string, marshal
 

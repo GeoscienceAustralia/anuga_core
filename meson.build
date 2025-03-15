@@ -10,7 +10,6 @@ dep_py = py3.dependency()
 # Find NumPy
 dep_numpy = dependency('numpy')
 
-
 incdir_numpy = run_command(py3,
   [
     '-c',
@@ -21,11 +20,19 @@ incdir_numpy = run_command(py3,
 
 message('NumPy include directory: ' + incdir_numpy)
 
-#inc_np = include_directories(incdir_numpy)
-
 # important to put the numpy dependency first to avoid picking up the system numpy
 dependencies = [dep_py, dep_numpy]
-#dependencies = [dep_py]
+
+conf = configuration_data()
+conf.set('PYTHON', python.path())
+
+configure_file(
+    input: 'anuga/pmesh/graphical_mesh_generator.py',
+    output: 'graphical_mesh_generator',
+    configuration: conf,
+    install_dir: get_option('bindir'),
+    install_mode: 'rwxr-xr-x'
+)
 
 # Add subdirectories which contains python sources
 subdir('anuga')
