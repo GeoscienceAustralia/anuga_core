@@ -30,8 +30,7 @@ configure_file(
     input: 'anuga/pmesh/graphical_mesh_generator.py',
     output: 'graphical_mesh_generator',
     configuration: conf,
-    install_dir: get_option('bindir'),
-    install_mode: 'rwxr-xr-x'
+    install_dir: get_option('bindir')
 )
 
 # Add subdirectories which contains python sources

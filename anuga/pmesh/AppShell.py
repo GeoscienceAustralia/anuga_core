@@ -33,12 +33,13 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from tkinter import *
-try:
-    from . import Pmw
-    from . import ProgressBar
-except:
-    import Pmw
-    import ProgressBar
+import Pwm
+import Pwm.ProgressBar as ProgressBar
+# try:
+#     from . import ProgressBar
+# except:
+#     import Pmw.
+#     import ProgressBar
 import sys, string
 
 
