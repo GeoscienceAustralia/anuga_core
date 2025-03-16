@@ -26,6 +26,8 @@ dependencies = [dep_py, dep_numpy]
 conf = configuration_data()
 conf.set('PYTHON', py3.path())
 
+
+message('BinDir: ' + get_option('bindir'))
 configure_file(
     input: 'anuga/pmesh/anuga_pmesh_gui.py',
     output: 'anuga_pmesh_gui',
