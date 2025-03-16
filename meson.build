@@ -27,10 +27,11 @@ conf = configuration_data()
 conf.set('PYTHON', py3.path())
 
 configure_file(
-    input: 'anuga/pmesh/graphical_mesh_generator.py',
-    output: 'graphical_mesh_generator',
+    input: 'anuga/pmesh/anuga_pmesh_gui.py',
+    output: 'anuga_pmesh_gui',
     configuration: conf,
-    install_dir: get_option('bindir')
+    install_dir: get_option('bindir'),
+    install_mode: 'rwxr-xr-x'
 )
 
 # Add subdirectories which contains python sources

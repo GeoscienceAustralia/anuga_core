@@ -1,21 +1,18 @@
-#!/usr/bin/env python
 
-import sys
-print(sys.version)
-
-import Pmw, math, time, string, marshal
-import anuga.pmesh.AppShell as AppShell
+import  Pmw, math, time, string, marshal
 
 try:
+    from . import AppShell
     from .toolbarbutton import ToolBarButton
     from . import visualmesh
     from . import mesh
     from .mesh import SEG_COLOUR
 except:
-    from toolbarbutton import ToolBarButton
-    import visualmesh
-    import mesh
-    from mesh import SEG_COLOUR
+    from anuga.pmesh import AppShell
+    from anuga.pmesh.toolbarbutton import ToolBarButton
+    import anuga.pmesh.visualmesh as visualmesh
+    import anuga.pmesh.mesh as mesh
+    from anuga.pmesh.mesh import SEG_COLOUR
 
 
 import tkinter.filedialog
@@ -46,7 +43,10 @@ NO_SELECTION = 0
 AUTO = 1
 SET_ALPHA = 2
 
-HOME_DIR = os.path.dirname(os.path.abspath(__file__))
+# pmesh home directory
+from anuga.utilities.system_tools import get_pathname_from_package
+HOME_DIR = get_pathname_from_package('anuga.pmesh')
+#HOME_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 class Draw(AppShell.AppShell):
@@ -674,6 +674,7 @@ class Draw(AppShell.AppShell):
         #The screen canvas has y 'flipped'.  -1* unflips it
         self.lasty = self.starty = -1*self.canvas.canvasy(event.y)
         log.critical("----------------------")
+        log.critical(f"mouseDown x: {self.lastx}, y: {self.lasty}")
         self.mouseDownCurFunc( self.lastx,
                                self.lasty,event) #!!! remove the event?
                                                  # do last

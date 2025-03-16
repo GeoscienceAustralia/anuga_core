@@ -3,7 +3,7 @@ python_sources = [
   'AppShell.py',
   'cursornames.py',
   'exesetup.py',
-  'graphical_mesh_generator.py',
+  'anuga_pmesh_gui.py',
   '__init__.py',
   'mesh_interface.py',
   'mesh.py',
