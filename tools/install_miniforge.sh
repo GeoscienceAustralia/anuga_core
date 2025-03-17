@@ -11,11 +11,11 @@ ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 
 
 #test PY>3.8 and <3.13
-if [[ "$PY" =~ ^3\.(1[0-2]|[9])$ ]]; then
+if [[ "$PY" =~ ^3\.(1[0-3]|[9])$ ]]; then
      echo "Requested python version is $PY"
      echo " "
 else
-    echo "Python version must be greater than 3.8 and less than 3.13"
+    echo "Python version must be greater than 3.8 and less than 3.14"
     exit 1
 fi
 
@@ -25,18 +25,19 @@ echo "# Install miniforge3"
 echo "#==========================="
 cd $HOME
 
-if [ -f "$HOME/Miniforge3.sh" ]; then
-     echo "Miniforge3.sh already exists."
-else
-     echo "Miniforge3.sh does not exist. Downloading..."
-     wget -O "$HOME/Miniforge3.sh" "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-fi
+
 
 
 if [ -d "$HOME/miniforge3" ]; then
-     echo "miniforge3 already exists."
+     echo "miniforge3 seems to already exist."
 else
      echo "Miniforge does not exist. Installing from Miniforge3.sh..."
+     if [ -f "$HOME/Miniforge3.sh" ]; then
+          echo "Running Miniforge3.sh first..."
+     else
+          echo "Miniforge3.sh does not exist. Downloading..."
+          wget -O "$HOME/Miniforge3.sh" "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+     fi
      bash Miniforge3.sh -b
 fi
 
@@ -45,9 +46,11 @@ echo "#==============================================="
 echo "# create conda/mamba environment anuga_env_${PY}"
 echo "#==============================================="
 echo "..."
-./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers numpy scipy cython netcdf4 \
-     nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
-     meson-python meson ninja xarray future pkg-config
+./miniforge3/bin/mamba env create -file ${SCRIPTPATH}/../environments/environment_${PY}.yml
+
+# ./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers numpy scipy cython netcdf4 \
+#      nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
+#      meson-python meson ninja xarray future pkg-config
 
 echo "#======================================"
 echo "# activate environment anuga_env_${PY}"
