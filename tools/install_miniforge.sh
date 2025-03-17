@@ -31,7 +31,8 @@ cd $HOME
 if [ -d "$HOME/miniforge3" ]; then
      echo "miniforge3 seems to already exist."
 else
-     echo "Miniforge does not exist. Installing from Miniforge3.sh..."
+     echo "miniforge3 does not exist."
+     echo "Installing from script Miniforge3.sh..."
      if [ -f "$HOME/Miniforge3.sh" ]; then
           echo "Running Miniforge3.sh first..."
      else
@@ -46,7 +47,7 @@ echo "#==============================================="
 echo "# create conda/mamba environment anuga_env_${PY}"
 echo "#==============================================="
 echo "..."
-./miniforge3/bin/mamba env create -file ${SCRIPTPATH}/../environments/environment_${PY}.yml
+./miniforge3/bin/mamba env create --file ${SCRIPTPATH}/../environments/environment_${PY}.yml
 
 # ./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers numpy scipy cython netcdf4 \
 #      nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
