@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.13
+  - python_abi
   - pip
   - affine
   - cartopy
@@ -22,7 +23,6 @@ dependencies:
   - openpyxl
   - pandas
   - pkg-config
-  - pmw
   - pybind11
   - pymetis
   - pyproj
@@ -31,3 +31,5 @@ dependencies:
   - utm
   - wheel
   - xarray
+  - pip:
+    - pmw
