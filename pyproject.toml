@@ -19,9 +19,9 @@ license = {file = 'LICENSE.txt'}
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
-requires-python = ">3.8, <3.14"
+requires-python = ">=3.8, <3.14"
 dependencies = [
-    'numpy>=1.25.2',
+    'numpy>=1.24.0',
 ]
 classifiers = [
     'Intended Audience :: Science/Research',

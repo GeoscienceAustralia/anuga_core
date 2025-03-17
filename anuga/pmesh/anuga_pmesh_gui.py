@@ -790,6 +790,7 @@ class Draw(AppShell.AppShell):
         """
         self.serial +=1
         self.uniqueID = 'M*%d' % self.serial
+        
         #x_scaled =  self.SCALE*x
         #y_scaled = -1*self.SCALE*y
         vert = self.Vertices.draw(x,y,self.mesh,self.uniqueID,self.SCALE,self.canvas,event)
