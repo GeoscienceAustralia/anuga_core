@@ -20,7 +20,7 @@ jobs:
       - name: Install Our own environment
         shell: bash -el {0}
         run: |
-          conda env create --name anuga_env --file environments/environment_${{matrix.python-version}}.yml --prune
+          conda env create --name anuga_env --file environments/environment_${{matrix.python-version}}.yml
       - name: Install package
         shell: bash -el {0}
         run: |
