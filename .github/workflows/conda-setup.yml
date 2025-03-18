@@ -17,16 +17,21 @@ jobs:
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
-      - name: Conda info
+      - name: Install Our own environment
         shell: bash -el {0}
         run: |
+          conda env create --name anuga_env --file environments/environment_${{matrix.python-version}}.yml --prune
+      - name: Install package
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
           conda info
           pwd
           conda list
           pip install .
-      - name: Conda list
+      - name: Test package
         shell: bash -el {0}
         run: |
-          conda env update --name test --file environments/environment_${{matrix.python-version}}.yml --prune
+          conda list
           python --version
           pytest -q --pyargs anuga
