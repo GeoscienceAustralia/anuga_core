@@ -27,6 +27,6 @@ jobs:
       - name: Conda list
         shell: bash -el {0}
         run: |
-          conda install -c conda-forge -f environments/environment_${{matrix.python-version}}.yml
+          conda env update --name test --file environments/environment_${{matrix.python-version}}.yml --prune
           python --version
           pytest -q --pyargs anuga
