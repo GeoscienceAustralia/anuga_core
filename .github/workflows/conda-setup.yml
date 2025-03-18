@@ -25,7 +25,8 @@ jobs:
           conda list
           pip install .
       - name: Conda list
-        shell: pwsh
+        shell: bash -el {0}
         run: |
+          conda install -c conda-forge -f environments/environment_${{matrix.python-version}}.yml
           python --version
           pytest -q --pyargs anuga
