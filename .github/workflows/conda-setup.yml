@@ -32,6 +32,7 @@ jobs:
       - name: Test package
         shell: bash -el {0}
         run: |
+          conda activate anuga_env
           conda list
           python --version
           pytest -q --pyargs anuga
