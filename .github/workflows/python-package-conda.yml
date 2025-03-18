@@ -3,7 +3,7 @@ name: Python Package using Conda
 on: [push]
 
 jobs:
-  buil:
+  build:
 
     # runs-on: ubuntu-latest
     # strategy:
