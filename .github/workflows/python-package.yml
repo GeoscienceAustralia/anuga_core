@@ -3,11 +3,7 @@
 
 name: Python package
 
-on:
-  push:
-    branches: [ "develop-meson" ]
-  pull_request:
-    branches: [ "main" ]
+on: [push]
 
 jobs:
   build:
