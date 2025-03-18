@@ -1,4 +1,21 @@
 #!/bin/bash
+#
+# Run this script as follows:
+#
+# bash /path/to/anuga_core/tools/install_miniforge.sh
+#
+# This script will install miniforge3 and create a conda environment called
+# anuga_env_${PY} where PY is the python version you want to use.
+# The script will then install the anuga package from the anuga_core directory
+# and run the unittests.
+#
+# By default a python version of 3.10 will be installed. If you want to install
+# a different version of python, set the PY environment variable before running
+# the script. For example, to install python 3.9 run the script as follows:
+#
+# PY=3.9 bash /path/to/anuga_core/tools/install_miniforge.sh
+#
+# The script will install python 3.9 and create the anuga_env_3.9 environment.
 
 
 PY=${PY:-"3.10"}

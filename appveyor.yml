@@ -21,10 +21,11 @@ build_script:
   #- conda info -a
 
   # install the dependencies
-  - conda create -n anuga_env --yes --quiet python=3.10 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine pymetis mpi4py msmpi Pmw meson meson-python ninja pkg-config xarray > conda_install.log 2>&1
+  #- conda create -n anuga_env --yes --quiet python=3.10 numpy gdal pytest meshpy cython scipy netcdf4 matplotlib dill future gitpython utm pyproj affine pymetis mpi4py msmpi Pmw meson meson-python ninja pkg-config xarray > conda_install.log 2>&1
+  - conda env create -f environments\environment_3.10.yml > conda_install.log 2>&1
   - type conda_install.log
   
-  - conda activate anuga_env
+  - conda activate anuga_env_3.10
   # test python
   - python --version
 
