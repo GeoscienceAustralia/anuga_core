@@ -25,14 +25,10 @@ jobs:
         shell: bash -el {0}
         run: |
           conda activate anuga_env
-          conda info
-          pwd
-          conda list
-          pip install .
+          pip install -v .
       - name: Test package
         shell: bash -el {0}
         run: |
           conda activate anuga_env
-          conda list
-          python --version
+          cd ..
           pytest -q --pyargs anuga
