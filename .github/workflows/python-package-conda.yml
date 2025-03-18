@@ -25,7 +25,9 @@ jobs:
     - name: Install dependencies
       run: |
         conda update --yes conda
-        conda env create -n anuga_env -f environments/environment_{{matrix.python-version}}.yml
+        conda env create -n anuga_env -f environments/environment_${{ matrix.python-version }}.yml
+
+
         # conda create -n anuga_env --yes -c conda-forge python=3.12 compilers numpy scipy \
         #     cython netcdf4 nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis \
         #     meshpy pytest pyproj affine meson-python meson ninja xarray future pkg-config
