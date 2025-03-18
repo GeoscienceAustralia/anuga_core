@@ -4,8 +4,12 @@ on: [push]
 
 jobs:
   build-linux:
+
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"] 
       max-parallel: 5
 
     steps:
@@ -21,12 +25,14 @@ jobs:
     - name: Install dependencies
       run: |
         conda update --yes conda
-        conda create -n anuga_env --yes -c conda-forge python=3.12 compilers numpy scipy \
-            cython netcdf4 nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis \
-            meshpy pytest pyproj affine meson-python meson ninja xarray future pkg-config
+        conda env create -n anuga_env -f environments/environment_{{matrix.python-version}}.yml
+        # conda create -n anuga_env --yes -c conda-forge python=3.12 compilers numpy scipy \
+        #     cython netcdf4 nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis \
+        #     meshpy pytest pyproj affine meson-python meson ninja xarray future pkg-config
     - name: Build with pip (using meson)
       run: |
         source $CONDA/bin/activate anuga_env
+        python --version
         python -m pip install .
     # - name: Lint with flake8
     #   run: |
