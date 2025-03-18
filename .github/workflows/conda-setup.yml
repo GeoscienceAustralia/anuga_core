@@ -23,6 +23,9 @@ jobs:
           conda info
           pwd
           conda list
+          pip install .
       - name: Conda list
         shell: pwsh
-        run: conda list
+        run: |
+          python --version
+          pytest -q --pyargs anuga
