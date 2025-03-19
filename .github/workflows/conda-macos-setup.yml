@@ -1,6 +1,6 @@
-name: Conda setup
+name: Conda MacOS setup
 
-on: [release]
+on: [push]
 
 jobs:
   test_conda:
