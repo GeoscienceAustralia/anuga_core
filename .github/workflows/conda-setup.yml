@@ -35,4 +35,4 @@ jobs:
         run: |
           conda activate anuga_env
           cd ..
-          pytest -q --pyargs anuga
+          pytest -p no:faulthandler -q --pyargs anuga
