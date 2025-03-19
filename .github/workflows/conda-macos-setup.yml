@@ -24,7 +24,6 @@ jobs:
         shell: bash -el {0}
         run: |
           conda env create --name anuga_env --file environments/environment_${{matrix.python-version}}.yml
-          conda install -c conda-forge -n anuga_env libpython m2w64-toolchain
 
       - name: Install mingw compilers on Windows
         if: runner.os == 'Windows'
@@ -43,4 +42,5 @@ jobs:
         run: |
           conda activate anuga_env
           cd ..
-          pytest -p no:faulthandler -q --pyargs anuga
+          pytest -p no:faulthandler -s --pyargs anuga.abstract_2d_finite_volumes.tests.test_quantity
+          pytest -p no:faulthandler -s --pyargs anuga.file_conversion

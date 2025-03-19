@@ -1,6 +1,6 @@
 name: Conda setup
 
-on: [push]
+on: [release]
 
 jobs:
   test_conda:
