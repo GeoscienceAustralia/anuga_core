@@ -1,5 +1,6 @@
 
 python_sources = [
+  '__init__.py',
   'test_2pts.py',
   'test_csv2sts.py',
   'test_dem2array.py',
