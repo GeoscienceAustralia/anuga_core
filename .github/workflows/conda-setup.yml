@@ -24,11 +24,12 @@ jobs:
         shell: bash -el {0}
         run: |
           conda env create --name anuga_env --file environments/environment_${{matrix.python-version}}.yml
+          conda install -c conda-forge -n anuga_env libpython m2w64-toolchain
       - name: Install package
         shell: bash -el {0}
         run: |
           conda activate anuga_env
-          pip install -v .
+          pip install -v --no-build-isolation .
       - name: Test package
         shell: bash -el {0}
         run: |
