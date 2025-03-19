@@ -386,6 +386,8 @@ class Test_tif2(unittest.TestCase):
         assert numpy.allclose(x,x_exact)
         assert numpy.allclose(y,y_exact)
 
+        pprint(Z[11,:])
+
         assert numpy.allclose(Z[11,:],Z_row_11) or numpy.allclose(Z[11,:],Z_row_11_win)
 
 
@@ -461,6 +463,8 @@ class Test_tif2(unittest.TestCase):
                                    0.94408625, 0.99774116, 1.0533333, 1.1, 1.1559137,
                                    1.21])
 
+        pprint(Z)
+        
         assert numpy.allclose(Z, Z_exact) or numpy.allclose(Z, Z_exact_win)
 
         #os.remove('PointData_test_ll.tif')

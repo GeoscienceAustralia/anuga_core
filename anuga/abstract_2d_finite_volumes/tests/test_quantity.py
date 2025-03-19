@@ -2382,8 +2382,8 @@ Parameters
         # Read in an interpolate from tif file
         quantity2.set_values(filename=tif_file , location='vertices')
 
-        # pprint(quantity2.centroid_values)
-        # pprint(quantity2.vertex_values)
+        pprint(quantity2.centroid_values)
+        pprint(quantity2.vertex_values)
 
         assert num.allclose(quantity2.centroid_values, centroid_values_ex)
         assert num.allclose(quantity2.vertex_values, vertex_values_ex)
