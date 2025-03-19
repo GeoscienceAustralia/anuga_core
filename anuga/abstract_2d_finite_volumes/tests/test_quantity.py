@@ -2355,8 +2355,8 @@ Parameters
         # Read in an interpolate from tif file
         quantity1.set_values_from_tif_file(filename=tif_file , location='vertices')
 
-        # pprint(quantity1.centroid_values)
-        # pprint(quantity1.vertex_values)
+        pprint(quantity1.centroid_values)
+        pprint(quantity1.vertex_values)
 
         centroid_values_ex = numpy.array(
             [0.17639186, 0.34223889, 0.44878893, 0.72498227])
