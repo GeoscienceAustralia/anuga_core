@@ -13,7 +13,6 @@ jobs:
         os: ["windows-latest"]
         #python-version: ["3.9", "3.11"]
         python-version: ["3.11"]
-        compiler: ["cl"]
     steps:
       - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v3
