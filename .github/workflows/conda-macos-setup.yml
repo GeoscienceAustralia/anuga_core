@@ -43,6 +43,6 @@ jobs:
           conda activate anuga_env
           cd ..
           # pytest -p no:faulthandler --pyargs anuga
-          pytest -p no:faulthandler -s --pyargs anuga.file_conversion/tests/test_tif2
+          pytest -p no:faulthandler -s --pyargs anuga.file_conversion.tests.test_tif2
           # file_conversion/tests/test_tif2.py:464:
           # file_conversion/tests/test_tif2.py:389: 
