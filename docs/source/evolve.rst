@@ -207,8 +207,8 @@ Useful Domain methods
 .. autosummary::
    :toctree: generated
    
-   anuga.Domain.evolve
-   anuga.Domain.print_timestepping_statistics
-   anuga.Domain.set_starttime
-   anuga.Domain.set_timezone
+   Domain.evolve
+   Domain.print_timestepping_statistics
+   Domain.set_starttime
+   Domain.set_timezone
 

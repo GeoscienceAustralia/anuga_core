@@ -1,6 +1,6 @@
 name: Conda MacOS setup
 
-on: [push]
+on: [release]
 
 jobs:
   test_conda:
@@ -42,4 +42,4 @@ jobs:
         run: |
           conda activate anuga_env
           cd ..
-          pytest -p no:faulthandler --pyargs anuga
+          pytest -p no:faulthandler -q --pyargs anuga

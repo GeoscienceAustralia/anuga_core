@@ -21,8 +21,6 @@ affine
 openpyxl
 pybind11
 pymetis
-mpi4py
-msmpi
 Pmw
 meson
 meson-python
