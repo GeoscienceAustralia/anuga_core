@@ -9,7 +9,7 @@ Reference
    introduction
    domain
    boundaries
-   structures
+   operators
 
 
 .. only:: html
