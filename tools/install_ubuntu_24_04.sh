@@ -59,9 +59,6 @@ echo "#==============================================="
 
 # get numpy include path
 NUMPY_INCLUDE_PATH=$(python3 -c "import numpy; print(numpy.get_include())")
-
-
-
 pip install .
 
 echo "#==========================="

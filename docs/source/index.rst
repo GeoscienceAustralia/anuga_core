@@ -24,14 +24,9 @@ It is now developed and maintained by a community of volunteers.
    :caption: Contents:
 
    background
-   installation
+   installation/index
    examples/index
-   domain
-   initial_conditions
-   boundaries
-   evolve
-   operators
-   structures
+   setup_anuga_script/index
    reference/index
 
 

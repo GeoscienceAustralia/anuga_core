@@ -9,7 +9,7 @@
 # The script will then install the anuga package from the anuga_core directory
 # and run the unittests.
 #
-# By default a python version of 3.10 will be installed. If you want to install
+# By default a python version of 3.12 will be installed. If you want to install
 # a different version of python, set the PY environment variable before running
 # the script. For example, to install python 3.9 run the script as follows:
 #
@@ -18,7 +18,7 @@
 # The script will install python 3.9 and create the anuga_env_3.9 environment.
 
 
-PY=${PY:-"3.10"}
+PY=${PY:-"3.12"}
 
 set -e 
 
@@ -27,7 +27,7 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 
 
-#test PY>3.8 and <3.13
+#test PY>3.8 and <3.14
 if [[ "$PY" =~ ^3\.(1[0-3]|[9])$ ]]; then
      echo "Requested python version is $PY"
      echo " "
@@ -41,9 +41,6 @@ echo "#==========================="
 echo "# Install miniforge3"
 echo "#==========================="
 cd $HOME
-
-
-
 
 if [ -d "$HOME/miniforge3" ]; then
      echo "miniforge3 seems to already exist."
@@ -61,15 +58,12 @@ fi
 
 echo " "
 echo "#==============================================="
-echo "# create conda/mamba environment anuga_env_${PY}"
+echo "# create conda environment anuga_env_${PY}"
 echo "#==============================================="
 echo "..."
-./miniforge3/bin/mamba env create --file ${SCRIPTPATH}/../environments/environment_${PY}.yml
+./miniforge3/bin/conda env create --file ${SCRIPTPATH}/../environments/environment_${PY}.yml
 
-# ./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers numpy scipy cython netcdf4 \
-#      nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
-#      meson-python meson ninja xarray future pkg-config
-
+echo " "
 echo "#======================================"
 echo "# activate environment anuga_env_${PY}"
 echo "#======================================"
@@ -84,7 +78,7 @@ echo "..."
 
 cd ${SCRIPTPATH}
 cd ..
-pip install .
+pip install --no-build-isolation -editable .
 echo " "
 
 echo "#==========================="
@@ -111,13 +105,13 @@ echo "#=================================================================="
 echo "#=================================================================="
 echo "# NOTE: If you run the command"
 echo "# "
-echo "# mamba init"
+echo "# conda init"
 echo "# "
 echo "# (which will change your .bashrc file) "
 echo "# then in new terminals you will be able to use "
-echo "# the mamba command"
+echo "# the conda command"
 echo "# "
-echo "# mamba activate anuga_env_${PY}"
+echo "# conda activate anuga_env_${PY}"
 echo "# "
 echo "# to activate the anuga_env_${PY} environment"
 echo "#=================================================================="
