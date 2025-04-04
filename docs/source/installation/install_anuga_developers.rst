@@ -1,4 +1,3 @@
-.. _install_anuga_developers:
 
 Install ANUGA for Developers
 ----------------------------
@@ -32,8 +31,8 @@ This creates a directory `anuga_core`.
 
         git clone git@github.com:anuga-community/anuga_core.git
 
-Install ANUGA
-~~~~~~~~~~~~~
+Install ANUGA using Script
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 We have a script in the `anuga_core/tools` directory that will install `Miniforge` 
 and ANUGA and its dependencies.
@@ -94,9 +93,13 @@ and its dependencies.
     For macOS a small install of homebrew will 
     provide the gcc compilers (you will need to 
     setup environment variables `CC` and `CXX` to point to the homebrew compilers).
- 
 
-Finally it is sensible to test the installation.
+Testing the installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Once the installation is complete you can activate the `anuga_env_3.12` environment
+and run the unit tests to check that everything is working. 
+
+Test the installation.
 
 .. code-block:: bash
 

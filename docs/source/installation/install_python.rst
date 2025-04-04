@@ -24,7 +24,7 @@ To install `Anaconda` follow the instructions at
 `Anaconda <https://www.anaconda.com/products/individual>`_.
 
 Once you have installed `Anaconda` open a terminal which will open a `base` conda environment.
-Goto the section `Install ANUGA`_ to create a new conda environment for ANUGA.
+Goto the section :ref:`Install ANUGA` to create a new conda environment for ANUGA.
 
 
 .. _Install Miniforge:

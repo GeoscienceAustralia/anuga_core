@@ -444,7 +444,7 @@ def untar_file(tarname, target_dir='.'):
     o = tarfile.open(tarname, 'r:gz')
     members = o.getmembers()
     for member in members:
-        o.extract(member, target_dir)
+        o.extract(member, target_dir, filter='data')
     o.close()
 
 
