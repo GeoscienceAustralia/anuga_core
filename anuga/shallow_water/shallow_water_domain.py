@@ -96,6 +96,11 @@ import os
 import time
 
 try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
+try:
     import dill as pickle
 except:
     import pickle
@@ -973,17 +978,20 @@ class Domain(Generic_Domain):
         param: timestamp: return datetime corresponding to given timestamp"""
 
         from datetime import datetime
-
+        
         try:
-            from zoneinfo import ZoneInfo
+            from datetime import UTC
         except:
-            from backports.zoneinfo import ZoneInfo
+            from datetime import timezone
+            UTC = timezone.utc 
 
 
         if timestamp is None:
             timestamp = self.get_time()
 
-        utc_datetime = datetime.utcfromtimestamp(timestamp).replace(tzinfo=ZoneInfo('UTC'))
+        #utc_datetime = datetime.utcfromtimestamp(timestamp).replace(tzinfo=ZoneInfo('UTC'))
+        utc_datetime = datetime.fromtimestamp(timestamp,UTC)
+
         current_dt = utc_datetime.astimezone(self.timezone)
         return current_dt
 

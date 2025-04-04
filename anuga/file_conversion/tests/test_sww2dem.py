@@ -2711,9 +2711,9 @@ Statistics of SWW file:
         for output_verbose_True_line, line in zip(output_verbose_True,
                                                   output[:len(output_verbose_True)-1]):
 
-            # print(str(line))
-            # print(str(output_verbose_True_line))
-            # print()
+            print(str(line))
+            print(str(output_verbose_True_line))
+            print()
             assert str(line).lstrip() == output_verbose_True_line.lstrip()
             # cleanup
             try:

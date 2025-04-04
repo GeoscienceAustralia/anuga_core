@@ -7,22 +7,24 @@
 #ifndef SW_DOMAIN_H
 #define SW_DOMAIN_H
 
+#include <stdint.h>
+
 // structures
 struct domain {
     // Changing these don't change the data in python object
-    long    number_of_elements;
+    int64_t    number_of_elements;
     double  epsilon;
     double  H0;
     double  g;
-    long    optimise_dry_cells;
+    int64_t    optimise_dry_cells;
     double  evolve_max_timestep;
-    long    extrapolate_velocity_second_order;
+    int64_t    extrapolate_velocity_second_order;
     double  minimum_allowed_height;
     double  maximum_allowed_speed;
-    long    low_froude;
+    int64_t    low_froude;
 
 
-    long timestep_fluxcalls;
+    int64_t timestep_fluxcalls;
 
     double beta_w;
     double beta_w_dry;
@@ -31,29 +33,29 @@ struct domain {
     double beta_vh;
     double beta_vh_dry;
 
-    long max_flux_update_frequency;
-    long ncol_riverwall_hydraulic_properties;
+    int64_t max_flux_update_frequency;
+    int64_t ncol_riverwall_hydraulic_properties;
 
     // Changing values in these arrays will change the values in the python object
-    long*   neighbours;
-    long*   neighbour_edges;
-    long*   surrogate_neighbours;
+    int64_t*   neighbours;
+    int64_t*   neighbour_edges;
+    int64_t*   surrogate_neighbours;
     double* normals;
     double* edgelengths;
     double* radii;
     double* areas;
 
-    long* edge_flux_type;
+    int64_t* edge_flux_type;
 
-    long*   tri_full_flag;
-    long*   already_computed_flux;
+    int64_t*   tri_full_flag;
+    int64_t*   already_computed_flux;
     double* max_speed;
 
     double* vertex_coordinates;
     double* edge_coordinates;
     double* centroid_coordinates;
 
-    long*   number_of_boundaries;
+    int64_t*   number_of_boundaries;
     double* stage_edge_values;
     double* xmom_edge_values;
     double* ymom_edge_values;
@@ -82,9 +84,9 @@ struct domain {
     double* xmom_explicit_update;
     double* ymom_explicit_update;
 
-    long* flux_update_frequency;
-    long* update_next_flux;
-    long* update_extrapolation;
+    int64_t* flux_update_frequency;
+    int64_t* update_next_flux;
+    int64_t* update_extrapolation;
     double* edge_timestep;
     double* edge_flux_work;
     double* pressuregrad_work;
@@ -92,18 +94,18 @@ struct domain {
     double* y_centroid_work;
     double* boundary_flux_sum;
 
-    long* allow_timestep_increase;
+    int64_t* allow_timestep_increase;
 
     double* riverwall_elevation;
-    long* riverwall_rowIndex;
+    int64_t* riverwall_rowIndex;
     double* riverwall_hydraulic_properties;
 };
 
 
 struct edge {
 
-    int cell_id;
-    int edge_id;
+    int64_t cell_id;
+    int64_t edge_id;
 
     // mid point values
     double w;
@@ -134,10 +136,10 @@ struct edge {
 };
 
 
-void get_edge_data(struct edge *E, struct domain *D, int k, int i) {
+void get_edge_data(struct edge *E, struct domain *D, int64_t k, int64_t i) {
     // fill edge data (conserved and bed) for ith edge of kth triangle
 
-    int k3i, k3i1, k3i2;
+    int64_t k3i, k3i1, k3i2;
 
     k3i = 3 * k + i;
     k3i1 = 3 * k + (i + 1) % 3;
@@ -167,7 +169,7 @@ void get_edge_data(struct edge *E, struct domain *D, int k, int i) {
 
 }
 
-int print_domain_struct(struct domain *D) {
+int64_t print_domain_struct(struct domain *D) {
 
 
     printf("D->number_of_elements     %ld  \n", D->number_of_elements);

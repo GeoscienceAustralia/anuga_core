@@ -2,7 +2,7 @@
 
 // **************** UTILITIES ***********************
 
-static void *emalloc(size_t amt,char * location)
+static void *emalloc(size_t amt, char * location)
 {
     void *v = malloc(amt);  
     if(!v){

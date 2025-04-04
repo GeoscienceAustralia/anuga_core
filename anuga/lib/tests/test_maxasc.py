@@ -94,56 +94,63 @@ class Test_MaxAsc(unittest.TestCase):
             os.remove(file)
 
     def test_unequal_lines(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
-        expected_file = os.path.join(test_path, 'test1_bad_num_lines.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+        expected_file = os.path.join(lib_tests_path, 'test1_bad_num_lines.asc')
+
         self.assertRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
                               [in_file, expected_file])
 
     def test_headers_differ(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
-        expected_file = os.path.join(test_path, 'test1_bad_num_lines.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+        expected_file = os.path.join(lib_tests_path, 'test1_bad_num_lines.asc')
+
         self.assertRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
                               [in_file, expected_file])
 
     def test_wrong_num_columns(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
-        expected_file = os.path.join(test_path, 'test1_wrong_num_columns.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+        expected_file = os.path.join(lib_tests_path, 'test1_wrong_num_columns.asc')
+
         self.assertRaises(RuntimeError, MaxAsc,
                               'test.out.asc',
                               [in_file, expected_file])
 
     def test_same_input_equals_output1(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+
         MaxAsc('test1.out.asc', [in_file])
         self.assertTrue(FilesEqual('test1.out.asc', in_file))
 
 
     def test_same_input_equals_outputN(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+
         MaxAsc('test1.out.asc', [in_file] * 30)
         self.assertTrue(FilesEqual('test1.out.asc', in_file))
 
     def test_different_input2(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
-        in_file2 = os.path.join(test_path, 'test2.asc')
-        expected_file = os.path.join(test_path, 'test2.expected.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+        in_file2 = os.path.join(lib_tests_path, 'test2.asc')
+        expected_file = os.path.join(lib_tests_path, 'test2.expected.asc')
+
         MaxAsc('test2.out.asc', [in_file, in_file2])
         self.assertTrue(FilesEqual('test2.out.asc', expected_file))
 
     def test_different_input3(self):
-        test_path = aust.get_pathname_from_package('anuga.lib.tests')
-        in_file = os.path.join(test_path, 'test1.asc')
-        in_file2 = os.path.join(test_path, 'test2.asc')
-        in_file3 = os.path.join(test_path, 'test3.asc')
-        expected_file = os.path.join(test_path, 'test3.expected.asc')
+        lib_tests_path = os.path.join(aust.get_pathname_from_package('anuga.lib'), 'tests')
+        in_file = os.path.join(lib_tests_path, 'test1.asc')
+        in_file2 = os.path.join(lib_tests_path, 'test2.asc')
+        in_file3 = os.path.join(lib_tests_path, 'test3.asc')
+        expected_file = os.path.join(lib_tests_path, 'test3.expected.asc')
+
         MaxAsc('test3.out.asc', [in_file, in_file2, in_file3])
         self.assertTrue(FilesEqual('test3.out.asc', expected_file))
 

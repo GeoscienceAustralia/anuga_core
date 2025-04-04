@@ -1,23 +1,23 @@
 #include <math.h>
 #include <stdio.h>
-#include <unistd.h>
+#include <stdint.h>
 
 //Rough quicksort implementation (for build_operator_matrix)
 // taken from http://cprogramminglanguage.net/quicksort-algorithm-c-source-code.aspx
 
-void swap(int *x, int *y) {
-    int temp;
+void swap(int64_t *x, int64_t *y) {
+    int64_t temp;
     temp = *x;
     *x = *y;
     *y = temp;
 }
 
-int choose_pivot(int i, int j) {
+int64_t choose_pivot(int64_t i, int64_t j) {
     return ((i + j) / 2);
 }
 
-void quicksort(int list[], int m, int n) {
-    int key, i, j, k;
+void quicksort(int64_t list[], int64_t m, int64_t n) {
+    int64_t key, i, j, k;
     if (m < n) {
         k = choose_pivot(m, n);
         swap(&list[m], &list[k]);
@@ -40,15 +40,15 @@ void quicksort(int list[], int m, int n) {
     }
 }
 
-int _build_geo_structure(int n,
-        int tot_len,
+int64_t _build_geo_structure(int64_t n,
+        int64_t tot_len,
         double *centroids,
-        long *neighbours,
+        int64_t *neighbours,
         double *edgelengths,
         double *edge_midpoints,
-        long *geo_indices,
+        int64_t *geo_indices,
         double *geo_values) {
-    int i, edge, edge_counted, j, m;
+    int64_t i, edge, edge_counted, j, m;
     double dist, this_x, this_y, other_x, other_y, edge_length;
     edge_counted = 0;
     for (i = 0; i < n; i++) {
@@ -85,15 +85,15 @@ int _build_geo_structure(int n,
     return 0;
 }
 
-int _build_elliptic_matrix_not_symmetric(int n,
-        int tot_len,
-        long *geo_indices,
+int64_t _build_elliptic_matrix_not_symmetric(int64_t n,
+        int64_t tot_len,
+        int64_t *geo_indices,
         double *geo_values,
         double *cell_data,
         double *bdry_data,
         double *data,
-        long *colind) {
-    int i, k, edge, j[4], sorted_j[4], this_index;
+        int64_t *colind) {
+    int64_t i, k, edge, j[4], sorted_j[4], this_index;
     double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
     for (i = 0; i < n; i++) {
         v_i = 0.0;
@@ -138,15 +138,15 @@ int _build_elliptic_matrix_not_symmetric(int n,
     return 0;
 }
 
-int _build_elliptic_matrix(int n,
-        int tot_len,
-        long *geo_indices,
+int64_t _build_elliptic_matrix(int64_t n,
+        int64_t tot_len,
+        int64_t *geo_indices,
         double *geo_values,
         double *cell_data,
         double *bdry_data,
         double *data,
-        long *colind) {
-    int i, k, edge, j[4], sorted_j[4], this_index;
+        int64_t *colind) {
+    int64_t i, k, edge, j[4], sorted_j[4], this_index;
     double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
     for (i = 0; i < n; i++) {
         v_i = 0.0;
@@ -191,15 +191,15 @@ int _build_elliptic_matrix(int n,
     return 0;
 }
 
-int _update_elliptic_matrix_not_symmetric(int n,
-        int tot_len,
-        long *geo_indices,
+int64_t _update_elliptic_matrix_not_symmetric(int64_t n,
+        int64_t tot_len,
+        int64_t *geo_indices,
         double *geo_values,
         double *cell_data,
         double *bdry_data,
         double *data,
-        long *colind) {
-    int i, k, edge, j[4], sorted_j[4], this_index;
+        int64_t *colind) {
+    int64_t i, k, edge, j[4], sorted_j[4], this_index;
     double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
     for (i = 0; i < n; i++) {
         v_i = 0.0;
@@ -245,15 +245,15 @@ int _update_elliptic_matrix_not_symmetric(int n,
     return 0;
 }
 
-int _update_elliptic_matrix(int n,
-        int tot_len,
-        long *geo_indices,
+int64_t _update_elliptic_matrix(int64_t n,
+        int64_t tot_len,
+        int64_t *geo_indices,
         double *geo_values,
         double *cell_data,
         double *bdry_data,
         double *data,
-        long *colind) {
-    int i, k, edge, j[4], sorted_j[4], this_index;
+        int64_t *colind) {
+    int64_t i, k, edge, j[4], sorted_j[4], this_index;
     double h_j, v[3], v_i; //v[k] = value of the interaction of edge k in a given triangle, v_i = (i,i) entry
     for (i = 0; i < n; i++) {
         v_i = 0.0;

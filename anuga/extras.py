@@ -12,19 +12,26 @@ from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain_instan
 #-----------------------------
 def rectangular_cross_domain(*args, **kwargs):
     """
-    Create a rectangular domain with triangulation made
-    up of m+1 by n+1 uniform rectangular cells divided
+    Create a rectangular domain.
+    
+    The triangular mesh is made
+    up of m by n uniform rectangular cells divided
     into 4 triangles in a cross pattern
 
-    Arguments
-    m:      number of cells in x direction
-    n:      number of cells in y direction
-    len1:   length of domain in x direction (left to right)
+
+    :param m:      number of cells in x direction
+    :param n:      number of cells in y direction
+    :param len1:   length of domain in x direction (left to right)
             (default 1.0)
-    len2:   length of domain in y direction (bottom to top)
+    :param len2:   length of domain in y direction (bottom to top)
             (default 1.0)
-    origin: tuple (x,y) specifying location of lower left corner
+    :param origin: tuple (x,y) specifying location of lower left corner
             of domain (default (0,0))
+    :param verbose: boolean flag to output information (default False)
+
+    
+    :return: shallow water domain instance
+
     """
 
     try:

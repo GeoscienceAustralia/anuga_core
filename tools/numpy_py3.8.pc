@@ -1,0 +1,14 @@
+# For python 3.8 we need to copy this file to the 
+# appriate directory so that meson can find the numpy 
+# include files and library
+# Need to copy this over to the numpy/_core/lib/np directory
+# and set PKG_CONFIG_PATH to point to the directory
+
+
+prefix=${pcfiledir}/../..
+includedir=${prefix}/include
+
+Name: numpy
+Description: NumPy is the fundamental package for scientific computing with Python.
+Version: 1.24.0
+Cflags: -I${includedir}

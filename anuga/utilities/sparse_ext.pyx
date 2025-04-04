@@ -1,20 +1,21 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
+from libc.stdint cimport int64_t, int32_t
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
 # declare the interface to the C code
 cdef extern from "sparse.c":
-	int _csr_mv(int M, double* data, long* colind, long* row_ptr, double* x, double* y)
-	int _csr_mm(int M, int columns, double* data, long* colind, long* row_ptr, double* x, double* y)
+	int32_t _csr_mv(int64_t M, double* data, int64_t* colind, int64_t* row_ptr, double* x, double* y)
+	int32_t _csr_mm(int64_t M, int64_t columns, double* data, int64_t* colind, int64_t* row_ptr, double* x, double* y)
 
 def csr_mv(object csr_sparse, np.ndarray x not None):
 
 	cdef np.ndarray[double, ndim=1, mode="c"] data
-	cdef np.ndarray[long, ndim=1, mode="c"] colind
-	cdef np.ndarray[long, ndim=1, mode="c"] row_ptr
+	cdef np.ndarray[int64_t, ndim=1, mode="c"] colind
+	cdef np.ndarray[int64_t, ndim=1, mode="c"] row_ptr
 	cdef np.ndarray y
-	cdef int M, err, columns, rows
+	cdef int32_t M, err, columns, rows
 
 	data = csr_sparse.data
 	colind = csr_sparse.colind

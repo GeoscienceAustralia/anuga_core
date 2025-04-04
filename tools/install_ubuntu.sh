@@ -7,7 +7,6 @@ set -e
 
 echo "#==========================="
 echo "# Determine Ubuntu version"
-echo "# 20_04 or 22_04"
 echo "#==========================="
 
 VERSION_ID=$(grep -oP 'VERSION_ID="\K[\d.]+' /etc/os-release)

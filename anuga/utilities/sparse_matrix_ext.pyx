@@ -1,6 +1,8 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from libc.stdlib cimport malloc, free
+from libc.stdint cimport int64_t
+
 from cpython.pycapsule cimport *
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -17,16 +19,16 @@ cdef extern from "sparse_dok.c":
 		unsigned keylen
 		unsigned hashv
 	ctypedef struct edge_key_t:
-		int i
-		int j
+		int64_t i
+		int64_t j
 	ctypedef struct edge_t:
 		edge_key_t key
 		double entry
 		UT_hash_handle hh
 	ctypedef struct sparse_dok:
 		edge_t* edgetable
-		int num_entries
-		int num_rows
+		int64_t num_entries
+		int64_t num_rows
 	void delete_dok_matrix(sparse_dok* mat)
 	void sort_by_key(sparse_dok* hashtable)
 	void add_dok_entry(sparse_dok* edgetable, edge_key_t key, double value)
@@ -37,11 +39,11 @@ cdef delete_dok_cap(object cap):
 	if kill != NULL:
 		delete_dok_matrix(kill)
 
-cdef int _serialise(sparse_dok* dok, dict serial_dok):
+cdef int64_t _serialise(sparse_dok* dok, dict serial_dok):
 
 	sort_by_key(dok)
-	cdef int num_entries
-	cdef int k,i,j
+	cdef int64_t num_entries
+	cdef int64_t k,i,j
 	cdef double val
 	cdef edge_t* edge
 
@@ -60,9 +62,9 @@ cdef int _serialise(sparse_dok* dok, dict serial_dok):
 
 	return 0
 
-cdef int _deserialise(sparse_dok* dok, dict serial_dok):
+cdef int64_t _deserialise(sparse_dok* dok, dict serial_dok):
 
-	cdef int num_entries, k, i, j
+	cdef int64_t num_entries, k, i, j
 	cdef double val
 	cdef list items
 	cdef list keys
@@ -88,7 +90,7 @@ cdef int _deserialise(sparse_dok* dok, dict serial_dok):
 
 def serialise_dok(object sparse_dok_cap):
 
-	cdef int err
+	cdef int64_t err
 	cdef sparse_dok* dok
 	cdef dict serial_sparse_dok
 
@@ -103,7 +105,7 @@ def serialise_dok(object sparse_dok_cap):
 
 def deserialise_dok(dict serial_sparse_dok):
 
-	cdef int err
+	cdef int64_t err
 	cdef object sparse_dok_cap
 	cdef sparse_dok* dok
 

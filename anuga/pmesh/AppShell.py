@@ -33,18 +33,19 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from tkinter import *
+import sys, string
+import Pmw
+
 try:
-    from . import Pmw
     from . import ProgressBar
 except:
-    import Pmw
-    import ProgressBar
-import sys, string
+    import anuga.pmesh.ProgressBar as ProgressBar
+
 
 
 class AppShell(Pmw.MegaWidget):
     appversion      = '1.0'
-    appname         = 'ANUGA pmesh graphical editor'
+    appname         = 'ANUGA pmesh gui'
     copyright       = 'Copyright ANU and Geoscience Australia. All Rights Reserved'
     contactname     = 'Stephen Roberts'
     contactphone    = '+61 2 6125 4445'

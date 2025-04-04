@@ -11,6 +11,8 @@
 
 #include "math.h"
 #include "stdio.h"
+#include "stdlib.h"
+#include "stdint.h"
 
 //-------------------------------------------
 // Low level routines (called from wrappers)
@@ -20,36 +22,36 @@ double _compute_fluxes(
 		    double* quantity_update,
 		    double* quantity_edge,
 		    double* quantity_bdry,
-                    long*   domain_neighbours,
-		    long*   domain_neighbour_edges,
+            int64_t*   domain_neighbours,
+		    int64_t*   domain_neighbour_edges,
 		    double* domain_normals,
-                    double* domain_areas,
+            double* domain_areas,
 		    double* domain_radii,
 		    double* domain_edgelengths,
-		    long*   domain_tri_full_flag,
+		    int64_t*   domain_tri_full_flag,
 		    double* domain_velocity,
-                    double  huge_timestep,
-                    double  max_timestep,
-		    int ntri,
-		    int nbdry){
+            double  huge_timestep,
+            double  max_timestep,
+		    int64_t ntri,
+		    int64_t nbdry){
 
  
         //Local Variables
 
-        double qr,ql;
+        double qr, ql;
         double normal[2];
         double normal_velocity;
         double flux, edgeflux;
         double max_speed;
         double optimal_timestep;
-	double timestep;
-	int  k_i,n_m,k_i_j;
-	int k,i,j,n,m;
-	int k3;
-	
-	//Loop through triangles
+        double timestep;
+        int64_t k_i, n_m, k_i_j;
+        int64_t k, i, j, n, m;
+        int64_t k3;
 
-	timestep = max_timestep;
+        // Loop through triangles
+
+        timestep = max_timestep;
 
         for (k=0; k<ntri; k++){
             optimal_timestep = huge_timestep;

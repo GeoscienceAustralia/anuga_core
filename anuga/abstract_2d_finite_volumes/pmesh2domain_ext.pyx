@@ -1,6 +1,7 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from cython cimport typeof
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -13,25 +14,25 @@ cdef extern from "pmesh2domain.c":
 	ctypedef struct UT_hash_handle:
 		pass
 	ctypedef struct segment_key_t:
-		int i
-		int j
+		int64_t i
+		int64_t j
 	ctypedef struct segment_t:
 		segment_key_t key
-		int vol_id
-		int edge_id
+		int64_t vol_id
+		int64_t edge_id
 		UT_hash_handle hh
-	void add_segment(segment_key_t key, int vol_id, int edge_id)
+	void add_segment(segment_key_t key, int64_t vol_id, int64_t edge_id)
 	segment_t* find_segment(segment_key_t key)
 	void delete_segment(segment_t* segment)
 	void delete_segment_all()
 	void print_segments()
-	int vol_id_sort(segment_t* a, segment_t* b)
-	int key_sort(segment_t* a, segment_t* b)
+	int64_t vol_id_sort(segment_t* a, segment_t* b)
+	int64_t key_sort(segment_t* a, segment_t* b)
 	void sort_by_vol_id()
 	void sort_by_key()
 
-def build_boundary_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not None,\
-							np.ndarray[long, ndim=2, mode="c"] segments not None,\
+def build_boundary_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles not None,\
+							np.ndarray[int64_t, ndim=2, mode="c"] segments not None,\
 							list segment_tags,\
 							dict tag_dict):
 	"""
@@ -44,9 +45,9 @@ def build_boundary_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not N
 	number_of_boundaries
 	"""
 
-	cdef int M, N
-	cdef int err = 0
-	cdef int k, a, b, c, vol_id, edge_id, len_tag
+	cdef int64_t M, N
+	cdef int64_t err = 0
+	cdef int64_t k, a, b, c, vol_id, edge_id, len_tag
 
 	cdef char* string
 	cdef segment_t* s
@@ -139,9 +140,9 @@ def build_boundary_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not N
 	delete_segment_all()
 	return tag_dict
 
-def build_sides_dictionary(np.ndarray[long, ndim=2, mode="c"] triangles not None, dict sides):
+def build_sides_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles not None, dict sides):
 
-	cdef long i, numTriangle, a, b, c
+	cdef int64_t i, numTriangle, a, b, c
 
 	numTriangle = triangles.shape[0]
 
