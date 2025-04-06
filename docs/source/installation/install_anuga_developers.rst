@@ -90,9 +90,36 @@ and its dependencies.
 
         conda install m2w64-gcc libpython 
 
-    For macOS a small install of homebrew will 
-    provide the gcc compilers (you will need to 
-    setup environment variables `CC` and `CXX` to point to the homebrew compilers).
+    or for macOS:
+
+    For macOS we suggest installing `homebrew` which will 
+    provide the gcc compilers. Once you have installed
+    the compilers via `homebrew` you need to set the environment variables to
+    point to the `gcc` and `g++` compilers. 
+    
+    Check their location via:
+    
+    .. code-block:: bash
+        
+        which gcc
+        which g++
+
+    and then set the environment variables as such:
+
+    .. code-block:: bash
+
+        export CC=/opt/homebrew/bin/gcc
+        export CXX=/opt/homebrew/bin/g++
+
+    or whatever the path is to your homebrew compilers.
+
+    Once you have installed the compilers you can run the `pip install` command
+    to install ANUGA.
+
+    .. code-block:: bash
+
+        pip install --no-build-isolation -e .
+
 
 Testing the installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
