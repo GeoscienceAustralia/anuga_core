@@ -7,7 +7,7 @@
 
 import argparse
 from anuga.anuga_exceptions import ANUGAError
-from anuga.parallel.sww_merge import sww_merge_parallel  # Import the required function
+from anuga.utilities.sww_merge import sww_merge_parallel  # Import the required function
 
 
 parser = argparse.ArgumentParser(description='Merge sww files created from parallel run')
