@@ -36,6 +36,14 @@ configure_file(
     install_mode: 'rwxr-xr-x'
 )
 
+configure_file(
+    input: 'anuga/utilities/anuga_sww_merge.py',
+    output: 'anuga_sww_merge',
+    configuration: conf,
+    install_dir: get_option('bindir'),
+    install_mode: 'rwxr-xr-x'
+)
+
 # Add subdirectories which contains python sources
 subdir('anuga')
 
