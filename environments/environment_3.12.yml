@@ -22,7 +22,6 @@ dependencies:
   - openpyxl
   - pandas
   - pkg-config
-  - pmw
   - pybind11
   - pymetis
   - pyproj
@@ -31,3 +30,5 @@ dependencies:
   - utm
   - wheel
   - xarray
+  - pip:
+    - pmw
