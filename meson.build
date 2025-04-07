@@ -29,7 +29,7 @@ conf.set('PYTHON', py3.path())
 
 message('BinDir: ' + get_option('bindir'))
 configure_file(
-    input: 'scripts/anuga_pmesh_gui.py',
+    input: 'anuga/scripts/anuga_pmesh_gui.py',
     output: 'anuga_pmesh_gui',
     configuration: conf,
     install_dir: get_option('bindir'),
@@ -37,7 +37,7 @@ configure_file(
 )
 
 configure_file(
-    input: 'scripts/anuga_sww_merge.py',
+    input: 'anuga/scripts/anuga_sww_merge.py',
     output: 'anuga_sww_merge',
     configuration: conf,
     install_dir: get_option('bindir'),
