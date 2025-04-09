@@ -31,6 +31,7 @@ class Set_elevation(Set_quantity):
     def __init__(self,
                  domain,
                  elevation=None,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -40,6 +41,7 @@ class Set_elevation(Set_quantity):
 
         Set_quantity.__init__(self, domain, 'elevation',
                               value=elevation,
+                              region=region,
                               indices=indices,
                               polygon=polygon,
                               center=center,
@@ -52,7 +54,8 @@ class Set_elevation(Set_quantity):
 
         #-----------------------------------------
         # Extra structures to support maintaining
-        # continuity of elevation
+        # continuity (smoothness) of elevation
+        # FIXME SR: Not needed if using discontinuous elevation
         #-----------------------------------------
         self.setup_node_structures()
 
