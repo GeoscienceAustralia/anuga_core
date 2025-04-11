@@ -97,6 +97,11 @@ import os
 import time
 
 try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
+
+try:
     import dill as pickle
 except:
     import pickle
@@ -416,6 +421,13 @@ class Domain(Generic_Domain):
         # Do we allow the timestep to increase (not every time if local
         # extrapolation/flux updating is used)
         self.allow_timestep_increase=num.zeros(1).astype(int)+1
+
+
+        #-----------------------------------
+        # parameters for structures
+        #-----------------------------------
+        self.use_new_velocity_head = False
+
 
     def _set_config_defaults(self):
         """Set the default values in this routine. That way we can inherit class
@@ -909,17 +921,20 @@ class Domain(Generic_Domain):
         param: timestamp: return datetime corresponding to given timestamp"""
 
         from datetime import datetime
-
+        
         try:
-            from zoneinfo import ZoneInfo
+            from datetime import UTC
         except:
-            from backports.zoneinfo import ZoneInfo
+            from datetime import timezone
+            UTC = timezone.utc 
 
 
         if timestamp is None:
             timestamp = self.get_time()
 
-        utc_datetime = datetime.utcfromtimestamp(timestamp).replace(tzinfo=ZoneInfo('UTC'))
+        #utc_datetime = datetime.utcfromtimestamp(timestamp).replace(tzinfo=ZoneInfo('UTC'))
+        utc_datetime = datetime.fromtimestamp(timestamp,UTC)
+
         current_dt = utc_datetime.astimezone(self.timezone)
         return current_dt
 

@@ -18,6 +18,7 @@
 #include "math.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
 
 // Shared code snippets
 #include "util_ext.h"
@@ -26,14 +27,14 @@
 const double pi = 3.14159265358979;
 
 // Trick to compute n modulo d (n%d in python) when d is a power of 2
-unsigned int Mod_of_power_2(unsigned int n, unsigned int d)
+uint64_t Mod_of_power_2(uint64_t n, uint64_t d)
 {
   return ( n & (d-1) );
 }
 
 
 // Computational function for rotation
-int _rotate(double *q, double n1, double n2) {
+int64_t _rotate(double *q, double n1, double n2) {
   /*Rotate the last  2 coordinates of 3x1 array q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
 
@@ -90,13 +91,13 @@ int _rotate(double *q, double n1, double n2) {
 //}
 //
 //// minmod limiter
-//int _minmod(double a, double b){
+//int64_t _minmod(double a, double b){
 //    // Compute minmod
 //
 //    if(sign(a)!=sign(b)){
 //        return 0.0;
 //    }else{
-//        return min(fabs(a), fabs(b))*sign(a);
+//        return fmax(fabs(a), fabs(b))*sign(a);
 //    }
 //
 //
@@ -104,7 +105,7 @@ int _rotate(double *q, double n1, double n2) {
 
 
 // Innermost flux function (using stage w=z+h)
-int _flux_function_toro(double *q_left, double *q_right,
+int64_t _flux_function_toro(double *q_left, double *q_right,
                            double h_left, double h_right,
                            double hle, double hre,
                            double n1, double n2,
@@ -127,7 +128,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
     FIXME: Several variables in this interface are no longer used, clean up
   */
 
-  int i;
+  int64_t i;
 
   double uh_left, vh_left, u_left;
   double uh_right, vh_right, u_right;
@@ -280,7 +281,7 @@ water model for two-dimensional dam-break type. Journal of Computational Physics
 
 
 // Innermost flux function (using stage w=z+h)
-int _flux_function_central(double *q_left, double *q_right,
+int64_t _flux_function_central(double *q_left, double *q_right,
                            double h_left, double h_right,
                            double hle, double hre,
                            double n1, double n2,
@@ -291,7 +292,7 @@ int _flux_function_central(double *q_left, double *q_right,
                            double *edgeflux, double *max_speed,
                            double *pressure_flux, double hc,
                            double hc_n,
-                           long low_froude)
+                           int64_t low_froude)
 {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -309,7 +310,7 @@ int _flux_function_central(double *q_left, double *q_right,
     low_froude is either 1 or 2 - see comment inline
   */
 
-  int i;
+  int64_t i;
 
   double uh_left, vh_left, u_left;
   double uh_right, vh_right, u_right;
@@ -407,7 +408,7 @@ int _flux_function_central(double *q_left, double *q_right,
   // We will use this to scale the diffusive component of the UH/VH fluxes.
 
   //local_fr = sqrt(
-  //    max(0.001, min(1.0,
+  //    max(0.001, fmax(1.0,
   //        (u_right*u_right + u_left*u_left + v_right*v_right + v_left*v_left)/
   //        (soundspeed_left*soundspeed_left + soundspeed_right*soundspeed_right + 1.0e-10))));
   if (low_froude == 1)
@@ -505,7 +506,7 @@ int _flux_function_central(double *q_left, double *q_right,
 
 ////////////////////////////////////////////////////////////////
 
-int _compute_flux_update_frequency(struct domain *D, double timestep){
+int64_t _compute_flux_update_frequency(struct domain *D, double timestep){
     // Compute the 'flux_update_frequency' for each edge.
     //
     // This determines how regularly we need
@@ -518,10 +519,10 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
     //
     //
     // Local variables
-    int k, i, k3, ki, m, n, nm, ii, ii2;
-    long fuf;
+    int64_t k, i, k3, ki, m, n, nm, ii, ii2;
+    int64_t fuf;
     double notSoFast=1.0;
-    static int cyclic_number_of_steps=-1;
+    static int64_t cyclic_number_of_steps=-1;
 
     // QUICK EXIT
     if(D->max_flux_update_frequency==1){
@@ -568,14 +569,14 @@ int _compute_flux_update_frequency(struct domain *D, double timestep){
                     continue;
                 }
 
-                // Basically int( edge_ki_timestep/timestep ) with upper limit + tweaks
+                // Basically int64_t( edge_ki_timestep/timestep ) with upper limit + tweaks
                 // notSoFast is ideally = 1.0, but in practice values < 1.0 can enhance stability
-                // NOTE: edge_timestep[ki]/timestep can be very large [so int overflows].
-                //       Do not pull the (int) inside the min term
-                fuf = (int)fmin((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
+                // NOTE: edge_timestep[ki]/timestep can be very large [so int64_t overflows].
+                //       Do not pull the (int64_t) inside the min term
+                fuf = (int64_t)fmin((D->edge_timestep[ki]/timestep)*notSoFast,D->max_flux_update_frequency*1.);
                 // Account for neighbour
                 if(n>=0){
-                    fuf = fmin( (int)fmin(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
+                    fuf = fmin( (int64_t)fmin(D->edge_timestep[nm]/timestep*notSoFast, D->max_flux_update_frequency*1.), fuf);
                 }
 
                 // Deal with notSoFast<1.0
@@ -768,21 +769,21 @@ double _compute_fluxes_central(struct domain *D, double timestep){
     double h_left, h_right, z_half ;  // For andusse scheme
     // FIXME: limiting_threshold is not used for DE1
     double limiting_threshold = 10*D->H0;
-    long low_froude = D->low_froude;
+    int64_t low_froude = D->low_froude;
     //
-    int k, i, m, n, ii;
-    int ki, nm = 0, ki2,ki3, nm3; // Index shorthands
+    int64_t k, i, m, n, ii;
+    int64_t ki, nm = 0, ki2,ki3, nm3; // Index shorthands
     // Workspace (making them static actually made function slightly slower (Ole))
     double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
     double bedslope_work;
     static double local_timestep;
-    long RiverWall_count, substep_count;
+    int64_t RiverWall_count, substep_count;
     double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2;
     double pressure_flux, hc, hc_n, tmp;
     double h_left_tmp, h_right_tmp;
-    static long call = 0; // Static local variable flagging already computed flux
-    static long timestep_fluxcalls=1;
-    static long base_call = 1;
+    static int64_t call = 0; // Static local variable flagging already computed flux
+    static int64_t timestep_fluxcalls=1;
+    static int64_t base_call = 1;
     double speed_max_last, weir_height;
 
     call++; // Flag 'id' of flux calculation for this timestep
@@ -1144,7 +1145,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
 }
 
 // Protect against the water elevation falling below the triangle bed
-double  _protect(int N,
+double  _protect(int64_t N,
          double minimum_allowed_height,
          double maximum_allowed_speed,
          double epsilon,
@@ -1158,14 +1159,14 @@ double  _protect(int N,
          double* xc,
          double* yc) {
 
-  int k;
+  int64_t k;
   double hc, bmin;
   double mass_error = 0.;
   // This acts like minimum_allowed height, but scales with the vertical
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   //double minimum_relative_height=0.05;
-  //int mass_added = 0;
+  //int64_t mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   //if (maximum_allowed_speed < epsilon) {
@@ -1208,7 +1209,7 @@ double  _protect(int N,
 // Protect against the water elevation falling below the triangle bed
 double  _protect_new(struct domain *D) {
 
-  int k;
+  int64_t k;
   double hc, bmin;
   double mass_error = 0.;
 
@@ -1234,7 +1235,7 @@ double  _protect_new(struct domain *D) {
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   //double minimum_relative_height=0.05;
-  //int mass_added = 0;
+  //int64_t mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   //if (maximum_allowed_speed < epsilon) {
@@ -1277,7 +1278,7 @@ double  _protect_new(struct domain *D) {
 
 
 
-int find_qmin_and_qmax(double dq0, double dq1, double dq2,
+int64_t find_qmin_and_qmax(double dq0, double dq1, double dq2,
                double *qmin, double *qmax){
   // Considering the centroid of an FV triangle and the vertices of its
   // auxiliary triangle, find
@@ -1297,7 +1298,7 @@ int find_qmin_and_qmax(double dq0, double dq1, double dq2,
   return 0;
 }
 
-int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
+int64_t limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   // Given provisional jumps dqv from the FV triangle centroid to its
   // vertices/edges, and jumps qmin (qmax) between the centroid of the FV
   // triangle and the minimum (maximum) of the values at the auxiliary triangle
@@ -1305,7 +1306,7 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
   // multiplicative factor phi by which the provisional vertex jumps are to be
   // limited
 
-  int i;
+  int64_t i;
   double r=1000.0, r0=1.0, phi=1.0;
   static double TINY = 1.0e-100; // to avoid machine accuracy problems.
   // FIXME: Perhaps use the epsilon used elsewhere.
@@ -1338,11 +1339,11 @@ int limit_gradient(double *dqv, double qmin, double qmax, double beta_w){
 // MIGRATED from shallow_water.c
 // FIXME (Ole): Maybe superseded by extrapolate_second_order_edge_sw below?
 // Computational routine
-int _extrapolate_second_order_sw(struct domain *D) {
+int64_t _extrapolate_second_order_sw(struct domain *D) {
 
 
   // Domain Variables
-    int number_of_elements;
+    int64_t number_of_elements;
     double epsilon;
     double minimum_allowed_height;
     double beta_w;
@@ -1351,8 +1352,8 @@ int _extrapolate_second_order_sw(struct domain *D) {
     double beta_uh_dry;
     double beta_vh;
     double beta_vh_dry;
-    long* surrogate_neighbours;
-    long* number_of_boundaries;
+    int64_t* surrogate_neighbours;
+    int64_t* number_of_boundaries;
     double* centroid_coordinates;
     double* stage_centroid_values;
     double* xmom_centroid_values;
@@ -1368,12 +1369,12 @@ int _extrapolate_second_order_sw(struct domain *D) {
     double* xmom_vertex_values;
     double* ymom_vertex_values;
     double* bed_vertex_values;
-    int optimise_dry_cells;
-    int extrapolate_velocity_second_order;
+    int64_t optimise_dry_cells;
+    int64_t extrapolate_velocity_second_order;
 
     // Local variables
     double a, b; // Gradient vector used to calculate edge values from centroids
-    int k, k0, k1, k2, k3, k6, coord_index, i;
+    int64_t k, k0, k1, k2, k3, k6, coord_index, i;
     double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
     double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
     double dqv[3], qmin, qmax, hmin, hmax;
@@ -1422,7 +1423,7 @@ int _extrapolate_second_order_sw(struct domain *D) {
 
 
 /*
-int _extrapolate_second_order_sw(int number_of_elements,
+int64_t _extrapolate_second_order_sw(int64_t number_of_elements,
         double epsilon,
         double minimum_allowed_height,
         double beta_w,
@@ -1431,8 +1432,8 @@ int _extrapolate_second_order_sw(int number_of_elements,
         double beta_uh_dry,
         double beta_vh,
         double beta_vh_dry,
-        long* surrogate_neighbours,
-        long* number_of_boundaries,
+        int64_t* surrogate_neighbours,
+        int64_t* number_of_boundaries,
         double* centroid_coordinates,
         double* stage_centroid_values,
         double* xmom_centroid_values,
@@ -1443,14 +1444,14 @@ int _extrapolate_second_order_sw(int number_of_elements,
         double* xmom_vertex_values,
         double* ymom_vertex_values,
         double* elevation_vertex_values,
-        int optimise_dry_cells,
-        int extrapolate_velocity_second_order) {
+        int64_t optimise_dry_cells,
+        int64_t extrapolate_velocity_second_order) {
 
 
 
     // Local variables
     double a, b; // Gradient vector used to calculate vertex values from centroids
-    int k, k0, k1, k2, k3, k6, coord_index, i;
+    int64_t k, k0, k1, k2, k3, k6, coord_index, i;
     double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
     double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
     double dqv[3], qmin, qmax, hmin, hmax;
@@ -1469,7 +1470,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
         // extrapolation This will be changed back at the end of the routine
         for (k = 0; k < number_of_elements; k++) {
 
-            dk = max(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
+            dk = fmax(stage_centroid_values[k] - bed_centroid_values[k], minimum_allowed_height);
             xmom_centroid_store[k] = xmom_centroid_values[k];
             xmom_centroid_values[k] = xmom_centroid_values[k] / dk;
 
@@ -1592,7 +1593,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
             h0 = stage_centroid_values[k0] - bed_centroid_values[k0];
             h1 = stage_centroid_values[k1] - bed_centroid_values[k1];
             h2 = stage_centroid_values[k2] - bed_centroid_values[k2];
-            hmin = min(min(h0, min(h1, h2)), hc);
+            hmin = fmax(fmax(h0, fmax(h1, h2)), hc);
             //hfactor = hc/(hc + 1.0);
 
             hfactor = 0.0;
@@ -1604,7 +1605,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
                 // Check if linear reconstruction is necessary for triangle k
                 // This check will exclude dry cells.
 
-                hmax = max(h0, max(h1, h2));
+                hmax = fmax(h0, fmax(h1, h2));
                 if (hmax < epsilon) {
                     continue;
                 }
@@ -1918,12 +1919,12 @@ int _extrapolate_second_order_sw(int number_of_elements,
         // Convert back from velocity to momentum
         for (k = 0; k < number_of_elements; k++) {
             k3 = 3 * k;
-            //dv0 = max(stage_vertex_values[k3]-bed_vertex_values[k3],minimum_allowed_height);
-            //dv1 = max(stage_vertex_values[k3+1]-bed_vertex_values[k3+1],minimum_allowed_height);
-            //dv2 = max(stage_vertex_values[k3+2]-bed_vertex_values[k3+2],minimum_allowed_height);
-            dv0 = max(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
-            dv1 = max(stage_vertex_values[k3 + 1] - bed_vertex_values[k3 + 1], 0.);
-            dv2 = max(stage_vertex_values[k3 + 2] - bed_vertex_values[k3 + 2], 0.);
+            //dv0 = fmax(stage_vertex_values[k3]-bed_vertex_values[k3],minimum_allowed_height);
+            //dv1 = fmax(stage_vertex_values[k3+1]-bed_vertex_values[k3+1],minimum_allowed_height);
+            //dv2 = fmax(stage_vertex_values[k3+2]-bed_vertex_values[k3+2],minimum_allowed_height);
+            dv0 = fmax(stage_vertex_values[k3] - bed_vertex_values[k3], 0.);
+            dv1 = fmax(stage_vertex_values[k3 + 1] - bed_vertex_values[k3 + 1], 0.);
+            dv2 = fmax(stage_vertex_values[k3 + 2] - bed_vertex_values[k3 + 2], 0.);
 
             //Correct centroid and vertex values
             xmom_centroid_values[k] = xmom_centroid_store[k];
@@ -1951,7 +1952,7 @@ int _extrapolate_second_order_sw(int number_of_elements,
 
 
 // Computational routine
-//int _extrapolate_second_order_edge_sw(int number_of_elements,
+//int64_t _extrapolate_second_order_edge_sw(int64_t number_of_elements,
 //                                 double epsilon,
 //                                 double minimum_allowed_height,
 //                                 double beta_w,
@@ -1960,9 +1961,9 @@ int _extrapolate_second_order_sw(int number_of_elements,
 //                                 double beta_uh_dry,
 //                                 double beta_vh,
 //                                 double beta_vh_dry,
-//                                 long* surrogate_neighbours,
-//                                 long* neighbour_edges,
-//                                 long* number_of_boundaries,
+//                                 int64_t* surrogate_neighbours,
+//                                 int64_t* neighbour_edges,
+//                                 int64_t* number_of_boundaries,
 //                                 double* centroid_coordinates,
 //                                 double* stage_centroid_values,
 //                                 double* xmom_centroid_values,
@@ -1980,16 +1981,16 @@ int _extrapolate_second_order_sw(int number_of_elements,
 //                                 double* ymom_vertex_values,
 //                                 double* bed_vertex_values,
 //                                 double* height_vertex_values,
-//                                 int optimise_dry_cells,
-//                                 int extrapolate_velocity_second_order,
+//                                 int64_t optimise_dry_cells,
+//                                 int64_t extrapolate_velocity_second_order,
 //                                 double* x_centroid_work,
 //                                 double* y_centroid_work,
-//                                 long* update_extrapolation) {
-int _extrapolate_second_order_edge_sw(struct domain *D) {
+//                                 int64_t* update_extrapolation) {
+int64_t _extrapolate_second_order_edge_sw(struct domain *D) {
 
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
-  int k, k0, k1, k2, k3, k6, coord_index, i;
+  int64_t k, k0, k1, k2, k3, k6, coord_index, i;
   double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
   double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq0, dq1, dq2, area2, inv_area2;
   double dqv[3], qmin, qmax, hmin, hmax;
@@ -2182,7 +2183,7 @@ int _extrapolate_second_order_edge_sw(struct domain *D) {
           D->stage_edge_values[k3+1] = D->stage_centroid_values[k];
           D->stage_edge_values[k3+2] = D->stage_centroid_values[k];
 
-          dk= D->height_centroid_values[k]; //max(stage_centroid_values[k]-bed_centroid_values[k],0.);
+          dk= D->height_centroid_values[k]; //fmax(stage_centroid_values[k]-bed_centroid_values[k],0.);
           D->height_edge_values[k3] = dk;
           D->height_edge_values[k3+1] = dk;
           D->height_edge_values[k3+2] = dk;
@@ -2672,9 +2673,9 @@ int _extrapolate_second_order_edge_sw(struct domain *D) {
 
 
 
-int _gravity(struct domain *D) {
+int64_t _gravity(struct domain *D) {
 
-    int k, N, k3, k6;
+    int64_t k, N, k3, k6;
     double g, avg_h, zx, zy;
     double x0, y0, x1, y1, x2, y2, z0, z1, z2;
 
@@ -2717,9 +2718,9 @@ int _gravity(struct domain *D) {
     return 0;
 }
 
-int _gravity_wb(struct domain *D) {
+int64_t _gravity_wb(struct domain *D) {
 
-    int i, k, N, k3, k6;
+    int64_t i, k, N, k3, k6;
     double g, avg_h, wx, wy, fact;
     double x0, y0, x1, y1, x2, y2;
     double hh[3];
@@ -2796,12 +2797,12 @@ int _gravity_wb(struct domain *D) {
 }
 
 
-void _manning_friction_flat(double g, double eps, int N,
+void _manning_friction_flat(double g, double eps, int64_t N,
         double* w, double* zv,
         double* uh, double* vh,
         double* eta, double* xmom, double* ymom) {
 
-    int k, k3;
+    int64_t k, k3;
     double S, h, z, z0, z1, z2;
     const double one_third = 1.0/3.0; 
     const double seven_thirds = 7.0/3.0;
@@ -2830,12 +2831,12 @@ void _manning_friction_flat(double g, double eps, int N,
     }
 }
 
-void _manning_friction_sloped(double g, double eps, int N,
+void _manning_friction_sloped(double g, double eps, int64_t N,
         double* x, double* w, double* zv,
         double* uh, double* vh,
         double* eta, double* xmom_update, double* ymom_update) {
 
-    int k, k3, k6;
+    int64_t k, k3, k6;
     double S, h, z, z0, z1, z2, zs, zx, zy;
     double x0, y0, x1, y1, x2, y2;
     const double one_third = 1.0/3.0; 

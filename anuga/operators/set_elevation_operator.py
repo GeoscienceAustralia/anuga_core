@@ -21,22 +21,12 @@ from anuga.config import indent
 #===============================================================================
 
 class Set_elevation_operator(Operator, Set_elevation):
-    """
-    Set the elevation in a region (careful to maintain continuitiy of elevation)
-
-    indices: None == all triangles, Empty list [] no triangles
-
-    elevation can be a function of time.
-
-    """
-
-
-    __call__ = Set_elevation.__call__
 
     
     def __init__(self,
                  domain,
                  elevation=None,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -45,14 +35,27 @@ class Set_elevation_operator(Operator, Set_elevation):
                  label = None,
                  logging = False,
                  verbose = False):
+        """
+Set the elevation in a region (careful to maintain continuitiy of elevation)
+
+indices: None == all triangles, Empty list [] no triangles
+
+elevation can be a function of time.
+
+        """
 
 
  
 
-        Set_elevation.__init__(self, domain, elevation, indices, polygon, center, radius)
+        Set_elevation.__init__(self, domain, elevation, region, indices, polygon, center, radius)
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
+
+    # Use the __call__ method from Set_elevation
+    # to set the elevation in this operator
+    __call__ = Set_elevation.__call__
+    
 
 
 

@@ -132,7 +132,21 @@ class Inlet_enquiry(inlet.Inlet):
 
     def get_enquiry_velocity_head(self):
 
-        return 0.5*self.get_enquiry_speed()**2/g
+        # velocity head will be zero if flowing out of inlet
+
+
+        if self.domain.use_new_velocity_head:
+            u, v   = self.get_enquiry_velocity()
+            n1, n2 = self.outward_culvert_vector
+            normal_speed = min(u*n1 + v*n2, 0.0)
+
+            velocity_head = 0.5*normal_speed**2/g
+        else:
+            velocity_head = 0.5*self.get_enquiry_speed()**2/g
+
+        return velocity_head
+
+        #return 0.5*self.get_enquiry_speed()**2/g
 
 
     def get_enquiry_total_energy(self):

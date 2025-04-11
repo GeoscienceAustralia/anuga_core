@@ -1,0 +1,86 @@
+name: Python Package using Conda
+
+on: [release]
+
+jobs:
+  build:
+
+    # runs-on: ubuntu-latest
+    # strategy:
+    #   fail-fast: false
+    #   matrix:
+    #     python-version: ["3.9", "3.10", "3.11"] 
+    #   max-parallel: 5
+
+  
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Set fail-fast to false to ensure that feedback is delivered for all matrix combinations. Consider changing this to true when your workflow is stable.
+      fail-fast: false
+
+      # Set up a matrix to run the following 3 configurations:
+      # 1. <Windows, Release, latest MSVC compiler toolchain on the default runner image, default generator>
+      # 2. <Linux, Release, latest GCC compiler toolchain on the default runner image, default generator>
+      # 3. <Linux, Release, latest Clang compiler toolchain on the default runner image, default generator>
+      #
+      # To add more build types (Release, Debug, RelWithDebInfo, etc.) customize the build_type list.
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ["3.10", "3.12"] 
+        build_type: [Release]
+        c_compiler: [gcc, cl]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl    
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.12'
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+
+    - name: Install dependencies
+      run: |
+        conda update --yes conda
+        conda env create -n anuga_env -f environments/environment_${{ matrix.python-version }}.yml
+
+    - name: Build with pip (using meson)
+      run: |
+        source $CONDA/bin/activate anuga_env
+        python --version
+        python -m pip install .
+    # - name: Lint with flake8
+    #   run: |
+    #     conda install flake8
+    #     # stop the build if there are Python syntax errors or undefined names
+    #     flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    #     # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+    #     flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+    - name: Test with pytest
+      run: |
+        source $CONDA/bin/activate anuga_env
+        # check where we are
+        pwd
+        cd ..
+        pytest -q --pyargs anuga

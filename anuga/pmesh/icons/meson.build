@@ -1,0 +1,46 @@
+
+
+python_sources = [
+  'Add-Hole.gif',
+  'Add-Hole.lic',
+  'Add-Region.gif',
+  'Add-Region.lic',
+  'Add-Vertex-Dialog.gif',
+  'Add-Vertex-Dialog.lic',
+  'Add-Vertex.gif',
+  'Add-Vertex.lic',
+  'Alpha.gif',
+  'Alpha.lic',
+  'Delete.gif',
+  'Delete.lic',
+  'Edit.gif',
+  'Edit.lic',
+  'Join-Vertices.gif',
+  'Join-Vertices.lic',
+  'Mesh.gif',
+  'Mesh.lic',
+  'Mesh-Visibility-Off.gif',
+  'Mesh-Visibility-Off.lic',
+  'Mesh-Visibility-Toggle.gif',
+  'Mesh-Visibility-Toggle.lic',
+  'meson.build',
+  'Pointer.gif',
+  'Pointer.lic',
+  'Segment.gif',
+  'Segment.lic',
+  'Separator.gif',
+  'Separator.lic',
+  'Tag-Segment.gif',
+  'Tag-Segment.lic',
+  'Zoom-Extents.gif',
+  'Zoom-Extents.lic',
+  'Zoom-In.gif',
+  'Zoom-In.lic',
+  'Zoom-Out.gif',
+  'Zoom-Out.lic',
+]
+
+py3.install_sources(
+  python_sources,
+  subdir: 'anuga/pmesh/icons'
+)

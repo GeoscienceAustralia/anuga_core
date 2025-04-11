@@ -17,6 +17,7 @@
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
+#include <stdint.h>  /* int64_t uint64_t */
 #include "math.h"
 #include "uthash.h"     /* in utilities */
 #include "sparse_csr.h"
@@ -27,8 +28,8 @@
 // Struct edge_key_t to store the i,j position in the matrix within
 // a key of the hashtable
 typedef struct  {
-    int i;
-    int j;
+    int64_t i;
+    int64_t j;
 } edge_key_t;
 
 // Struct edge_t is a basic element of the hash table. By including 
@@ -47,8 +48,8 @@ typedef struct {
 // can be made an appropriate size.
 typedef struct {
 	edge_t *edgetable;
-	int num_entries;
-	int num_rows;
+	int64_t num_entries;
+	int64_t num_rows;
 } sparse_dok;
 
 // 'Constructor' function. Returns pointer to new malloced memory, with 
@@ -84,7 +85,7 @@ void print_dok_entries(sparse_dok * edgetable);
 
 // key_sort - Compare the relative size of two keys, used for sorting
 // PADARN NOTE: Does not need to be in header.
-int key_sort(edge_t *a, edge_t *b);
+int64_t key_sort(edge_t *a, edge_t *b);
 
 // sort_by_key - Sort the linked list of the hash table by their key
 // values and the key_sort function.
@@ -105,7 +106,7 @@ void convert_to_csr_ptr(sparse_csr * new_csr,sparse_dok * hashtable);
 void add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult2);
 
 // get_dok_rows -- Return the number of rows currently stored in the matrix
-int get_dok_rows(sparse_dok * dok);
+int64_t get_dok_rows(sparse_dok * dok);
 
 #endif
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 
-
 # from builtins import zip
 # from builtins import map
 # from builtins import str
@@ -15,7 +14,7 @@ from anuga.file_conversion.asc2dem import asc2dem
 from anuga.config import epsilon
 
 from anuga.fit_interpolate.fit import fit_to_mesh
-#from anuga.pyvolution.least_squares import fit_to_mesh
+# from anuga.pyvolution.least_squares import fit_to_mesh
 from anuga.abstract_2d_finite_volumes.generic_domain \
                 import Generic_Domain
 from anuga.geospatial_data.geospatial_data import Geospatial_data
@@ -33,7 +32,7 @@ def zone_letter_to_hemisphere(zone_letter):
         hemisphere = 'northern'
     return hemisphere
 
-#Aux for fit_interpolate.fit example
+# Aux for fit_interpolate.fit example
 def linear_function(point):
     point = num.array(point)
     return point[:, 0]+3*point[:, 1]
@@ -104,14 +103,14 @@ class Test_Quantity(unittest.TestCase):
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         self.mesh1 = Generic_Domain(points[:3], [elements[0]])
         self.mesh1.check_integrity()
 
-        #print self.mesh1.__class__
-        #print isinstance(self.mesh1, Domain)
+        # print self.mesh1.__class__
+        # print isinstance(self.mesh1, Domain)
 
         self.mesh4 = Generic_Domain(points, elements)
         self.mesh4.check_integrity()
@@ -129,7 +128,7 @@ class Test_Quantity(unittest.TestCase):
 
     def tearDown(self):
         pass
-        #print "  Tearing down"
+        # print "  Tearing down"
 
     def test_creation(self):
 
@@ -144,11 +143,11 @@ class Test_Quantity(unittest.TestCase):
             raise Exception('Should have raised empty quantity exception')
 
         # FIXME(Ole): Temporarily disabled 18 Jan 2009
-        #try:
+        # try:
         #    quantity = Quantity([1,2,3])
-        #except AssertionError:
+        # except AssertionError:
         #    pass
-        #except:
+        # except:
         #    raise Exception('Should have raised "mising mesh object" error')
 
     def test_creation_zeros(self):
@@ -171,7 +170,7 @@ class Test_Quantity(unittest.TestCase):
     def test_set_boundary_values_with_function(self):
 
         quantity = Quantity(self.mesh1)
-        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+        # assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
 
         def simple(x, y):
             return x+3*y
@@ -183,7 +182,7 @@ class Test_Quantity(unittest.TestCase):
     def test_set_boundary_values_with_constant(self):
 
         quantity = Quantity(self.mesh1)
-        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+        # assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
 
         quantity.set_boundary_values(10.0)
 
@@ -192,7 +191,7 @@ class Test_Quantity(unittest.TestCase):
     def test_set_boundary_values_with_array(self):
 
         quantity = Quantity(self.mesh1)
-        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+        # assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
 
         quantity.set_boundary_values([10.0, 4.0, 5.0])
 
@@ -201,7 +200,7 @@ class Test_Quantity(unittest.TestCase):
     def test_set_boundary_values_with_wrong_sized_array(self):
 
         quantity = Quantity(self.mesh1)
-        #assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
+        # assert num.allclose(quantity.vertex_values, [[0.,0.,0.]])
 
         try:
             quantity.set_boundary_values([10.0, 4.0, 5.0, 8.0])
@@ -242,13 +241,13 @@ class Test_Quantity(unittest.TestCase):
 
         quantity.extrapolate_second_order()
 
-        #print quantity.vertex_values
+        # print quantity.vertex_values
         assert num.allclose(quantity.vertex_values, [[3.5, -1.0, 3.5],
                                                      [3.+2./3, 6.+2./3, 4.+2./3],
                                                      [4.6, 3.4, 1.],
                                                      [-5.0, 1.0, 4.0]])
 
-        #print quantity.edge_values
+        # print quantity.edge_values
         assert num.allclose(quantity.edge_values, [[1.25, 3.5, 1.25],
                                                    [5. + 2/3.0, 4.0
                                                        + 1.0/6, 5.0 + 1.0/6],
@@ -264,12 +263,12 @@ class Test_Quantity(unittest.TestCase):
 
         cellsize = 1.0
         x, y, z = quantity.save_to_array(cellsize=cellsize, smooth=False)
-        #x,y,z = quantity.save_to_array(smooth=False)
+        # x,y,z = quantity.save_to_array(smooth=False)
 
         from pprint import pprint
-        #pprint(x)
-        #pprint(y)
-        #pprint(z)
+        # pprint(x)
+        # pprint(y)
+        # pprint(z)
 
         x_ex = [0.,  1.,  2.,  3.,  4.]
         y_ex = [0.,  1.,  2.,  3.,  4.]
@@ -293,10 +292,10 @@ class Test_Quantity(unittest.TestCase):
         if Plot:
             import pylab
             import numpy
-            #a = numpy.where(a == -9999, numpy.nan, a)
-            #a = numpy.where(a > 10.0, numpy.nan, a)
+            # a = numpy.where(a == -9999, numpy.nan, a)
+            # a = numpy.where(a > 10.0, numpy.nan, a)
 
-            #z = z[::-1,:]
+            # z = z[::-1,:]
 
             print(z)
             print(z.shape)
@@ -309,16 +308,16 @@ class Test_Quantity(unittest.TestCase):
             ratio = float(nrows)/float(ncols)
             print(ratio)
 
-            #y = numpy.arange(nrows)*cellsize
-            #x = numpy.arange(ncols)*cellsize
+            # y = numpy.arange(nrows)*cellsize
+            # x = numpy.arange(ncols)*cellsize
 
-            #Setup fig size to correpond to array size
+            # Setup fig size to correpond to array size
             fig = pylab.figure(figsize=(10, 10*ratio))
 
             levels = numpy.arange(-7, 10, 0.1)
             CF = pylab.contourf(x, y, z, levels=levels)
             CB = pylab.colorbar(CF, shrink=0.8, extend='both')
-            #CC = pylab.contour(x,y,a, levels=levels)
+            # CC = pylab.contour(x,y,a, levels=levels)
 
             pylab.show()
 
@@ -337,7 +336,7 @@ class Test_Quantity(unittest.TestCase):
                 [-6.00000000e+00,  -9.99900000e+03,  -9.99900000e+03,
                  -9.99900000e+03,  -9.99900000e+03]]
 
-        #pprint(z)
+        # pprint(z)
         assert num.allclose(x_ex, x)
         assert num.allclose(y_ex, y)
         assert num.allclose(z_ex, z)
@@ -345,23 +344,23 @@ class Test_Quantity(unittest.TestCase):
         if Plot:
             import pylab
             import numpy
-            #a = numpy.where(a == -9999, numpy.nan, a)
-            #a = numpy.where(a > 10.0, numpy.nan, a)
+            # a = numpy.where(a == -9999, numpy.nan, a)
+            # a = numpy.where(a > 10.0, numpy.nan, a)
 
-            #a = a[::-1,:]
+            # a = a[::-1,:]
             nrows = z.shape[0]
             ncols = z.shape[1]
 
             ratio = float(nrows)/float(ncols)
             print(ratio)
 
-            #Setup fig size to correpond to array size
+            # Setup fig size to correpond to array size
             fig = pylab.figure(figsize=(10, 10*ratio))
 
             levels = numpy.arange(-7, 10, 0.1)
             CF = pylab.contourf(x, y, z, levels=levels)
             CB = pylab.colorbar(CF, shrink=0.8, extend='both')
-            #CC = pylab.contour(x,y,a, levels=[0.0,1.0,2.0,3.0])
+            # CC = pylab.contour(x,y,a, levels=[0.0,1.0,2.0,3.0])
 
             pylab.show()
 
@@ -405,7 +404,7 @@ class Test_Quantity(unittest.TestCase):
         f = [4.0, 0.0]
 
         points = [a, b, c, d, e, f]
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         vertices = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         domain = Generic_Domain(points, vertices)
@@ -437,8 +436,8 @@ class Test_Quantity(unittest.TestCase):
         v = quantity.get_values(interpolation_points=[[x, y]])
         assert num.allclose(v, 2)
 
-        #Multiple locations for maximum -
-        #Test that the algorithm picks the first occurrence
+        # Multiple locations for maximum -
+        # Test that the algorithm picks the first occurrence
         v = quantity.get_maximum_value(indices=[0, 1, 2])
         assert num.allclose(v, 4)
 
@@ -547,7 +546,7 @@ class Test_Quantity(unittest.TestCase):
             return x+y
 
         quantity.set_values(f, location='vertices')
-        #print "quantity.vertex_values",quantity.vertex_values
+        # print "quantity.vertex_values",quantity.vertex_values
         assert num.allclose(quantity.vertex_values,
                             [[2, 0, 2], [2, 2, 4], [4, 2, 4], [4, 2, 4]])
         assert num.allclose(quantity.centroid_values,
@@ -565,7 +564,7 @@ class Test_Quantity(unittest.TestCase):
         # Try constants first
         const = 5
         quantity.set_values(const, location='vertices')
-        #print 'Q', quantity.get_integral()
+        # print 'Q', quantity.get_integral()
 
         assert num.allclose(quantity.get_integral(),
                             self.mesh4.get_area() * const)
@@ -586,7 +585,7 @@ class Test_Quantity(unittest.TestCase):
         # Try constants first
         const = 5
         quantity.set_values(const, location='vertices')
-        #print 'Q', quantity.get_integral()
+        # print 'Q', quantity.get_integral()
 
         assert num.allclose(quantity.get_integral(),
                             self.mesh4.get_area() * const)
@@ -643,7 +642,7 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values,
                             [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]])
 
-        #Centroid
+        # Centroid
         assert num.allclose(quantity.centroid_values, [1., 7./3, 11./3, 8./3])
 
         assert num.allclose(quantity.edge_values, [[1., 1.5, 0.5],
@@ -695,7 +694,7 @@ class Test_Quantity(unittest.TestCase):
         # Same polygon now use vertices (default)
         polygon = [[2.1, 0.0], [3.5, 0.1], [2, 2.2], [0.2, 2]]
         quantity.set_values(0.0)
-        #print 'Here 2'
+        # print 'Here 2'
         quantity.set_values(3.14, polygon=polygon)
         assert num.allclose(quantity.vertex_values,
                             [[0, 0, 0],
@@ -761,7 +760,7 @@ class Test_Quantity(unittest.TestCase):
 
         quantity = Quantity(self.mesh4)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[0.66666667, 0.66666667],
                        [1.33333333, 1.33333333],
                        [2.66666667, 0.66666667],
@@ -778,15 +777,15 @@ class Test_Quantity(unittest.TestCase):
 
         z = linear_function(data_points)
 
-        #Use built-in fit_interpolate.fit
+        # Use built-in fit_interpolate.fit
         quantity.set_values(Geospatial_data(data_points, z), alpha=0)
-        #quantity.set_values(points = data_points, values = z, alpha = 0)
+        # quantity.set_values(points = data_points, values = z, alpha = 0)
 
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print quantity.vertex_values, answer
+        # print quantity.vertex_values, answer
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Now try by setting the same values directly
+        # Now try by setting the same values directly
         vertex_attributes = fit_to_mesh(data_points,
                                         quantity.domain.get_nodes(),
                                         quantity.domain.get_triangles(),
@@ -794,13 +793,13 @@ class Test_Quantity(unittest.TestCase):
                                         alpha=0,
                                         verbose=False)
 
-        #print vertex_attributes
+        # print vertex_attributes
         quantity.set_values(vertex_attributes)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
     def test_test_set_values_using_fit_w_geo(self):
 
-        #Mesh
+        # Mesh
         vertex_coordinates = [[0.76, 0.76],
                               [0.76, 5.76],
                               [5.76, 0.76]]
@@ -811,10 +810,10 @@ class Test_Quantity(unittest.TestCase):
                                geo_reference=mesh_georef)
         mesh1.check_integrity()
 
-        #Quantity
+        # Quantity
         quantity = Quantity(mesh1)
 
-        #Data
+        # Data
         data_points = [[201.0, 401.0],
                        [201.0, 403.0],
                        [203.0, 401.0]]
@@ -823,7 +822,7 @@ class Test_Quantity(unittest.TestCase):
 
         data_georef = Geo_reference(56, -200, -400)
 
-        #Reference
+        # Reference
         ref = fit_to_mesh(data_points, vertex_coordinates, triangles,
                           point_attributes=z,
                           data_origin=data_georef.get_origin(),
@@ -832,23 +831,23 @@ class Test_Quantity(unittest.TestCase):
 
         assert num.allclose(ref, [0, 5, 5])
 
-        #Test set_values
+        # Test set_values
 
         quantity.set_values(Geospatial_data(
             data_points, z, data_georef), alpha=0)
 
-        #quantity.set_values(points = data_points,
+        # quantity.set_values(points = data_points,
         #                    values = z,
         #                    data_georef = data_georef,
         #                    alpha = 0)
 
-        #quantity.set_values(points = data_points,
+        # quantity.set_values(points = data_points,
         #                    values = z,
         #                    data_georef = data_georef,
         #                    alpha = 0)
         assert num.allclose(quantity.vertex_values.flat, ref)
 
-        #Test set_values using geospatial data object
+        # Test set_values using geospatial data object
         quantity.vertex_values[:] = 0.0
 
         geo = Geospatial_data(data_points, z, data_georef)
@@ -859,7 +858,7 @@ class Test_Quantity(unittest.TestCase):
     def test_set_values_from_file1(self):
         quantity = Quantity(self.mesh4)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[0.66666667, 0.66666667],
                        [1.33333333, 1.33333333],
                        [2.66666667, 0.66666667],
@@ -880,7 +879,7 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
 
-        #Create .txt file
+        # Create .txt file
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
@@ -890,21 +889,21 @@ class Test_Quantity(unittest.TestCase):
             file.write(row + "\n")
         file.close()
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=ptsfile,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        #print quantity.vertex_values.flat
-        #print answer
+        # print quantity.vertex_values.flat
+        # print answer
 
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=ptsfile, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(ptsfile)
 
@@ -916,7 +915,7 @@ class Test_Quantity(unittest.TestCase):
 
         quantity = Quantity(self.mesh4)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[0.66666667, 0.66666667],
                        [1.33333333, 1.33333333],
                        [2.66666667, 0.66666667],
@@ -937,7 +936,7 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
 
-        #Create .txt file
+        # Create .txt file
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
@@ -952,12 +951,12 @@ class Test_Quantity(unittest.TestCase):
         polygon = [[1.0, 1.0], [4.0, 1.0],
                    [4.0, 4.0], [1.0, 4.0]]
 
-        #print self.mesh4.nodes
-        #print inside_polygon(self.mesh4.nodes, polygon)
+        # print self.mesh4.nodes
+        # print inside_polygon(self.mesh4.nodes, polygon)
         assert num.allclose(inside_polygon(self.mesh4.nodes, polygon), 4)
 
-        #print quantity.domain.get_vertex_coordinates()
-        #print quantity.domain.get_nodes()
+        # print quantity.domain.get_vertex_coordinates()
+        # print quantity.domain.get_nodes()
 
         # Check that values can be set from file
         quantity.set_values(filename=ptsfile,
@@ -972,8 +971,8 @@ class Test_Quantity(unittest.TestCase):
 
         answer = linear_function(points)
 
-        #print quantity.vertex_values.flat
-        #print answer
+        # print quantity.vertex_values.flat
+        # print answer
 
         # Check vertices in polygon have been set
         assert num.allclose(num.take(quantity.vertex_values.flat, indices),
@@ -985,7 +984,7 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(num.take(quantity.vertex_values.flat, indices),
                             0.0)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(ptsfile)
 
@@ -994,7 +993,7 @@ class Test_Quantity(unittest.TestCase):
         # I don't think it checks anything new
         quantity = Quantity(self.mesh4)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[0.66666667, 0.66666667],
                        [1.33333333, 1.33333333],
                        [2.66666667, 0.66666667],
@@ -1048,14 +1047,14 @@ class Test_Quantity(unittest.TestCase):
                             use_cache=True,
                             verbose=False)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(ptsfile)
 
     def test_set_values_from_lat_long(self):
         quantity = Quantity(self.mesh_onslow)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[-21.5, 114.5], [-21.4, 114.6], [-21.45, 114.65],
                        [-21.35, 114.65], [-21.45, 114.55], [-21.45, 114.6]]
 
@@ -1065,40 +1064,40 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(points_UTM)
         att = 'elevation'
 
-        #Create .txt file
+        # Create .txt file
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" lat,long," + att + " \n")
         for data_point, attribute in zip(data_points, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
-            #print "row", row
+            # print "row", row
             file.write(row + "\n")
         file.close()
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=txt_file,
                             attribute_name=att,
                             alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
-        #print "answer",answer
+        # print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        # print "answer",answer
 
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(txt_file)
 
     def test_set_values_from_lat_long_2(self):
         quantity = Quantity(self.mesh_onslow)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[-21.5, 114.5], [-21.4, 114.6], [-21.45, 114.65],
                        [-21.35, 114.65], [-21.45, 114.55], [-21.45, 114.6]]
 
@@ -1108,39 +1107,39 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(points_UTM)
         att = 'elevation'
 
-        #Create .txt file
+        # Create .txt file
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" lat,long," + att + " \n")
         for data_point, attribute in zip(data_points, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
-            #print "row", row
+            # print "row", row
             file.write(row + "\n")
         file.close()
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=txt_file,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
-        #print "answer",answer
+        # print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        # print "answer",answer
 
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(txt_file)
 
     def test_set_values_from_UTM_pts(self):
         quantity = Quantity(self.mesh_onslow)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[-21.5, 114.5], [-21.4, 114.6], [-21.45, 114.65],
                        [-21.35, 114.65], [-21.45, 114.55], [-21.45, 114.6]]
 
@@ -1150,14 +1149,14 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(points_UTM)
         att = 'elevation'
 
-        #Create .txt file
+        # Create .txt file
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(points_UTM, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
-            #print "row", row
+            # print "row", row
             file.write(row + "\n")
         file.close()
 
@@ -1165,27 +1164,27 @@ class Test_Quantity(unittest.TestCase):
         convert = Geospatial_data(txt_file)
         convert.export_points_file(pts_file)
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values_from_file(pts_file, att, 0,
                                       'vertices', None)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
-        #print "answer",answer
+        # print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        # print "answer",answer
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=pts_file,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
-        #print "answer",answer
+        # print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        # print "answer",answer
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(txt_file)
         os.remove(pts_file)
@@ -1193,7 +1192,7 @@ class Test_Quantity(unittest.TestCase):
     def test_set_values_from_UTM_pts_verbose(self):
         quantity = Quantity(self.mesh_onslow)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[-21.5, 114.5], [-21.4, 114.6], [-21.45, 114.65],
                        [-21.35, 114.65], [-21.45, 114.55], [-21.45, 114.6],
                        [-21.5, 114.5], [-21.4, 114.6], [-21.45, 114.65],
@@ -1229,14 +1228,14 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(points_UTM)
         att = 'elevation'
 
-        #Create .txt file
+        # Create .txt file
         txt_file = tempfile.mktemp(".txt")
         file = open(txt_file, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(points_UTM, attributes):
             row = str(data_point[0]) + ',' + str(data_point[1]) \
                   + ',' + str(attribute)
-            #print "row", row
+            # print "row", row
             file.write(row + "\n")
         file.close()
 
@@ -1244,35 +1243,35 @@ class Test_Quantity(unittest.TestCase):
         convert = Geospatial_data(txt_file)
         convert.export_points_file(pts_file)
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values_from_file(pts_file, att, 0,
                                       'vertices', None, verbose=False,
                                       max_read_lines=2)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
-        #print "answer",answer
+        # print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        # print "answer",answer
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=pts_file,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
-        #print "quantity.vertex_values.flat", quantity.vertex_values.flat
-        #print "answer",answer
+        # print "quantity.vertex_values.flat", quantity.vertex_values.flat
+        # print "answer",answer
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=txt_file, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(txt_file)
         os.remove(pts_file)
 
     def test_set_values_from_file_with_georef1(self):
 
-        #Mesh in zone 56 (absolute coords)
+        # Mesh in zone 56 (absolute coords)
 
         x0 = 314036.58727982
         y0 = 6224951.2960092
@@ -1286,16 +1285,16 @@ class Test_Quantity(unittest.TestCase):
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
-        #absolute going in ..
+        # absolute going in ..
         mesh4 = Generic_Domain(points, elements,
                                geo_reference=Geo_reference(56, 0, 0))
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        #Get (enough) datapoints (relative to georef)
+        # Get (enough) datapoints (relative to georef)
         data_points_rel = [[0.66666667, 0.66666667],
                            [1.33333333, 1.33333333],
                            [2.66666667, 0.66666667],
@@ -1316,7 +1315,7 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
 
-        #Create .txt file
+        # Create .txt file
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
@@ -1326,33 +1325,33 @@ class Test_Quantity(unittest.TestCase):
             file.write(row + "\n")
         file.close()
 
-        #file = open(ptsfile, 'r')
-        #lines = file.readlines()
-        #file.close()
+        # file = open(ptsfile, 'r')
+        # lines = file.readlines()
+        # file.close()
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=ptsfile,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.get_vertex_coordinates())
 
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=ptsfile, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(ptsfile)
 
     def test_set_values_from_file_with_georef2(self):
 
-        #Mesh in zone 56 (relative coords)
+        # Mesh in zone 56 (relative coords)
 
         x0 = 314036.58727982
         y0 = 6224951.2960092
-        #x0 = 0.0
-        #y0 = 0.0
+        # x0 = 0.0
+        # y0 = 0.0
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1363,7 +1362,7 @@ class Test_Quantity(unittest.TestCase):
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         mesh4 = Generic_Domain(points, elements,
@@ -1371,7 +1370,7 @@ class Test_Quantity(unittest.TestCase):
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        #Get (enough) datapoints
+        # Get (enough) datapoints
         data_points = [[x0+0.66666667, y0+0.66666667],
                        [x0+1.33333333, y0+1.33333333],
                        [x0+2.66666667, y0+0.66666667],
@@ -1392,7 +1391,7 @@ class Test_Quantity(unittest.TestCase):
         attributes = linear_function(data_points_absolute)
         att = 'spam_and_eggs'
 
-        #Create .txt file
+        # Create .txt file
         ptsfile = tempfile.mktemp(".txt")
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
@@ -1402,7 +1401,7 @@ class Test_Quantity(unittest.TestCase):
             file.write(row + "\n")
         file.close()
 
-        #Check that values can be set from file
+        # Check that values can be set from file
         quantity.set_values(filename=ptsfile,
                             attribute_name=att, alpha=0)
         answer = linear_function(quantity.domain.
@@ -1410,11 +1409,11 @@ class Test_Quantity(unittest.TestCase):
 
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Check that values can be set from file using default attribute
+        # Check that values can be set from file using default attribute
         quantity.set_values(filename=ptsfile, alpha=0)
         assert num.allclose(quantity.vertex_values.flat, answer)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(ptsfile)
 
@@ -1432,7 +1431,7 @@ class Test_Quantity(unittest.TestCase):
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         mesh4 = Generic_Domain(points, elements)
@@ -1455,13 +1454,13 @@ class Test_Quantity(unittest.TestCase):
         cellsize = 1.0
         NODATA_value = -9999
 
-        #xllcorner = 0
-        #yllcorner = 100
-        #cellsize  = 10
-        #NODATA_value =  -9999
+        # xllcorner = 0
+        # yllcorner = 100
+        # cellsize  = 10
+        # NODATA_value =  -9999
 
-        #Create .asc file
-        #txt_file = tempfile.mktemp(".asc")
+        # Create .asc file
+        # txt_file = tempfile.mktemp(".asc")
         txt_file = 'test_asc.asc'
         datafile = open(txt_file, "w")
         datafile.write('ncols '+str(ncols)+"\n")
@@ -1475,24 +1474,24 @@ class Test_Quantity(unittest.TestCase):
         y = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
         points = axes2points(x, y)
 
-        #print points
-        #print x.shape, x
-        #print y.shape, y
+        # print points
+        # print x.shape, x
+        # print y.shape, y
 
         datavalues = linear_function(points)
-        #print datavalues
+        # print datavalues
 
         datavalues = datavalues.reshape(nrows, ncols)
 
-        #print datavalues
-        #print datavalues.shape
+        # print datavalues
+        # print datavalues.shape
         for row in datavalues:
-            #print row
+            # print row
             datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(filename=txt_file,
                             location='vertices',
                             indices=None,
@@ -1504,22 +1503,22 @@ class Test_Quantity(unittest.TestCase):
                   [6.,   2.,   8.],
                   [8.,  2.,   4.],
                   [12.,   6.,   8.]]
-        #print quantity.vertex_values
+        # print quantity.vertex_values
         assert num.allclose(quantity.vertex_values, answer)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(0.0)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(filename=txt_file,
                             location='centroids',
                             indices=None,
                             verbose=False)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
 
         answer = [2.66666667,  5.33333333,  4.66666667,  8.66666667]
 
@@ -1558,30 +1557,30 @@ Parameters
                   [6.,   2.,   8.],
                   [8.,  2.,   4.],
                   [12.,   6.,   8.]]
-        #print quantity.vertex_values
-        #print quantity.vertex_values, 'vertex values'
+        # print quantity.vertex_values
+        # print quantity.vertex_values, 'vertex values'
         assert num.allclose(quantity.vertex_values, answer)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(0.0)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(filename=txt_file_dem,
                             location='centroids',
                             indices=None,
                             verbose=False)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values      , 'centroid values'
+        # print quantity.vertex_values
+        # print quantity.centroid_values      , 'centroid values'
 
         answer = [2.66666667,  5.33333333,  4.66666667,  8.66666667]
 
         assert num.allclose(quantity.centroid_values, answer)
 
-        #Cleanup
-        #import os
+        # Cleanup
+        # import os
 
         try:
             os.remove(txt_file)
@@ -1589,7 +1588,6 @@ Parameters
             os.remove(txt_file_dem)
         except:
             pass
-
 
     def test_set_values_from_ll_grid_file(self):
 
@@ -1602,7 +1600,7 @@ Parameters
         c = [150.2, -30.0]
         d = [150.0, -29.6]
         e = [150.2, -29.8]
-        #f = [150.4, -30.0]
+        # f = [150.4, -30.0]
 
         eastings = num.array([210590.34672016, 210010.98333739, 229892.33388686, 209435.153075,
                               229351.70758497]) #249192.66399564])
@@ -1611,27 +1609,28 @@ Parameters
         northings = num.array([6677424.09561761, 6699600.772466, 6677912.99938376,
                                6721776.96194549, 6700087.69263074 ]) #6678368.09416381])
         northings = num.reshape(northings, (-1, 1))
- 
+
         zone_number = 56
         zone_letter = 'J'
+        zone_hemisphere = 'southern'
 
         points = num.hstack((eastings, northings))
 
         xll_corner = points[:,0].min()
         yll_corner = points[:,1].min()
-        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner)
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner,hemisphere=zone_hemisphere)
 
         # create relative coordinates
         points[:,0] = points[:,0] - xll_corner
         points[:,1] = points[:,1] - yll_corner
 
-        #points = [a, b, c, d, e, f]
+        # points = [a, b, c, d, e, f]
 
-        #bac, bce, dbe # ecf
+        # bac, bce, dbe # ecf
         elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
 
         mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
-        
+
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
@@ -1650,9 +1649,8 @@ Parameters
         cellsize = 0.1
         NODATA_value = -9999
 
-
-        #Create .asc file
-        #txt_file = tempfile.mktemp(".asc")
+        # Create .asc file
+        # txt_file = tempfile.mktemp(".asc")
         txt_file = 'test_asc_ll.asc'
         datafile = open(txt_file, "w")
         datafile.write('ncols '+str(ncols)+"\n")
@@ -1665,28 +1663,28 @@ Parameters
         long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
         lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
 
-        #print(long)
-        #print(lat)
+        # print(long)
+        # print(lat)
         points = axes2points(long, lat)
 
-        #print points
-        #print x.shape, x
-        #print y.shape, y
+        # print points
+        # print x.shape, x
+        # print y.shape, y
 
         datavalues = linear_function(points)
-        #print datavalues
+        # print datavalues
 
         datavalues = datavalues.reshape(nrows, ncols)
 
-        #print datavalues
-        #print datavalues.shape
+        # print datavalues
+        # print datavalues.shape
         for row in datavalues:
-            #print row
+            # print row
             datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='vertices',
                                                     indices=None,
@@ -1694,36 +1692,168 @@ Parameters
 
         # check order of vertices
 
-        #print(quantity.vertex_values)
+        # print(quantity.vertex_values)
 
-        
         answer = [[60.6, 60.0, 60.2],
                   [60.6, 60.2, 60.8],
                   [61.2, 60.6, 60.8] ]
 
-        #print quantity.vertex_values
+        # print quantity.vertex_values
         assert num.allclose(quantity.vertex_values, answer)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(0.0)
 
-        #print (quantity.vertex_values)
-        #print (quantity.centroid_values)
+        # print (quantity.vertex_values)
+        # print (quantity.centroid_values)
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='centroids',
                                                     indices=None,
                                                     verbose=False)
 
-        #print quantity.vertex_values
-        #print (quantity.centroid_values)
+        # print quantity.vertex_values
+        # print (quantity.centroid_values)
 
         # note that centroid values correspond to utm centroids not long/lat centroids
         answer = [60.26652907, 60.53319575, 60.86652987]
 
         assert num.allclose(quantity.centroid_values, answer)
 
+        try:
+            os.remove(txt_file)
+        except:
+            pass
 
+    def test_set_values_from_ll_grid_file_northern(self):
+
+        x0 = 0.0
+        y0 = 0.0
+
+        # long lat coordinated
+        a = [150.0, -30.0+60]
+        b = [150.0, -29.8+60]
+        c = [150.2, -30.0+60]
+        d = [150.0, -29.6+60]
+        e = [150.2, -29.8+60]
+        # f = [150.4, -30.0]
+
+        eastings = num.array([210590.34672016295, 211173.23637087474, 229892.33388686483, 
+        211759.6453941525, 230436.25127640477] )
+        eastings = num.reshape(eastings, (-1, 1))
+
+        northings = num.array([3322575.9043823928, 3344753.070613778, 3322087.0006162403, 
+        3366930.72821874, 3344262.207060983] )
+        northings = num.reshape(northings, (-1, 1))
+
+        zone_number = 56
+        zone_letter = 'R'
+        zone_hemisphere = 'northern'
+
+        points = num.hstack((eastings, northings))
+
+        xll_corner = points[:,0].min()
+        yll_corner = points[:,1].min()
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner,hemisphere=zone_hemisphere)
+
+        # create relative coordinates
+        points[:,0] = points[:,0] - xll_corner
+        points[:,1] = points[:,1] - yll_corner
+
+        # points = [a, b, c, d, e, f]
+
+        # bac, bce, dbe # ecf
+        elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
+
+        mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
+
+        mesh4.check_integrity()
+        quantity = Quantity(mesh4)
+
+        """ Format of asc lat long file 
+        ncols         5
+        nrows         7
+        xllcorner     149.9
+        yllcorner     -30.9
+        cellsize      0.1
+        NODATA_value  -9999
+        """
+        ncols = 5  # Nx
+        nrows = 7  # Ny
+        xllcorner = 149.9
+        yllcorner = 29.9
+        cellsize = 0.1
+        NODATA_value = -9999
+
+        # Create .asc file
+        # txt_file = tempfile.mktemp(".asc")
+        txt_file = 'test_asc_ll.asc'
+        datafile = open(txt_file, "w")
+        datafile.write('ncols '+str(ncols)+"\n")
+        datafile.write('nrows '+str(nrows)+"\n")
+        datafile.write('xllcorner '+str(xllcorner)+"\n")
+        datafile.write('yllcorner '+str(yllcorner)+"\n")
+        datafile.write('cellsize '+str(cellsize)+"\n")
+        datafile.write('NODATA_value '+str(NODATA_value)+"\n")
+
+        long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
+        lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
+
+        # print(long)
+        # print(lat)
+        points = axes2points(long, lat)
+
+        # print points
+        # print x.shape, x
+        # print y.shape, y
+
+        datavalues = linear_function(points)
+        # print datavalues
+
+        datavalues = datavalues.reshape(nrows, ncols)
+
+        # print datavalues
+        # print datavalues.shape
+        for row in datavalues:
+            # print row
+            datafile.write(" ".join(str(elem) for elem in row) + "\n")
+        datafile.close()
+
+        # print quantity.vertex_values
+        # print quantity.centroid_values
+        quantity.set_values_from_lat_long_grid_file(filename=txt_file,
+                                                    location='vertices',
+                                                    indices=None,
+                                                    verbose=False)
+
+        # check order of vertices
+
+        print(quantity.vertex_values)
+
+        answer = [[240.6, 240.0, 240.2], [240.6, 240.2, 240.8], [241.2, 240.6, 240.8]]
+
+        # print quantity.vertex_values
+        assert num.allclose(quantity.vertex_values, answer)
+
+        # print quantity.vertex_values
+        # print quantity.centroid_values
+        quantity.set_values(0.0)
+
+        # print (quantity.vertex_values)
+        # print (quantity.centroid_values)
+        quantity.set_values_from_lat_long_grid_file(filename=txt_file,
+                                                    location='centroids',
+                                                    indices=None,
+                                                    verbose=False)
+
+        # print quantity.vertex_values
+        # print (quantity.centroid_values)
+
+        # note that centroid values correspond to utm centroids not long/lat centroids
+
+        answer = [240.26682499, 240.5334917 , 240.86682573]
+
+        assert num.allclose(quantity.centroid_values, answer)
 
         try:
             os.remove(txt_file)
@@ -1741,7 +1871,7 @@ Parameters
         c = [150.2, -30.0]
         d = [150.0, -29.6]
         e = [150.2, -29.8]
-        #f = [150.4, -30.0]
+        # f = [150.4, -30.0]
 
         eastings = num.array([210590.34672016, 210010.98333739, 229892.33388686, 209435.153075,
                               229351.70758497]) #249192.66399564])
@@ -1750,27 +1880,28 @@ Parameters
         northings = num.array([6677424.09561761, 6699600.772466, 6677912.99938376,
                                6721776.96194549, 6700087.69263074 ]) #6678368.09416381])
         northings = num.reshape(northings, (-1, 1))
- 
+
         zone_number = 56
         zone_letter = 'J'
+        zone_hemisphere = 'southern'
 
         points = num.hstack((eastings, northings))
 
         xll_corner = points[:,0].min()
         yll_corner = points[:,1].min()
-        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner)
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner,hemisphere=zone_hemisphere)
 
         # create relative coordinates
         points[:,0] = points[:,0] - xll_corner
         points[:,1] = points[:,1] - yll_corner
 
-        #points = [a, b, c, d, e, f]
+        # points = [a, b, c, d, e, f]
 
-        #bac, bce, dbe # ecf
+        # bac, bce, dbe # ecf
         elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
 
         mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
-        
+
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
@@ -1789,9 +1920,8 @@ Parameters
         cellsize = 0.1
         NODATA_value = -9999
 
-
-        #Create .asc file
-        #txt_file = tempfile.mktemp(".asc")
+        # Create .asc file
+        # txt_file = tempfile.mktemp(".asc")
         txt_file = 'test_asc_ll.asc'
         datafile = open(txt_file, "w")
         datafile.write('ncols '+str(ncols)+"\n")
@@ -1804,28 +1934,28 @@ Parameters
         long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
         lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
 
-        #print(long)
-        #print(lat)
+        # print(long)
+        # print(lat)
         points = axes2points(long, lat)
 
-        #print points
-        #print x.shape, x
-        #print y.shape, y
+        # print points
+        # print x.shape, x
+        # print y.shape, y
 
         datavalues = linear_function(points)
-        #print datavalues
+        # print datavalues
 
         datavalues = datavalues.reshape(nrows, ncols)
 
-        #print datavalues
-        #print datavalues.shape
+        # print datavalues
+        # print datavalues.shape
         for row in datavalues:
-            #print row
+            # print row
             datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
 
         indices = [0 ,2, 6, 1]
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
@@ -1835,22 +1965,21 @@ Parameters
 
         # check order of vertices
 
-        #print(quantity.vertex_values)
+        # print(quantity.vertex_values)
 
         answer = [[60.6, 60.0, 60.2],
                   [0.0,  0.0,  0.0 ],
                   [61.2, 0.0,  0.0 ]]
 
-
-        #print quantity.vertex_values
+        # print quantity.vertex_values
         assert num.allclose(quantity.vertex_values, answer)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(0.0)
 
-        #print (quantity.vertex_values)
-        #print (quantity.centroid_values)
+        # print (quantity.vertex_values)
+        # print (quantity.centroid_values)
 
         indices = [0, 2]
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
@@ -1858,8 +1987,8 @@ Parameters
                                                     indices=indices,
                                                     verbose=False)
 
-        #print quantity.vertex_values
-        #print (quantity.centroid_values)
+        # print quantity.vertex_values
+        # print (quantity.centroid_values)
 
         # note that centroid values correspond to utm centroids not long/lat centroids
         answer = [60.26652907, 0.0, 60.86652987]
@@ -1876,7 +2005,6 @@ Parameters
         # Not implemented. Need to check that the asc file doesn't
         # cover the domain
 
-
         x0 = 0.0
         y0 = 0.0
 
@@ -1886,7 +2014,7 @@ Parameters
         c = [150.2, -30.0]
         d = [150.0, -29.6]
         e = [150.2, -29.8]
-        #f = [150.4, -30.0]
+        # f = [150.4, -30.0]
 
         eastings = num.array([210590.34672016, 210010.98333739, 229892.33388686, 209435.153075,
                               229351.70758497]) #249192.66399564])
@@ -1895,27 +2023,28 @@ Parameters
         northings = num.array([6677424.09561761, 6699600.772466, 6677912.99938376,
                                6721776.96194549, 6700087.69263074 ]) #6678368.09416381])
         northings = num.reshape(northings, (-1, 1))
- 
+
         zone_number = 56
         zone_letter = 'J'
+        zone_hemisphere = 'southern'
 
         points = num.hstack((eastings, northings))
 
         xll_corner = points[:,0].min()
         yll_corner = points[:,1].min()
-        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner)
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner,hemisphere=zone_hemisphere)
 
         # create relative coordinates
         points[:,0] = points[:,0] - xll_corner
         points[:,1] = points[:,1] - yll_corner
 
-        #points = [a, b, c, d, e, f]
+        # points = [a, b, c, d, e, f]
 
-        #bac, bce, dbe # ecf
+        # bac, bce, dbe # ecf
         elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
 
         mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
-        
+
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
@@ -1936,9 +2065,8 @@ Parameters
         cellsize = 0.1
         NODATA_value = -9999
 
-
-        #Create .asc file
-        #txt_file = tempfile.mktemp(".asc")
+        # Create .asc file
+        # txt_file = tempfile.mktemp(".asc")
         txt_file = 'test_asc_ll.asc'
         datafile = open(txt_file, "w")
         datafile.write('ncols '+str(ncols)+"\n")
@@ -1951,28 +2079,28 @@ Parameters
         long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
         lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
 
-        #print(long)
-        #print(lat)
+        # print(long)
+        # print(lat)
         points = axes2points(long, lat)
 
-        #print (points)
-        #print (x.shape, x)
-        #print (y.shape, y)
+        # print (points)
+        # print (x.shape, x)
+        # print (y.shape, y)
 
         datavalues = linear_function(points)
-        #print (datavalues)
+        # print (datavalues)
 
         datavalues = datavalues.reshape(nrows, ncols)
 
-        #print datavalues
-        #print datavalues.shape
+        # print datavalues
+        # print datavalues.shape
         for row in datavalues:
-            #print row
+            # print row
             datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='vertices',
                                                     indices=None,
@@ -1980,9 +2108,8 @@ Parameters
 
         # check order of vertices
 
-        #print(quantity.vertex_values)
+        # print(quantity.vertex_values)
 
-        
         answer = [[60.6, 60.0, 60.2],
                   [60.6, 60.2, 60.8],
                   [61.2, 60.6, 60.8] ]
@@ -1991,22 +2118,22 @@ Parameters
                   [num.nan,         num.nan, 60.80000006],
                   [num.nan,         num.nan, 60.80000006]]
 
-        #print (quantity.vertex_values)
+        # print (quantity.vertex_values)
         assert num.allclose(quantity.vertex_values, answer, equal_nan=True)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(0.0)
 
-        #print (quantity.vertex_values)
-        #print (quantity.centroid_values)
+        # print (quantity.vertex_values)
+        # print (quantity.centroid_values)
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='centroids',
                                                     indices=None,
                                                     verbose=False)
 
-        #print quantity.vertex_values
-        #print (quantity.centroid_values)
+        # print quantity.vertex_values
+        # print (quantity.centroid_values)
 
         # note that centroid values correspond to utm centroids not long/lat centroids
         answer = [num.nan,  60.53319575, num.nan]
@@ -2023,7 +2150,6 @@ Parameters
         # Not implemented. Need to check that the asc file doesn't
         # cover the domain
 
-
         x0 = 0.0
         y0 = 0.0
 
@@ -2033,7 +2159,7 @@ Parameters
         c = [150.2, -30.0]
         d = [150.0, -29.6]
         e = [150.2, -29.8]
-        #f = [150.4, -30.0]
+        # f = [150.4, -30.0]
 
         eastings = num.array([210590.34672016, 210010.98333739, 229892.33388686, 209435.153075,
                               229351.70758497]) #249192.66399564])
@@ -2042,27 +2168,28 @@ Parameters
         northings = num.array([6677424.09561761, 6699600.772466, 6677912.99938376,
                                6721776.96194549, 6700087.69263074 ]) #6678368.09416381])
         northings = num.reshape(northings, (-1, 1))
- 
+
         zone_number = 56
         zone_letter = 'J'
+        zone_hemisphere = 'southern'
 
         points = num.hstack((eastings, northings))
 
         xll_corner = points[:,0].min()
         yll_corner = points[:,1].min()
-        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner)
+        geo_reference = Geo_reference(zone_number, xll_corner, yll_corner,hemisphere=zone_hemisphere)
 
         # create relative coordinates
         points[:,0] = points[:,0] - xll_corner
         points[:,1] = points[:,1] - yll_corner
 
-        #points = [a, b, c, d, e, f]
+        # points = [a, b, c, d, e, f]
 
-        #bac, bce, dbe # ecf
+        # bac, bce, dbe # ecf
         elements = [[1, 0, 2], [1, 2, 4], [3, 1, 4]]  #[4, 2, 5]
 
         mesh4 = Generic_Domain(points, elements, geo_reference=geo_reference)
-        
+
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
@@ -2083,9 +2210,8 @@ Parameters
         cellsize = 0.1
         NODATA_value = -9999
 
-
-        #Create .asc file
-        #txt_file = tempfile.mktemp(".asc")
+        # Create .asc file
+        # txt_file = tempfile.mktemp(".asc")
         txt_file = 'test_asc_ll.asc'
         datafile = open(txt_file, "w")
         datafile.write('ncols '+str(ncols)+"\n")
@@ -2098,28 +2224,28 @@ Parameters
         long = num.linspace(xllcorner, xllcorner+(ncols-1)*cellsize, ncols)
         lat = num.linspace(yllcorner, yllcorner+(nrows-1)*cellsize, nrows)
 
-        #print(long)
-        #print(lat)
+        # print(long)
+        # print(lat)
         points = axes2points(long, lat)
 
-        #print (points)
-        #print (x.shape, x)
-        #print (y.shape, y)
+        # print (points)
+        # print (x.shape, x)
+        # print (y.shape, y)
 
         datavalues = linear_function(points)
-        #print (datavalues)
+        # print (datavalues)
 
         datavalues = datavalues.reshape(nrows, ncols)
 
-        #print datavalues
-        #print datavalues.shape
+        # print datavalues
+        # print datavalues.shape
         for row in datavalues:
-            #print row
+            # print row
             datafile.write(" ".join(str(elem) for elem in row) + "\n")
         datafile.close()
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='vertices',
                                                     indices=None,
@@ -2127,29 +2253,28 @@ Parameters
 
         # check order of vertices
 
-        #print(quantity.vertex_values)
-
+        # print(quantity.vertex_values)
 
         answer = [[num.nan,         num.nan,     num.nan],
                   [num.nan,         num.nan, 60.80000006],
                   [num.nan,         num.nan, 60.80000006]]
 
-        #print (quantity.vertex_values)
+        # print (quantity.vertex_values)
         assert num.allclose(quantity.vertex_values, answer, equal_nan=True)
 
-        #print quantity.vertex_values
-        #print quantity.centroid_values
+        # print quantity.vertex_values
+        # print quantity.centroid_values
         quantity.set_values(0.0)
 
-        #print (quantity.vertex_values)
-        #print (quantity.centroid_values)
+        # print (quantity.vertex_values)
+        # print (quantity.centroid_values)
         quantity.set_values_from_lat_long_grid_file(filename=txt_file,
                                                     location='centroids',
                                                     indices=None,
                                                     verbose=False)
 
-        #print quantity.vertex_values
-        #print (quantity.centroid_values)
+        # print quantity.vertex_values
+        # print (quantity.centroid_values)
 
         # note that centroid values correspond to utm centroids not long/lat centroids
         answer = [num.nan,  60.53319575, num.nan]
@@ -2161,10 +2286,9 @@ Parameters
         except:
             pass
 
-
     def test_set_values_from_ll_tif_file_north(self):
 
-        #Mesh in zone 56 (relative coords) southern hemisphere
+        # Mesh in zone 56 (relative coords) southern hemisphere
 
         from pprint import pprint
 
@@ -2184,19 +2308,19 @@ Parameters
 
         hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
         hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
-        
+
         lat = numpy.linspace(lat_ll, lat_ur, 11)
         lon = numpy.linspace(lon_ll, lon_ur, 11)
-        
+
         xG, yG = numpy.meshgrid(lon, lat)
-        
+
         xG = xG.flatten()
         yG = yG.flatten()
         # Surface is z=x+y
 
         fakeZ = (xG-min(xG))/(max(xG)-min(xG))+(yG - min(yG))/(max(yG)-min(yG))
 
-        #pprint(fakeZ.reshape((11,11)))
+        # pprint(fakeZ.reshape((11,11)))
 
         dataToGrid = numpy.vstack([xG, yG, fakeZ]).transpose()
         #
@@ -2219,7 +2343,7 @@ Parameters
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         mesh4 = Generic_Domain(points, elements,
@@ -2231,8 +2355,8 @@ Parameters
         # Read in an interpolate from tif file
         quantity1.set_values_from_tif_file(filename=tif_file , location='vertices')
 
-        #pprint(quantity1.centroid_values)
-        #pprint(quantity1.vertex_values)
+        pprint(quantity1.centroid_values)
+        pprint(quantity1.vertex_values)
 
         centroid_values_ex = numpy.array(
             [0.17639186, 0.34223889, 0.44878893, 0.72498227])
@@ -2241,29 +2365,37 @@ Parameters
                                         [0.4975411, 0.29263264, 0.55619305],
                                         [1.44086277, 0.23654294, 0.4975411]])
 
+        centroid_values_mac_ex = numpy.array(
+            [0.17639186, 0.34223889, 0.44878893, 0.7188908 ])
+        vertex_values_mac_ex = numpy.array([[0.23654294, 0.        , 0.29263264],
+                                        [0.23654294, 0.29263264, 0.4975411 ],
+                                        [0.4975411 , 0.29263264, 0.55619305],
+                                        [1.42258835, 0.23654294, 0.4975411 ]])
 
-        assert num.allclose(quantity1.centroid_values, centroid_values_ex)
-        assert num.allclose(quantity1.vertex_values, vertex_values_ex)
+        assert num.allclose(quantity1.centroid_values, centroid_values_ex) or \
+                num.allclose(quantity1.centroid_values, centroid_values_mac_ex)
+        assert num.allclose(quantity1.vertex_values, vertex_values_ex) or \
+                num.allclose(quantity1.vertex_values, vertex_values_mac_ex)     
 
         quantity2 = Quantity(mesh4)
 
         # Read in an interpolate from tif file
         quantity2.set_values(filename=tif_file , location='vertices')
 
-        #pprint(quantity2.centroid_values)
-        #pprint(quantity2.vertex_values)
+        pprint(quantity2.centroid_values)
+        pprint(quantity2.vertex_values)
 
 
-        assert num.allclose(quantity2.centroid_values, centroid_values_ex)
-        assert num.allclose(quantity2.vertex_values, vertex_values_ex)
+        assert num.allclose(quantity2.centroid_values, centroid_values_ex) or \
+                num.allclose(quantity2.centroid_values, centroid_values_mac_ex)
+        assert num.allclose(quantity2.vertex_values, vertex_values_ex) or \
+                num.allclose(quantity1.vertex_values, vertex_values_mac_ex)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(tif_file)
 
-    def test_set_values_from_ll_tif_file_south(self):
-
-        #Mesh in zone 56 (relative coords) southern hemisphere
+    def test_set_values_from_ll_tif_file_north_indices(self):
 
         from pprint import pprint
 
@@ -2273,9 +2405,9 @@ Parameters
         import numpy
         #
         # Use Make_Geotif to make tif file
-        # Pick a domain that makes sense in EPSG:32756
-        lat_ll, lon_ll = -34.39, 150.90
-        lat_ur, lon_ur = -34.37, 150.92
+        # Pick a domain that makes sense in EPSG:32656
+        lat_ll, lon_ll = 34.37, 150.90
+        lat_ur, lon_ur = 34.39, 150.92
 
         import utm
         utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
@@ -2283,19 +2415,19 @@ Parameters
 
         hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
         hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
-        
+
         lat = numpy.linspace(lat_ll, lat_ur, 11)
         lon = numpy.linspace(lon_ll, lon_ur, 11)
-        
+
         xG, yG = numpy.meshgrid(lon, lat)
-        
+
         xG = xG.flatten()
         yG = yG.flatten()
         # Surface is z=x+y
 
         fakeZ = (xG-min(xG))/(max(xG)-min(xG))+(yG - min(yG))/(max(yG)-min(yG))
 
-        #pprint(fakeZ.reshape((11,11)))
+        # pprint(fakeZ.reshape((11,11)))
 
         dataToGrid = numpy.vstack([xG, yG, fakeZ]).transpose()
         #
@@ -2318,7 +2450,7 @@ Parameters
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         mesh4 = Generic_Domain(points, elements,
@@ -2328,45 +2460,49 @@ Parameters
         quantity1 = Quantity(mesh4)
 
         # Read in an interpolate from tif file
-        quantity1.set_values_from_tif_file(filename=tif_file , location='vertices')
+        quantity1.set_values_from_tif_file(filename=tif_file , location='vertices', indices=[0,1,2])
 
-        #pprint(quantity1.centroid_values)
-        #pprint(quantity1.vertex_values)
+        # pprint(quantity1.centroid_values)
+        # pprint(quantity1.vertex_values)
 
         centroid_values_ex = numpy.array(
-            [0.17640652, 0.34250694, 0.44839957, 0.39855834])
-        vertex_values_ex = numpy.array([[0.23744977, 0., 0.2917698],
-                                        [0.23744977, 0.2917698, 0.49830124],
-                                        [0.49830124, 0.2917698, 0.55512768],
-                                        [0.45992401, 0.23744977, 0.49830124]])
+            [0.17639186, 0.17639186, 0.17639186, 0. ])
 
+        vertex_values_ex = numpy.array(
+            [[0.23654294, 0.        , 0.29263264],
+            [0.23654294, 0.        , 0.29263264],
+            [0.23654294, 0.        , 0.29263264],
+            [0.        , 0.        , 0.        ]])                                     
 
         assert num.allclose(quantity1.centroid_values, centroid_values_ex)
         assert num.allclose(quantity1.vertex_values, vertex_values_ex)
 
-
         quantity2 = Quantity(mesh4)
 
         # Read in an interpolate from tif file
-        quantity2.set_values(filename=tif_file , location='vertices')
+        quantity2.set_values(filename=tif_file , location='centroids', indices=[1])
 
-        #pprint(quantity2.centroid_values)
-        #pprint(quantity2.vertex_values)
+        # pprint(quantity2.centroid_values)
+        # pprint(quantity2.vertex_values)
 
+        centroid_values_ex = numpy.array(
+            [0.        , 0.34097296, 0.        , 0.        ])
+        vertex_values_ex = numpy.array(
+            [[0.        , 0.        , 0.        ],
+            [0.34097296, 0.34097296, 0.34097296],
+            [0.        , 0.        , 0.        ],
+            [0.        , 0.        , 0.        ]])
 
         assert num.allclose(quantity2.centroid_values, centroid_values_ex)
         assert num.allclose(quantity2.vertex_values, vertex_values_ex)
 
-
-
-        #Cleanup
+        # Cleanup
         import os
         os.remove(tif_file)
 
+    def test_set_values_from_ll_tif_file_south(self):
 
-    def test_set_values_from_utm_tif_file(self):
-
-        #Mesh in zone 56 (relative coords) southern hemisphere
+        # Mesh in zone 56 (relative coords) southern hemisphere
 
         from pprint import pprint
 
@@ -2387,19 +2523,115 @@ Parameters
         hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
         hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
 
+        lat = numpy.linspace(lat_ll, lat_ur, 11)
+        lon = numpy.linspace(lon_ll, lon_ur, 11)
 
-        easting = numpy.linspace(utm_east_ll, utm_east_ur, 11)
-        northing = numpy.linspace(utm_north_ll, utm_north_ur, 11)
-        
-        xG, yG = numpy.meshgrid(easting, northing)
-        
+        xG, yG = numpy.meshgrid(lon, lat)
+
         xG = xG.flatten()
         yG = yG.flatten()
         # Surface is z=x+y
 
         fakeZ = (xG-min(xG))/(max(xG)-min(xG))+(yG - min(yG))/(max(yG)-min(yG))
 
-        #pprint(fakeZ.reshape((11,11)))
+        # pprint(fakeZ.reshape((11,11)))
+
+        dataToGrid = numpy.vstack([xG, yG, fakeZ]).transpose()
+        #
+        # Create file PointData_lat_long.tif
+        util.Make_Geotif(dataToGrid, output_quantities=['lat_long'],
+                        EPSG_CODE=4326, output_dir='.', CellSize=0.0001)
+
+        tif_file = 'PointData_lat_long.tif'
+
+        # Create a domain and quantity
+        x0 = utm_east_ll
+        y0 = utm_north_ll
+
+        a = [0.0, 0.0]
+        b = [0.0, 500.0]
+        c = [500.0, 0.0]
+        d = [0.0, 1000.0]
+        e = [500.0, 500.0]
+        f = [1000.0, 0.0]
+
+        points = [a, b, c, d, e, f]
+
+        # bac, bce, ecf, dbe
+        elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
+
+        mesh4 = Generic_Domain(points, elements,
+                               geo_reference=Geo_reference(56, x0, y0, hemisphere=hemisphere_ll))
+        mesh4.check_integrity()
+
+        quantity1 = Quantity(mesh4)
+
+        # Read in an interpolate from tif file
+        quantity1.set_values_from_tif_file(filename=tif_file , location='vertices')
+
+        # pprint(quantity1.centroid_values)
+        # pprint(quantity1.vertex_values)
+
+        centroid_values_ex = numpy.array(
+            [0.17640652, 0.34250694, 0.44839957, 0.39855834])
+        vertex_values_ex = numpy.array([[0.23744977, 0., 0.2917698],
+                                        [0.23744977, 0.2917698, 0.49830124],
+                                        [0.49830124, 0.2917698, 0.55512768],
+                                        [0.45992401, 0.23744977, 0.49830124]])
+
+        assert num.allclose(quantity1.centroid_values, centroid_values_ex)
+        assert num.allclose(quantity1.vertex_values, vertex_values_ex)
+
+        quantity2 = Quantity(mesh4)
+
+        # Read in an interpolate from tif file
+        quantity2.set_values(filename=tif_file , location='vertices')
+
+        # pprint(quantity2.centroid_values)
+        # pprint(quantity2.vertex_values)
+
+        assert num.allclose(quantity2.centroid_values, centroid_values_ex)
+        assert num.allclose(quantity2.vertex_values, vertex_values_ex)
+
+        # Cleanup
+        import os
+        os.remove(tif_file)
+
+    def test_set_values_from_utm_tif_file(self):
+
+        # Mesh in zone 56 (relative coords) southern hemisphere
+
+        from pprint import pprint
+
+        # We need to make a .tif with ll coord which covers domain
+        #
+        from anuga.utilities import plot_utils as util
+        import numpy
+        #
+        # Use Make_Geotif to make tif file
+        # Pick a domain that makes sense in EPSG:32756
+        lat_ll, lon_ll = -34.39, 150.90
+        lat_ur, lon_ur = -34.37, 150.92
+
+        import utm
+        utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
+        utm_east_ur, utm_north_ur, zone_ur, zone_letter_ur = utm.from_latlon(lat_ur, lon_ur)
+
+        hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
+        hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
+
+        easting = numpy.linspace(utm_east_ll, utm_east_ur, 11)
+        northing = numpy.linspace(utm_north_ll, utm_north_ur, 11)
+
+        xG, yG = numpy.meshgrid(easting, northing)
+
+        xG = xG.flatten()
+        yG = yG.flatten()
+        # Surface is z=x+y
+
+        fakeZ = (xG-min(xG))/(max(xG)-min(xG))+(yG - min(yG))/(max(yG)-min(yG))
+
+        # pprint(fakeZ.reshape((11,11)))
 
         dataToGrid = numpy.vstack([xG, yG, fakeZ]).transpose()
         #
@@ -2422,7 +2654,7 @@ Parameters
 
         points = [a, b, c, d, e, f]
 
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         elements = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         mesh4 = Generic_Domain(points, elements,
@@ -2434,8 +2666,8 @@ Parameters
         # Read in an interpolate from tif file
         quantity1.set_values_from_tif_file(filename=tif_file , location='vertices')
 
-        #pprint(quantity1.centroid_values)
-        #pprint(quantity1.vertex_values)
+        # pprint(quantity1.centroid_values)
+        # pprint(quantity1.vertex_values)
 
         centroid_values_ex = numpy.array(
             [0.17610394, 0.34143136, 0.45676157, 0.39509157])
@@ -2447,20 +2679,18 @@ Parameters
         assert num.allclose(quantity1.centroid_values, centroid_values_ex)
         assert num.allclose(quantity1.vertex_values, vertex_values_ex)
 
-
         quantity2 = Quantity(mesh4)
 
         # Read in an interpolate from tif file
         quantity2.set_values(filename=tif_file , location='vertices')
 
-        #pprint(quantity2.centroid_values)
-        #pprint(quantity2.vertex_values)
-
+        # pprint(quantity2.centroid_values)
+        # pprint(quantity2.vertex_values)
 
         assert num.allclose(quantity2.centroid_values, centroid_values_ex)
         assert num.allclose(quantity2.vertex_values, vertex_values_ex)
 
-        #Cleanup
+        # Cleanup
         import os
         os.remove(tif_file)
 
@@ -2485,7 +2715,7 @@ Parameters
         assert num.allclose(quantity2.vertex_values,
                             [[5, 3, 7], [5, 7, 11], [11, 7, 13], [9, 5, 11]])
 
-        #Check detection of quantity as first orgument
+        # Check detection of quantity as first orgument
         quantity2.set_values(2*quantity1 + 3)
         assert num.allclose(quantity2.vertex_values,
                             [[5, 3, 7], [5, 7, 11], [11, 7, 13], [9, 5, 11]])
@@ -2516,7 +2746,7 @@ Parameters
         msg = 'Only node #4(e) at (2,2) should have values applied '
         assert num.allclose(quantity2.vertex_values,
                             [[0, 0, 0], [0, 0, 4], [4, 0, 0], [0, 0, 4]]), msg
-        #bac,     bce,     ecf,     dbe
+        # bac,     bce,     ecf,     dbe
 
     def test_overloading(self):
 
@@ -2567,7 +2797,7 @@ Parameters
         assert num.allclose(Q.vertex_values,
                             quantity1.vertex_values - quantity2.vertex_values)
 
-        #Scaling
+        # Scaling
         Q = quantity1*3
         assert num.allclose(Q.vertex_values, quantity1.vertex_values*3)
         assert num.allclose(Q.centroid_values, quantity1.centroid_values*3)
@@ -2575,17 +2805,17 @@ Parameters
         Q = 3*quantity1
         assert num.allclose(Q.vertex_values, quantity1.vertex_values*3)
 
-        #Multiplication
+        # Multiplication
         Q = quantity1 * quantity2
-        #print Q.vertex_values
-        #print Q.centroid_values
-        #print quantity1.centroid_values
-        #print quantity2.centroid_values
+        # print Q.vertex_values
+        # print Q.centroid_values
+        # print quantity1.centroid_values
+        # print quantity2.centroid_values
 
         assert num.allclose(Q.vertex_values,
                             quantity1.vertex_values * quantity2.vertex_values)
 
-        #Linear combinations
+        # Linear combinations
         Q = 4*quantity1 + 2
         assert num.allclose(Q.vertex_values,
                             4*quantity1.vertex_values + 2)
@@ -2616,14 +2846,14 @@ Parameters
                             1.5*quantity1.vertex_values * quantity2.vertex_values
                             - 3*quantity3.vertex_values + 5)
 
-        #Try combining quantities and arrays and scalars
+        # Try combining quantities and arrays and scalars
         Q = 1.5*quantity1*quantity2.vertex_values -\
             3*quantity3.vertex_values + 5.0
         assert num.allclose(Q.vertex_values,
                             1.5*quantity1.vertex_values * quantity2.vertex_values
                             - 3*quantity3.vertex_values + 5)
 
-        #Powers
+        # Powers
         Q = quantity1**2
         assert num.allclose(Q.vertex_values, quantity1.vertex_values**2)
 
@@ -2640,119 +2870,119 @@ Parameters
     def test_compute_gradient(self):
         quantity = Quantity(self.mesh4)
 
-        #Set up for a gradient of (2,0) at mid triangle
+        # Set up for a gradient of (2,0) at mid triangle
         quantity.set_values([2.0, 4.0, 6.0, 2.0],
                             location='centroids')
 
-        #Gradients
+        # Gradients
         quantity.compute_gradients()
 
         a = quantity.x_gradient
         b = quantity.y_gradient
-        #print self.mesh4.centroid_coordinates
-        #print a, b
+        # print self.mesh4.centroid_coordinates
+        # print a, b
 
-        #The central triangle (1)
-        #(using standard gradient based on neigbours controid values)
+        # The central triangle (1)
+        # (using standard gradient based on neigbours controid values)
         assert num.allclose(a[1], 2.0)
         assert num.allclose(b[1], 0.0)
 
-        #Left triangle (0) using two point gradient
-        #q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
-        #2  = 4  + a*(-2/3)  + b*(-2/3)
+        # Left triangle (0) using two point gradient
+        # q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
+        # 2  = 4  + a*(-2/3)  + b*(-2/3)
         assert num.allclose(a[0] + b[0], 3)
-        #From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
+        # From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
         assert num.allclose(a[0] - b[0], 0)
 
-        #Right triangle (2) using two point gradient
-        #q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
-        #6  = 4  + a*(4/3)  + b*(-2/3)
+        # Right triangle (2) using two point gradient
+        # q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
+        # 6  = 4  + a*(4/3)  + b*(-2/3)
         assert num.allclose(2*a[2] - b[2], 3)
-        #From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
+        # From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
         assert num.allclose(a[2] + 2*b[2], 0)
 
-        #Top triangle (3) using two point gradient
-        #q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
-        #2  = 4  + a*(-2/3)  + b*(4/3)
+        # Top triangle (3) using two point gradient
+        # q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
+        # 2  = 4  + a*(-2/3)  + b*(4/3)
         assert num.allclose(a[3] - 2*b[3], 3)
-        #From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
+        # From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
         assert num.allclose(2*a[3] + b[3], 0)
 
-        #print a, b
+        # print a, b
         quantity.extrapolate_second_order()
 
-        #Apply q(x,y) = qc + a*(x-xc) + b*(y-yc)
+        # Apply q(x,y) = qc + a*(x-xc) + b*(y-yc)
         assert num.allclose(quantity.vertex_values[0, :], [3., 0.,  3.])
         assert num.allclose(quantity.vertex_values[1, :], [
                             4./3, 16./3,  16./3])
 
-        #a = 1.2, b=-0.6
-        #q(4,0) = 6 + a*(4 - 8/3) + b*(-2/3)
+        # a = 1.2, b=-0.6
+        # q(4,0) = 6 + a*(4 - 8/3) + b*(-2/3)
         assert num.allclose(quantity.vertex_values[2, 2], 8)
 
     def test_get_gradients(self):
         quantity = Quantity(self.mesh4)
 
-        #Set up for a gradient of (2,0) at mid triangle
+        # Set up for a gradient of (2,0) at mid triangle
         quantity.set_values([2.0, 4.0, 6.0, 2.0],
                             location='centroids')
 
-        #Gradients
+        # Gradients
         quantity.compute_gradients()
 
         a, b = quantity.get_gradients()
-        #print self.mesh4.centroid_coordinates
-        #print a, b
+        # print self.mesh4.centroid_coordinates
+        # print a, b
 
-        #The central triangle (1)
-        #(using standard gradient based on neigbours controid values)
+        # The central triangle (1)
+        # (using standard gradient based on neigbours controid values)
         assert num.allclose(a[1], 2.0)
         assert num.allclose(b[1], 0.0)
 
-        #Left triangle (0) using two point gradient
-        #q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
-        #2  = 4  + a*(-2/3)  + b*(-2/3)
+        # Left triangle (0) using two point gradient
+        # q0 = q1 + a*(x0-x1) + b*(y0-y1)  <=>
+        # 2  = 4  + a*(-2/3)  + b*(-2/3)
         assert num.allclose(a[0] + b[0], 3)
-        #From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
+        # From orthogonality (a*(y0-y1) + b*(x0-x1) == 0)
         assert num.allclose(a[0] - b[0], 0)
 
-        #Right triangle (2) using two point gradient
-        #q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
-        #6  = 4  + a*(4/3)  + b*(-2/3)
+        # Right triangle (2) using two point gradient
+        # q2 = q1 + a*(x2-x1) + b*(y2-y1)  <=>
+        # 6  = 4  + a*(4/3)  + b*(-2/3)
         assert num.allclose(2*a[2] - b[2], 3)
-        #From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
+        # From orthogonality (a*(y1-y2) + b*(x2-x1) == 0)
         assert num.allclose(a[2] + 2*b[2], 0)
 
-        #Top triangle (3) using two point gradient
-        #q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
-        #2  = 4  + a*(-2/3)  + b*(4/3)
+        # Top triangle (3) using two point gradient
+        # q3 = q1 + a*(x3-x1) + b*(y3-y1)  <=>
+        # 2  = 4  + a*(-2/3)  + b*(4/3)
         assert num.allclose(a[3] - 2*b[3], 3)
-        #From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
+        # From orthogonality (a*(y1-y3) + b*(x3-x1) == 0)
         assert num.allclose(2*a[3] + b[3], 0)
 
     def test_second_order_extrapolation2(self):
         quantity = Quantity(self.mesh4)
 
-        #Set up for a gradient of (3,1), f(x) = 3x+y
+        # Set up for a gradient of (3,1), f(x) = 3x+y
         quantity.set_values([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3],
                             location='centroids')
 
-        #Gradients
+        # Gradients
         quantity.compute_gradients()
 
         a = quantity.x_gradient
         b = quantity.y_gradient
 
-        #print a, b
+        # print a, b
 
         assert num.allclose(a[1], 3.0)
         assert num.allclose(b[1], 1.0)
 
-        #Work out the others
+        # Work out the others
 
         quantity.extrapolate_second_order()
 
-        #print quantity.vertex_values
+        # print quantity.vertex_values
         assert num.allclose(quantity.vertex_values[1, 0], 2.0)
         assert num.allclose(quantity.vertex_values[1, 1], 6.0)
         assert num.allclose(quantity.vertex_values[1, 2], 8.0)
@@ -2760,15 +2990,15 @@ Parameters
     def test_backup_saxpy_centroid_values(self):
         quantity = Quantity(self.mesh4)
 
-        #Set up for a gradient of (3,1), f(x) = 3x+y
+        # Set up for a gradient of (3,1), f(x) = 3x+y
         c_values = num.array([2.0+2.0/3, 4.0+4.0/3, 8.0+2.0/3, 2.0+8.0/3])
         d_values = num.array([1.0, 2.0, 3.0, 4.0])
         quantity.set_values(c_values, location='centroids')
 
-        #Backup
+        # Backup
         quantity.backup_centroid_values()
 
-        #print quantity.vertex_values
+        # print quantity.vertex_values
         assert num.allclose(quantity.centroid_values,
                             quantity.centroid_backup_values)
 
@@ -2782,33 +3012,33 @@ Parameters
     def test_first_order_extrapolator(self):
         quantity = Quantity(self.mesh4)
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([1., 2., 3., 4.], location='centroids')
         assert num.allclose(quantity.centroid_values, [1, 2, 3, 4])  # Centroid
 
-        #Extrapolate
+        # Extrapolate
         quantity.extrapolate_first_order()
 
-        #Check that gradient is zero
+        # Check that gradient is zero
         a, b = quantity.get_gradients()
         assert num.allclose(a, [0, 0, 0, 0])
         assert num.allclose(b, [0, 0, 0, 0])
 
-        #Check vertices but not edge values
+        # Check vertices but not edge values
         assert num.allclose(quantity.vertex_values,
                             [[1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4]])
 
     def test_second_order_extrapolator(self):
         quantity = Quantity(self.mesh4)
 
-        #Set up for a gradient of (3,0) at mid triangle
+        # Set up for a gradient of (3,0) at mid triangle
         quantity.set_values([2.0, 4.0, 8.0, 2.0],
                             location='centroids')
 
         quantity.extrapolate_second_order()
         quantity.limit()
 
-        #Assert that central triangle is limited by neighbours
+        # Assert that central triangle is limited by neighbours
         assert quantity.vertex_values[1, 0] >= quantity.vertex_values[0, 0]
         assert quantity.vertex_values[1, 0] >= quantity.vertex_values[3, 1]
 
@@ -2818,7 +3048,7 @@ Parameters
         assert quantity.vertex_values[1, 2] <= quantity.vertex_values[2, 0]
         assert quantity.vertex_values[1, 2] >= quantity.vertex_values[3, 1]
 
-        #Assert that quantities are conserved
+        # Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
                                 num.sum(quantity.vertex_values[k, :])/3)
@@ -2826,13 +3056,13 @@ Parameters
     def test_limit_vertices_by_all_neighbours(self):
         quantity = Quantity(self.mesh4)
 
-        #Create a deliberate overshoot (e.g. from gradient computation)
+        # Create a deliberate overshoot (e.g. from gradient computation)
         quantity.set_values([[3, 0, 3], [2, 2, 6], [5, 3, 8], [8, 3, 5]])
 
-        #Limit
+        # Limit
         quantity.limit_vertices_by_all_neighbours()
 
-        #Assert that central triangle is limited by neighbours
+        # Assert that central triangle is limited by neighbours
         assert quantity.vertex_values[1, 0] >= quantity.vertex_values[0, 0]
         assert quantity.vertex_values[1, 0] <= quantity.vertex_values[3, 1]
 
@@ -2842,7 +3072,7 @@ Parameters
         assert quantity.vertex_values[1, 2] <= quantity.vertex_values[2, 0]
         assert quantity.vertex_values[1, 2] <= quantity.vertex_values[3, 1]
 
-        #Assert that quantities are conserved
+        # Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
                                 num.sum(quantity.vertex_values[k, :])/3)
@@ -2850,13 +3080,13 @@ Parameters
     def test_limit_edges_by_all_neighbours(self):
         quantity = Quantity(self.mesh4)
 
-        #Create a deliberate overshoot (e.g. from gradient computation)
+        # Create a deliberate overshoot (e.g. from gradient computation)
         quantity.set_values([[3, 0, 3], [2, 2, 6], [5, 3, 8], [8, 3, 5]])
 
-        #Limit
+        # Limit
         quantity.limit_edges_by_all_neighbours()
 
-        #Assert that central triangle is limited by neighbours
+        # Assert that central triangle is limited by neighbours
         assert quantity.edge_values[1, 0] <= quantity.centroid_values[2]
         assert quantity.edge_values[1, 0] >= quantity.centroid_values[0]
 
@@ -2866,7 +3096,7 @@ Parameters
         assert quantity.edge_values[1, 2] <= quantity.centroid_values[2]
         assert quantity.edge_values[1, 2] >= quantity.centroid_values[0]
 
-        #Assert that quantities are conserved
+        # Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
                                 num.sum(quantity.vertex_values[k, :])/3)
@@ -2874,13 +3104,13 @@ Parameters
     def test_limit_edges_by_neighbour(self):
         quantity = Quantity(self.mesh4)
 
-        #Create a deliberate overshoot (e.g. from gradient computation)
+        # Create a deliberate overshoot (e.g. from gradient computation)
         quantity.set_values([[3, 0, 3], [2, 2, 6], [5, 3, 8], [8, 3, 5]])
 
-        #Limit
+        # Limit
         quantity.limit_edges_by_neighbour()
 
-        #Assert that central triangle is limited by neighbours
+        # Assert that central triangle is limited by neighbours
         assert quantity.edge_values[1, 0] <= quantity.centroid_values[3]
         assert quantity.edge_values[1, 0] >= quantity.centroid_values[1]
 
@@ -2890,7 +3120,7 @@ Parameters
         assert quantity.edge_values[1, 2] <= quantity.centroid_values[1]
         assert quantity.edge_values[1, 2] >= quantity.centroid_values[0]
 
-        #Assert that quantities are conserved
+        # Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
                                 num.sum(quantity.vertex_values[k, :])/3)
@@ -2901,25 +3131,25 @@ Parameters
         quantity = Quantity(self.mesh4)
         quantity.domain.beta_w = 0.9
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([2., 4., 8., 2.], location='centroids')
         assert num.allclose(quantity.centroid_values, [2, 4, 8, 2])  # Centroid
 
-        #Extrapolate
+        # Extrapolate
         quantity.extrapolate_second_order()
 
         assert num.allclose(quantity.vertex_values[1, :], [0.0, 6, 6])
 
-        #Limit
+        # Limit
         quantity.limit()
 
         # limited value for beta_w = 0.9
 
         assert num.allclose(quantity.vertex_values[1, :], [2.2, 4.9, 4.9])
         # limited values for beta_w = 0.5
-        #assert allclose(quantity.vertex_values[1,:], [3.0, 4.5, 4.5])
+        # assert allclose(quantity.vertex_values[1,:], [3.0, 4.5, 4.5])
 
-        #Assert that quantities are conserved
+        # Assert that quantities are conserved
         for k in range(quantity.centroid_values.shape[0]):
             assert num.allclose(quantity.centroid_values[k],
                                 num.sum(quantity.vertex_values[k, :])/3)
@@ -2927,15 +3157,15 @@ Parameters
     def test_distribute_first_order(self):
         quantity = Quantity(self.mesh4)
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([1., 2., 3., 4.], location='centroids')
         assert num.allclose(quantity.centroid_values, [1, 2, 3, 4])  # Centroid
 
-        #Extrapolate from centroid to vertices and edges
+        # Extrapolate from centroid to vertices and edges
         quantity.extrapolate_first_order()
 
-        #Interpolate
-        #quantity.interpolate_from_vertices_to_edges()
+        # Interpolate
+        # quantity.interpolate_from_vertices_to_edges()
 
         assert num.allclose(quantity.vertex_values,
                             [[1, 1, 1], [2, 2, 2], [3, 3, 3], [4, 4, 4]])
@@ -2971,11 +3201,11 @@ Parameters
     def test_distribute_second_order(self):
         quantity = Quantity(self.mesh4)
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([2., 4., 8., 2.], location='centroids')
         assert num.allclose(quantity.centroid_values, [2, 4, 8, 2])  # Centroid
 
-        #Extrapolate
+        # Extrapolate
         quantity.extrapolate_second_order()
 
         assert num.allclose(quantity.vertex_values[1, :], [0.0, 6, 6])
@@ -2983,14 +3213,14 @@ Parameters
     def test_update_explicit(self):
         quantity = Quantity(self.mesh4)
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([1., 2., 3., 4.], location='centroids')
         assert num.allclose(quantity.centroid_values, [1, 2, 3, 4])  # Centroid
 
-        #Set explicit_update
+        # Set explicit_update
         quantity.explicit_update = num.array([1., 1., 1., 1.])
 
-        #Update with given timestep
+        # Update with given timestep
         quantity.update(0.1)
 
         x = num.array([1, 2, 3, 4]) + num.array([.1, .1, .1, .1])
@@ -2999,14 +3229,14 @@ Parameters
     def test_update_semi_implicit(self):
         quantity = Quantity(self.mesh4)
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([1., 2., 3., 4.], location='centroids')
         assert num.allclose(quantity.centroid_values, [1, 2, 3, 4])  # Centroid
 
-        #Set semi implicit update
+        # Set semi implicit update
         quantity.semi_implicit_update = num.array([1., 1., 1., 1.])
 
-        #Update with given timestep
+        # Update with given timestep
         timestep = 0.1
         quantity.update(timestep)
 
@@ -3019,17 +3249,17 @@ Parameters
     def test_both_updates(self):
         quantity = Quantity(self.mesh4)
 
-        #Test centroids
+        # Test centroids
         quantity.set_values([1., 2., 3., 4.], location='centroids')
         assert num.allclose(quantity.centroid_values, [1, 2, 3, 4])  # Centroid
 
-        #Set explicit_update
+        # Set explicit_update
         quantity.explicit_update = num.array([4., 3., 2., 1.])
 
-        #Set semi implicit update
+        # Set semi implicit update
         quantity.semi_implicit_update = num.array([1., 1., 1., 1.])
 
-        #Update with given timestep
+        # Update with given timestep
         timestep = 0.1
         quantity.update(0.1)
 
@@ -3046,19 +3276,19 @@ Parameters
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 1)
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[1, 1, 1], [2, 2, 2]])
         value = [7]
         indices = [1]
         quantity.set_array_values_by_index(value,
                                            location='centroids',
                                            indices=indices)
-        #print "quantity.centroid_values",quantity.centroid_values
+        # print "quantity.centroid_values",quantity.centroid_values
 
         assert num.allclose(quantity.centroid_values, [1, 7])
 
@@ -3074,12 +3304,12 @@ Parameters
         """
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        #print "vertices",vertices
-        #Create shallow water domain
+        # print "vertices",vertices
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5], [6, 6, 6]])
 
@@ -3089,7 +3319,7 @@ Parameters
         quantity.set_values(value,
                             location='centroids',
                             indices=indices)
-        #print "quantity.centroid_values",quantity.centroid_values
+        # print "quantity.centroid_values",quantity.centroid_values
         assert num.allclose(quantity.centroid_values, [1, 7, 3, 4, 5, 6])
 
         value = [7]
@@ -3097,31 +3327,31 @@ Parameters
         quantity.set_values(value,
                             location='centroids',
                             indices=indices)
-        #print "quantity.centroid_values",quantity.centroid_values
+        # print "quantity.centroid_values",quantity.centroid_values
         assert num.allclose(quantity.centroid_values, [1, 7, 3, 4, 5, 6])
 
         value = [[15, 20, 25]]
         quantity.set_values(value, indices=indices)
-        #print "1 quantity.vertex_values",quantity.vertex_values
+        # print "1 quantity.vertex_values",quantity.vertex_values
         assert num.allclose(quantity.vertex_values[1], value[0])
 
-        #print "quantity",quantity.vertex_values
+        # print "quantity",quantity.vertex_values
         values = [10, 100, 50]
         quantity.set_values(values, indices=[0, 1, 5], location='centroids')
-        #print "2 quantity.vertex_values",quantity.vertex_values
+        # print "2 quantity.vertex_values",quantity.vertex_values
         assert num.allclose(quantity.vertex_values[0], [10, 10, 10])
         assert num.allclose(quantity.vertex_values[5], [50, 50, 50])
-        #quantity.interpolate()
-        #print "quantity.centroid_values",quantity.centroid_values
+        # quantity.interpolate()
+        # print "quantity.centroid_values",quantity.centroid_values
         assert num.allclose(quantity.centroid_values, [10, 100, 3, 4, 5, 50])
 
         quantity = Quantity(domain, [[1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5], [6, 6, 6]])
         values = [10, 100, 50]
-        #this will be per unique vertex, indexing the vertices
-        #print "quantity.vertex_values",quantity.vertex_values
+        # this will be per unique vertex, indexing the vertices
+        # print "quantity.vertex_values",quantity.vertex_values
         quantity.set_values(values, indices=[0, 1, 5])
-        #print "quantity.vertex_values",quantity.vertex_values
+        # print "quantity.vertex_values",quantity.vertex_values
         assert num.allclose(quantity.vertex_values[0], [1, 50, 10])
         assert num.allclose(quantity.vertex_values[5], [6, 6, 6])
         assert num.allclose(quantity.vertex_values[1], [100, 10, 50])
@@ -3142,7 +3372,7 @@ Parameters
         values = [0, 1, 2, 3, 4, 5, 6, 7]
 
         quantity.set_values(values)
-        #print "1 quantity.vertex_values",quantity.vertex_values
+        # print "1 quantity.vertex_values",quantity.vertex_values
         assert num.allclose(quantity.vertex_values, [[4.,  5.,  0.],
                                                      [1.,  0.,  5.],
                                                      [5.,  6.,  1.],
@@ -3156,12 +3386,12 @@ Parameters
         """
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        #print "vertices",vertices
-        #Create shallow water domain
+        # print "vertices",vertices
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5]])
         value = 7
@@ -3169,7 +3399,7 @@ Parameters
         quantity.set_values(value,
                             location='unique vertices',
                             indices=indices)
-        #print "quantity.centroid_values",quantity.centroid_values
+        # print "quantity.centroid_values",quantity.centroid_values
         assert num.allclose(quantity.vertex_values[0], [0, 7, 0])
         assert num.allclose(quantity.vertex_values[1], [7, 1, 7])
         assert num.allclose(quantity.vertex_values[2], [7, 2, 7])
@@ -3180,23 +3410,23 @@ Parameters
         """
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
 
-        #print "points",points
-        #print "vertices",vertices
-        #print "boundary",boundary
+        # print "points",points
+        # print "vertices",vertices
+        # print "boundary",boundary
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5]])
 
-        #print "quantity.get_values(location = 'unique vertices')", \
+        # print "quantity.get_values(location = 'unique vertices')", \
         #      quantity.get_values(location = 'unique vertices')
 
-        #print "quantity.get_values(location = 'unique vertices')", \
+        # print "quantity.get_values(location = 'unique vertices')", \
         #      quantity.get_values(indices=[0,1,2,3,4,5,6,7], \
         #                          location = 'unique vertices')
 
@@ -3209,8 +3439,8 @@ Parameters
         assert num.allclose(answer,
                             quantity.get_values(indices=indices,
                                                 location='unique vertices'))
-        #print "quantity.centroid_values",quantity.centroid_values
-        #print "quantity.get_values(location = 'centroids') ",\
+        # print "quantity.centroid_values",quantity.centroid_values
+        # print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
 
     def test_get_values_2(self):
@@ -3225,7 +3455,7 @@ Parameters
         f = [4.0, 0.0]
 
         points = [a, b, c, d, e, f]
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         vertices = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         domain = Generic_Domain(points, vertices)
@@ -3260,12 +3490,12 @@ Parameters
                              [5, 7, 6]])
 
         # Check averaging over vertices
-        #a: 0
-        #b: (4+4+4)/3
-        #c: (2+2+2)/3
-        #d: 8
-        #e: (6+6+6)/3
-        #f: 4
+        # a: 0
+        # b: (4+4+4)/3
+        # c: (2+2+2)/3
+        # d: 8
+        # e: (6+6+6)/3
+        # f: 4
         assert num.allclose(quantity.get_values(location='unique vertices'),
                             [0, 4, 2, 8, 6, 4])
 
@@ -3275,23 +3505,23 @@ Parameters
         """
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
 
-        #print "points",points
-        #print "vertices",vertices
-        #print "boundary",boundary
+        # print "points",points
+        # print "vertices",vertices
+        # print "boundary",boundary
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5]])
 
-        #======================================================
+        # ======================================================
         # Default: get_vertex_values just returns the individual
         # vertex values within each triangle
-        #======================================================
+        # ======================================================
         Q, V = quantity.get_vertex_values(xy=False)
 
         answer = [0.,  0.,  0.,  1.,  1.,  1.,  2.,  2.,  2.,  3.,  3.,  3.,  4.,
@@ -3307,10 +3537,10 @@ Parameters
         assert num.allclose(answer, Q)
         assert num.allclose(v_answer, V)
 
-        #======================================================
+        # ======================================================
         # Set output to be smooth, so get one unique value at
         # each node. V now provides id to unique node id
-        #======================================================
+        # ======================================================
         domain.smooth = True
 
         Q, V = quantity.get_vertex_values(xy=False)
@@ -3327,12 +3557,12 @@ Parameters
         assert num.allclose(answer, Q)
         assert num.allclose(v_answer, V)
 
-        #======================================================
+        # ======================================================
         # Set output to be smooth, and if using discontinuous
         # algorithms, get one unique value at
         # each node, based on centroid values.
         # V now provides id to unique node id
-        #======================================================
+        # ======================================================
         domain.smooth = True
         domain.using_centroid_averaging = True
 
@@ -3356,11 +3586,11 @@ Parameters
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
         domain = Generic_Domain(points, vertices, boundary)
 
-        #Constant values
+        # Constant values
         quantity = Quantity(domain, [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5]])
 
@@ -3368,27 +3598,27 @@ Parameters
         interpolation_points = domain.get_centroid_coordinates()
         answer = quantity.get_values(location='centroids')
 
-        #print quantity.get_values(points=interpolation_points)
+        # print quantity.get_values(points=interpolation_points)
         assert num.allclose(answer, quantity.get_values(
             interpolation_points=interpolation_points))
 
-        #Arbitrary values
+        # Arbitrary values
         quantity = Quantity(domain, [[0, 1, 2], [3, 1, 7], [2, 1, 2], [3, 3, 7],
                                      [1, 4, -9], [2, 5, 0]])
 
         # Get interpolated values at centroids
         interpolation_points = domain.get_centroid_coordinates()
         answer = quantity.get_values(location='centroids')
-        #print answer
-        #print quantity.get_values(interpolation_points=interpolation_points)
+        # print answer
+        # print quantity.get_values(interpolation_points=interpolation_points)
         assert num.allclose(answer,
                             quantity.get_values(interpolation_points=interpolation_points,
                                                 verbose=False))
 
-        #FIXME TODO
-        #indices = [0,5,3]
-        #answer = [0.5,1,5]
-        #assert allclose(answer,
+        # FIXME TODO
+        # indices = [0,5,3]
+        # answer = [0.5,1,5]
+        # assert allclose(answer,
         #                quantity.get_values(indices=indices, \
         #                                    location = 'unique vertices'))
 
@@ -3401,7 +3631,7 @@ Parameters
         f = [4.0, 0.0]
 
         points = [a, b, c, d, e, f]
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         vertices = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         domain = Generic_Domain(points, vertices)
@@ -3409,7 +3639,7 @@ Parameters
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y)  # 2 4 4 6
 
-        #First pick one point
+        # First pick one point
         x, y = 2.0/3, 8.0/3
         v = quantity.get_values(interpolation_points=[[x, y]])
         assert num.allclose(v, 6)
@@ -3433,7 +3663,7 @@ Parameters
         f = [4.0, 0.0]
 
         points = [a, b, c, d, e, f]
-        #bac, bce, ecf, dbe
+        # bac, bce, ecf, dbe
         vertices = [[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]]
 
         domain = Generic_Domain(points, vertices,
@@ -3442,7 +3672,7 @@ Parameters
         quantity = Quantity(domain)
         quantity.set_values(lambda x, y: x+2*y)  # 2 4 4 6
 
-        #First pick one point (and turn it into absolute coordinates)
+        # First pick one point (and turn it into absolute coordinates)
         x, y = 2.0/3, 8.0/3
         v = quantity.get_values(interpolation_points=[
                                 [x+xllcorner, y+yllcorner]])
@@ -3478,16 +3708,16 @@ Parameters
         """
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
 
-        #print "points",points
-        #print "vertices",vertices
-        #print "boundary",boundary
+        # print "points",points
+        # print "vertices",vertices
+        # print "boundary",boundary
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5], [6, 6, 6]])
         value = [7]
@@ -3495,15 +3725,15 @@ Parameters
         quantity.set_values(value,
                             location='centroids',
                             indices=indices)
-        #print "quantity.centroid_values",quantity.centroid_values
-        #print "quantity.get_values(location = 'centroids') ",\
+        # print "quantity.centroid_values",quantity.centroid_values
+        # print "quantity.get_values(location = 'centroids') ",\
         #      quantity.get_values(location = 'centroids')
         assert num.allclose(quantity.centroid_values,
                             quantity.get_values(location='centroids'))
 
         value = [[15, 20, 25]]
         quantity.set_values(value, indices=indices)
-        #print "1 quantity.vertex_values",quantity.vertex_values
+        # print "1 quantity.vertex_values",quantity.vertex_values
         assert num.allclose(quantity.vertex_values, quantity.get_values())
 
         assert num.allclose(quantity.edge_values,
@@ -3516,14 +3746,14 @@ Parameters
 
         subset = quantity.get_values(location='edges', indices=[0, 5])
         answer = [quantity.edge_values[0], quantity.edge_values[5]]
-        #print "subset",subset
-        #print "answer",answer
+        # print "subset",subset
+        # print "answer",answer
         assert num.allclose(subset, answer)
 
         subset = quantity.get_values(indices=[1, 5])
         answer = [quantity.vertex_values[1], quantity.vertex_values[5]]
-        #print "subset",subset
-        #print "answer",answer
+        # print "subset",subset
+        # print "answer",answer
         assert num.allclose(subset, answer)
 
     def test_smooth_vertex_values(self):
@@ -3531,39 +3761,39 @@ Parameters
         get values based on triangle lists.
         """
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-      #  from anuga.shallow_water.shallow_water_domain import Domain
+        #  from anuga.shallow_water.shallow_water_domain import Domain
 
-        #Create basic mesh
+        # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
 
-        #print "points",points
-        #print "vertices",vertices
-        #print "boundary",boundary
+        # print "points",points
+        # print "vertices",vertices
+        # print "boundary",boundary
 
-        #Create shallow water domain
+        # Create shallow water domain
         domain = Generic_Domain(points, vertices, boundary)
-        #print "domain.number_of_elements ",domain.number_of_elements
+        # print "domain.number_of_elements ",domain.number_of_elements
         quantity = Quantity(domain, [[0, 0, 0], [1, 1, 1], [2, 2, 2], [3, 3, 3],
                                      [4, 4, 4], [5, 5, 5], [6, 6, 6], [7, 7, 7]])
 
-        #print "quantity.get_values(location = 'unique vertices')", \
+        # print "quantity.get_values(location = 'unique vertices')", \
         #      quantity.get_values(location = 'unique vertices')
 
-        #print "quantity.get_values(location = 'unique vertices')", \
+        # print "quantity.get_values(location = 'unique vertices')", \
         #      quantity.get_values(indices=[0,1,2,3,4,5,6,7], \
         #                          location = 'unique vertices')
 
-        #print quantity.get_values(location = 'unique vertices')
-        #print quantity.domain.number_of_triangles_per_node
-        #print quantity.vertex_values
+        # print quantity.get_values(location = 'unique vertices')
+        # print quantity.domain.number_of_triangles_per_node
+        # print quantity.vertex_values
 
-        #answer = [0.5, 2, 3, 3, 3.5, 4, 4, 5, 6.5]
-        #assert allclose(answer,
+        # answer = [0.5, 2, 3, 3, 3.5, 4, 4, 5, 6.5]
+        # assert allclose(answer,
         #                quantity.get_values(location = 'unique vertices'))
 
         quantity.smooth_vertex_values()
 
-        #print quantity.vertex_values
+        # print quantity.vertex_values
 
         answer_vertex_values = [[3, 3.5, 0.5], [2, 0.5, 3.5], [3.5, 4, 2], [3, 2, 4],
                                 [4, 5, 3], [3.5, 3, 5], [5, 6.5, 3.5], [4, 3.5, 6.5]]
@@ -3608,9 +3838,9 @@ Parameters
         other_quantity.set_values([[0, 0, 0], [1, 1, 6], [10, 10, 10], [0, 0, 4]],
                                   location='vertices')
 
-        #===============================
+        # ===============================
         quantity.maximum(other_quantity)
-        #===============================
+        # ===============================
 
         exact_vertex_values = num.array([[1.,   2.,   3.],
                                          [5.,   5.,  6.],
@@ -3654,9 +3884,9 @@ Parameters
         other_quantity.set_values([[0, 0, 0], [1, 1, 6], [10, 10, 10], [0, 0, 4]],
                                   location='vertices')
 
-        #===============================
+        # ===============================
         quantity.minimum(other_quantity)
-        #===============================
+        # ===============================
 
         exact_vertex_values = num.array([[0.,   0.,   0.],
                                          [1.,   1.,  5.],
@@ -3675,7 +3905,7 @@ Parameters
         assert num.allclose(quantity.edge_values, exact_edge_values)
 
 
-#-------------------------------------------------------------
+# -------------------------------------------------------------
 
 if __name__ == "__main__":
     # _set_values_from_asc')

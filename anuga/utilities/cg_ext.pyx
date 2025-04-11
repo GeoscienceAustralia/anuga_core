@@ -1,5 +1,6 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -7,16 +8,16 @@ cimport numpy as np
 
 # declare the interface to the C code
 cdef extern from "cg.c":
-    int _jacobi_precon_c(double* data, long* colind, long* row_ptr, double* precon, int M)
-    int _cg_solve_c(double* data, long* colind, long* row_ptr, double* b, double* x, int imax, double tol, double a_tol, int M)
-    int _cg_solve_c_precon(double* data, long* colind, long* row_ptr, double* b, double* x, int imax, double tol, double a_tol, int M, double* precon)
+    int64_t _jacobi_precon_c(double* data, int64_t* colind, int64_t* row_ptr, double* precon, int64_t M)
+    int64_t _cg_solve_c(double* data, int64_t* colind, int64_t* row_ptr, double* b, double* x, int64_t imax, double tol, double a_tol, int64_t M)
+    int64_t _cg_solve_c_precon(double* data, int64_t* colind, int64_t* row_ptr, double* b, double* x, int64_t imax, double tol, double a_tol, int64_t M, double* precon)
 
 def jacobi_precon_c(object csr_sparse, np.ndarray[double, ndim=1, mode="c"] precon not None):
 
-    cdef int M, err
+    cdef int64_t M, err
     cdef np.ndarray[double, ndim=1, mode="c"] data
-    cdef np.ndarray[long, ndim=1, mode="c"] colind
-    cdef np.ndarray[long, ndim=1, mode="c"] row_ptr
+    cdef np.ndarray[int64_t, ndim=1, mode="c"] colind
+    cdef np.ndarray[int64_t, ndim=1, mode="c"] row_ptr
 
     data = csr_sparse.data
     colind = csr_sparse.colind
@@ -29,15 +30,15 @@ def jacobi_precon_c(object csr_sparse, np.ndarray[double, ndim=1, mode="c"] prec
 def cg_solve_c(object csr_sparse,\
                 np.ndarray[double, ndim=1, mode="c"] x0 not None,\
                 np.ndarray[double, ndim=1, mode="c"] b not None,\
-                int imax,\
+                int64_t imax,\
                 double tol,\
                 double a_tol,\
-                int bcols):
+                int64_t bcols):
 
-    cdef int M, err
+    cdef int64_t M, err
     cdef np.ndarray[double, ndim=1, mode="c"] data
-    cdef np.ndarray[long, ndim=1, mode="c"] colind
-    cdef np.ndarray[long, ndim=1, mode="c"] row_ptr
+    cdef np.ndarray[int64_t, ndim=1, mode="c"] colind
+    cdef np.ndarray[int64_t, ndim=1, mode="c"] row_ptr
 
     data = csr_sparse.data
     colind = csr_sparse.colind
@@ -60,16 +61,16 @@ def cg_solve_c(object csr_sparse,\
 def cg_solve_c_precon(object csr_sparse,\
                     np.ndarray[double, ndim=1, mode="c"] x0 not None,\
                     np.ndarray[double, ndim=1, mode="c"] b not None,\
-                    int imax,\
+                    int64_t imax,\
                     double tol,\
                     double a_tol,\
-                    int bcols,\
+                    int64_t bcols,\
                     np.ndarray[double, ndim=1, mode="c"] precon not None):
 
-    cdef int M, err
+    cdef int64_t M, err
     cdef np.ndarray[double, ndim=1, mode="c"] data
-    cdef np.ndarray[long, ndim=1, mode="c"] colind
-    cdef np.ndarray[long, ndim=1, mode="c"] row_ptr
+    cdef np.ndarray[int64_t, ndim=1, mode="c"] colind
+    cdef np.ndarray[int64_t, ndim=1, mode="c"] row_ptr
 
     data = csr_sparse.data
     colind = csr_sparse.colind

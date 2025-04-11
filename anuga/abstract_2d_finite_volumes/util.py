@@ -855,6 +855,103 @@ def sww2timeseries(swwfiles,
                    use_cache=False,
                    verbose=False,
                    output_centroids=False):
+    """ Read sww file and plot the time series for the
+    prescribed quantities at defined gauge locations and
+    prescribed time range.
+
+    Input variables:
+
+    swwfiles        - dictionary of sww files with label_ids (used in
+                      generating latex output. It will be part of
+                      the directory name of file_loc (typically the timestamp).
+                      Helps to differentiate latex files for different
+                      simulations for a particular scenario.
+                    - assume that all conserved quantities have been stored
+                    - assume each sww file has been simulated with same timestep
+
+    gauge_filename  - name of file containing gauge data
+                        - easting, northing, name , elevation?
+                    - OR (this is not yet done)
+                        - structure which can be converted to a numeric array,
+                          such as a geospatial data object
+
+    production_dirs -  A list of list, example {20061101_121212: '1 in 10000',
+                                                'boundaries': 'urs boundary'}
+                      this will use the second part as the label and the
+                      first part as the ?
+                      #FIXME: Is it a list or a dictionary
+                      # This is probably obsolete by now
+
+    report          - if True, then write figures to report_figures directory in
+                      relevant production directory
+                    - if False, figures are already stored with sww file
+                    - default to False
+
+    reportname      - name for report if wishing to generate report
+
+    plot_quantity   - list containing quantities to plot, they must
+                      be the name of an existing quantity or one of
+                      the following possibilities
+                    - possibilities:
+                        - stage; 'stage'
+                        - depth; 'depth'
+                        - speed; calculated as absolute momentum
+                         (pointwise) divided by depth; 'speed'
+                        - bearing; calculated as the angle of the momentum
+                          vector (xmomentum, ymomentum) from the North; 'bearing'
+                        - absolute momentum; calculated as
+                          sqrt(xmomentum^2 + ymomentum^2); 'momentum'
+                        - x momentum; 'xmomentum'
+                        - y momentum; 'ymomentum'
+                    - default will be ['stage', 'speed', 'bearing']
+
+    generate_fig     - if True, generate figures as well as csv file
+                     - if False, csv files created only
+
+    surface          - if True, then generate solution surface with 3d plot
+                       and save to current working directory
+                     - default = False
+
+    time_min         - beginning of user defined time range for plotting purposes
+                        - default will be first available time found in swwfile
+
+    time_max         - end of user defined time range for plotting purposes
+                        - default will be last available time found in swwfile
+
+    title_on        - if True, export standard graphics with title
+                    - if False, export standard graphics without title
+
+
+    Output:
+
+    - time series data stored in .csv for later use if required.
+      Name = gauges_timeseries followed by gauge name
+    - latex file will be generated in same directory as where script is
+      run (usually production scenario directory.
+      Name = latexoutputlabel_id.tex
+
+    Other important information:
+
+    It is assumed that the used has stored all the conserved quantities
+    and elevation during the scenario run, i.e.
+    ['stage', 'elevation', 'xmomentum', 'ymomentum']
+    If this has not occurred then sww2timeseries will not work.
+
+
+    Usage example
+    texname = sww2timeseries({project.boundary_name + '.sww': ''},
+                             project.polygons_dir + sep + 'boundary_extent.csv',
+                             project.anuga_dir,
+                             report = False,
+                             plot_quantity = ['stage', 'speed', 'bearing'],
+                             time_min = None,
+                             time_max = None,
+                             title_on = True,
+                             verbose = True)
+
+    """
+
+
     from .gauge import sww2timeseries as sww2timeseries_new
     return sww2timeseries_new(swwfiles,
                    gauge_filename,

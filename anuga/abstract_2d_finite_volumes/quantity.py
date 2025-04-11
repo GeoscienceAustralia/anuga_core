@@ -1505,8 +1505,22 @@ class Quantity(object):
         if location == 'centroids':
             points = self.domain.centroid_coordinates
 
+            if indices is not None:
+                indices = num.array(indices)
+                points = points[indices,:]
+
         else:
             points = self.domain.vertex_coordinates
+
+            if indices is not None:
+                indices = num.array(indices)
+                points = points[tuple(indices),:]
+
+        #print(points.shape)
+
+        
+
+        #print(points.shape)
 
         from anuga.geospatial_data.geospatial_data import Geospatial_data,  ensure_absolute
 
@@ -1552,6 +1566,7 @@ class Quantity(object):
                 self.vertex_values[:] = values.reshape((-1,3))
             else:
                 msg = 'Number of values must match number of indices'
+                #print(values.shape, indices)
                 assert values.shape[0] == indices.shape[0], msg
 
                 # Brute force
@@ -1564,7 +1579,6 @@ class Quantity(object):
                              filename,
                              location='centroids',
                              indices=None,
-                             northern=False,
                              verbose=False):
 
         """Read Digital model from the following ASCII format (.asc or .grd)
@@ -1708,6 +1722,11 @@ class Quantity(object):
             print(self.domain.geo_reference)
 
         utm_zone = self.domain.geo_reference.get_zone()
+        utm_hemisphere = self.domain.geo_reference.get_hemisphere()
+
+        northern = True
+        if utm_hemisphere == 'southern':
+            northern = False
 
         #import re
         #utm_zone_number = re.findall(r'\d+', utm_zone)[0]

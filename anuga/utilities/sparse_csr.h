@@ -15,6 +15,7 @@
 #include <stdio.h>   /* gets */
 #include <stdlib.h>  /* atoi, malloc */
 #include <string.h>  /* strcpy */
+#include <stdint.h>  /* int64_t uint64_t */
 #include "math.h"
 
 #ifndef SPARSE_CSR_H
@@ -25,10 +26,10 @@
 // number of rows and the number of entries in the matrix.
 typedef struct {
 	double *data;
-	int *colind;
-	int *row_ptr;
-	int num_rows;
-	int num_entries;
+	int64_t *colind;
+	int64_t *row_ptr;
+	int64_t num_rows;
+	int64_t num_entries;
 } sparse_csr;
 
 // 'Constructor' function. Returns a pointer to new malloced memory

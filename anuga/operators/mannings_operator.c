@@ -16,15 +16,16 @@
 #include "math.h"
 #include "util_ext.h"
 #include <stdio.h>
+#include <stdint.h>
 
 const double pi = 3.14159265358979;
 
-void _manning_friction_flat(double g, double eps, int N,
+void _manning_friction_flat(double g, double eps, int64_t N,
                double* w, double* zv,
                double* uh, double* vh,
                double* eta, double* xmom, double* ymom) {
 
-  int k, k3;
+  int64_t k, k3;
   double S, h, z, z0, z1, z2;
 
   for (k=0; k<N; k++) {
@@ -52,12 +53,12 @@ void _manning_friction_flat(double g, double eps, int N,
 }
 
 
-void _manning_friction_sloped(double g, double eps, int N,
+void _manning_friction_sloped(double g, double eps, int64_t N,
                double* x, double* w, double* zv,
                double* uh, double* vh,
                double* eta, double* xmom_update, double* ymom_update) {
 
-  int k, k3, k6;
+  int64_t k, k3, k6;
   double S, h, z, z0, z1, z2, zs, zx, zy;
   double x0,y0,x1,y1,x2,y2;
 
@@ -101,12 +102,12 @@ void _manning_friction_sloped(double g, double eps, int N,
 
 
 
-void _chezy_friction(double g, double eps, int N,
+void _chezy_friction(double g, double eps, int64_t N,
                double* x, double* w, double* zv,
                double* uh, double* vh,
                double* chezy, double* xmom_update, double* ymom_update) {
 
-  int k, k3, k6;
+  int64_t k, k3, k6;
   double S, h, z, z0, z1, z2, zs, zx, zy;
   double x0,y0,x1,y1,x2,y2;
 

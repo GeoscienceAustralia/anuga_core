@@ -7,7 +7,6 @@ set -e
 
 echo "#==========================="
 echo "# Determine Ubuntu version"
-echo "# 20_04 or 22_04"
 echo "#==========================="
 
 VERSION_ID=$(grep -oP 'VERSION_ID="\K[\d.]+' /etc/os-release)
@@ -27,3 +26,8 @@ then
     bash install_ubuntu_22_04.sh
 fi
 
+if [[ "$VERSION_ID" == "24.04" ]] 
+then 
+    cd "$(dirname "${BASH_SOURCE[0]}")";
+    bash install_ubuntu_24_04.sh
+fi

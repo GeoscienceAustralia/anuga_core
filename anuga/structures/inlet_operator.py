@@ -12,7 +12,6 @@ class Inlet_operator(anuga.Operator):
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
 
-    Input: domain, Two points
     """
 
 
@@ -52,7 +51,7 @@ class Inlet_operator(anuga.Operator):
 
         self.inlet = inlet.Inlet(self.domain, region, verbose= verbose)
 
-        # should set this up to be a function of time and or space)
+        # constant or function of time, m^3/s
         self.Q = Q
 
         if velocity is not None:
@@ -65,6 +64,7 @@ class Inlet_operator(anuga.Operator):
         self.applied_Q = 0.0
 
         self.total_applied_volume = 0.0
+        self.total_requested_volume = 0.0
 
         self.set_default(default)
 
@@ -109,19 +109,26 @@ class Inlet_operator(anuga.Operator):
 
         #print(self.domain.fractional_step_volume_integral)
 
+        u,v = self.inlet.get_velocities()
+
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
             #print('volume>=0.0')
             self.inlet.set_stages_evenly(volume)
             self.domain.fractional_step_volume_integral+=volume
+            self.total_requested_volume += volume
+
             if self.velocity is not None:
                 depths = self.inlet.get_depths()
-                #self.inlet.set_xmoms(self.inlet.get_xmoms()+depths*self.velocity[0])
-                #self.inlet.set_ymoms(self.inlet.get_ymoms()+depths*self.velocity[1])
                 self.inlet.set_xmoms(depths*self.velocity[0])
                 self.inlet.set_ymoms(depths*self.velocity[1])
- 
+            else:
+                depths = self.inlet.get_depths()
+            
+                self.inlet.set_xmoms(depths*u)
+                self.inlet.set_ymoms(depths*v)
+
             if self.zero_velocity:
                 self.inlet.set_xmoms(0.0)
                 self.inlet.set_ymoms(0.0)
@@ -129,22 +136,33 @@ class Inlet_operator(anuga.Operator):
         elif current_volume + volume >= 0.0 :
             depth = (current_volume + volume)/total_area
             self.inlet.set_depths(depth)
+            self.total_requested_volume += volume
             self.domain.fractional_step_volume_integral+=volume
-            if self.zero_velocity:
-                self.inlet.set_xmoms(0.0)
-                self.inlet.set_ymoms(0.0)
-        else: #extracting too much water!
-            self.inlet.set_depths(0.0)
-            volume = -current_volume
-            self.applied_Q = -current_volume/timestep
-            self.domain.fractional_step_volume_integral-=current_volume
-            self.applied_Q = - current_volume/timestep
+
+            if self.velocity is not None:
+                depths = self.inlet.get_depths()
+                self.inlet.set_xmoms(depths*self.velocity[0])
+                self.inlet.set_ymoms(depths*self.velocity[1])
+            else:
+                depths = self.inlet.get_depths()
+                self.inlet.set_xmoms(depths*u)
+                self.inlet.set_ymoms(depths*v)
+
             if self.zero_velocity:
                 self.inlet.set_xmoms(0.0)
                 self.inlet.set_ymoms(0.0)
 
-            #msg =  'Requesting too much water to be removed from an inlet! \n'
-            #msg += 'current_water_volume = %5.2e Increment volume = %5.2e' % (current_volume, volume)
+        else: #extracting too much water!
+            self.inlet.set_depths(0.0)
+            self.total_requested_volume += volume
+            volume = -current_volume
+            self.applied_Q = -current_volume/timestep
+            self.domain.fractional_step_volume_integral-=current_volume
+            self.applied_Q = - current_volume/timestep
+            self.inlet.set_xmoms(0.0)
+            self.inlet.set_ymoms(0.0)
+
+
         self.total_applied_volume += volume
 
 

@@ -1,5 +1,6 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -8,11 +9,11 @@ cimport numpy as np
 def rectangular_cross_construct(np.ndarray[double, ndim=1, mode="c"] params not None,\
 								np.ndarray[double, ndim=1, mode="c"] origin not None,\
 								np.ndarray[double, ndim=2, mode="c"] points not None,\
-								np.ndarray[long, ndim=2, mode="c"] elements not None):
+								np.ndarray[int64_t, ndim=2, mode="c"] elements not None):
 
 
-	cdef int m, n, i, j, v1, v2 ,v3 ,v4, v5
-	cdef int numPoints, numElements
+	cdef int64_t m, n, i, j, v1, v2 ,v3 ,v4, v5
+	cdef int64_t numPoints, numElements
 	cdef double len1, len2, delta1, delta2, x, y
 
 	m = int(params[0])
@@ -20,7 +21,7 @@ def rectangular_cross_construct(np.ndarray[double, ndim=1, mode="c"] params not 
 	len1 = params[2]
 	len2 = params[3]
 
-	cdef np.ndarray[long, ndim=2, mode="c"] vertices = np.ascontiguousarray(np.zeros((m+1,n+1),dtype=int))
+	cdef np.ndarray[int64_t, ndim=2, mode="c"] vertices = np.ascontiguousarray(np.zeros((m+1,n+1),dtype=np.int64))
 
 	delta1 = len1/m
 	delta2 = len2/n

@@ -1,7 +1,7 @@
 include *.rst
 include runtests.py
 include run_validations.py
-include LICENCE.txt
+include LICENSE.txt
 recursive-include tools *
 recursive-include doc *
 recursive-include examples *

@@ -1,36 +1,38 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from libc.stdlib cimport malloc, free
+from libc.stdint cimport int64_t, int32_t
+
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
 
 # declare the interface to the C code
 cdef extern from "urs.c":
-  float** _read_mux2(int numSrc, char** muxFileNameArray, float* weights, double* params, int* number_of_stations, long* permutation, int verbose)
+  float** _read_mux2(int32_t numSrc, char** muxFileNameArray, float* weights, double* params, int32_t* number_of_stations, int64_t* permutation, int32_t verbose)
 
-def read_mux2(int numSrc,\
+def read_mux2(int32_t numSrc,\
               list filenames,\
               np.ndarray[double, ndim=1, mode="c"] pyweights not None,\
               np.ndarray[double, ndim=1, mode="c"] file_params not None,\
-              np.ndarray[long, ndim=1, mode="c"] permutation not None,\
-              int verbose):
+              np.ndarray[int64_t, ndim=1, mode="c"] permutation not None,\
+              int32_t verbose):
   # Make sure filenames are cast as str().encode(). This will work in both Python2 and Python3 (Ole)	     
 
   cdef char** muxFileNameArray
   cdef float** cdata
   cdef float* weights
-  cdef int dimensions[2]
-  cdef int total_number_of_stations
-  cdef int number_of_selected_stations
-  cdef int nt
+  cdef int32_t dimensions[2]
+  cdef int32_t total_number_of_stations
+  cdef int32_t number_of_selected_stations
+  cdef int32_t nt
   cdef double dt
-  cdef int i, j, start_tstep, finish_tstep, it, time, num_ts
-  cdef int POFFSET = 5
+  cdef int32_t i, j, start_tstep, finish_tstep, it, time, num_ts
+  cdef int32_t POFFSET = 5
   cdef np.ndarray[double, ndim=2, mode="c"] pydata
-  cdef np.ndarray[long, ndim=1, mode="c"] tmp_perm
+  cdef np.ndarray[int64_t, ndim=1, mode="c"] tmp_perm
 
-  tmp_perm = np.array([0],int)
+  tmp_perm = np.array([0], dtype=np.int64)
 
   assert len(filenames) > 0, "empty lists not allowed"
 
@@ -65,18 +67,19 @@ def read_mux2(int numSrc,\
   
   assert cdata != NULL, "No STS_DATA returned"
 
-  total_number_of_stations = int(file_params[0])
+  # Fixme SR: Not sure if we should convert to int64_t
+  total_number_of_stations = <int32_t> file_params[0]
   dt = file_params[1]
-  nt = int(file_params[2])
+  nt = <int32_t> file_params[2]
 
   # Find min and max start times of all gauges
   start_tstep = nt + 1
   finish_tstep = -1
   for i in xrange(number_of_selected_stations):
-    if int(cdata[i][nt + 3]) < start_tstep:
-      start_tstep = int(cdata[i][nt + 3])
-    if int(cdata[i][nt + 4]) > finish_tstep:
-      finish_tstep = int(cdata[i][nt + 4])
+    if ( <int32_t> cdata[i][nt + 3]) < start_tstep:
+      start_tstep = <int32_t> cdata[i][nt + 3]
+    if ( <int32_t> cdata[i][nt + 4]) > finish_tstep:
+      finish_tstep = <int32_t> cdata[i][nt + 4]
   
   if start_tstep > nt or finish_tstep < 0:
     print ("ERROR: Gauge data has incorrect start and finish times:")
@@ -112,7 +115,7 @@ def read_mux2(int numSrc,\
     time = 0
     for it in xrange(finish_tstep):
       if it + 1 >= start_tstep and it + 1 <= finish_tstep:
-        if it + 1 <= int(cdata[i][nt + 4]):
+        if it + 1 <= (<int32_t> cdata[i][nt + 4]):
           pydata[i,time] = cdata[i][it]
         time += 1
     for j in xrange(POFFSET):

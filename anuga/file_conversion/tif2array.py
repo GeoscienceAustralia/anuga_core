@@ -1,9 +1,11 @@
 import numpy as np
-from osgeo import gdal
+
 
 def tif2array(filename, verbose=False,):
     
     import os
+    from osgeo import gdal
+    
     raster= gdal.Open(filename)
     ncols= raster.RasterXSize
     nrows= raster.RasterYSize

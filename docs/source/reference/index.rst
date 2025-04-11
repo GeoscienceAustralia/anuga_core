@@ -1,15 +1,9 @@
 
-Reference
-*********
+Index
+==========
 
 
-.. toctree::
-   :maxdepth: 2
 
-   introduction
-   domain
-   boundaries
-   structures
+* :ref:`genindex`
 
 
-.. only:: html

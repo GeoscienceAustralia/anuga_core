@@ -7,12 +7,12 @@ from warnings import warn
 
 #from  . import log as log
 import anuga.utilities.log as anuga_log
-import numpy as num
+import numpy as np
 
 #After having migrated to numpy we should use the native NAN.
-#num.seterr(divide='warn')
-num.seterr(divide='ignore') # Ignore division error here for the time being
-NAN = (num.array([1])/0.)[0]
+#np.seterr(divide='warn')
+np.seterr(divide='ignore') # Ignore division error here for the time being
+NAN = (np.array([1])/0.)[0]
 
 # Static variable used by get_machine_precision
 machine_precision = None
@@ -74,12 +74,12 @@ def angle(v1, v2=None):
     v2 = ensure_numeric(v2, float)
 
     # Normalise
-    v1 = v1/num.sqrt(num.sum(v1**2))
-    v2 = v2/num.sqrt(num.sum(v2**2))
+    v1 = v1/np.sqrt(np.sum(v1**2))
+    v2 = v2/np.sqrt(np.sum(v2**2))
 
     # Compute angle
-    p = num.inner(v1, v2)
-    c = num.inner(v1, normal_vector(v2))    # Projection onto normal
+    p = np.inner(v1, v2)
+    c = np.inner(v1, normal_vector(v2))    # Projection onto normal
                                             # (negative cross product)
 
     theta = safe_acos(p)
@@ -121,7 +121,7 @@ def normal_vector(v):
     Returns vector 90 degrees counter clockwise to and of same length as v
     """
 
-    return num.array([-v[1], v[0]], float)
+    return np.array([-v[1], v[0]], float)
 
 
 #def crossproduct_length(v1, v2):
@@ -131,7 +131,7 @@ def normal_vector(v):
 def mean(x):
     """Mean value of a vector
     """
-    return(float(num.sum(x))/len(x))
+    return(float(np.sum(x))/len(x))
 
 
 def cov(x, y=None):
@@ -152,7 +152,7 @@ def cov(x, y=None):
     cx = x - mean(x)
     cy = y - mean(y)
 
-    p = num.inner(cx,cy)/N
+    p = np.inner(cx,cy)/N
     return(p)
 
 
@@ -201,8 +201,8 @@ def norm(x):
     """2-norm of x
     """
 
-    y = num.ravel(x)
-    p = num.sqrt(num.inner(y,y))
+    y = np.ravel(x)
+    p = np.sqrt(np.inner(y,y))
     return p
 
 
@@ -244,7 +244,7 @@ def ensure_numeric(A, typecode=None):
                      If not, let numpy package decide.
                      typecode will always be one of float, int, etc.
 
-    Note that num.array(A, dtype) will sometimes copy.  Use 'copy=False' to
+    Note that np.array(A, dtype) will sometimes copy.  Use 'copy=False' to
     copy only when required.
 
     This function is necessary as array(A) can cause memory overflow.
@@ -258,12 +258,12 @@ def ensure_numeric(A, typecode=None):
         return None
 
     if typecode is None:
-        if isinstance(A, num.ndarray):
-            return num.ascontiguousarray(A)
+        if isinstance(A, np.ndarray):
+            return np.ascontiguousarray(A)
         else:
-            return num.ascontiguousarray(num.array(A))
+            return np.ascontiguousarray(np.asarray(A))
     else:
-        return num.ascontiguousarray(num.array(A, dtype=typecode, copy=False))
+        return np.ascontiguousarray(np.asarray(A, dtype=typecode))
 
 
 def histogram(a, bins, relative=False):
@@ -273,13 +273,13 @@ def histogram(a, bins, relative=False):
     thus represent frequencies rather than counts.
     """
 
-    n = num.searchsorted(num.sort(a), bins)
-    n = num.concatenate([n, [len(a)]], axis=0)    #??default#
+    n = np.searchsorted(np.sort(a), bins)
+    n = np.concatenate([n, [len(a)]], axis=0)    #??default#
 
     hist = n[1:]-n[:-1]
 
     if relative is True:
-        hist = hist/float(num.sum(hist))
+        hist = hist/float(np.sum(hist))
 
     return hist
 
@@ -293,12 +293,12 @@ def create_bins(data, number_of_bins = None):
     mn = min(data)
 
     if mx == mn:
-        bins = num.array([mn])
+        bins = np.array([mn])
     else:
         if number_of_bins is None:
             number_of_bins = 10
 
-        bins = num.arange(mn, mx, (mx-mn)/number_of_bins)
+        bins = np.arange(mn, mx, (mx-mn)/number_of_bins)
 
     return bins
 
@@ -370,7 +370,7 @@ def is_num_float(obj):
     '''Is an object a numeric package float object?'''
 
     try:
-        return obj.dtype.char in num.typecodes['Float']
+        return obj.dtype.char in np.typecodes['Float']
     except AttributeError:
         return False
 
@@ -378,7 +378,7 @@ def is_num_int(obj):
     '''Is an object a numeric package int object?'''
 
     try:
-        return obj.dtype.char in num.typecodes['Integer']
+        return obj.dtype.char in np.typecodes['Integer']
     except AttributeError:
         return False
 

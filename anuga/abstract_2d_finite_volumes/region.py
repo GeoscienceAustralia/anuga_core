@@ -231,7 +231,7 @@ class Region(object):
                 intersect = True
                 indices.append(k)
 
-        if len(indices) != 0:
+        if len(indices) == 0:
             self.indices = indices
         else:
             self.indices = num.asarray(indices)

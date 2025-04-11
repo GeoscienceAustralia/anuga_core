@@ -1,8 +1,7 @@
 """
 Set friction operators
 
-Constraints: See GPL license in the user guide
-Version: 1.0 ($Revision: 7731 $)
+
 """
 
 from builtins import str
@@ -11,7 +10,7 @@ __date__ ="$09/03/2012 4:46:39 PM$"
 
 
 
-import numpy
+import numpy as np
 
 from anuga.operators.base_operator import Operator
 from anuga import Region
@@ -21,14 +20,15 @@ from anuga.config import indent
 default_friction_min = 0.01
 default_friction_max = 0.035
 
-class Depth_friction_operator(Operator, Region):
+class Set_depth_friction_operator(Operator):
     """
-    Set the friction in a region
+    Set the friction in a region as a function of water depth
     """
 
     def __init__(self,
                  domain,
                  friction=lambda h: 0.03,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -41,18 +41,52 @@ class Depth_friction_operator(Operator, Region):
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
-        Region.__init__(self, domain,
-                indices=indices,
-                polygon=polygon,
-                center=center,
-                radius=radius,
-                verbose=verbose)
+        #-----------------------------------------------------
+        # Make sure region is actually an instance of a region
+        # Otherwise create a new region based on the other 
+        # input arguments
+        #-----------------------------------------------------
+        if isinstance(region,Region):
+            region.set_verbose(verbose)
+            self.region = region
+
+        else:
+            self.region = Region(domain,
+                        indices=indices,
+                        polygon=polygon,
+                        center=center,
+                        radius=radius,
+                        verbose=verbose)
+
+        # Region.__init__(self, domain,
+        #         indices=indices,
+        #         polygon=polygon,
+        #         center=center,
+        #         radius=radius,
+        #         verbose=verbose)
 
         #------------------------------------------
         # Local variables
         #------------------------------------------
 
-        self.friction = friction
+        if friction is None:
+            msg = 'Friction function not specified'
+            raise ValueError(msg)
+
+        if not callable(friction):
+            msg = 'Friction function not callable'
+            if type(friction) is float or type(friction) is int:
+                friction_fun = lambda h: friction
+            else:
+                msg += ' (maybe you forgot to use lambda?)'
+                raise ValueError(msg)
+        else:
+            friction_fun = friction
+
+        # vectorize friction_fun
+        friction_fun = np.vectorize(friction_fun)
+
+        self.friction = friction_fun
         self.friction_c = self.domain.get_quantity('friction').centroid_values
 
 
@@ -62,18 +96,18 @@ class Depth_friction_operator(Operator, Region):
         Change friction based on depth
         """
 
-        if self.indices is []:
+        if self.region.indices is []:
             return
 
 
         #-----------------------------------------
         # Here is where the important formula is applied
         #----------------------------------------
-        if self.indices is None:
+        if self.region.indices is None:
             height = self.stage_c - self.elev_c
             self.friction_c[:] = self.friction(height)
         else:
-            ind = self.indices
+            ind = self.region.indices
             height = self.stage_c[ind] - self.elev_c[ind]
             self.friction_c[ind] = self.friction(height)
 
@@ -87,74 +121,23 @@ class Depth_friction_operator(Operator, Region):
 
     def statistics(self):
 
-        message = self.label + ': Set_depth_friction_operator'
+        message = self.label + ': Set_friction_operator'
         return message
 
 
     def timestepping_statistics(self):
 
-        message  = indent + self.label + ': Set_depth_friction, '
+        message  = indent + self.label + ': Set_friction_operator, '
 
         if self.indices is None:
-            message  += str(numpy.min(self.friction_c) ) + ' '
-            message  += str(numpy.max(self.friction_c) )
+            message  += str(np.min(self.friction_c) ) + ' '
+            message  += str(np.max(self.friction_c) )
         else:
             ind = self.indices
-            message  += str(numpy.min(self.friction_c[ind]) ) + ' '
-            message  += str(numpy.max(self.friction_c[ind]) )
+            message  += str(np.min(self.friction_c[ind]) ) + ' '
+            message  += str(np.max(self.friction_c[ind]) )
 
 
         return message
-
-
-
-#===============================================================================
-# Specific Operator for circular region.
-#===============================================================================
-class Circular_depth_friction_operator(Depth_friction_operator):
-    """
-    Set friction over a circular region
-
-    """
-
-    def __init__(self, domain,
-                 friction,
-                 center=None,
-                 radius=None,
-                 verbose=False):
-
-
-
-
-        Depth_friction_operator.__init__(self,
-                                    domain,
-                                    friction=friction,
-                                    center=center,
-                                    radius=radius,
-                                    verbose=verbose)
-
-
-#===============================================================================
-# Specific Operator for polygonal region.
-#===============================================================================
-class Polygonal_depth_friction_operator(Depth_friction_operator):
-    """
-    Set Friction over a polygon
-
-    """
-
-    def __init__(self, domain,
-                 friction,
-                 polygon=None,
-                 verbose=False):
-
-
-
-        Depth_friction_operator.__init__(self,
-                               domain,
-                               friction=friction,
-                               polygon=polygon,
-                               verbose=verbose)
-
 
 
