@@ -1,17 +1,8 @@
 
-Reference
+Index
 ==========
 
 
-.. toctree::
-   :maxdepth: 2
-
-   domain
-   boundaries
-   operators
-
-Index
-======
 
 * :ref:`genindex`
 
