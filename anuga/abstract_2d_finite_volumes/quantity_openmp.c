@@ -11,6 +11,7 @@
 
 #include "math.h"
 #include "omp.h"
+#include <stdint.h>
 
 //Shared code snippets
 #include "util_ext.h"
