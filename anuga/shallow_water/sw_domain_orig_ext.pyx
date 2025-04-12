@@ -9,6 +9,8 @@ cimport numpy as np
 cdef extern from "sw_domain_orig.c" nogil:
         struct domain:
                 int64_t number_of_elements
+                int64_t boundary_length
+                int64_t number_of_riverwall_edges
                 double epsilon
                 double H0
                 double g
@@ -110,8 +112,10 @@ cdef int64_t pointer_flag = 0
 cdef int64_t parameter_flag = 0
 
 cdef inline get_python_domain_parameters(domain *D, object domain_object):
-
+        
         D.number_of_elements = domain_object.number_of_elements
+        D.boundary_length = domain_object.boundary_length 
+        D.number_of_riverwall_edges = domain_object.number_of_riverwall_edges
         D.epsilon = domain_object.epsilon
         D.H0 = domain_object.H0
         D.g = domain_object.g

@@ -10,14 +10,15 @@
 // how to use this module
 //
 //
-// Stephen Roberts, ANU 2009
 // Ole Nielsen, GA 2004
+// Stephen Roberts, ANU 2009
 // Gareth Davies, GA 2011
 
 #include "math.h"
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 
 #if defined(__APPLE__)
 // clang doesn't have openmp
@@ -30,13 +31,13 @@
 const double pi = 3.14159265358979;
 
 // Trick to compute n modulo d (n%d in python) when d is a power of 2
-unsigned int __mod_of_power_2(unsigned int n, unsigned int d)
+uint64_t __mod_of_power_2(uint64_t n, uint64_t d)
 {
   return (n & (d - 1));
 }
 
 // Computational function for rotation
-int __rotate(double *q, double n1, double n2)
+int64_t __rotate(double *q, double n1, double n2)
 {
   /*Rotate the last  2 coordinates of q (q[1], q[2])
     from x,y coordinates to coordinates based on normal vector (n1, n2).
@@ -60,7 +61,7 @@ int __rotate(double *q, double n1, double n2)
 }
 
 // Innermost flux function (using stage w=z+h)
-int __flux_function_central(double *q_left, double *q_right,
+int64_t __flux_function_central(double *q_left, double *q_right,
                             double h_left, double h_right,
                             double hle, double hre,
                             double n1, double n2,
@@ -71,7 +72,7 @@ int __flux_function_central(double *q_left, double *q_right,
                             double *edgeflux, double *max_speed,
                             double *pressure_flux, double hc,
                             double hc_n,
-                            long low_froude)
+                            int64_t low_froude)
 {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -87,7 +88,7 @@ int __flux_function_central(double *q_left, double *q_right,
     FIXME: Several variables in this interface are no longer used, clean up
   */
 
-  int i;
+  int64_t i;
 
   double uh_left, vh_left, u_left;
   double uh_right, vh_right, u_right;
@@ -265,7 +266,7 @@ int __flux_function_central(double *q_left, double *q_right,
   return 0;
 }
 
-int __openmp__flux_function_central(double q_left0, double q_left1, double q_left2,
+int64_t __openmp__flux_function_central(double q_left0, double q_left1, double q_left2,
                                    double q_right0, double q_right1, double q_right2,
                                    double h_left, double h_right,
                                    double hle, double hre,
@@ -278,14 +279,14 @@ int __openmp__flux_function_central(double q_left0, double q_left1, double q_lef
                                    double *max_speed,
                                    double *pressure_flux, double hc,
                                    double hc_n,
-                                   long low_froude)
+                                   int64_t low_froude)
 {
 
   double edgeflux[3];
   double q_left[3];
   double q_right[3];
 
-  int ierr;
+  int64_t ierr;
 
   edgeflux[0] = *edgeflux0;
   edgeflux[1] = *edgeflux1;
@@ -433,7 +434,7 @@ double __openmp__adjust_edgeflux_with_weir(double *edgeflux0, double *edgeflux1,
 {
 
   double edgeflux[3];
-  int ierr;
+  int64_t ierr;
 
   edgeflux[0] = *edgeflux0;
   edgeflux[1] = *edgeflux1;
@@ -455,18 +456,18 @@ double _openmp_compute_fluxes_central(struct domain *D,
                                       double timestep)
 {
   // Local variables
-  int K = D->number_of_elements;
-  // int KI, KI2, KI3, B, RW, RW5, SubSteps;
-  long substep_count;
+  int64_t K = D->number_of_elements;
+  // int64_t KI, KI2, KI3, B, RW, RW5, SubSteps;
+  int64_t substep_count;
 
   double max_speed_local, length, inv_area, zl, zr;
   double h_left, h_right, z_half; // For andusse scheme
   // FIXME: limiting_threshold is not used for DE1
   double limiting_threshold = 10 * D->H0;
-  long low_froude = D->low_froude;
+  int64_t low_froude = D->low_froude;
   double g = D->g;
   double epsilon = D->epsilon;
-  long ncol_riverwall_hydraulic_properties = D->ncol_riverwall_hydraulic_properties;
+  int64_t ncol_riverwall_hydraulic_properties = D->ncol_riverwall_hydraulic_properties;
 
   // Workspace (making them static actually made function slightly slower (Ole))
   double ql[3];
@@ -481,15 +482,15 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double pressure_flux, hc, hc_n;
   double h_left_tmp, h_right_tmp;
   double speed_max_last, weir_height;
-  long RiverWall_count;
+  int64_t RiverWall_count;
 
   //
-  int k, i, m, n, ii;
-  int ki, nm = 0, ki2; // Index shorthands
+  int64_t k, i, m, n, ii;
+  int64_t ki, nm = 0, ki2; // Index shorthands
 
-  static long call = 0; // Static local variable flagging already computed flux
-  static long timestep_fluxcalls = 1;
-  static long base_call = 1;
+  static int64_t call = 0; // Static local variable flagging already computed flux
+  static int64_t timestep_fluxcalls = 1;
+  static int64_t base_call = 1;
 
   call++; // Flag 'id' of flux calculation for this timestep
 
@@ -779,21 +780,21 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
   double h_left, h_right, z_half; // For andusse scheme
   // FIXME: limiting_threshold is not used for DE1
   double limiting_threshold = 10 * D->H0;
-  long low_froude = D->low_froude;
+  int64_t low_froude = D->low_froude;
   //
-  int k, i, m, n, ii;
-  int ki, nm = 0, ki2, ki3; // Index shorthands
+  int64_t k, i, m, n, ii;
+  int64_t ki, nm = 0, ki2, ki3; // Index shorthands
   // Workspace (making them static actually made function slightly slower (Ole))
   double ql[3], qr[3], edgeflux[3]; // Work array for summing up fluxes
   double bedslope_work;
   static double local_timestep;
-  long RiverWall_count, substep_count;
+  int64_t RiverWall_count, substep_count;
   double hle, hre, zc, zc_n, Qfactor, s1, s2, h1, h2;
   double pressure_flux, hc, hc_n, tmp;
   double h_left_tmp, h_right_tmp;
-  static long call = 0; // Static local variable flagging already computed flux
-  static long timestep_fluxcalls = 1;
-  static long base_call = 1;
+  static int64_t call = 0; // Static local variable flagging already computed flux
+  static int64_t timestep_fluxcalls = 1;
+  static int64_t base_call = 1;
   double speed_max_last, weir_height;
 
   call++; // Flag 'id' of flux calculation for this timestep
@@ -1094,7 +1095,7 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
 double _openmp_protect(struct domain *D)
 {
 
-  int k, k3, K;
+  int64_t k, k3, K;
   double hc, bmin;
   double mass_error = 0.;
 
@@ -1122,7 +1123,7 @@ double _openmp_protect(struct domain *D)
   // distance between the bed_centroid_value and the max bed_edge_value of
   // every triangle.
   // double minimum_relative_height=0.05;
-  // int mass_added = 0;
+  // int64_t mass_added = 0;
 
   // Protect against inifintesimal and negative heights
   // if (maximum_allowed_speed < epsilon) {
@@ -1169,7 +1170,7 @@ double _openmp_protect(struct domain *D)
 }
 
 
-static inline int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
+static inline int64_t __find_qmin_and_qmax(double dq0, double dq1, double dq2,
                          double *qmin, double *qmax)
 {
   // Considering the centroid of an FV triangle and the vertices of its
@@ -1190,7 +1191,7 @@ static inline int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
   return 0;
 }
 
-static inline int __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
+static inline int64_t __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
 {
   // Given provisional jumps dqv from the FV triangle centroid to its
   // vertices/edges, and jumps qmin (qmax) between the centroid of the FV
@@ -1199,7 +1200,7 @@ static inline int __limit_gradient(double *dqv, double qmin, double qmax, double
   // multiplicative factor phi by which the provisional vertex jumps are to be
   // limited
 
-  int i;
+  int64_t i;
   double r = 1000.0, r0 = 1.0, phi = 1.0;
   static double TINY = 1.0e-100; // to avoid machine accuracy problems.
   // FIXME: Perhaps use the epsilon used elsewhere.
@@ -1331,12 +1332,12 @@ static inline void __calc_edge_values_2_bdy(double beta, double cv_k, double cv_
 
 
 // Computational routine
-int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
+int64_t _openmp_extrapolate_second_order_edge_sw(struct domain *D)
 {
 
   // Local variables
   double a, b; // Gradient vector used to calculate edge values from centroids
-  long k, k0, k1, k2, k3, k6, coord_index, i;
+  int64_t k, k0, k1, k2, k3, k6, coord_index, i;
   double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
   double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
   double dqv[3], qmin, qmax, hmin, hmax;
@@ -1351,8 +1352,8 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   double ymom_centroid_values;
 
   double minimum_allowed_height = D->minimum_allowed_height;
-  long number_of_elements = D->number_of_elements;
-  long extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
+  int64_t number_of_elements = D->number_of_elements;
+  int64_t extrapolate_velocity_second_order = D->extrapolate_velocity_second_order;
 
 
   // Parameters used to control how the limiter is forced to first-order near
@@ -1951,11 +1952,11 @@ int _openmp_extrapolate_second_order_edge_sw(struct domain *D)
 
 
 // Computational function for flux computation
-int _openmp_fix_negative_cells(struct domain *D)
+int64_t _openmp_fix_negative_cells(struct domain *D)
 {
-  long k;
-  long tff;
-  int num_negative_cells = 0;
+  int64_t k;
+  int64_t tff;
+  int64_t num_negative_cells = 0;
 
   #pragma omp parallel for private(k, tff) reduction(+:num_negative_cells)
   for (k = 0; k < D->number_of_elements; k++)

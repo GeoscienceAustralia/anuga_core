@@ -11,6 +11,32 @@ py3.extension_module('sw_domain_orig_ext',
   install: true,
 )
 
+py3.extension_module('sw_domain_simd_ext',
+  sources: ['sw_domain_simd_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  subdir: 'anuga/shallow_water',
+  install: true,
+)
+
+py3.extension_module('sw_domain_openmp_ext',
+  sources: ['sw_domain_openmp_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  cpp_args : '-fopenmp',
+  link_args : '-fopenmp',
+  subdir: 'anuga/shallow_water',
+  install: true,
+)
+
+py3.extension_module('sw_domain_openacc_ext',
+  sources: ['sw_domain_openacc_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  subdir: 'anuga/shallow_water',
+  install: true,
+)
+
 
 python_sources = [
 'boundaries.py',
