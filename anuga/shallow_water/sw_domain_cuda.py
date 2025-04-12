@@ -71,7 +71,6 @@ class GPU_interface(object):
         bed    = quantities["elevation"]
         height = quantities["height"]
         friction = quantities["friction"]
-        friction = quantities["friction"]
 
         riverwallData = domain.riverwallData
 

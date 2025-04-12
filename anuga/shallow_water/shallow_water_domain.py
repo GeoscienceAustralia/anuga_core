@@ -315,7 +315,7 @@ class Domain(Generic_Domain):
         # 4. Cuda
         #-------------------------------
         self.gpu_interface = None
-        self.set_multiprocessor_mode(1)
+        self.set_multiprocessor_mode(0)
 
         #-------------------------------
         # datetime and timezone
@@ -1972,7 +1972,6 @@ class Domain(Generic_Domain):
             # change over to cuda routines as developed
             # # from .sw_domain_simd_ext import  protect_new
             protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
-            protect_new = self.gpu_interface.protect_against_infinitesimal_and_negative_heights_kernal
         else:
             raise Exception('Not implemented')
 
@@ -2048,7 +2047,13 @@ class Domain(Generic_Domain):
 
         if self.get_using_discontinuous_elevation():
 
-            if self.multiprocessor_mode == 1:
+            if self.multiprocessor_mode == 0:
+                Stage.update(timestep)
+                Xmom.update(timestep)
+                Ymom.update(timestep)
+                from .sw_domain_simd_ext import fix_negative_cells
+                num_negative_ids = fix_negative_cells(self)
+            elif self.multiprocessor_mode == 1:
                 Stage.update(timestep)
                 Xmom.update(timestep)
                 Ymom.update(timestep)
@@ -2059,9 +2064,6 @@ class Domain(Generic_Domain):
                 Xmom.update(timestep)
                 Ymom.update(timestep)                
                 from .sw_domain_openmp_ext import fix_negative_cells
-                Stage.update(timestep)
-                Xmom.update(timestep)
-                Ymom.update(timestep)
                 num_negative_ids = fix_negative_cells(self)
             elif self.multiprocessor_mode == 3:
                 Stage.update(timestep)

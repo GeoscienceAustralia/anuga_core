@@ -11,7 +11,7 @@
 
     // FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in
     // extrapolation
-    __device__ int __find_qmin_and_qmax(double dq0, double dq1, double dq2,
+    __device__ int64_t __find_qmin_and_qmax(double dq0, double dq1, double dq2,
                                         double *qmin, double *qmax)
 {
 // Considering the centroid of an FV triangle and the vertices of its
@@ -34,7 +34,7 @@ return 0;
 
 // FIXME SR: this routine doesn't seem to be used in flux calculation, probably used in 
 // extrapolation
-__device__ int __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
+__device__ int64_t __limit_gradient(double *dqv, double qmin, double qmax, double beta_w)
 {
 // Given provisional jumps dqv from the FV triangle centroid to its
 // vertices/edges, and jumps qmin (qmax) between the centroid of the FV
@@ -43,7 +43,7 @@ __device__ int __limit_gradient(double *dqv, double qmin, double qmax, double be
 // multiplicative factor phi by which the provisional vertex jumps are to be
 // limited
 
-int i;
+int64_t i;
 double r = 1000.0, r0 = 1.0, phi = 1.0;
 static double TINY = 1.0e-100; // to avoid machine accuracy problems.
 // FIXME: Perhaps use the epsilon used elsewhere.
@@ -107,7 +107,7 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
                             double *edgeflux, double *max_speed,
                             double *pressure_flux, double hc,
                             double hc_n,
-                            long low_froude)
+                            int64_t low_froude)
 {
 
   /*Compute fluxes between volumes for the shallow water wave equation
@@ -123,7 +123,7 @@ __device__ void __flux_function_central(double *q_left, double *q_right,
     FIXME: Several variables in this interface are no longer used, clean up
   */
 
-  int i;
+  int64_t i;
 
   double uh_left, vh_left, u_left;
   double uh_right, vh_right, u_right;
@@ -414,8 +414,8 @@ __device__ double __adjust_edgeflux_with_weir(double *edgeflux,
 // FIXME SR: At present reduction is done outside kernel
 __device__ double atomicMin_double(double* address, double val)
 {
-  unsigned long long int* address_as_ull = (unsigned long long int*) address;
-  unsigned long long int old = *address_as_ull, assumed;
+  unsigned int64_t int64_t int64_t* address_as_ull = (unsigned int64_t int64_t int64_t*) address;
+  unsigned int64_t int64_t int64_t old = *address_as_ull, assumed;
 
 	do {
     assumed = old;
@@ -426,7 +426,7 @@ __device__ double atomicMin_double(double* address, double val)
 }
 
 // _gradient from util_ext.h required by cft_manning_friction_sloped
-__device__ int _gradient(double x0, double y0, 
+__device__ int64_t _gradient(double x0, double y0, 
 	      double x1, double y1, 
 	      double x2, double y2, 
 	      double q0, double q1, double q2, 
@@ -501,25 +501,25 @@ __global__ void _cuda_compute_fluxes_loop(
                                     double* normals,
                                     double* edgelengths,
                                     double* radii,
-                                    long*   tri_full_flag,
-                                    long*   neighbours,
-                                    long*   neighbour_edges,
-                                    long*   edge_flux_type,
-                                    long*   edge_river_wall_counter,
+                                    int64_t*   tri_full_flag,
+                                    int64_t*   neighbours,
+                                    int64_t*   neighbour_edges,
+                                    int64_t*   edge_flux_type,
+                                    int64_t*   edge_river_wall_counter,
                                     double* riverwall_elevation,
-                                    long*   riverwall_rowIndex,
+                                    int64_t*   riverwall_rowIndex,
                                     double* riverwall_hydraulic_properties,
 
-                                    long   number_of_elements,
-                                    long   substep_count,
-                                    long   ncol_riverwall_hydraulic_properties,
+                                    int64_t   number_of_elements,
+                                    int64_t   substep_count,
+                                    int64_t   ncol_riverwall_hydraulic_properties,
                                     double epsilon,
                                     double g,
-                                    long   low_froude,
+                                    int64_t   low_froude,
                                     double limiting_threshold)
 {
-  long k, i, ki, ki2, n, m, nm, ii;
-  long RiverWall_count;
+  int64_t k, i, ki, ki2, n, m, nm, ii;
+  int64_t RiverWall_count;
   double max_speed_local, length, inv_area, zl, zr;
   double h_left, h_right;
   double z_half, ql[3], pressuregrad_work;
@@ -765,18 +765,18 @@ __global__ void _cuda_compute_fluxes_loop(
 
 
 // // Computational function for flux computation
-// int main(int *argc, char*argv[])
+// int64_t main(int64_t *argc, char*argv[])
 // {
 //   // local variables
-//   long substep_count;
-//   long number_of_elements =1024;
+//   int64_t substep_count;
+//   int64_t number_of_elements =1024;
   
 //   double limiting_threshold = 10 ;
-//   long   low_froude;
+//   int64_t   low_froude;
 //   double g;
 //   double epsilon;
 
-//   long ncol_riverwall_hydraulic_properties;
+//   int64_t ncol_riverwall_hydraulic_properties;
  
 //   double local_timestep[1];      // InOut
 //   double* boundary_flux_sum ;     // InOut
@@ -800,21 +800,21 @@ __global__ void _cuda_compute_fluxes_loop(
 //   double* normals ;
 //   double* edgelengths ;
 //   double* radii ;
-//   long* tri_full_flag ;
-//   long* neighbours ;
-//   long* neighbour_edges ;
-//   long* edge_flux_type ;
-//   long* edge_river_wall_counter ;
+//   int64_t* tri_full_flag ;
+//   int64_t* neighbours ;
+//   int64_t* neighbour_edges ;
+//   int64_t* edge_flux_type ;
+//   int64_t* edge_river_wall_counter ;
 //   double* riverwall_elevation ;
-//   long* riverwall_rowIndex ;
+//   int64_t* riverwall_rowIndex ;
 //   double* riverwall_hydraulic_properties;
 
-//   unsigned int THREADS_PER_BLOCK;
+//   unsigned int64_t THREADS_PER_BLOCK;
 
-//   long timestep_fluxcalls = 1;
-//   long base_call = 1;
+//   int64_t timestep_fluxcalls = 1;
+//   int64_t base_call = 1;
 //   THREADS_PER_BLOCK = 256;
-//   long NO_OF_BLOCKS = number_of_elements/THREADS_PER_BLOCK; 
+//   int64_t NO_OF_BLOCKS = number_of_elements/THREADS_PER_BLOCK; 
 
 //   __cuda_compute_fluxes_loop_1<<<NO_OF_BLOCKS,THREADS_PER_BLOCK>>>(local_timestep,        // InOut
 //                                boundary_flux_sum,     // InOut
@@ -984,7 +984,7 @@ __global__ void _cuda_extrapolate_second_order_edge_sw(double* stage_edge_values
                                             double* xmom_centroid_values, double* y_centroid_work, double* ymom_centroid_values,
                                             double* stage_centroid_values, double beta_w_dry, double beta_w,
                                             double beta_uh_dry, double beta_uh, double beta_vh_dry, double beta_vh,
-                                            double minimum_allowed_height, int number_of_elements, int extrapolate_velocity_second_order) {
+                                            double minimum_allowed_height, int64_t number_of_elements, int64_t extrapolate_velocity_second_order) {
 
 
 */
@@ -1000,11 +1000,11 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop1(
                                                       double* y_centroid_work,
 
                                                       double minimum_allowed_height, 
-                                                      long number_of_elements, 
-                                                      long extrapolate_velocity_second_order  
+                                                      int64_t number_of_elements, 
+                                                      int64_t extrapolate_velocity_second_order  
                                             ) {
 
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k < number_of_elements) {
 
       double dk, dk_inv;
@@ -1055,10 +1055,10 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
                                                              double* x_centroid_work,
                                                              double* y_centroid_work,
 
-                                                             long*   number_of_boundaries,
+                                                             int64_t*   number_of_boundaries,
                                                              double* centroid_coordinates,
                                                              double* edge_coordinates, 
-                                                             long*   surrogate_neighbours,               
+                                                             int64_t*   surrogate_neighbours,               
                                                       
                                                              double beta_w_dry,
                                                              double beta_w,
@@ -1068,15 +1068,15 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop2(
                                                              double beta_vh,
                                                       
                                                              double minimum_allowed_height, 
-                                                             long   number_of_elements, 
-                                                             long   extrapolate_velocity_second_order  
+                                                             int64_t   number_of_elements, 
+                                                             int64_t   extrapolate_velocity_second_order  
                                                              ) {
 
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k < number_of_elements) {
 
       double a, b; // Gradient vector used to calculate edge values from centroids
-      long k0, k1, k2, k3, k6, coord_index, i;
+      int64_t k0, k1, k2, k3, k6, coord_index, i;
       double x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2; // Vertices of the auxiliary triangle
       double dx1, dx2, dy1, dy2, dxv0, dxv1, dxv2, dyv0, dyv1, dyv2, dq1, area2, inv_area2;
       double dqv[3], qmin, qmax, hmin, hmax;
@@ -1543,11 +1543,11 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop3(
                                                       double* x_centroid_work,
                                                       double* y_centroid_work,
                                            
-                                                      long extrapolate_velocity_second_order,
-                                                      long number_of_elements
+                                                      int64_t extrapolate_velocity_second_order,
+                                                      int64_t number_of_elements
                                             ) {
 
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k < number_of_elements) {
 
       // FIXME SR: Should pull this out of the kernel 
@@ -1574,11 +1574,11 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
                                               double* ymom_vertex_values,
                                               double* bed_vertex_values,               
 
-                                              long   number_of_elements ) 
+                                              int64_t   number_of_elements ) 
 {
-    long k3;
+    int64_t k3;
     
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     
     if (k < number_of_elements) {
       
@@ -1610,18 +1610,18 @@ __global__ void _cuda_extrapolate_second_order_edge_sw_loop4(
 
 
 
-__global__ void _cuda_update_sw(long number_of_elements, 
+__global__ void _cuda_update_sw(int64_t number_of_elements, 
                                 double timestep, 
                                 double *centroid_values, 
                                 double *explicit_update, 
                                 double *semi_implicit_update)
   {
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
 
     if (k < number_of_elements)
     {
       double x = centroid_values[k];
-      int err_return = 0;
+      int64_t err_return = 0;
       if (x == 0.0) {
         semi_implicit_update[k] = 0.0;
       } else {
@@ -1655,19 +1655,19 @@ __global__ void _cuda_update_sw(long number_of_elements,
 
 
   __global__ void _cuda_fix_negative_cells_sw(
-                                              long number_of_elements, 
-                                              long *tri_full_flag, 
+                                              int64_t number_of_elements, 
+                                              int64_t *tri_full_flag, 
                                               double *stage_centroid_values, 
                                               double *bed_centroid_values,
                                               double *xmom_centroid_values, 
                                               double *ymom_centroid_values, 
-                                              long num_negative_cells)  // Is this the way to pass back and is it int or long
+                                              int64_t num_negative_cells)  // Is this the way to pass back and is it int64_t or int64_t
   {
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     num_negative_cells = 0;
     if (k < number_of_elements)
     {
-      int tff = tri_full_flag[k];
+      int64_t tff = tri_full_flag[k];
       if ((stage_centroid_values[k] - bed_centroid_values[k] < 0.0) && (tff > 0))
       {
         atomicAdd(&num_negative_cells, 1);
@@ -1682,8 +1682,8 @@ __global__ void _cuda_update_sw(long number_of_elements,
 
 
   // Protect against the water elevation falling below the triangle bed
-  __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(double domain_minimum_allowed_height, long number_of_elements, double* stage_centroid_values, double* bed_centroid_values, double* xmom_centroid_values, double* areas, double* stage_vertex_values) {
-    int k3, K;
+  __global__ void _cuda_protect_against_infinitesimal_and_negative_heights(double domain_minimum_allowed_height, int64_t number_of_elements, double* stage_centroid_values, double* bed_centroid_values, double* xmom_centroid_values, double* areas, double* stage_vertex_values) {
+    int64_t k3, K;
     double hc, bmin;
     double mass_error = 0.;
   // This acts like minimum_allowed height, but scales with the vertical
@@ -1693,7 +1693,7 @@ __global__ void _cuda_update_sw(long number_of_elements,
     minimum_allowed_height = domain_minimum_allowed_height;
     K = number_of_elements;
     // Protect against inifintesimal and negative heights
-    int k = blockIdx.x * blockDim.x * threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x * threadIdx.x;
     if ( k < number_of_elements) 
     {
       k3 = 3*k;
@@ -1729,17 +1729,17 @@ __global__ void _cuda_update_sw(long number_of_elements,
   }
 
   // COMPUTE FORCING TERMS
-  __global__ void cft_manning_friction_flat(double g, double eps, int N,
+  __global__ void cft_manning_friction_flat(double g, double eps, int64_t N,
         double* w, double* zv,
         double* uh, double* vh,
         double* eta, double* xmom, double* ymom) {
 
-    int k3;
+    int64_t k3;
     double S, h, z, z0, z1, z2;
     const double one_third = 1.0/3.0; 
     const double seven_thirds = 7.0/3.0;
 
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     
     if ( k < N ) {
         if (eta[k] > eps) {
@@ -1766,18 +1766,18 @@ __global__ void _cuda_update_sw(long number_of_elements,
 }
 
 
-__global__ void cft_manning_friction_sloped(double g, double eps, int N,
+__global__ void cft_manning_friction_sloped(double g, double eps, int64_t N,
         double* x, double* w, double* zv,
         double* uh, double* vh,
         double* eta, double* xmom_update, double* ymom_update) {
 
-    int k3, k6;
+    int64_t k3, k6;
     double S, h, z, z0, z1, z2, zs, zx, zy;
     double x0, y0, x1, y1, x2, y2;
     const double one_third = 1.0/3.0; 
     const double seven_thirds = 7.0/3.0;
 
-    int k = blockIdx.x * blockDim.x + threadIdx.x;
+    int64_t k = blockIdx.x * blockDim.x + threadIdx.x;
     if (k < N) {
         if (eta[k] > eps) {
             k3 = 3 * k;

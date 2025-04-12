@@ -44,6 +44,33 @@ py3.extension_module('quantity_ext',
 )
 
 
+py3.extension_module('quantity_openmp_ext',
+  sources: ['quantity_openmp_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  cpp_args : '-fopenmp',
+  link_args : '-fopenmp',
+  subdir: 'anuga/abstract_2d_finite_volumes',
+  install: true,
+)
+
+py3.extension_module('quantity_openacc_ext',
+  sources: ['quantity_openacc_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  subdir: 'anuga/abstract_2d_finite_volumes',
+  install: true,
+)
+
+py3.extension_module('quantity_cuda_ext',
+  sources: ['quantity_cuda_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  subdir: 'anuga/abstract_2d_finite_volumes',
+  install: true,
+)
+
+
 
 python_sources = [
   'ermapper_grids.py',

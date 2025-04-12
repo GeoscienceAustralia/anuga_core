@@ -4,6 +4,8 @@ python_sources = [
 '__init__.py',
 'test_data_manager.py',
 'test_DE_domain.py',
+'test_DE_openmp.py',
+'test_DE_cuda.py',
 'test_forcing.py',
 'test_loadsave.py',
 'test_local_extrapolation_and_flux_updating.py',

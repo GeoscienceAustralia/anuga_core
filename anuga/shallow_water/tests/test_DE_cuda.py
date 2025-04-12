@@ -1,22 +1,23 @@
 """  Test environmental forcing - rain, wind, etc.
 """
 
-import unittest, os
+import unittest, os, sys
 
 import anuga
 
 from anuga import Reflective_boundary
 from anuga import rectangular_cross_domain
-
 from anuga import Domain
 
 import numpy as num
 import warnings
 import time
 import math
+import pytest
 
 
-
+@pytest.mark.skipif('cupy' not in sys.modules,
+                    reason="requires the cupy module")
 class Test_DE_cuda(unittest.TestCase):
     def setUp(self):
         pass
