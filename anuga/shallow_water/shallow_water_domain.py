@@ -1258,7 +1258,7 @@ class Domain(Generic_Domain):
 
 
 
-    def set_flow_algorithm(self, flag='DE0'):
+    def set_flow_algorithm(self, algorithm='DE0'):
         """Set combination of slope limiting and time stepping
 
         Currently
@@ -1269,18 +1269,17 @@ class Domain(Generic_Domain):
            DE1_7
         """
 
-        # FIXME(Ole): flag should be called algorithm ;-)
-        flag = str(flag)
+        algorithm = str(algorithm)
 
         # Replace any dots with dashes
-        flag = flag.replace('.', '_')
+        algorithm = algorithm.replace('.', '_')
 
 
         flow_algorithms = ['DE0', 'DE1', 'DE2', \
                            'DE0_7', 'DE1_7']
 
-        if flag in flow_algorithms:
-            self.flow_algorithm = flag
+        if algorithm in flow_algorithms:
+            self.flow_algorithm = algorithm
         else:
             msg = 'Unknown flow_algorithm. \nPossible choices are:\n'+ \
             ', '.join(flow_algorithms)+'.'
