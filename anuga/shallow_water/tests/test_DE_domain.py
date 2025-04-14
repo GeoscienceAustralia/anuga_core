@@ -18,7 +18,7 @@ import time
 
 
 
-class Test_DE1_domain(unittest.TestCase):
+class Test_DE_domain(unittest.TestCase):
     def setUp(self):
         pass
 

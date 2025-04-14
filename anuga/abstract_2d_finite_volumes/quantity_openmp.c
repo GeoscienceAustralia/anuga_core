@@ -241,12 +241,12 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
 	qn[i] = centroid_values[n];
       }
 
-      qmin = min(qmin, qn[i]);
-      qmax = max(qmax, qn[i]);
+      qmin = fmin(qmin, qn[i]);
+      qmax = fmax(qmax, qn[i]);
     }
 
-    //qtmin = min(min(min(qn[0],qn[1]),qn[2]),qc);
-    //qtmax = max(max(max(qn[0],qn[1]),qn[2]),qc);
+    //qtmin = fmin(fmin(fmin(qn[0],qn[1]),qn[2]),qc);
+    //qtmax = fmax(fmax(fmax(qn[0],qn[1]),qn[2]),qc);
 
     /* 		for (i=0; i<3; i++) { */
     /* 		    n = neighbours[k3+i]; */
@@ -268,7 +268,7 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
       if (dq > 0.0) r = (qmax - qc)/dq;
       if (dq < 0.0) r = (qmin - qc)/dq;
 
-      phi[k] = min( min(r*beta, 1.0), phi[k]);
+      phi[k] = fmin( fmin(r*beta, 1.0), phi[k]);
 
     }
 
@@ -325,8 +325,8 @@ int _limit_vertices_by_all_neighbours(keyint N, double beta,
       if (n >= 0) {
 	qn = centroid_values[n]; //Neighbour's centroid value
 
-	qmin = min(qmin, qn);
-	qmax = max(qmax, qn);
+	qmin = fmin(qmin, qn);
+	qmax = fmax(qmax, qn);
       }
     }
 
@@ -341,7 +341,7 @@ int _limit_vertices_by_all_neighbours(keyint N, double beta,
       if (dq < 0.0) r = (qmin - qc)/dq;
 
 
-      phi = min( min(r*beta, 1.0), phi);
+      phi = fmin( fmin(r*beta, 1.0), phi);
     }
 
     //Update gradient, vertex and edge values using phi limiter
@@ -391,8 +391,8 @@ int _limit_edges_by_all_neighbours(keyint N, double beta,
       if (n >= 0) {
 	qn = centroid_values[n]; //Neighbour's centroid value
 
-	qmin = min(qmin, qn);
-	qmax = max(qmax, qn);
+	qmin = fmin(qmin, qn);
+	qmax = fmax(qmax, qn);
       }
     }
 
@@ -417,7 +417,7 @@ int _limit_edges_by_all_neighbours(keyint N, double beta,
 	if (dq > 0.0) r = (qmax - qc)/dq;
 	if (dq < 0.0) r = (qmin - qc)/dq;
 
-	phi = min( min(r*beta, 1.0), phi);
+	phi = fmin( fmin(r*beta, 1.0), phi);
 	//	}
 
       //
@@ -427,7 +427,7 @@ int _limit_edges_by_all_neighbours(keyint N, double beta,
       /* 	if (dq > 0.0 && (sign == -1.0 || sign == 0.0 )) r = (0.0 - qc)/dq; */
       /* 	if (dq < 0.0 && (sign ==  1.0 || sign == 0.0 )) r = (0.0 - qc)/dq; */
 
-      /* 	phi = min( min(r*beta, 1.0), phi); */
+      /* 	phi = fmin( fmin(r*beta, 1.0), phi); */
       /* 	} */
 
     }
@@ -477,15 +477,15 @@ int _limit_edges_by_neighbour(keyint N, double beta,
 		    qn = qc;
 		    if (n >= 0)  qn = centroid_values[n]; //Neighbour's centroid value
 
-		    qmin = min(qc, qn);
-		    qmax = max(qc, qn);
+		    qmin = fmin(qc, qn);
+		    qmax = fmax(qc, qn);
 
 		    r = 1.0;
 
 		    if (dq > 0.0) r = (qmax - qc)/dq;
 		    if (dq < 0.0) r = (qmin - qc)/dq;
 
-		    phi = min( min(r*beta, 1.0), phi);
+		    phi = fmin( fmin(r*beta, 1.0), phi);
 
 		}
 
@@ -534,15 +534,15 @@ int _limit_gradient_by_neighbour(keyint N, double beta,
 		    if (n >= 0) {
 			qn = centroid_values[n]; //Neighbour's centroid value
 
-			qmin = min(qc, qn);
-			qmax = max(qc, qn);
+			qmin = fmin(qc, qn);
+			qmax = fmax(qc, qn);
 
 			r = 1.0;
 
 			if (dq > 0.0) r = (qmax - qc)/dq;
 			if (dq < 0.0) r = (qmin - qc)/dq;
 
-			phi = min( min(r*beta, 1.0), phi);
+			phi = fmin( fmin(r*beta, 1.0), phi);
 		    }
 		}
 
@@ -591,7 +591,7 @@ int _bound_vertices_below_by_constant(keyint N, double bound,
 		    if (dq < 0.0) r = (qmin - qc)/dq;
 
 
-		    phi = min( min(r, 1.0), phi);
+		    phi = fmin( fmin(r, 1.0), phi);
 		}
 
 
@@ -642,7 +642,7 @@ int _bound_vertices_below_by_quantity(keyint N,
 		    if (dq < 0.0) r = (qmin - qc)/dq;
 
 
-		    phi = min( min(r, 1.0), phi);
+		    phi = fmin( fmin(r, 1.0), phi);
 		}
 
 
@@ -805,7 +805,7 @@ int _update(keyint N,
 	// int err_return = 0;
 
 	// // Semi implicit updates
-	// #pragma omp parallel for private(k, denominator) reduction(min:err_return)
+	// #pragma omp parallel for private(k, denominator) reduction(fmin:err_return)
 	// for (k=0; k<N; k++) {
 	// 	denominator = 1.0 - timestep*semi_implicit_update[k];
 	// 	if (denominator <= 0.0) {
@@ -1000,7 +1000,7 @@ int _min_and_max_centroid_values(keyint N,
                                  double * qmin,
                                  double * qmax){
   
-  // Find min and max of this and neighbour's centroid values
+  // Find fmin and fmax of this and neighbour's centroid values
 
   keyint k, i, n, k3;
   double qn;
@@ -1016,11 +1016,11 @@ int _min_and_max_centroid_values(keyint N,
       if (n >= 0) {
         qn = qc[n]; //Neighbour's centroid value
 
-        qmin[k] = min(qmin[k], qn);
-        qmax[k] = max(qmax[k], qn);
+        qmin[k] = fmin(qmin[k], qn);
+        qmax[k] = fmax(qmax[k], qn);
       }
-      //qmin[k] = max(qmin[k],0.5*((double*) qc -> data)[k]);
-      //qmax[k] = min(qmax[k],2.0*((double*) qc -> data)[k]);
+      //qmin[k] = fmax(qmin[k],0.5*((double*) qc -> data)[k]);
+      //qmax[k] = fmin(qmax[k],2.0*((double*) qc -> data)[k]);
     }
   }
 

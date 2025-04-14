@@ -315,7 +315,7 @@ class Domain(Generic_Domain):
         # 4. Cuda
         #-------------------------------
         self.gpu_interface = None
-        self.set_multiprocessor_mode(0)
+        self.set_multiprocessor_mode(2)
 
         #-------------------------------
         # datetime and timezone
@@ -1798,15 +1798,19 @@ class Domain(Generic_Domain):
         # procedure
 
         # nvtxRangePush("Compute Fluxes (Domain)")
-
+        # Choose the correct extension module
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import compute_fluxes_ext_central
+
         elif self.multiprocessor_mode == 1:
             from .sw_domain_simd_ext import compute_fluxes_ext_central
+
         elif self.multiprocessor_mode == 2:
             from .sw_domain_openmp_ext import compute_fluxes_ext_central
+
         elif self.multiprocessor_mode == 3:
             from .sw_domain_openacc_ext import compute_fluxes_ext_central
+
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
             # from .sw_domain_simd_ext import compute_fluxes_ext_central
@@ -1832,6 +1836,7 @@ class Domain(Generic_Domain):
 
         # Do extrapolation step
         # nvtxRangePush('extrapolate')
+        # Choose the correct extension module
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import extrapolate_second_order_edge_sw
             extrapolate_second_order_edge_sw(self)
@@ -1960,14 +1965,19 @@ class Domain(Generic_Domain):
         """
 
         # nvtxRangePush('protect_new')
+        # Choose the correct extension module
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import protect_new
+
         elif self.multiprocessor_mode == 1:
             from .sw_domain_simd_ext import protect_new
+
         elif self.multiprocessor_mode == 2:
             from .sw_domain_openmp_ext import  protect_new
+
         elif self.multiprocessor_mode == 3:
             from .sw_domain_openacc_ext import  protect_new
+
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
             # # from .sw_domain_simd_ext import  protect_new
@@ -2047,30 +2057,35 @@ class Domain(Generic_Domain):
 
         if self.get_using_discontinuous_elevation():
 
+            # Choose the correct extension module
             if self.multiprocessor_mode == 0:
                 Stage.update(timestep)
                 Xmom.update(timestep)
                 Ymom.update(timestep)
-                from .sw_domain_simd_ext import fix_negative_cells
+                from .sw_domain_orig_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
+
             elif self.multiprocessor_mode == 1:
                 Stage.update(timestep)
                 Xmom.update(timestep)
                 Ymom.update(timestep)
                 from .sw_domain_simd_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
+
             elif self.multiprocessor_mode == 2:
                 Stage.update(timestep)
                 Xmom.update(timestep)
                 Ymom.update(timestep)                
                 from .sw_domain_openmp_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
+
             elif self.multiprocessor_mode == 3:
                 Stage.update(timestep)
                 Xmom.update(timestep)
                 Ymom.update(timestep)
                 from .sw_domain_openacc_ext import fix_negative_cells
                 num_negative_ids = fix_negative_cells(self)
+                
             elif self.multiprocessor_mode == 4:
                 
                 # nvtxRangePush('update_conserved_quantities_kernal')
@@ -2083,16 +2098,7 @@ class Domain(Generic_Domain):
                 #from .sw_domain_simd_ext import fix_negative_cells
                 #num_negative_ids = fix_negative_cells(self)
             else:
-                tff = self.tri_full_flag
-
-                negative_ids = num.where( num.logical_and((Stage.centroid_values - Elev.centroid_values) < 0.0 , tff > 0) )[0]
-
-                num_negative_ids = len(negative_ids)
-
-                if num_negative_ids > 0:
-                    Stage.centroid_values[negative_ids] = Elev.centroid_values[negative_ids]
-                    Xmom.centroid_values[negative_ids] = 0.0
-                    Ymom.centroid_values[negative_ids] = 0.0
+                raise Exception('Not implemented')
 
             if num_negative_ids > 0:
                 # FIXME: This only warns the first time -- maybe we should warn whenever loss occurs?
@@ -2662,15 +2668,20 @@ class Domain(Generic_Domain):
             Used to control updating of fluxes / extrapolation for 'local-time-stepping'
         """
 
-        nvtxRangePush('compute_flux_update_frequenc')
+        nvtxRangePush('compute_flux_update_frequency')
+        # Choose the correct extension module
         if self.multiprocessor_mode == 0:
             from .sw_domain_orig_ext import compute_flux_update_frequency
+
         elif self.multiprocessor_mode == 1:
             from .sw_domain_simd_ext import compute_flux_update_frequency
+
         elif self.multiprocessor_mode == 2:
             from .sw_domain_openmp_ext import compute_flux_update_frequency
+
         elif self.multiprocessor_mode == 3:
             from .sw_domain_openacc_ext import compute_flux_update_frequency
+
         elif self.multiprocessor_mode == 4:
             # change over to cuda routines as developed
             from .sw_domain_simd_ext import compute_flux_update_frequency
@@ -2823,10 +2834,10 @@ class Domain(Generic_Domain):
             except:
                 print('+==============================================================================+')
                 print('|                                                                              |')
-                print('| WARNING: cupy or gpu not available, so falling back to multiprocessor_mode 1 |')
+                print('| WARNING: cupy or gpu not available, so falling back to multiprocessor_mode 0 |')
                 print('|                                                                              |')
                 print('+==============================================================================+')
-                self.set_multiprocessor_mode(1)
+                self.set_multiprocessor_mode(0)
                 return
 
             from .sw_domain_cuda import GPU_interface
@@ -2912,8 +2923,7 @@ def distribute_using_vertex_limiter(domain):
 #compute_forcing_terms
 def manning_friction_implicit(domain):
     
-
-    if domain.multiprocessor_mode == [0,1,2,3]:
+    if domain.multiprocessor_mode in [0,1,2,3]:
         manning_friction_implicit_cpu(domain)
     elif domain.multiprocessor_mode == 4:
         manning_friction_implicit_gpu(domain)
@@ -2965,6 +2975,24 @@ def manning_friction_implicit_cpu(domain):
                                 ymom_update)
 
 def manning_friction_explicit(domain):
+    
+    if domain.multiprocessor_mode in [0,1,2,3]:
+        manning_friction_explicit_cpu(domain)
+    elif domain.multiprocessor_mode == 4:
+        manning_friction_explicit_gpu(domain)
+
+
+#GPU version of manning_friction_explicit that'll call the kernal written in sw_domain_cuda
+def manning_friction_explicit_gpu(domain):
+    """Apply (Manning) friction to water momentum
+    Wrapper for c version
+    """
+    if domain.use_sloped_mannings:
+        domain.gpu_interface.compute_forcing_terms_manning_friction_sloped()
+    else:
+        domain.gpu_interface.compute_forcing_terms_manning_friction_flat()
+
+def manning_friction_explicit_cpu(domain):
     """Apply (Manning) friction to water momentum
     Wrapper for c version
     """

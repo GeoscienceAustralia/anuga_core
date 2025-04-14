@@ -2640,6 +2640,11 @@ class Test_Sww2Dem(unittest.TestCase):
         import anuga.utilities.log as log
         cwd = os.getcwd()
         LOG_FILENAME = cwd + '/log_critical_message.log'
+        # Remove old log file
+        try:
+            os.remove(LOG_FILENAME)
+        except:
+            pass
         filehandler = log.logging.FileHandler(LOG_FILENAME)
         filehandler.setLevel(log.logging.CRITICAL)
         log.logging.getLogger('').addHandler(filehandler)
@@ -2677,9 +2682,11 @@ class Test_Sww2Dem(unittest.TestCase):
               
         log_critical_msg = open(LOG_FILENAME)
         output = log_critical_msg.read()
-        #print('-----------------------')        
-        #print(output)
-        #print('-----------------------')        
+        print(' ')
+        print('-----------------------') 
+        print(f' Multiproccessor Mode {self.domain.multiprocessor_mode}')       
+        print(output)
+        print('-----------------------')        
         log_critical_msg.close()
         output = output.split('\n')
 

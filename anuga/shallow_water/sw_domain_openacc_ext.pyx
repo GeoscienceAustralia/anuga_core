@@ -90,13 +90,13 @@ cdef extern from "sw_domain_openacc.c" nogil:
 
 	double _openacc_compute_fluxes_central(domain* D, double timestep)
 	double _openacc_protect(domain* D)
-	int _openacc_extrapolate_second_order_edge_sw(domain* D)
-	int _openacc_fix_negative_cells(domain* D)
+	int64_t _openacc_extrapolate_second_order_edge_sw(domain* D)
+	int64_t _openacc_fix_negative_cells(domain* D)
 
 
 
-cdef int pointer_flag = 0
-cdef int parameter_flag = 0
+cdef int64_t pointer_flag = 0
+cdef int64_t parameter_flag = 0
 
 cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
@@ -358,7 +358,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 def extrapolate_second_order_edge_sw(object domain_object):
 
 	cdef domain D
-	cdef int e
+	cdef int64_t e
 
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
@@ -391,7 +391,7 @@ def compute_flux_update_frequency(object domain_object, double timestep):
 def fix_negative_cells(object domain_object):
 
 	cdef domain D
-	cdef int num_negative_cells
+	cdef int64_t num_negative_cells
 
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
