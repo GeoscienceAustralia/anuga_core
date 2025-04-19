@@ -1,6 +1,13 @@
 
 inc_dir = include_directories('../utilities', incdir_numpy)
 
+openmp = dependency('openmp', required: false)
+if openmp.found()
+  openmp_deps = dependencies + [openmp]
+else
+  openmp_deps = dependencies
+endif
+
 # Compile the Cython-generated C code and additional C code
 py3.extension_module('mesh_factory_ext',
   sources: ['mesh_factory_ext.pyx'],
@@ -47,9 +54,7 @@ py3.extension_module('quantity_ext',
 py3.extension_module('quantity_openmp_ext',
   sources: ['quantity_openmp_ext.pyx'],
   include_directories: inc_dir,
-  dependencies: dependencies,
-  cpp_args : '-fopenmp',
-  link_args : '-fopenmp',
+  dependencies: openmp_deps,
   subdir: 'anuga/abstract_2d_finite_volumes',
   install: true,
 )

@@ -507,7 +507,7 @@ double _openmp_compute_fluxes_central(struct domain *D,
   double boundary_flux_sum_substep = 0.0; 
 
 // For all triangles
-#pragma omp parallel for simd default(none) shared(D, substep_count, K) \
+#pragma omp parallel for simd default(none) schedule(static) shared(D, substep_count, K) \
                                      firstprivate(ncol_riverwall_hydraulic_properties, epsilon, g, low_froude, limiting_threshold) \
                                      private(i, ki, ki2, n, m, nm, ii,                                                  \
                                      max_speed_local, length, inv_area, zl, zr,                                         \
@@ -808,7 +808,7 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
   // Set explicit_update to zero for all conserved_quantities.
   // This assumes compute_fluxes called before forcing terms
 
-  // #pragma omp parallel for private(k)
+  #pragma omp parallel for private(k)
   for (k = 0; k < D->number_of_elements; k++)
   {
     D->stage_explicit_update[k] = 0.0;
@@ -1369,7 +1369,7 @@ int64_t _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   // Need to calculate height xmom and ymom centroid values for all triangles 
   // before extrapolation and limiting
 
-#pragma omp parallel for simd shared(D) default(none) private(dk, dk_inv) firstprivate(number_of_elements, minimum_allowed_height, extrapolate_velocity_second_order)
+#pragma omp parallel for simd shared(D) default(none) schedule(static) private(dk, dk_inv) firstprivate(number_of_elements, minimum_allowed_height, extrapolate_velocity_second_order)
     for (k = 0; k < number_of_elements; k++)
     {
     dk = fmax(D->stage_centroid_values[k] - D->bed_centroid_values[k], 0.0);
@@ -1412,7 +1412,7 @@ int64_t _openmp_extrapolate_second_order_edge_sw(struct domain *D)
                           x, y, x0, y0, x1, y1, x2, y2, xv0, yv0, xv1, yv1, xv2, yv2, \
                           dqv, qmin, qmax, hmin, hmax, \
                           hc, h0, h1, h2, beta_tmp, hfactor, \
-                          dk, dk_inv, a, b) default(none) shared(D) \
+                          dk, dk_inv, a, b) default(none) shared(D) schedule(static) \
                           firstprivate(number_of_elements, minimum_allowed_height, extrapolate_velocity_second_order, c_tmp, d_tmp)
   for (k = 0; k < number_of_elements; k++)
   {
@@ -1895,7 +1895,7 @@ int64_t _openmp_extrapolate_second_order_edge_sw(struct domain *D)
   }   // for k=0 to number_of_elements-1
 
 // Fix xmom and ymom centroid values
-#pragma omp parallel for simd private(k3, i, dk) firstprivate(extrapolate_velocity_second_order)
+#pragma omp parallel for simd schedule(static) private(k3, i, dk) firstprivate(extrapolate_velocity_second_order)
   for (k = 0; k < D->number_of_elements; k++)
   {
     if (extrapolate_velocity_second_order == 1)
@@ -1958,7 +1958,7 @@ int64_t _openmp_fix_negative_cells(struct domain *D)
   int64_t tff;
   int64_t num_negative_cells = 0;
 
-  #pragma omp parallel for private(k, tff) reduction(+:num_negative_cells)
+  #pragma omp parallel for schedule(static) private(k, tff) reduction(+:num_negative_cells)
   for (k = 0; k < D->number_of_elements; k++)
   {
     tff = D->tri_full_flag[k];

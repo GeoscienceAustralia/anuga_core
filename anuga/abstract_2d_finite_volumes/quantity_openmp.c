@@ -16,17 +16,17 @@
 //Shared code snippets
 #include "util_ext.h"
 
-typedef long keyint;
+typedef int64_t keyint;
 
 //-------------------------------------------
 // Low level routines (called from wrappers)
 //------------------------------------------
 
-int _compute_gradients(keyint N,
+int64_t _compute_gradients(keyint N,
 			double* centroids,
 			double* centroid_values,
-			long* number_of_boundaries,
-			long* surrogate_neighbours,
+			int64_t* number_of_boundaries,
+			int64_t* surrogate_neighbours,
 			double* a,
 			double* b){
 
@@ -94,7 +94,7 @@ int _compute_gradients(keyint N,
 }
 
 
-int _compute_local_gradients(keyint N,
+int64_t _compute_local_gradients(keyint N,
 			       double* vertex_coordinates,
 			       double* vertex_values,
 			       double* a,
@@ -129,7 +129,7 @@ int _compute_local_gradients(keyint N,
     return 0;
 }
 
-int _extrapolate_from_gradient(keyint N,
+int64_t _extrapolate_from_gradient(keyint N,
 			       double* centroids,
 			       double* centroid_values,
 			       double* vertex_coordinates,
@@ -173,9 +173,9 @@ int _extrapolate_from_gradient(keyint N,
 }
 
 
-int _extrapolate_and_limit_from_gradient(keyint N,double beta,
+int64_t _extrapolate_and_limit_from_gradient(keyint N,double beta,
 					 double* centroids,
-					 long*   neighbours,
+					 int64_t*   neighbours,
 					 double* centroid_values,
 					 double* vertex_coordinates,
 					 double* vertex_values,
@@ -297,11 +297,11 @@ int _extrapolate_and_limit_from_gradient(keyint N,double beta,
 
 
 
-int _limit_vertices_by_all_neighbours(keyint N, double beta,
+int64_t _limit_vertices_by_all_neighbours(keyint N, double beta,
 				      double* centroid_values,
 				      double* vertex_values,
 				      double* edge_values,
-				      long*   neighbours,
+				      int64_t*   neighbours,
 				      double* x_gradient,
 				      double* y_gradient) {
 
@@ -364,11 +364,11 @@ int _limit_vertices_by_all_neighbours(keyint N, double beta,
 
 
 
-int _limit_edges_by_all_neighbours(keyint N, double beta,
+int64_t _limit_edges_by_all_neighbours(keyint N, double beta,
 				   double* centroid_values,
 				   double* vertex_values,
 				   double* edge_values,
-				   long*   neighbours,
+				   int64_t*   neighbours,
 				   double* x_gradient,
 				   double* y_gradient) {
 
@@ -450,11 +450,11 @@ int _limit_edges_by_all_neighbours(keyint N, double beta,
 }
 
 
-int _limit_edges_by_neighbour(keyint N, double beta,
+int64_t _limit_edges_by_neighbour(keyint N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
-		     long*   neighbours) {
+		     int64_t*   neighbours) {
 
 	keyint i, k, k2, k3, k6;
 	keyint n;
@@ -505,13 +505,13 @@ int _limit_edges_by_neighbour(keyint N, double beta,
 }
 
 
-int _limit_gradient_by_neighbour(keyint N, double beta,
+int64_t _limit_gradient_by_neighbour(keyint N, double beta,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
 		     double* x_gradient,
 		     double* y_gradient,
-		     long*   neighbours) {
+		     int64_t*   neighbours) {
 
 	keyint i, k, k2, k3, k6;
 	keyint n;
@@ -561,7 +561,7 @@ int _limit_gradient_by_neighbour(keyint N, double beta,
 	return 0;
 }
 
-int _bound_vertices_below_by_constant(keyint N, double bound,
+int64_t _bound_vertices_below_by_constant(keyint N, double bound,
 		     double* centroid_values,
 		     double* vertex_values,
 		     double* edge_values,
@@ -612,7 +612,7 @@ int _bound_vertices_below_by_constant(keyint N, double bound,
 	return 0;
 }
 
-int _bound_vertices_below_by_quantity(keyint N,
+int64_t _bound_vertices_below_by_quantity(keyint N,
 				      double* bound_vertex_values,
 				      double* centroid_values,
 				      double* vertex_values,
@@ -663,7 +663,7 @@ int _bound_vertices_below_by_quantity(keyint N,
 	return 0;
 }
 
-int _interpolate(keyint N,
+int64_t _interpolate(keyint N,
 		 double* vertex_values,
 		 double* edge_values,
                  double* centroid_values) {
@@ -688,7 +688,7 @@ int _interpolate(keyint N,
 	return 0;
 }
 
-int _interpolate_from_vertices_to_edges(keyint N,
+int64_t _interpolate_from_vertices_to_edges(keyint N,
 					double* vertex_values,
 					double* edge_values) {
 
@@ -711,7 +711,7 @@ int _interpolate_from_vertices_to_edges(keyint N,
 }
 
 
-int _interpolate_from_edges_to_vertices(keyint N,
+int64_t _interpolate_from_edges_to_vertices(keyint N,
 					double* vertex_values,
 					double* edge_values) {
 
@@ -733,7 +733,7 @@ int _interpolate_from_edges_to_vertices(keyint N,
 	return 0;
 }
 
-int _backup_centroid_values(keyint N,
+int64_t _backup_centroid_values(keyint N,
 			    double* centroid_values,
 			    double* centroid_backup_values) {
     // Backup centroid values
@@ -750,7 +750,7 @@ int _backup_centroid_values(keyint N,
 }
 
 
-int _saxpy_centroid_values(keyint N,
+int64_t _saxpy_centroid_values(keyint N,
 			   double a,
 			   double b,
 			   double* centroid_values,
@@ -770,7 +770,7 @@ int _saxpy_centroid_values(keyint N,
 }
 
 
-int _update(keyint N,
+int64_t _update(keyint N,
 	    double timestep,
 	    double* centroid_values,
 	    double* explicit_update,
@@ -802,7 +802,7 @@ int _update(keyint N,
 	// }
 
 
-	// int err_return = 0;
+	// int64_t err_return = 0;
 
 	// // Semi implicit updates
 	// #pragma omp parallel for private(k, denominator) reduction(fmin:err_return)
@@ -830,12 +830,13 @@ int _update(keyint N,
 
 	// return 0;
 
-	int err_return = 0;
+	int64_t err_return = 0;
 
 	// Divide semi_implicit update by conserved quantity
-	#pragma omp parallel for private(k, x)
+	#pragma omp parallel for private(k, x) reduction(min:err_return)
 	for (k=0; k<N; k++) {
 
+		// use previous centroid value
 		x = centroid_values[k];
 		if (x == 0.0) {
 			semi_implicit_update[k] = 0.0;
@@ -843,6 +844,7 @@ int _update(keyint N,
 			semi_implicit_update[k] /= x;
 		}
 
+		// Explicit updates
 		centroid_values[k] += timestep*explicit_update[k];
 
 		// Semi implicit updates
@@ -867,9 +869,9 @@ int _update(keyint N,
 }
 
 
-int _average_vertex_values(keyint N,
-			   long* vertex_value_indices,
-			   long* number_of_triangles_per_node,
+int64_t _average_vertex_values(keyint N,
+			   int64_t* vertex_value_indices,
+			   int64_t* number_of_triangles_per_node,
 			   double* vertex_values,
 			   double* A) {
   // Average vertex values to obtain one value per node
@@ -916,9 +918,9 @@ int _average_vertex_values(keyint N,
   return 0;
 }
 
-int _average_centroid_values(keyint N,
-			   long* vertex_value_indices,
-			   long* number_of_triangles_per_node,
+int64_t _average_centroid_values(keyint N,
+			   int64_t* vertex_value_indices,
+			   int64_t* number_of_triangles_per_node,
 			   double* centroid_values,
 			   double* A) {
   // Average centroid values to obtain one value per node
@@ -966,11 +968,11 @@ int _average_centroid_values(keyint N,
 // from a list of vertices and values at those vertices. Called in
 // quantity.py by _set_vertex_values.
 // Naming is a little confusing - but sticking with convention.
-int _set_vertex_values_c(keyint num_verts,
-                        long * vertices,
-                        long * node_index,
-                        long * number_of_triangles_per_node,
-                        long * vertex_value_indices,
+int64_t _set_vertex_values_c(keyint num_verts,
+                        int64_t * vertices,
+                        int64_t * node_index,
+                        int64_t * number_of_triangles_per_node,
+                        int64_t * vertex_value_indices,
                         double * vertex_values,
                         double * A
                         ){
@@ -993,10 +995,10 @@ int _set_vertex_values_c(keyint num_verts,
 
 }
 
-int _min_and_max_centroid_values(keyint N,
+int64_t _min_and_max_centroid_values(keyint N,
                                  double * qc,
                                  double * qv,
-                                 long * neighbours,
+                                 int64_t * neighbours,
                                  double * qmin,
                                  double * qmax){
   

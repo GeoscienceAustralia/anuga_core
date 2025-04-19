@@ -10,6 +10,8 @@ cimport numpy as np
 
 cdef extern from "sw_domain_openmp.c" nogil:
 	struct domain:
+		# these shouldn't change within a single timestep
+		# they are set once before the evolve loop
 		int64_t number_of_elements
 		int64_t boundary_length
 		int64_t number_of_riverwall_edges
@@ -31,6 +33,9 @@ cdef extern from "sw_domain_openmp.c" nogil:
 		double beta_vh_dry
 		int64_t max_flux_update_frequency
 		int64_t ncol_riverwall_hydraulic_properties
+
+		# these pointers are set once the domain is created
+		# and are used in the evolve loop
 		int64_t* neighbours
 		int64_t* neighbour_edges
 		int64_t* surrogate_neighbours
@@ -100,6 +105,8 @@ cdef int64_t parameter_flag = 0
 
 cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
+	# these shouldn't change within a single timestep
+	# they are set once before the evolve loop
 	D.number_of_elements = domain_object.number_of_elements
 	D.boundary_length = domain_object.boundary_length 
 	D.number_of_riverwall_edges = domain_object.number_of_riverwall_edges
@@ -124,25 +131,27 @@ cdef inline get_python_domain_parameters(domain *D, object domain_object):
 
 cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
+	# these arraypointers are set once the domain is created
+	# and are used in the evolve loop
 	cdef int64_t[:,::1]   neighbours
 	cdef int64_t[:,::1]   neighbour_edges
 	cdef double[:,::1] normals
 	cdef double[:,::1] edgelengths
 	cdef double[::1]   radii
 	cdef double[::1]   areas
-	cdef int64_t[::1]     edge_flux_type
-	cdef int64_t[::1]     tri_full_flag
-	cdef int64_t[:,::1]   already_computed_flux
+	cdef int64_t[::1]  edge_flux_type
+	cdef int64_t[::1]  tri_full_flag
+	cdef int64_t[:,::1] already_computed_flux
 	cdef double[:,::1] vertex_coordinates
 	cdef double[:,::1] edge_coordinates
 	cdef double[:,::1] centroid_coordinates
-	cdef int64_t[::1]     number_of_boundaries
-	cdef int64_t[:,::1]   surrogate_neighbours
+	cdef int64_t[::1]  number_of_boundaries
+	cdef int64_t[:,::1] surrogate_neighbours
 	cdef double[::1]   max_speed
-	cdef int64_t[::1]     flux_update_frequency
-	cdef int64_t[::1]     update_next_flux
-	cdef int64_t[::1]     update_extrapolation
-	cdef int64_t[::1]     allow_timestep_increase
+	cdef int64_t[::1]  flux_update_frequency
+	cdef int64_t[::1]  update_next_flux
+	cdef int64_t[::1]  update_extrapolation
+	cdef int64_t[::1]  allow_timestep_increase
 	cdef double[::1]   edge_timestep
 	cdef double[::1]   edge_flux_work
 	cdef double[::1]   neigh_work
@@ -151,9 +160,9 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 	cdef double[::1]   y_centroid_work
 	cdef double[::1]   boundary_flux_sum
 	cdef double[::1]   riverwall_elevation
-	cdef int64_t[::1]     riverwall_rowIndex
+	cdef int64_t[::1]  riverwall_rowIndex
 	cdef double[:,::1] riverwall_hydraulic_properties
-	cdef int64_t[::1]     edge_river_wall_counter
+	cdef int64_t[::1]  edge_river_wall_counter
 	cdef double[:,::1] edge_values
 	cdef double[::1]   centroid_values
 	cdef double[:,::1] vertex_values
