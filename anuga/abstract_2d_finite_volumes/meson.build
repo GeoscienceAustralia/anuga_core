@@ -1,12 +1,22 @@
 
 inc_dir = include_directories('../utilities', incdir_numpy)
 
+
 openmp = dependency('openmp', required: false)
 if openmp.found()
-  openmp_deps = dependencies + [openmp]
+  if host_machine.system() == 'windows'
+    # On Windows, the mingw compiler does not support OpenMP ATOMIC operations
+    openmp_deps = dependencies
+  else
+    openmp_deps = dependencies + [openmp]
+  endif
+
 else
   openmp_deps = dependencies
 endif
+
+# FIXME SR: Need to setup dependencies for openacc code
+openacc_deps = dependencies
 
 # Compile the Cython-generated C code and additional C code
 py3.extension_module('mesh_factory_ext',
@@ -62,7 +72,7 @@ py3.extension_module('quantity_openmp_ext',
 py3.extension_module('quantity_openacc_ext',
   sources: ['quantity_openacc_ext.pyx'],
   include_directories: inc_dir,
-  dependencies: dependencies,
+  dependencies: openacc_deps,
   subdir: 'anuga/abstract_2d_finite_volumes',
   install: true,
 )

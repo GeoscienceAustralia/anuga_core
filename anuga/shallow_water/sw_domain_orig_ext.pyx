@@ -402,16 +402,6 @@ def flux_function_central(np.ndarray[double, ndim=1, mode="c"] normal not None,\
         return max_speed, pressure_flux
 
 
-# def setup_domain_pointers(object domain_object):
-
-#         cdef domain D
-
-#         get_python_domain_parameters(&D, domain_object)
-#         get_python_domain_pointers(&D, domain_object)
-
-#         domain_object.D_pointer = *D
-
-
 
 def compute_fluxes_ext_central(object domain_object, double timestep):
 

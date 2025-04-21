@@ -3,10 +3,18 @@ inc_dir = include_directories('../utilities', incdir_numpy)
 
 openmp = dependency('openmp', required: false)
 if openmp.found()
-  openmp_deps = dependencies + [openmp]
+  if host_machine.system() == 'windows'
+    # On Windows, the mingw compiler does not support OpenMP ATOMIC operations
+    openmp_deps = dependencies
+  else
+    openmp_deps = dependencies + [openmp]
+  endif
+
 else
   openmp_deps = dependencies
 endif
+
+# FIXME SR: Need to setup depenencies for openacc code
 
 
 # py3.extension_module('boundaries',
