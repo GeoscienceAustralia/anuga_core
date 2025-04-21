@@ -501,7 +501,7 @@ def manning_friction_flat(double g,\
                         np.ndarray[double, ndim=1, mode="c"] w not None,\
                         np.ndarray[double, ndim=1, mode="c"] uh not None,\
                         np.ndarray[double, ndim=1, mode="c"] vh not None,\
-                        np.ndarray[double, ndim=2, mode="c"] z not None,\
+                        np.ndarray[double, ndim=1, mode="c"] z not None,\
                         np.ndarray[double, ndim=1, mode="c"] eta not None,\
                         np.ndarray[double, ndim=1, mode="c"] xmom not None,\
                         np.ndarray[double, ndim=1, mode="c"] ymom not None):
@@ -509,7 +509,7 @@ def manning_friction_flat(double g,\
         cdef int64_t N
 
         N = w.shape[0]
-        _manning_friction_flat(g, eps, N, &w[0], &z[0,0], &uh[0], &vh[0], &eta[0], &xmom[0], &ymom[0])
+        _manning_friction_flat(g, eps, N, &w[0], &z[0], &uh[0], &vh[0], &eta[0], &xmom[0], &ymom[0])
 
 def manning_friction_sloped(double g, double eps,\
                         np.ndarray[double, ndim=2, mode="c"] x not None,\

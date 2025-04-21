@@ -1,6 +1,5 @@
 #cython: wraparound=False, boundscheck=True, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 
-#wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from libc.stdint cimport int64_t
 

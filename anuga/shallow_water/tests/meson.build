@@ -7,6 +7,7 @@ python_sources = [
 'test_DE_openmp.py',
 'test_DE_cuda.py',
 'test_forcing.py',
+'test_friction.py',
 'test_loadsave.py',
 'test_local_extrapolation_and_flux_updating.py',
 'test_most2nc.py',

@@ -2800,7 +2800,7 @@ int64_t _gravity_wb(struct domain *D) {
 void _manning_friction_flat(double g, double eps, int64_t N,
         double* w, double* zv,
         double* uh, double* vh,
-        double* eta, double* xmom, double* ymom) {
+        double* eta, double* xmom_update, double* ymom_update) {
 
     int64_t k, k3;
     double S, h, z, z0, z1, z2;
@@ -2811,10 +2811,11 @@ void _manning_friction_flat(double g, double eps, int64_t N,
         if (eta[k] > eps) {
             k3 = 3 * k;
             // Get bathymetry
-            z0 = zv[k3 + 0];
-            z1 = zv[k3 + 1];
-            z2 = zv[k3 + 2];
-            z = (z0 + z1 + z2) * one_third;
+            // z0 = zv[k3 + 0];
+            // z1 = zv[k3 + 1];
+            // z2 = zv[k3 + 2];
+            // z = (z0 + z1 + z2) * one_third;
+            z = zv[k];
             h = w[k] - z;
             if (h >= eps) {
                 S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
@@ -2824,8 +2825,8 @@ void _manning_friction_flat(double g, double eps, int64_t N,
 
 
                 //Update momentum
-                xmom[k] += S * uh[k];
-                ymom[k] += S * vh[k];
+                xmom_update[k] += S * uh[k];
+                ymom_update[k] += S * vh[k];
             }
         }
     }

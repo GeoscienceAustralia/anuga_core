@@ -1,6 +1,5 @@
 #cython: wraparound=False, boundscheck=True, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 
-#wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
 from libc.stdint cimport int64_t
 
@@ -97,6 +96,9 @@ cdef extern from "sw_domain_openmp.c" nogil:
 	double _openmp_protect(domain* D)
 	int64_t _openmp_extrapolate_second_order_edge_sw(domain* D)
 	int64_t _openmp_fix_negative_cells(domain* D)
+	void _openmp_manning_friction_flat(double g, double eps, int64_t N, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom, double* ymom)
+	void _openmp_manning_friction_sloped(double g, double eps, int64_t N, double* x, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom_update, double* ymom_update)
+
 
 
 
@@ -356,6 +358,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 
 	cdef domain D
 
+
 	get_python_domain_parameters(&D, domain_object)
 	get_python_domain_pointers(&D, domain_object)
 
@@ -396,6 +399,37 @@ def protect_new(object domain_object):
 def compute_flux_update_frequency(object domain_object, double timestep):
 
 	pass
+
+
+def manning_friction_flat(double g, double eps,
+            np.ndarray[double, ndim=1, mode="c"] w not None,
+			np.ndarray[double, ndim=1, mode="c"] uh not None,
+			np.ndarray[double, ndim=1, mode="c"] vh not None,
+			np.ndarray[double, ndim=1, mode="c"] z not None,
+			np.ndarray[double, ndim=1, mode="c"] eta not None,
+			np.ndarray[double, ndim=1, mode="c"] xmom not None,
+			np.ndarray[double, ndim=1, mode="c"] ymom not None):
+	
+	cdef int64_t N
+	
+	N = w.shape[0]
+	_openmp_manning_friction_flat(g, eps, N, &w[0], &z[0], &uh[0], &vh[0], &eta[0], &xmom[0], &ymom[0])
+
+def manning_friction_sloped(double g, double eps,
+        np.ndarray[double, ndim=2, mode="c"] x not None,
+		np.ndarray[double, ndim=1, mode="c"] w not None,
+		np.ndarray[double, ndim=1, mode="c"] uh not None,
+		np.ndarray[double, ndim=1, mode="c"] vh not None,
+		np.ndarray[double, ndim=2, mode="c"] z not None,
+		np.ndarray[double, ndim=1, mode="c"] eta not None,
+		np.ndarray[double, ndim=1, mode="c"] xmom not None,
+		np.ndarray[double, ndim=1, mode="c"] ymom not None):
+		
+	cdef int64_t N
+	
+	N = w.shape[0]
+	_openmp_manning_friction_sloped(g, eps, N, &x[0,0], &w[0], &z[0,0], &uh[0], &vh[0], &eta[0], &xmom[0], &ymom[0])
+
 
 def fix_negative_cells(object domain_object):
 
