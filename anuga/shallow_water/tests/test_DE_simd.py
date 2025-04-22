@@ -17,19 +17,19 @@ import math
 
 
 
-class Test_DE_openmp(unittest.TestCase):
+class Test_DE_simd(unittest.TestCase):
     def setUp(self):
         pass
 
     def tearDown(self):
-        for file in ['domain_base.sww', 'domain_openmp.sww', 'domain_openmp_depth_yeah.asc', 'domain_openmp_depth_yeah.prj']:
+        for file in ['domain_base.sww', 'domain_openmp.sww', 'domain_simd_depth_yeah.asc', 'domain_openmp_depth_yeah.prj']:
             try:
                 os.remove(file)
             except:
                 pass 
 
 
-    def test_runup_openmp(self):
+    def test_runup_simd(self):
         """ Run a version of the validation test runup_sinusoid
         to ensure limiting solution has small velocity
         """
@@ -39,7 +39,7 @@ class Test_DE_openmp(unittest.TestCase):
 
             domain.set_flow_algorithm('DE0')
             domain.set_low_froude(0)
-            domain.set_multiprocessor_mode(1)
+            domain.set_multiprocessor_mode(0)
         
             domain.set_name(name)  
             domain.set_datadir('.')
@@ -80,10 +80,10 @@ class Test_DE_openmp(unittest.TestCase):
 
 
         domain1 = create_domain('domain_base')
-        domain1.set_multiprocessor_mode(1)
+        domain1.set_multiprocessor_mode(0)
 
         domain2 = create_domain('domain_openmp')
-        domain2.set_multiprocessor_mode(1) # will change to 2 once burn in
+        domain2.set_multiprocessor_mode(0) # will change to 2 once burn in
 
         #------------------------------
         #Evolve the system through time
@@ -99,7 +99,7 @@ class Test_DE_openmp(unittest.TestCase):
         #----------------------------------------
         # Now just run the openmp code on domain2
         #----------------------------------------
-        domain2.set_multiprocessor_mode(2)
+        domain2.set_multiprocessor_mode(1)
         timestep = 0.1
 
         domain1.distribute_to_vertices_and_edges()
