@@ -99,7 +99,7 @@ struct domain {
 
     int64_t* allow_timestep_increase;
 
-    long* edge_river_wall_counter;
+    int64_t* edge_river_wall_counter;
     double* riverwall_elevation;
     int64_t* riverwall_rowIndex;
     double* riverwall_hydraulic_properties;
