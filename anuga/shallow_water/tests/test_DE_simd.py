@@ -176,7 +176,7 @@ class Test_DE_simd(unittest.TestCase):
 
 
 
-    def test_riverwall_openmp(self):
+    def test_riverwall_simd(self):
 
         def create_domain(name='domain'):
 
@@ -282,8 +282,8 @@ class Test_DE_simd(unittest.TestCase):
 
         max_speed_2 = domain2.max_speed
 
-        print('domain1 max_speed ', num.maximum(max_speed_1), ' min ', num.minimum(max_speed_1))
-        print('domain2 max_speed ', num.maximum(max_speed_2), ' min ', num.minimum(max_speed_2))
+        print(f'domain1 max_speed {num.max(max_speed_1)} min_speed  {num.min(max_speed_1)}')
+        print(f'domain2 max_speed {num.max(max_speed_2)} min_speed  {num.min(max_speed_2)}')
 
 
         print('timestep error              ', abs(timestep1-timestep2))
