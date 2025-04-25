@@ -798,6 +798,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
     memset((char*) D->stage_explicit_update, 0, D->number_of_elements * sizeof (double));
     memset((char*) D->xmom_explicit_update, 0, D->number_of_elements * sizeof (double));
     memset((char*) D->ymom_explicit_update, 0, D->number_of_elements * sizeof (double));
+    memset((char*) D->max_speed, 0, D->number_of_elements * sizeof (double));
 
 
     // Counter for riverwall edges
@@ -1017,12 +1018,16 @@ double _compute_fluxes_central(struct domain *D, double timestep){
                 D->edge_timestep[ki] = D->radii[k] * tmp ;
                 if (n >= 0) {
                     D->edge_timestep[nm] = D->radii[n] * tmp;
+                    if ((D->tri_full_flag[k] == 1)) 
+                        D->max_speed[n] = fmax(D->max_speed[n], max_speed_local);
                 }
 
                 // Update the timestep
                 if ((D->tri_full_flag[k] == 1)) {
 
                     speed_max_last = fmax(speed_max_last, max_speed_local);
+
+                    D->max_speed[k] = fmax(D->max_speed[k], max_speed_local);
 
                     if (max_speed_local > D->epsilon) {
                         // Apply CFL condition for triangles joining this edge (triangle k and triangle n)
@@ -1040,7 +1045,7 @@ double _compute_fluxes_central(struct domain *D, double timestep){
 
         } // End edge i (and neighbour n)
         // Keep track of maximal speeds
-        if(substep_count==0) D->max_speed[k] = speed_max_last; //max_speed;
+        //if(substep_count==0) D->max_speed[k] = speed_max_last; //max_speed;
 
 
     } // End triangle k
