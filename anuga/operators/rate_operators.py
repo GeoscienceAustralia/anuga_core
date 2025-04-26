@@ -53,8 +53,9 @@ Parameters specifying locaton of operator
 
 Parameters specifying rate
 
-:param rate: scalar, function of (t), (x,y), or (x,y,t), a Quantity, 
-                a numpy array of size (number_of_triangles), or an xarray with rate at points and time
+:param rate: scalar, function of (t), (x,y), or (x,y,t), or a Quantity, 
+                a numpy array of size (number_of_triangles), 
+                or an xarray with rate at points and time
 :param factor: scalar, function of t, or 2 by n numpy array time sequence, 
                 used to specify conversion from rate argument to m/s
 :param default_rate: use this rate if outside time interval of rate function or xarray

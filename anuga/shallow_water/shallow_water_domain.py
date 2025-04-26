@@ -66,7 +66,7 @@ Reference:
     See also: https://anuga.anu.edu.au and https://en.wikipedia.org/wiki/ANUGA_Hydro
 
 
-Constraints: See GPL license in the user guide
+Constraints: See license in the user guide
 """
 
 
@@ -300,6 +300,7 @@ class Domain(Generic_Domain):
         #-------------------------------
         self.fractional_step_operators = []
         self.kv_operator = None
+        self.dplotter = None
 
         #-------------------------------
         # Set flow defaults
@@ -375,6 +376,7 @@ class Domain(Generic_Domain):
         # Presently only works with DE algorithms, will fail otherwise
         import anuga.structures.riverwall
         self.riverwallData=anuga.structures.riverwall.RiverWall(self)
+        self.create_riverwalls = self.riverwallData.create_riverwalls
 
         ## Keep track of the fluxes through the boundaries
         ## Only works for DE algorithms at present
@@ -428,6 +430,49 @@ class Domain(Generic_Domain):
         # parameters for structures
         #-----------------------------------
         self.use_new_velocity_head = False
+
+
+
+    def set_plotter(self, *args, **kwargs):
+        """Set the plotter for this domain
+        """
+        
+        if self.dplotter is None:
+            import anuga
+            self.dplotter = anuga.Domain_plotter(self, *args, **kwargs) 
+
+        self.triang = self.dplotter.triang
+        self.stage = self.dplotter.stage
+        self.xmom = self.dplotter.xmom
+        self.ymom = self.dplotter.ymom
+        self.elev = self.dplotter.elev
+        #self.friction = self.dplotter.friction
+        self.xvel = self.dplotter.xvel
+        self.yvel = self.dplotter.yvel
+        self.x = self.dplotter.x
+        self.y = self.dplotter.y
+        self.xc = self.dplotter.xc
+        self.yc = self.dplotter.yc
+
+        self.save_depth_frame = self.dplotter.save_depth_frame
+
+        self.make_depth_animation = self.dplotter.make_depth_animation
+
+        
+    def triplot(self, *args, **kwargs):
+
+        self.set_plotter()
+
+        import matplotlib.pyplot as plt
+        plt.triplot(self.triang, *args, **kwargs)
+
+
+    def tripcolor(self, *args, **kwargs):
+
+        self.set_plotter()
+
+        import matplotlib.pyplot as plt
+        plt.tripcolor(self.triang,  *args, **kwargs)
 
 
     def _set_config_defaults(self):
