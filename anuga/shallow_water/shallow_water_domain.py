@@ -455,8 +455,16 @@ class Domain(Generic_Domain):
         self.yc = self.dplotter.yc
 
         self.save_depth_frame = self.dplotter.save_depth_frame
-
+        self.plot_depth_frame = self.dplotter.plot_depth_frame
         self.make_depth_animation = self.dplotter.make_depth_animation
+
+        self.save_stage_frame = self.dplotter.save_stage_frame
+        self.plot_stage_frame = self.dplotter.plot_stage_frame
+        self.make_stage_animation = self.dplotter.make_stage_animation        
+
+        self.save_speed_frame = self.dplotter.save_speed_frame
+        self.plot_speed_frame = self.dplotter.plot_speed_frame
+        self.make_speed_animation = self.dplotter.make_speed_animation        
 
         
     def triplot(self, *args, **kwargs):
