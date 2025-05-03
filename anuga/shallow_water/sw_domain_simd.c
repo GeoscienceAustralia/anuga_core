@@ -261,7 +261,7 @@ int64_t __flux_function_central(double *q_left, double *q_right,
   return 0;
 }
 
-int64_t __openmp__flux_function_central(double q_left0, double q_left1, double q_left2,
+int64_t __simd__flux_function_central(double q_left0, double q_left1, double q_left2,
                                    double q_right0, double q_right1, double q_right2,
                                    double h_left, double h_right,
                                    double hle, double hre,
@@ -419,7 +419,7 @@ double __adjust_edgeflux_with_weir(double *edgeflux,
   return 0;
 }
 
-double __openmp__adjust_edgeflux_with_weir(double *edgeflux0, double *edgeflux1, double *edgeflux2,
+double __simd__adjust_edgeflux_with_weir(double *edgeflux0, double *edgeflux1, double *edgeflux2,
                                           double h_left, double h_right,
                                           double g, double weir_height,
                                           double Qfactor,
@@ -447,7 +447,7 @@ double __openmp__adjust_edgeflux_with_weir(double *edgeflux0, double *edgeflux1,
 }
 
 // Computational function for flux computation
-double _openmp_compute_fluxes_central(struct domain *D,
+double _simd_compute_fluxes_central(struct domain *D,
                                       double timestep)
 {
   // Local variables
@@ -1087,7 +1087,7 @@ double _compute_fluxes_central_parallel_data_flow(struct domain *D, double times
 
 
 // Protect against the water elevation falling below the triangle bed
-double _openmp_protect(struct domain *D)
+double _simd_protect(struct domain *D)
 {
 
   int64_t k, k3, K;
@@ -1327,7 +1327,7 @@ static inline void __calc_edge_values_2_bdy(double beta, double cv_k, double cv_
 
 
 // Computational routine
-int64_t _openmp_extrapolate_second_order_edge_sw(struct domain *D, int64_t verbose)
+int64_t _simd_extrapolate_second_order_edge_sw(struct domain *D, int64_t verbose)
 {
 
   // Local variables
@@ -1936,7 +1936,7 @@ int64_t _openmp_extrapolate_second_order_edge_sw(struct domain *D, int64_t verbo
 
 
 // Computational function for flux computation
-int64_t _openmp_fix_negative_cells(struct domain *D)
+int64_t _simd_fix_negative_cells(struct domain *D)
 {
   int64_t k;
   int64_t tff;

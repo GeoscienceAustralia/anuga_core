@@ -87,6 +87,9 @@ cdef extern from "sw_domain_openmp.c" nogil:
 		int64_t* riverwall_rowIndex
 		double* riverwall_hydraulic_properties
 		int64_t* edge_river_wall_counter
+		double* stage_semi_implicit_update
+		double* xmom_semi_implicit_update
+		double* ymom_semi_implicit_update
 
 
 	struct edge:
@@ -96,6 +99,7 @@ cdef extern from "sw_domain_openmp.c" nogil:
 	double _openmp_protect(domain* D)
 	int64_t _openmp_extrapolate_second_order_edge_sw(domain* D)
 	int64_t _openmp_fix_negative_cells(domain* D)
+	# FIXME SR: Change over to domain* D argument
 	void _openmp_manning_friction_flat(double g, double eps, int64_t N, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom, double* ymom)
 	void _openmp_manning_friction_sloped(double g, double eps, int64_t N, double* x, double* w, double* zv, double* uh, double* vh, double* eta, double* xmom_update, double* ymom_update)
 
@@ -170,6 +174,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 	cdef double[:,::1] vertex_values
 	cdef double[::1]   boundary_values
 	cdef double[::1]   explicit_update
+	cdef double[::1]   semi_implicit_update
 	
 	cdef object quantities
 	cdef object riverwallData
@@ -333,6 +338,15 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
 	explicit_update = ymomentum.explicit_update
 	D.ymom_explicit_update = &explicit_update[0]
+
+	semi_implicit_update = stage.semi_implicit_update
+	D.stage_semi_implicit_update = &semi_implicit_update[0]
+
+	semi_implicit_update = xmomentum.semi_implicit_update
+	D.xmom_semi_implicit_update = &semi_implicit_update[0]
+
+	semi_implicit_update = ymomentum.semi_implicit_update
+	D.ymom_semi_implicit_update = &semi_implicit_update[0]	
 
 	#------------------------------------------------------
 	# Riverwall structures

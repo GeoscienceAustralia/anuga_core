@@ -83,15 +83,18 @@ cdef extern from "sw_domain_simd.c" nogil:
 		int64_t* riverwall_rowIndex
 		double* riverwall_hydraulic_properties
 		int64_t* edge_river_wall_counter
+		double* stage_semi_implicit_update
+		double* xmom_semi_implicit_update
+		double* ymom_semi_implicit_update		
 
 
 	struct edge:
 		pass
 
-	double _openmp_compute_fluxes_central(domain* D, double timestep)
-	double _openmp_protect(domain* D)
-	int64_t _openmp_extrapolate_second_order_edge_sw(domain* D, int64_t verbose)
-	int64_t _openmp_fix_negative_cells(domain* D)
+	double _simd_compute_fluxes_central(domain* D, double timestep)
+	double _simd_protect(domain* D)
+	int64_t _simd_extrapolate_second_order_edge_sw(domain* D, int64_t verbose)
+	int64_t _simd_fix_negative_cells(domain* D)
 
 
 
@@ -351,7 +354,7 @@ def compute_fluxes_ext_central(object domain_object, double timestep):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		timestep =  _openmp_compute_fluxes_central(&D, timestep)
+		timestep =  _simd_compute_fluxes_central(&D, timestep)
 
 	return timestep
 
@@ -364,7 +367,7 @@ def extrapolate_second_order_edge_sw(object domain_object, int64_t verbose = 0):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		e = _openmp_extrapolate_second_order_edge_sw(&D, verbose)
+		e = _simd_extrapolate_second_order_edge_sw(&D, verbose)
 
 	if e == -1:
 		return None
@@ -379,7 +382,7 @@ def protect_new(object domain_object):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		mass_error = _openmp_protect(&D)
+		mass_error = _simd_protect(&D)
 
 
 	return mass_error
@@ -397,7 +400,7 @@ def fix_negative_cells(object domain_object):
 	get_python_domain_pointers(&D, domain_object)
 
 	with nogil:
-		num_negative_cells = _openmp_fix_negative_cells(&D)
+		num_negative_cells = _simd_fix_negative_cells(&D)
 
 	return num_negative_cells
 

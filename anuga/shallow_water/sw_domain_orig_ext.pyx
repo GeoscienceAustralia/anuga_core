@@ -79,6 +79,9 @@ cdef extern from "sw_domain_orig.c" nogil:
                 double* riverwall_elevation
                 int64_t* riverwall_rowIndex
                 double* riverwall_hydraulic_properties
+                double* stage_semi_implicit_update
+                double* xmom_semi_implicit_update
+                double* ymom_semi_implicit_update
 
         struct edge:
                 pass
@@ -172,6 +175,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
         cdef double[:,::1] vertex_values
         cdef double[::1]   boundary_values
         cdef double[::1]   explicit_update
+        cdef double[::1]   semi_implicit_update
 
         cdef object quantities
         cdef object riverwallData
@@ -329,6 +333,15 @@ cdef inline get_python_domain_pointers(domain *D, object domain_object):
 
         explicit_update = ymomentum.explicit_update
         D.ymom_explicit_update = &explicit_update[0]
+
+        semi_implicit_update = stage.semi_implicit_update
+        D.stage_semi_implicit_update = &semi_implicit_update[0]
+
+        semi_implicit_update = xmomentum.semi_implicit_update
+        D.xmom_semi_implicit_update = &semi_implicit_update[0]
+
+        semi_implicit_update = ymomentum.semi_implicit_update
+        D.ymom_semi_implicit_update = &semi_implicit_update[0]
 
         #------------------------------------------------------
         # Riverwall structures

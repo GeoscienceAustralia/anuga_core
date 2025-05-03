@@ -8,6 +8,7 @@
 #define SW_DOMAIN_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 // structures
 struct domain {
@@ -103,6 +104,10 @@ struct domain {
     double* riverwall_elevation;
     int64_t* riverwall_rowIndex;
     double* riverwall_hydraulic_properties;
+
+    double* stage_semi_implicit_update;
+    double* xmom_semi_implicit_update;
+    double* ymom_semi_implicit_update;    
 
     
 };
@@ -234,6 +239,9 @@ int64_t print_domain_struct(struct domain *D) {
     printf("D->xmom_explicit_update   %p \n", D->xmom_explicit_update);
     printf("D->ymom_explicit_update   %p \n", D->ymom_explicit_update);
     printf("D->edge_river_wall_counter   %p \n", D->edge_river_wall_counter);
+    printf("D->stage_semi_implicit_update  %p \n", D->stage_semi_implicit_update);
+    printf("D->xmom_semi_implicit_update   %p \n", D->xmom_semi_implicit_update);
+    printf("D->ymom_semi_implicit_update   %p \n", D->ymom_semi_implicit_update);
 
 
     return 0;
