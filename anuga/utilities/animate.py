@@ -51,6 +51,8 @@ class Domain_plotter(object):
 
         self.xmom = domain.quantities['xmomentum'].centroid_values
         self.ymom = domain.quantities['ymomentum'].centroid_values
+
+        self.friction = domain.quantities['friction'].centroid_values
         
         self.depth = self.stage - self.elev
 
