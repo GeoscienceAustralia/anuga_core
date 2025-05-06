@@ -446,7 +446,7 @@ class Domain(Generic_Domain):
         self.xmom = self.dplotter.xmom
         self.ymom = self.dplotter.ymom
         self.elev = self.dplotter.elev
-        #self.friction = self.dplotter.friction
+        self.friction = self.dplotter.friction
         self.xvel = self.dplotter.xvel
         self.yvel = self.dplotter.yvel
         self.x = self.dplotter.x

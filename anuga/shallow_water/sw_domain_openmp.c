@@ -1957,33 +1957,31 @@ void _openmp_manning_friction_flat(double g, double eps, int64_t N,
   double* eta, double* xmom_update, double* ymom_update) {
 
 int64_t k, k3;
-double S, h, z;
+double S, h, z, abs_mom;
 const double one_third = 1.0/3.0; 
 const double seven_thirds = 7.0/3.0;
 
 #pragma omp parallel for schedule(static) private(k,k3,z,h,S) firstprivate(eps,g,seven_thirds)
 for (k = 0; k < N; k++) {
+  abs_mom = sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+  S = 0.0;
+
   if (eta[k] > eps) {
-      // k3 = 3 * k;
-      // Get bathymetry
-      // z0 = zv[k3 + 0];
-      // z1 = zv[k3 + 1];
-      // z2 = zv[k3 + 2];
-      // z = (z0 + z1 + z2) * one_third;
       z = zv[k];
       h = w[k] - z;
       if (h >= eps) {
-          S = -g * eta[k] * eta[k] * sqrt((uh[k] * uh[k] + vh[k] * vh[k]));
+          S = -g * eta[k] * eta[k] * abs_mom;
           S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
           //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
           //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
 
 
           //Update momentum
-          xmom_update[k] += S * uh[k];
-          ymom_update[k] += S * vh[k];
+          
       }
   }
+  xmom_update[k] += S * uh[k];
+  ymom_update[k] += S * vh[k];
 }
 }
 
@@ -2000,23 +1998,24 @@ const double seven_thirds = 7.0/3.0;
 
 #pragma omp parallel for schedule(static) private(k,k3,z0,z1,z2,x0,y0,x1,y1,x2,y2,zs,zx,zy,h,S) firstprivate(eps,g,one_third,seven_thirds)
 for (k = 0; k < N; k++) {
+  S = 0.0;
+  k3 = 3 * k;
+  // Get bathymetry
+  z0 = zv[k3 + 0];
+  z1 = zv[k3 + 1];
+  z2 = zv[k3 + 2];
+
+  // Compute bed slope
+  k6 = 6 * k; // base index
+
+  x0 = x[k6 + 0];
+  y0 = x[k6 + 1];
+  x1 = x[k6 + 2];
+  y1 = x[k6 + 3];
+  x2 = x[k6 + 4];
+  y2 = x[k6 + 5]; 
+
   if (eta[k] > eps) {
-      k3 = 3 * k;
-      // Get bathymetry
-      z0 = zv[k3 + 0];
-      z1 = zv[k3 + 1];
-      z2 = zv[k3 + 2];
-
-      // Compute bed slope
-      k6 = 6 * k; // base index
-
-      x0 = x[k6 + 0];
-      y0 = x[k6 + 1];
-      x1 = x[k6 + 2];
-      y1 = x[k6 + 3];
-      x2 = x[k6 + 4];
-      y2 = x[k6 + 5];
-
       _gradient(x0, y0, x1, y1, x2, y2, z0, z1, z2, &zx, &zy);
 
       zs = sqrt(1.0 + zx * zx + zy * zy);
@@ -2027,13 +2026,10 @@ for (k = 0; k < N; k++) {
           S /= pow(h, seven_thirds); //Expensive (on Ole's home computer)
           //S /= exp((7.0/3.0)*log(h));      //seems to save about 15% over manning_friction
           //S /= h*h*(1 + h/3.0 - h*h/9.0); //FIXME: Could use a Taylor expansion
-
-
-          //Update momentum
-          xmom_update[k] += S * uh[k];
-          ymom_update[k] += S * vh[k];
       }
   }
+  xmom_update[k] += S * uh[k];
+  ymom_update[k] += S * vh[k];
 }
 }
 
