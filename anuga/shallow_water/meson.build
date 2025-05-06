@@ -44,6 +44,7 @@ py3.extension_module('sw_domain_simd_ext',
 
 py3.extension_module('sw_domain_openmp_ext',
   sources: ['sw_domain_openmp_ext.pyx'],
+  c_args : ['-O3', '-march=native'],
   include_directories: inc_dir,
   dependencies: openmp_deps,
   subdir: 'anuga/shallow_water',
