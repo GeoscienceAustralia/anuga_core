@@ -10,8 +10,13 @@
 // Ole Nielsen, GA 2004
 
 #include "math.h"
-#include "omp.h"
 #include <stdint.h>
+
+#if defined(__APPLE__)
+// clang doesn't have openmp
+#else
+#include "omp.h"
+#endif
 
 //Shared code snippets
 #include "util_ext.h"
