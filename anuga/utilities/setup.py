@@ -26,7 +26,8 @@ def configuration(parent_package='',top_path=None):
     config.add_extension('util_ext',
                          sources='util_ext_c.pyx')
 
-    if sys.platform == 'darwin':
+    if sys.platform in ['darwin', 'win32']:
+        # Mac OS X and Windows
         extra_args = None
     else:
         extra_args = ['-fopenmp']

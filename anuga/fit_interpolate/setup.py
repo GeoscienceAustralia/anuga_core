@@ -26,7 +26,8 @@ def configuration(parent_package='',top_path=None):
                  join(util_dir,'sparse_dok.c'),
                  join(util_dir,'sparse_csr.c')]
     
-    if sys.platform == 'darwin':
+    if sys.platform in ['darwin', 'win32']:
+        # Mac OS X and Windows
         extra_args = None
     else:
         extra_args = ['-fopenmp']
