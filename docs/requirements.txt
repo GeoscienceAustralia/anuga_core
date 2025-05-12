@@ -16,7 +16,7 @@ dill
 future
 Pmw
 
-gdal
+
 utm
 pyproj
 affine

@@ -15,7 +15,7 @@ name = 'anuga'
 version = '3.2.0dev'
 description = 'A set of python modules for tsunami and flood modelling'
 readme = 'README.rst'
-license = {file = 'LICENSE.txt'}
+license = 'Apache-2.0'
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
