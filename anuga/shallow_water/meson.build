@@ -51,18 +51,15 @@ py3.extension_module('sw_domain_openmp_ext',
   install: true,
 )
 
-if host_machine.system() == 'windows'
-  # On Windows, openacc is not supported
 
-else
-  py3.extension_module('sw_domain_openacc_ext',
+py3.extension_module('sw_domain_openacc_ext',
   sources: ['sw_domain_openacc_ext.pyx'],
   include_directories: inc_dir,
   dependencies: dependencies,
   subdir: 'anuga/shallow_water',
   install: true,
-  ) 
-endif
+) 
+
 
 
 python_sources = [
