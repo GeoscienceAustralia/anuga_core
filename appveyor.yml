@@ -32,6 +32,8 @@ build_script:
   # If using m2w64 gcc compiler for windows uncomment the following
   - conda install -c conda-forge libpython m2w64-toolchain
 
+  - cc -v
+
   # there seems to be a bug with distutil by not picking the mingw comiler for anuga
   #- cp windows_setup.cfg setup.cfg
 

@@ -6,7 +6,6 @@ pybind11
 meson
 meson-python
 ninja
-pkg-config
 
 pymetis
 meshpy
