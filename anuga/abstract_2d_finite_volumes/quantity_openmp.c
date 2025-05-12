@@ -14,6 +14,8 @@
 
 #if defined(__APPLE__)
 // clang doesn't have openmp
+// FIXME SR: Need to determine if openmp has been enabled
+// FIXME SR: Maybe need to try to compile a test program
 #else
 #include "omp.h"
 #endif
