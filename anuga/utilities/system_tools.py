@@ -179,10 +179,10 @@ def get_anuga_pathname():
     """
     
     import anuga
-
-    path = anuga.__path__[0]
+    import os
     
-    return path
+    return os.path.dirname(anuga.__file__)
+
     
 def get_pathname_from_package(package):
     """Get pathname of given package (provided as string)
@@ -203,8 +203,12 @@ def get_pathname_from_package(package):
     # See https://stackoverflow.com/questions/1463306/how-does-exec-work-with-locals
     exec('import %s as x' % package, globals())
 
-    # Get and return path
-    return x.__path__[0]
+    # # Get and return path
+    # return x.__path__[0]
+    import os
+    return os.path.dirname(x.__file__)
+
+
 
     # Alternative approach that has been used at times
     #try:
@@ -440,7 +444,7 @@ def untar_file(tarname, target_dir='.'):
     o = tarfile.open(tarname, 'r:gz')
     members = o.getmembers()
     for member in members:
-        o.extract(member, target_dir)
+        o.extract(member, target_dir, filter='data')
     o.close()
 
 

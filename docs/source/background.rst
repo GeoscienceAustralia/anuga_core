@@ -25,9 +25,11 @@ To set up a particular scenario the user specifies the geometry
 (bathymetry and topography), the initial water level (stage),
 boundary conditions such as tide, and any operators  that may
 drive the system such as rainfall, abstraction of water,  erosion, culverts
-See section :doc:`operators` for details of operators available in ANUGA.
+See section :doc:`setup_anuga_script/operators` and 
+:doc:`setup_anuga_script/structures` for details of operators and structures
+available in ANUGA.
 
-The built-in mesh generator, called :code:`graphical_mesh_generator`, or 
+The built-in mesh generator, called :code:`anuga_pmesh_gui`, or 
 the procedure :code:`anuga.create_domain_from_regions`
 allows the user to set up the geometry
 of the problem and to identify boundary segments and

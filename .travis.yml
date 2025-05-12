@@ -6,8 +6,8 @@ matrix:
        - os: linux
          dist: focal
          sudo: required
-         python: "3.8"
-         env: PYTHON_VERSION="3.8"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
+         python: "3.9"
+         env: PYTHON_VERSION="3.9"  ANUGA_PARALLEL="openmpi"  PYPAR_AVAILABLE="mpi4py" DISTRIB="ubuntu"
 
        - os: linux
          dist: focal
@@ -15,6 +15,17 @@ matrix:
          python: "3.10"
          env: PYTHON_VERSION="3.10"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
 
+       - os: linux
+         dist: focal
+         sudo: required
+         python: "3.11"
+         env: PYTHON_VERSION="3.11"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
+
+       - os: linux
+         dist: focal
+         sudo: required
+         python: "3.12"
+         env: PYTHON_VERSION="3.12"  ANUGA_PARALLEL="conda"  PYPAR_AVAILABLE="mpi4py" DISTRIB="conda"
 
 
 install:
@@ -27,7 +38,7 @@ install:
 script:
     - export OMPI_MCA_btl_vader_single_copy_mechanism=none
     - python --version
-    - pytest --pyargs anuga
+    - pytest -q --pyargs anuga
 
 after_success:
     - 

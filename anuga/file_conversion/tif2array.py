@@ -1,13 +1,11 @@
 import numpy as np
 
-from osgeo import gdal
 
-def tif2array(filename, variable_name='elevation',
-              easting_min=None, easting_max=None,
-              northing_min=None, northing_max=None,
-             use_cache=False, verbose=False,):
+def tif2array(filename, verbose=False,):
     
     import os
+    from osgeo import gdal
+    
     raster= gdal.Open(filename)
     ncols= raster.RasterXSize
     nrows= raster.RasterYSize

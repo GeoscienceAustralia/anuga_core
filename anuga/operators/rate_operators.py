@@ -22,34 +22,7 @@ from anuga.operators.base_operator import Operator
 from anuga import Region
 
 class Rate_operator(Operator):
-    """
-    Create a Rate_operator that adds water over a region at a specified
-    rate (ms^{-1} = vol/Area/sec)
 
-    Parameters specifying locaton of operator
-
-    :param region: Region object where water applied 
-    :param indices: List of triangles where water applied
-    :param polygon: List of [x,y] points specifying where water applied
-    :param center: [x.y] point of circle where water applied
-    :param radius: radius of circle where water applied
-
-    Parameters specifying rate
-
-    :param rate: scalar, function of (t), (x,y), or (x,y,t), a Quantity, 
-                    a numpy array of size (number_of_triangles), or an xarray with rate at points and time
-    :param factor: scalar, function of t, or 2 by n numpy array time sequence, 
-                    used to specify conversion from rate argument to m/s
-    :param default_rate: use this rate if outside time interval of rate function or xarray
-
-    Parameters involving communication
-
-    :param description:
-    :param label:
-    :param logging:
-    :param verbose:
-    :param monitor:
-    """
 
     def __init__(self,
                  domain,
@@ -66,6 +39,35 @@ class Rate_operator(Operator):
                  logging = False,
                  verbose = False,
                  monitor = False):
+        """
+Create a Rate_operator that adds water over a region at a specified
+rate (ms^{-1} = vol/Area/sec)
+
+Parameters specifying locaton of operator
+
+:param region: Region object where water applied 
+:param indices: List of triangles where water applied
+:param polygon: List of [x,y] points specifying where water applied
+:param center: [x.y] point of circle where water applied
+:param radius: radius of circle where water applied
+
+Parameters specifying rate
+
+:param rate: scalar, function of (t), (x,y), or (x,y,t), or a Quantity, 
+                a numpy array of size (number_of_triangles), 
+                or an xarray with rate at points and time
+:param factor: scalar, function of t, or 2 by n numpy array time sequence, 
+                used to specify conversion from rate argument to m/s
+:param default_rate: use this rate if outside time interval of rate function or xarray
+
+Parameters involving communication
+
+:param description:
+:param label:
+:param logging:
+:param verbose:
+:param monitor:
+    """
 
 
 

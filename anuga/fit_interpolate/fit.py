@@ -26,7 +26,7 @@
       save time/memory.
 """
 import numpy as num
-from . import fitsmooth
+from . import fitsmooth_ext as fitsmooth
 import sys
 
 

@@ -85,6 +85,7 @@ Version       1.00 October 2015
 
 from anuga.operators.base_operator import Operator
 from anuga import Region
+import anuga
 
 import math
 import numpy as num
@@ -128,7 +129,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
         #-------------------------------------------
         self.Wd       = 1000       # water mass density kg/m3
         self.Sd       = 1800       # sediment mass density kg/m3
-        self.G        = 9.8        # acceleration due to gravity m/sec/sec
+        self.G        = anuga.g    # acceleration due to gravity m/sec/sec
         self.n        = 0.030      # sand mannings n - mostly bare with undulations
         self.Tau_crit = 2.1        # critical (detachment) bed shear stress Pa
         self.Kd       = 0.025      # detachment factor Froelich Table 2 Kg/sec/m2/Pa

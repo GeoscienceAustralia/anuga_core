@@ -1,15 +1,16 @@
 #cython: wraparound=False, boundscheck=False, cdivision=True, profile=False, nonecheck=False, overflowcheck=False, cdivision_warnings=False, unraisable_tracebacks=False
 import cython
+from libc.stdint cimport int64_t
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
 
-def boundary_dictionary_construct(int numTriangle, defaultTag,\
-                                np.ndarray[long, ndim=2, mode="c"] neighbours not None,\
+def boundary_dictionary_construct(int64_t numTriangle, defaultTag,\
+                                np.ndarray[int64_t, ndim=2, mode="c"] neighbours not None,\
                                 dict boundary):
 
-	cdef int a, b, vol_id, edge_id
+	cdef int64_t a, b, vol_id, edge_id
 
 	#defaultTag = defaultTag.encode('utm-f')
 
@@ -29,15 +30,15 @@ def boundary_dictionary_construct(int numTriangle, defaultTag,\
 
 	return boundary
 
-def check_integrity_c(np.ndarray[long, ndim=1, mode="c"] vertex_value_indices not None,\
-					np.ndarray[long, ndim=2, mode="c"] triangles not None,\
-					np.ndarray[long, ndim=1, mode="c"] node_index not None,\
-					np.ndarray[long, ndim=1, mode="c"] number_of_triangles_per_node not None):
+def check_integrity_c(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_indices not None,\
+					np.ndarray[int64_t, ndim=2, mode="c"] triangles not None,\
+					np.ndarray[int64_t, ndim=1, mode="c"] node_index not None,\
+					np.ndarray[int64_t, ndim=1, mode="c"] number_of_triangles_per_node not None):
 
-	cdef int nt, nt3, tri, n_node, n_node_1
-	cdef int current_node, k, i, index
+	cdef int64_t nt, nt3, tri, n_node, n_node_1
+	cdef int64_t current_node, k, i, index
 
-	cdef long cumsum
+	cdef int64_t cumsum
 
 	nt3 = vertex_value_indices.shape[0]
 

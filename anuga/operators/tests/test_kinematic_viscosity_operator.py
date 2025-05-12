@@ -21,11 +21,6 @@ class Test_kinematic_viscosity(unittest.TestCase):
         except:
             pass
 
-        try:
-            pass
-            #os.remove('anuga.log')
-        except:
-            pass
         
     #First test operator class (1 triangle)
     def operator1(self):

@@ -1,0 +1,34 @@
+name: anuga_env_3.10
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - affine
+  - cartopy
+  - cython
+  - dill
+  - future
+  - gdal
+  - gitpython
+  - matplotlib
+  - meshpy
+  - meson
+  - meson-python
+  - mpi4py
+  - netcdf4
+  - ninja
+  - numpy
+  - openpyxl
+  - pandas
+  - pkg-config
+  - pybind11
+  - pymetis
+  - pyproj
+  - pytest
+  - scipy
+  - utm
+  - wheel
+  - xarray
+  - pip:
+    - pmw

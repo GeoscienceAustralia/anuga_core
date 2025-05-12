@@ -72,44 +72,49 @@ class Test_Numerical_Tools(unittest.TestCase):
         A = [1, 2, 3, 4]
         B = ensure_numeric(A)
         assert isinstance(B, num.ndarray)
-        assert B.dtype.char == 'l'
+        # check that dtype is long or long long
+        assert B.dtype.char == 'l' or B.dtype.char == 'q'
+        assert B.dtype.itemsize == 8
         assert B[0] == 1 and B[1] == 2 and B[2] == 3 and B[3] == 4
 
         A = [1, 2, 3.14, 4]
         B = ensure_numeric(A)
         assert isinstance(B, num.ndarray)
         assert B.dtype.char == 'd'
+        assert B.dtype.itemsize == 8
         assert B[0] == 1 and B[1] == 2 and B[2] == 3.14 and B[3] == 4
 
         A = [1, 2, 3, 4]
         B = ensure_numeric(A, float)
         assert isinstance(B, num.ndarray)
         assert B.dtype.char == 'd'
+        assert B.dtype.itemsize == 8
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = [1, 2, 3, 4]
         B = ensure_numeric(A, float)
         assert isinstance(B, num.ndarray)
         assert B.dtype.char == 'd'
+        assert B.dtype.itemsize == 8
         assert B[0] == 1.0 and B[1] == 2.0 and B[2] == 3.0 and B[3] == 4.0
 
         A = num.array([1, 2, 3, 4])
         B = ensure_numeric(A)
         assert isinstance(B, num.ndarray)
-        assert B.dtype.char == 'l'
+        assert B.dtype.char == 'l' or B.dtype.char == 'q'
         assert num.all(A == B)
         assert A is B  # Same object
 
-        # check default num.array type, which is supposed to be num.int32
+        # check default num.array type, which is supposed to be num.int64
         A = num.array((1, 2, 3, 4))
         assert isinstance(A, num.ndarray)
-        msg = "Expected dtype.char='l', got '%s'" % A.dtype.char
-        assert A.dtype.char == 'l', msg
+        msg = "Expected dtype.char='l' or 'q', got '%s'" % A.dtype.char
+        assert A.dtype.char == 'l' or A.dtype.char == 'q', msg
 
         A = num.array([1, 2, 3, 4])
         B = ensure_numeric(A, float)
         assert isinstance(B, num.ndarray)
-        assert A.dtype.char == 'l'
+        assert A.dtype.char == 'l' or A.dtype.char == 'q'
         assert B.dtype.char == 'd'
         assert num.all(A == B)
         assert A is not B   # Not the same object

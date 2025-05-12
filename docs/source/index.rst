@@ -6,10 +6,12 @@
 ANUGA documentation
 ===================
 
-ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of the shallow water equation, 
+ANUGA (pronounced "AHnooGAH") is open-source software for the simulation of the 
+shallow water equation, 
 in particular it can be used to model tsunamis and floods.
 
-ANUGA is a python 3 package with some C and Cython extensions (and an optional fortran extension).
+ANUGA is a python 3 package with some C and Cython extensions 
+(and an optional fortran extension).
 
 ANUGA is developed at Geoscience Australia, Mathematical Sciences Institute 
 at the Australian National University and volunteers.
@@ -24,20 +26,13 @@ It is now developed and maintained by a community of volunteers.
    :caption: Contents:
 
    background
-   installation
+   installation/index
+   setup_anuga_script/index
    examples/index
-   domain
-   initial_conditions
-   boundaries
-   evolve
-   operators
-   structures
-   reference/index
+   genindex
 
 
-Indices and tables
-==================
+   
 
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+
+

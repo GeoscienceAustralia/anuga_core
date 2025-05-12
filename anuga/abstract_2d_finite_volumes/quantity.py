@@ -2292,6 +2292,18 @@ class Quantity(object):
     def update(self, timestep):
         # Call correct module function
         # (either from this module or C-extension)
+
+
+        if self.domain.multiprocessor_mode == 2:
+            from .quantity_openmp_ext import update
+        if self.domain.multiprocessor_mode == 3:
+            from .quantity_openmp_ext import update
+        if self.domain.multiprocessor_mode == 4:
+            # FIXME SR: Change this when gpu version is available
+            from .quantity_ext import update
+        else:
+            from .quantity_ext import update
+        
         return update(self, timestep)
 
     def compute_gradients(self):

@@ -90,6 +90,10 @@ class Test_csv2sts(unittest.TestCase):
         cmd += '%s --lon %s %s %s' % (str(lat), str(lon), testfile_csv, sts_out)
         
         os.system(cmd)
+
+        print(os.getcwd() + "\n")
+        print(os.listdir())
+
         self._check_generated_sts()
 
 

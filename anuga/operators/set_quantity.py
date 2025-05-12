@@ -11,6 +11,7 @@ import numpy as num
 
 from anuga import Domain
 from anuga import Quantity
+from anuga import Region
 
 import anuga.utilities.log as log
 from anuga.geometry.polygon import inside_polygon
@@ -18,7 +19,7 @@ from anuga.utilities.function_utils import determine_function_type
 from anuga import Region
 from anuga.config import indent
 
-class Set_quantity(Region):
+class Set_quantity(object):
     """
     Helper class to setup calculation of quantity
     associated with a region (defined by indices, polygon or center/radius
@@ -28,6 +29,7 @@ class Set_quantity(Region):
                  domain,
                  quantity,
                  value=None,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -37,17 +39,27 @@ class Set_quantity(Region):
                  test_elevation=True,
                  test_stage=True):
 
+        #-----------------------------------------------------
+        # Make sure region is actually an instance of a region
+        # Otherwise create a new region based on the other 
+        # input arguments
+        #-----------------------------------------------------
+        if isinstance(region,Region):
+            region.set_verbose(verbose)
+            self.region = region
 
-        Region.__init__(self, domain,
+        else:
+            self.region = Region(domain,
                         indices=indices,
                         polygon=polygon,
                         center=center,
                         radius=radius,
                         line=line,
                         verbose=verbose)
-        
 
         self.set_value(value)
+        self.domain = domain
+        self.indices = self.region.indices
 
         #-------------------------------------------
         # Test quantity
@@ -56,8 +68,9 @@ class Set_quantity(Region):
         msg = 'quantity not found in domain'
         assert quantity in domain.quantities, msg
 
+        # FIXME SR: These should be dealt with in this class
         if test_elevation:
-            msg ='Use Set_elevation to maintain continuity'
+            msg ='Use Set_elevation to maintain mass continuity'
             assert quantity != 'elevation', msg
             
         if test_stage:
@@ -82,7 +95,7 @@ class Set_quantity(Region):
         otherwise apply for the specific indices
         """
 
-        if self.indices is []:
+        if self.region.indices is []:
             return
 
 
@@ -112,12 +125,12 @@ class Set_quantity(Region):
             #--------------------------------------
             # Update centroid values
             #--------------------------------------
-            ids = self.indices
-            x = self.coord_c[ids,0]
-            y = self.coord_c[ids,1]
+            rids = self.indices
+            x = self.coord_c[rids,0]
+            y = self.coord_c[rids,1]
             try:
                 value = self.get_value(x=x,y=y)
-                self.quantity_c[ids] = value
+                self.quantity_c[rids] = value
             except ValueError:
                 pass
 

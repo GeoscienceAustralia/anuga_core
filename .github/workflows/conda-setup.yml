@@ -1,0 +1,45 @@
+name: Conda setup
+
+on: [push, pull_request]
+
+jobs:
+  test_conda:
+    name: Example (${{ matrix.python-version }}, ${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        #os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: ["ubuntu-latest", "windows-latest"]
+        python-version: ["3.9", "3.11", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: conda-incubator/setup-miniconda@v3
+        with:
+          auto-update-conda: true
+          python-version: ${{ matrix.python-version }}
+          miniforge-version: latest
+
+      - name: Install Our own environment
+        shell: bash -el {0}
+        run: |
+          conda env create --name anuga_env --file environments/environment_${{matrix.python-version}}.yml
+
+      - name: Install mingw compilers on Windows
+        if: runner.os == 'Windows'
+        shell: bash -el {0}
+        run: |
+          conda install -c conda-forge -n anuga_env libpython m2w64-toolchain
+
+      - name: Install package
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          pip install --no-build-isolation .
+
+      - name: Test package
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          cd ..
+          pytest -p no:faulthandler -q --pyargs anuga

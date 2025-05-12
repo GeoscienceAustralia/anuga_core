@@ -1,7 +1,24 @@
 #!/bin/bash
+#
+# Run this script as follows:
+#
+# bash /path/to/anuga_core/tools/install_miniforge.sh
+#
+# This script will install miniforge3 and create a conda environment called
+# anuga_env_${PY} where PY is the python version you want to use.
+# The script will then install the anuga package from the anuga_core directory
+# and run the unittests.
+#
+# By default a python version of 3.12 will be installed. If you want to install
+# a different version of python, set the PY environment variable before running
+# the script. For example, to install python 3.9 run the script as follows:
+#
+# PY=3.9 bash /path/to/anuga_core/tools/install_miniforge.sh
+#
+# The script will install python 3.9 and create the anuga_env_3.9 environment.
 
 
-PY=${PY:-"3.10"}
+PY=${PY:-"3.12"}
 
 set -e 
 
@@ -10,12 +27,12 @@ SCRIPTPATH=$(dirname "$SCRIPT")
 ANUGA_CORE_PATH=$(realpath "$SCRIPTPATH/..")
 
 
-#test PY>3.8 and <3.12
-if [[ "$PY" =~ ^3\.(1[0-1]|[9])$ ]]; then
+#test PY>3.8 and <3.14
+if [[ "$PY" =~ ^3\.(1[0-3]|[9])$ ]]; then
      echo "Requested python version is $PY"
      echo " "
 else
-    echo "Python version must be greater than 3.8 and less than 3.12"
+    echo "Python version must be greater than 3.8 and less than 3.14"
     exit 1
 fi
 
@@ -25,30 +42,28 @@ echo "# Install miniforge3"
 echo "#==========================="
 cd $HOME
 
-if [ -f "$HOME/Miniforge3.sh" ]; then
-     echo "Miniforge3.sh already exists."
-else
-     echo "Miniforge3.sh does not exist. Downloading..."
-     wget -O "$HOME/Miniforge3.sh" "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
-fi
-
-
 if [ -d "$HOME/miniforge3" ]; then
-     echo "miniforge3 already exists."
+     echo "miniforge3 seems to already exist."
 else
-     echo "Miniforge does not exist. Installing from Miniforge3.sh..."
+     echo "miniforge3 does not exist."
+     echo "Installing from script Miniforge3.sh..."
+     if [ -f "$HOME/Miniforge3.sh" ]; then
+          echo "Running Miniforge3.sh first..."
+     else
+          echo "Miniforge3.sh does not exist. Downloading..."
+          wget -O "$HOME/Miniforge3.sh" "https://github.com/conda-forge/miniforge/releases/latest/download/Miniforge3-$(uname)-$(uname -m).sh"
+     fi
      bash Miniforge3.sh -b
 fi
 
-
+echo " "
 echo "#==============================================="
-echo "# create conda/mamba environment anuga_env_${PY}"
+echo "# create conda environment anuga_env_${PY}"
 echo "#==============================================="
 echo "..."
-./miniforge3/bin/mamba create -n anuga_env_${PY} --yes python=${PY} compilers numpy scipy cython netcdf4 \
-     nose matplotlib gdal dill gitpython mpi4py utm Pmw pymetis meshpy pytest pyproj affine \
-     xarray future
+./miniforge3/bin/conda env create --file ${SCRIPTPATH}/../environments/environment_${PY}.yml
 
+echo " "
 echo "#======================================"
 echo "# activate environment anuga_env_${PY}"
 echo "#======================================"
@@ -63,7 +78,7 @@ echo "..."
 
 cd ${SCRIPTPATH}
 cd ..
-pip install .
+pip install --no-build-isolation -editable .
 echo " "
 
 echo "#==========================="
@@ -90,13 +105,13 @@ echo "#=================================================================="
 echo "#=================================================================="
 echo "# NOTE: If you run the command"
 echo "# "
-echo "# mamba init"
+echo "# conda init"
 echo "# "
 echo "# (which will change your .bashrc file) "
 echo "# then in new terminals you will be able to use "
-echo "# the mamba command"
+echo "# the conda command"
 echo "# "
-echo "# mamba activate anuga_env_${PY}"
+echo "# conda activate anuga_env_${PY}"
 echo "# "
 echo "# to activate the anuga_env_${PY} environment"
 echo "#=================================================================="

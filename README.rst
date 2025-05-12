@@ -1,14 +1,13 @@
 
-
-.. |badge0| image:: https://badges.gitter.im/gitterHQ/gitter.png
+.. image:: https://badges.gitter.im/gitterHQ/gitter.png
     :target: https://app.gitter.im/#/room/#anuga-community:gitter.im
     :alt: Community Chat
 
-.. |badge1| image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=develop
+.. image:: https://app.travis-ci.com/anuga-community/anuga_core.svg?branch=develop_hackathon
     :target: https://app.travis-ci.com/anuga-community/anuga_core
     :alt: travis ci status
-
-.. |badge2| image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/develop?svg=true
+   
+.. image:: https://ci.appveyor.com/api/projects/status/x5airjv7eq2u805w/branch/develop_hackathon?svg=true
     :target: https://ci.appveyor.com/project/stoiver/anuga-core-nwgr0
     :alt: appveyor status
 

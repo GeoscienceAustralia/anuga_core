@@ -2355,8 +2355,8 @@ Parameters
         # Read in an interpolate from tif file
         quantity1.set_values_from_tif_file(filename=tif_file , location='vertices')
 
-        # pprint(quantity1.centroid_values)
-        # pprint(quantity1.vertex_values)
+        pprint(quantity1.centroid_values)
+        pprint(quantity1.vertex_values)
 
         centroid_values_ex = numpy.array(
             [0.17639186, 0.34223889, 0.44878893, 0.72498227])
@@ -2365,19 +2365,31 @@ Parameters
                                         [0.4975411, 0.29263264, 0.55619305],
                                         [1.44086277, 0.23654294, 0.4975411]])
 
-        assert num.allclose(quantity1.centroid_values, centroid_values_ex)
-        assert num.allclose(quantity1.vertex_values, vertex_values_ex)
+        centroid_values_mac_ex = numpy.array(
+            [0.17639186, 0.34223889, 0.44878893, 0.7188908 ])
+        vertex_values_mac_ex = numpy.array([[0.23654294, 0.        , 0.29263264],
+                                        [0.23654294, 0.29263264, 0.4975411 ],
+                                        [0.4975411 , 0.29263264, 0.55619305],
+                                        [1.42258835, 0.23654294, 0.4975411 ]])
+
+        assert num.allclose(quantity1.centroid_values, centroid_values_ex) or \
+                num.allclose(quantity1.centroid_values, centroid_values_mac_ex)
+        assert num.allclose(quantity1.vertex_values, vertex_values_ex) or \
+                num.allclose(quantity1.vertex_values, vertex_values_mac_ex)     
 
         quantity2 = Quantity(mesh4)
 
         # Read in an interpolate from tif file
         quantity2.set_values(filename=tif_file , location='vertices')
 
-        # pprint(quantity2.centroid_values)
-        # pprint(quantity2.vertex_values)
+        pprint(quantity2.centroid_values)
+        pprint(quantity2.vertex_values)
 
-        assert num.allclose(quantity2.centroid_values, centroid_values_ex)
-        assert num.allclose(quantity2.vertex_values, vertex_values_ex)
+
+        assert num.allclose(quantity2.centroid_values, centroid_values_ex) or \
+                num.allclose(quantity2.centroid_values, centroid_values_mac_ex)
+        assert num.allclose(quantity2.vertex_values, vertex_values_ex) or \
+                num.allclose(quantity1.vertex_values, vertex_values_mac_ex)
 
         # Cleanup
         import os

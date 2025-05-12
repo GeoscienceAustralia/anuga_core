@@ -8,6 +8,9 @@ from Cython.Build import cythonize
 import Cython.Compiler.Options
 Cython.Compiler.Options.annotate = False
 
+#os.environ["CC"] = "nvc -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
+#os.environ["CXX"] = "nvc++ -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info -std=c++17"
+#os.environ["FC"] = "nvfortran -O3 -acc=gpu -Minfo=accel -noswitcherror -lm -I$CUDA_HOME/include/ --device-debug --generate-line-info"
 
 def configuration(parent_package='',top_path=None):
     
@@ -22,8 +25,38 @@ def configuration(parent_package='',top_path=None):
     util_dir = join('..', 'utilities')
 
     config.add_extension('sw_domain_orig_ext',
-                         sources = ['sw_domain_orig_ext.pyx'],
-                         include_dirs = [util_dir])
+                         sources=['sw_domain_orig_ext.pyx'],
+                         include_dirs=[util_dir])
+
+    config.add_extension('sw_domain_simd_ext',
+                         sources=['sw_domain_simd_ext.pyx'],
+                         include_dirs=[util_dir])
+      
+    
+    if sys.platform == 'win32':
+        # Looks like mingw (windows compiler) hasn't implemented openmp atomic
+        # so can't get openmp and openacc to work (suggest using linux)
+        pass
+    else:
+        config.add_extension('sw_domain_openmp_ext',
+                         sources=['sw_domain_openmp_ext.pyx'],
+                         include_dirs=[util_dir],
+                         extra_compile_args=['-fopenmp'],
+                         extra_link_args=['-fopenmp'])
+
+        config.add_extension('sw_domain_openacc_ext',
+                         sources=['sw_domain_openacc_ext.pyx'],
+                         include_dirs=[util_dir],
+                         extra_compile_args=None,
+                         extra_link_args=None)
+
+    #config.add_extension('sw_domain_cuda_ext',
+    #                     sources=['sw_domain_cuda_ext.pyx'],
+    #                     include_dirs=[util_dir],
+    #                     extra_compile_args=None,
+    #                     extra_link_args=None)
+
+
 
     config.ext_modules = cythonize(config.ext_modules, annotate=False)
 

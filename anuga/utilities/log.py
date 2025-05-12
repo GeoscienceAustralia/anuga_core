@@ -159,9 +159,7 @@ def log(msg, level=None):
 
     # why are we here? ... Oh yes! Log the message!
     if _new_python:
-        #FIXME SR: On 2022/12/20 got an error due to the extra argument
         logging.log(level, msg, extra={'mname': fname, 'lnum': lnum})
-        #logging.log(level, msg)
     else:
         logging.log(level, msg)
 

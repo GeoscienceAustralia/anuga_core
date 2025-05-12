@@ -228,7 +228,7 @@ from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 from anuga.operators.kinematic_viscosity_operator import Kinematic_viscosity_operator
 
 from anuga.operators.rate_operators import Rate_operator
-from anuga.operators.set_friction_operators import Depth_friction_operator
+from anuga.operators.set_friction_operators import Set_depth_friction_operator
 
 from anuga.operators.set_elevation_operator import Set_elevation_operator
 from anuga.operators.set_quantity_operator import Set_quantity_operator

@@ -12,7 +12,6 @@ class Inlet_operator(anuga.Operator):
     Inherit from this class (and overwrite
     discharge_routine method for specific subclasses)
 
-    Input: domain, Two points
     """
 
 
@@ -52,7 +51,7 @@ class Inlet_operator(anuga.Operator):
 
         self.inlet = inlet.Inlet(self.domain, region, verbose= verbose)
 
-        # should set this up to be a function of time and or space)
+        # constant or function of time, m^3/s
         self.Q = Q
 
         if velocity is not None:
