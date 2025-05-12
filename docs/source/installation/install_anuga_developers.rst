@@ -132,6 +132,14 @@ Test the installation.
 
    pytest --pyargs anuga
 
+ANUGA also comes with a validation test suite which verifies the correctness of 
+real life hydraulic scenarios. You can run them as follows:
+
+.. code-block:: bash
+
+    cd validation_tests 
+    python run_auto_validation_tests.py
+
 
 Updating
 ~~~~~~~~
