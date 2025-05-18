@@ -103,7 +103,7 @@ ANUGA documentation is available via "read the docs" at
     https://anuga.readthedocs.io 
 
 Also you can obtain help via the old
-`user_manual <dx.doi.org/10.13140/RG.2.2.17267.81446>`_
+`user_manual <https://dx.doi.org/10.13140/RG.2.2.17267.81446>`_
 
 Also helpful information is available online at
 
