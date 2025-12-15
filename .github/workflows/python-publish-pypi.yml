@@ -28,7 +28,7 @@ jobs:
         #python-version: ['3.10', '3.11']
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest      # Installs Miniforge instead of Miniconda
@@ -85,7 +85,7 @@ jobs:
           python -m build --sdist --outdir dist
           
       - name: Upload distributions
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: release-dists-${{ matrix.python-version }}-${{ matrix.os }}
           path: dist/
@@ -108,7 +108,7 @@ jobs:
 
     steps:
       - name: Retrieve release distributions
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           pattern: release-dists-*
           path: dist
