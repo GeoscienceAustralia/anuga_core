@@ -608,7 +608,7 @@ def gauge_get_from_file(filename):
         if len(fields) > 2:
             elev.append(float(fields[elev_index]))
             loc = fields[name_index]
-            gaugelocation.append(loc.strip(r'\n'))
+            gaugelocation.append(loc.strip())
 
     return gauges, gaugelocation, elev
 

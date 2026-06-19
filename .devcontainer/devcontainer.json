@@ -1,0 +1,37 @@
+{
+  "name": "ANUGA",
+  "image": "mcr.microsoft.com/devcontainers/miniconda:latest",
+
+  // onCreateCommand is cached by Codespaces prebuilds — slow conda install runs once.
+  "onCreateCommand": "conda env create -f .devcontainer/environment.yml",
+
+  // postCreateCommand runs after the source tree is available — installs ANUGA itself and registers the Jupyter kernel.
+  "postCreateCommand": "conda run -n anuga_env pip install --no-build-isolation -e . && conda run -n anuga_env python -m ipykernel install --user --name anuga_env --display-name 'Python (anuga_env)'",
+
+  // Activate the conda environment in every new terminal.
+  "postStartCommand": "conda init bash && echo 'conda activate anuga_env' >> ~/.bashrc",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.pylance",
+        "ms-toolsai.jupyter"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/opt/conda/envs/anuga_env/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "jupyter.kernels.filter": [
+          {
+            "path": "/opt/conda/envs/anuga_env/bin/python",
+            "type": "pythonEnvironment"
+          }
+        ]
+      }
+    }
+  },
+
+  "remoteEnv": {
+    "CONDA_DEFAULT_ENV": "anuga_env"
+  }
+}

@@ -18,6 +18,7 @@ import gc
 import anuga
 from anuga.parallel import myid, numprocs, barrier
 from anuga.utilities import spatialInputUtil as su
+import anuga.utilities.log as log
 from anuga.parallel.parallel_api import pypar_available
 if pypar_available:
     from anuga import sequential_distribute_load
@@ -25,7 +26,6 @@ if pypar_available:
     from anuga.parallel.sequential_distribute import \
         sequential_distribute_load_pickle_file
 
-verbose = True
 
 def build_mesh(project):
     """
@@ -40,44 +40,43 @@ def build_mesh(project):
         su.combine_breakLines_and_riverWalls_for_mesh(project.breaklines,
                                                       project.riverwalls)
 
-    # Make the mesh
-
-    anuga.create_pmesh_from_regions(
-        project.bounding_polygon,
-        boundary_tags=project.boundary_tags,
-        maximum_triangle_area=project.default_res,
-        filename=project.meshname,
-        interior_regions=project.interior_regions,
-        use_cache=False,
-        verbose=verbose,
-        breaklines=mesh_breaklines,
-        regionPtArea=project.region_point_areas,
-    )
+    # Make the mesh — verbose output captured to file only
+    with log.file_only():
+        anuga.create_pmesh_from_regions(
+            project.bounding_polygon,
+            boundary_tags=project.boundary_tags,
+            maximum_triangle_area=project.default_res,
+            filename=project.meshname,
+            interior_regions=project.interior_regions,
+            use_cache=False,
+            verbose=True,
+            breaklines=mesh_breaklines,
+            regionPtArea=project.region_point_areas,
+        )
 
     # Make the domain using the mesh
 
     domain = anuga.create_domain_from_file(project.meshname)
 
-    # Print some stats about mesh and domain
+    # Key mesh stats go to screen (info level)
+    log.info('Number of triangles = %d' % len(domain))
+    log.info('The extent is %s' % str(domain.get_extent()))
 
-    print('Number of triangles = ', len(domain))
-    print('The extent is ', domain.get_extent())
-    print(domain.statistics())
-
-    # Print info on the smallest triangles
+    # Detailed stats go to file only (verbose level)
+    log.verbose(domain.statistics())
 
     small_areas = domain.areas.argsort()
-    print('')
-    print('LOCATIONS OF TRIANGLES WITH SMALLEST AREAS')
+    log.verbose('')
+    log.verbose('LOCATIONS OF TRIANGLES WITH SMALLEST AREAS')
     for i in range(10):
         j = small_areas[i]
         x = domain.centroid_coordinates[j, 0] \
             + domain.geo_reference.xllcorner
         y = domain.centroid_coordinates[j, 1] \
             + domain.geo_reference.yllcorner
-        print('  Area ' + str(domain.areas[j]) + ' location: ' \
-            + str(round(x, 1)) + ',' + str(round(y, 1)))
-    print('')
+        log.verbose('  Area %s location: %s,%s'
+                    % (domain.areas[j], round(x, 1), round(y, 1)))
+    log.verbose('')
 
     return domain
 
@@ -112,64 +111,59 @@ def setup_mesh(project, setup_initial_conditions=None):
     else:
         if myid == 0:
 
-            if verbose:
-                print('Hello from processor ', myid)
+            log.verbose('Hello from processor %d' % myid)
 
             pickle_name = 'domain' + '_P%g_%g.pickle' % (1, 0)
             pickle_name = join(project.partition_dir, pickle_name)
 
             if os.path.exists(pickle_name):
-                if verbose:
-                    print('Saved domain seems to already exist')
+                log.verbose('Saved domain seems to already exist')
             else:
-                if verbose:
-                    print('CREATING PARTITIONED DOMAIN')
+                log.info('Creating partitioned domain')
                 domain = build_mesh(project)
 
                 if setup_initial_conditions is not None:
                     setup_initial_conditions.setup_initial_conditions(
                         domain, project)
 
-                if verbose:
-                    print('Saving Domain')
-                sequential_distribute_dump(domain, 1,
-                                           partition_dir=project.partition_dir,
-                                           verbose=verbose)
+                log.verbose('Saving domain')
+                with log.file_only():
+                    sequential_distribute_dump(domain, 1,
+                                               partition_dir=project.partition_dir,
+                                               verbose=True)
 
             par_pickle_name = 'domain' + '_P%g_%g.pickle' % (numprocs, 0)
             par_pickle_name = join(project.partition_dir, par_pickle_name)
 
             if os.path.exists(par_pickle_name):
-                if verbose:
-                    print('Saved partitioned domain seems to already exist')
+                log.verbose('Saved partitioned domain seems to already exist')
             else:
-                if verbose:
-                    print('Load in saved sequential pickled domain')
-                domain = sequential_distribute_load_pickle_file(
-                    pickle_name, np=1, verbose=verbose)
+                log.verbose('Load in saved sequential pickled domain')
+                with log.file_only():
+                    domain = sequential_distribute_load_pickle_file(
+                        pickle_name, np=1, verbose=True)
 
-                if verbose:
-                    print('Dump partitioned domains')
-                sequential_distribute_dump(
-                    domain, numprocs,
-                    partition_dir=project.partition_dir, verbose=verbose)
+                log.verbose('Dump partitioned domains')
+                with log.file_only():
+                    sequential_distribute_dump(
+                        domain, numprocs,
+                        partition_dir=project.partition_dir, verbose=True)
 
             domain = None
             gc.collect()
 
         else:
             domain = None
-            if verbose:
-                print('Hello from processor ', myid)
+            log.verbose('Hello from processor %d' % myid)
 
         barrier()
 
-        if myid == 0:
-            print('LOADING PARTITIONED DOMAIN')
+        log.info('Loading partitioned domain')
 
-        domain = sequential_distribute_load(
-            filename=join(project.partition_dir, 'domain'),
-            verbose=verbose)
+        with log.file_only():
+            domain = sequential_distribute_load(
+                filename=join(project.partition_dir, 'domain'),
+                verbose=True)
 
     # #########################################################################
     # Set output directories

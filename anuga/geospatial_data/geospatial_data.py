@@ -17,7 +17,6 @@ from anuga.file.netcdf import NetCDFFile
 import numpy as num
 from numpy.random import randint, seed
 
-from anuga.coordinate_transforms.lat_long_UTM_conversion import UTMtoLL
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
     TitleError, DEFAULT_ZONE, ensure_geo_reference, write_NetCDF_georeference
@@ -352,15 +351,15 @@ class Geospatial_data(object):
         if as_lat_long is True:
             msg = "Points need a zone to be converted into lats and longs"
             assert self.geo_reference is not None, msg
-            zone = self.geo_reference.get_zone()
             assert self.geo_reference.get_zone() is not DEFAULT_ZONE, msg
-            lats_longs = []
-            for point in self.get_data_points(True):
-                # UTMtoLL(northing, easting, zone,
-                lat_calced, long_calced = UTMtoLL(point[1], point[0],
-                                                  zone, isSouthHemisphere)
-                lats_longs.append((lat_calced, long_calced))  # to hash
-            return lats_longs
+            from anuga.coordinate_transforms.redfearn import epsg_to_ll
+            pts = self.get_data_points(True)
+            epsg = self.geo_reference.get_epsg()
+            if epsg is None:
+                zone = self.geo_reference.get_zone()
+                epsg = 32700 + zone if isSouthHemisphere else 32600 + zone
+            lats, lons = epsg_to_ll(pts[:, 0], pts[:, 1], epsg)
+            return list(zip(lats.tolist(), lons.tolist()))
 
         if absolute is True and geo_reference is None:
             return self.geo_reference.get_absolute(self.data_points)

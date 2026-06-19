@@ -84,6 +84,7 @@ from anuga.geometry.polygon import polygon_area
 from anuga.geometry.polygon_function import Polygon_function
 
 from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM, UTMtoLL
+from anuga.coordinate_transforms.redfearn import epsg_to_ll, ll_to_epsg
 
 from anuga.abstract_2d_finite_volumes.pmesh2domain import \
                                             pmesh_to_domain_instance, \
@@ -323,6 +324,8 @@ from anuga.extras import rectangular_cross_domain
 from anuga.extras import create_basic_mesh_from_regions
 
 from anuga.utilities import log as log
+from anuga.utilities.log import set_logfile, TeeStream, file_only
+from anuga.utilities.log import verbose as log_verbose
 
 from anuga.config import g
 from anuga.config import velocity_protection
@@ -436,6 +439,8 @@ __all__ = [
     # Coordinate transforms
     'LLtoUTM',
     'UTMtoLL',
+    'epsg_to_ll',
+    'll_to_epsg',
     # Parallel API
     'barrier',
     'collect_value',
@@ -491,6 +496,8 @@ __all__ = [
     'memory_stats',
     'print_memory_stats',
     'log',
+    'set_logfile',
+    'TeeStream',
     'parse_standard_args',
     'parse_time',
     'plot_utils',

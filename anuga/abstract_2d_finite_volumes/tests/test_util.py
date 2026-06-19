@@ -1598,7 +1598,7 @@ class Test_Util(unittest.TestCase):
         if 314 < angle < 316: v=1
         assert v==1
        
-    def test_calc_bearings_zero_vector(self): 
+    def test_calc_bearings_zero_vector(self):
         from math import atan, degrees
 
         uh = 0
@@ -1606,7 +1606,29 @@ class Test_Util(unittest.TestCase):
         angle = calc_bearing(uh, vh)
 
         assert angle == NAN
-        
+
+    def test_get_gauges_from_file(self):
+        """get_gauges_from_file must parse a gauge file.
+
+        Regression test: the helper called ``gauge_get_from_file`` without
+        importing it (that function lives in ``gauge``), so every call raised
+        ``NameError``. It should return the (locations, names, elevations)
+        triple read from the file.
+        """
+        handle, filename = tempfile.mkstemp('.txt')
+        os.close(handle)
+        with open(filename, 'w') as fid:
+            fid.write('easting, northing, name, elevation\n')
+            fid.write('308500, 6193000, gauge_a, 1.0\n')
+            fid.write('308700, 6193200, gauge_b, 2.5\n')
+
+        gauges, gaugelocation, elev = get_gauges_from_file(filename)
+        os.remove(filename)
+
+        assert gauges == [[308500.0, 6193000.0], [308700.0, 6193200.0]]
+        assert gaugelocation == ['gauge_a', 'gauge_b']
+        assert elev == [1.0, 2.5]
+
 #-------------------------------------------------------------
 
 if __name__ == "__main__":

@@ -198,6 +198,54 @@ class Test_Mesh_Reorder(unittest.TestCase):
 
         compare_meshes(new_mesh, reorder_mesh)
 
+    def test_basic_mesh_reorder_neighbours_consistent(self):
+        """Basic_mesh.reorder() must produce correct neighbours even when
+        _neighbours has not been accessed before the reorder call.
+
+        Regression test for a bug where the lazy-built _neighbours were
+        constructed from an unreordered _triangle_neighbours cache after
+        reorder(), causing ghost-layer BFS to follow wrong adjacency and
+        produce more ghost triangles than distribute() for the same mesh.
+        """
+        import numpy as np
+        from anuga.abstract_2d_finite_volumes.basic_mesh import (
+            rectangular_cross_basic_mesh)
+
+        # Build a small mesh.  _neighbours starts as None (not yet accessed).
+        bm = rectangular_cross_basic_mesh(5, 5, len1=5.0, len2=5.0)
+        assert bm._neighbours is None, \
+            "Precondition: _neighbours should be None before first access"
+
+        # Capture ground-truth neighbours BEFORE reordering.
+        nbrs_before = bm.neighbours.copy()   # triggers _build_neighbours
+
+        # Reset so we can test the lazy path.
+        bm2 = rectangular_cross_basic_mesh(5, 5, len1=5.0, len2=5.0)
+        assert bm2._neighbours is None
+
+        # Apply a non-trivial permutation.
+        N = bm2.number_of_triangles
+        rng = np.random.default_rng(42)
+        new_order = rng.permutation(N)
+
+        reordered = bm2.reorder(new_order, in_place=False)
+
+        # After reorder the neighbours must be self-consistent:
+        # for each triangle i and each edge j, if reordered.neighbours[i,j] == k
+        # then triangle k must be adjacent to triangle i.
+        nbrs = reordered.neighbours
+        tris = reordered.triangles
+        for i in range(N):
+            for j in range(3):
+                k = nbrs[i, j]
+                if k < 0:
+                    continue  # boundary edge, skip
+                # Triangles i and k must share exactly 2 nodes.
+                shared = set(tris[i]) & set(tris[k])
+                assert len(shared) == 2, (
+                    f"Triangle {i} and neighbour {k} share {len(shared)} "
+                    f"nodes (expected 2) after reorder — neighbours are stale")
+
     # def test_reorder_larger_16_16(self):
     #     """Test larger mesh which failed in sequential_dist example
         

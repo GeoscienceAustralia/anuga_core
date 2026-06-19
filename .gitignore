@@ -225,3 +225,4 @@ doc/source/generated
 ###################################
 anuga/__config__.py
 anuga/version.py
+benchmarks/results/

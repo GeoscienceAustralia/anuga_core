@@ -576,6 +576,14 @@ class Generic_Domain(object):
         self.mesh.set_georeference(*args, **kwargs)
         self.geo_reference = self.mesh.geo_reference
 
+    def get_epsg(self):
+        """Return the EPSG code of the domain's coordinate reference system."""
+        return self.geo_reference.get_epsg()
+
+    def set_epsg(self, epsg):
+        """Set the EPSG code of the domain's coordinate reference system."""
+        self.geo_reference.epsg = int(epsg)
+
     def build_boundary_dictionary(self, *args, **kwargs):
         self.mesh.build_boundary_dictionary(*args, **kwargs)
 

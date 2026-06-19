@@ -2308,12 +2308,12 @@ Parameters
         lat_ll, lon_ll = 34.37, 150.90
         lat_ur, lon_ur = 34.39, 150.92
 
-        import utm
-        utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
-        utm_east_ur, utm_north_ur, zone_ur, zone_letter_ur = utm.from_latlon(lat_ur, lon_ur)
+        from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM
+        zone_ll, utm_east_ll, utm_north_ll = LLtoUTM(lat_ll, lon_ll)
+        zone_ur, utm_east_ur, utm_north_ur = LLtoUTM(lat_ur, lon_ur)
 
-        hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
-        hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
+        hemisphere_ll = 'southern' if lat_ll < 0 else 'northern'
+        hemisphere_ur = 'southern' if lat_ur < 0 else 'northern'
 
         lat = numpy.linspace(lat_ll, lat_ur, 11)
         lon = numpy.linspace(lon_ll, lon_ur, 11)
@@ -2417,12 +2417,12 @@ Parameters
         lat_ll, lon_ll = 34.37, 150.90
         lat_ur, lon_ur = 34.39, 150.92
 
-        import utm
-        utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
-        utm_east_ur, utm_north_ur, zone_ur, zone_letter_ur = utm.from_latlon(lat_ur, lon_ur)
+        from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM
+        zone_ll, utm_east_ll, utm_north_ll = LLtoUTM(lat_ll, lon_ll)
+        zone_ur, utm_east_ur, utm_north_ur = LLtoUTM(lat_ur, lon_ur)
 
-        hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
-        hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
+        hemisphere_ll = 'southern' if lat_ll < 0 else 'northern'
+        hemisphere_ur = 'southern' if lat_ur < 0 else 'northern'
 
         lat = numpy.linspace(lat_ll, lat_ur, 11)
         lon = numpy.linspace(lon_ll, lon_ur, 11)
@@ -2526,12 +2526,12 @@ Parameters
         lat_ll, lon_ll = -34.39, 150.90
         lat_ur, lon_ur = -34.37, 150.92
 
-        import utm
-        utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
-        utm_east_ur, utm_north_ur, zone_ur, zone_letter_ur = utm.from_latlon(lat_ur, lon_ur)
+        from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM
+        zone_ll, utm_east_ll, utm_north_ll = LLtoUTM(lat_ll, lon_ll)
+        zone_ur, utm_east_ur, utm_north_ur = LLtoUTM(lat_ur, lon_ur)
 
-        hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
-        hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
+        hemisphere_ll = 'southern' if lat_ll < 0 else 'northern'
+        hemisphere_ur = 'southern' if lat_ur < 0 else 'northern'
 
         lat = numpy.linspace(lat_ll, lat_ur, 11)
         lon = numpy.linspace(lon_ll, lon_ur, 11)
@@ -2625,12 +2625,12 @@ Parameters
         lat_ll, lon_ll = -34.39, 150.90
         lat_ur, lon_ur = -34.37, 150.92
 
-        import utm
-        utm_east_ll, utm_north_ll, zone_ll, zone_letter_ll = utm.from_latlon(lat_ll, lon_ll)
-        utm_east_ur, utm_north_ur, zone_ur, zone_letter_ur = utm.from_latlon(lat_ur, lon_ur)
+        from anuga.coordinate_transforms.lat_long_UTM_conversion import LLtoUTM
+        zone_ll, utm_east_ll, utm_north_ll = LLtoUTM(lat_ll, lon_ll)
+        zone_ur, utm_east_ur, utm_north_ur = LLtoUTM(lat_ur, lon_ur)
 
-        hemisphere_ll = zone_letter_to_hemisphere(zone_letter_ll)
-        hemisphere_ur = zone_letter_to_hemisphere(zone_letter_ur)
+        hemisphere_ll = 'southern' if lat_ll < 0 else 'northern'
+        hemisphere_ur = 'southern' if lat_ur < 0 else 'northern'
 
         easting = numpy.linspace(utm_east_ll, utm_east_ur, 11)
         northing = numpy.linspace(utm_north_ll, utm_north_ur, 11)

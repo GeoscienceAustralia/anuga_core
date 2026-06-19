@@ -10,6 +10,66 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, DEFAULT_ZON
 
 import numpy as num
 
+
+def epsg_to_ll(easting, northing, epsg):
+    """Convert projected coordinates to latitude/longitude using pyproj.
+
+    Parameters
+    ----------
+    easting : array-like
+        Easting coordinates in the CRS defined by epsg.
+    northing : array-like
+        Northing coordinates in the CRS defined by epsg.
+    epsg : int
+        EPSG code of the source CRS (e.g. 32755 for UTM zone 55S).
+
+    Returns
+    -------
+    lat : ndarray
+    lon : ndarray
+    """
+    from pyproj import Transformer
+    t = Transformer.from_crs(epsg, 4326, always_xy=True)
+    e = num.asarray(easting, dtype=num.float64)
+    n = num.asarray(northing, dtype=num.float64)
+    # pyproj's fast scalar path calls float() on its inputs internally.
+    # In NumPy >= 2.0, float(array_with_ndim > 0) is deprecated.
+    # For single-element inputs use .item() to give pyproj a plain Python
+    # float; for multi-element arrays the array path is taken automatically.
+    if e.size == 1:
+        lon, lat = t.transform(e.item(), n.item())
+        return num.asarray(lat).reshape(e.shape), num.asarray(lon).reshape(e.shape)
+    lon, lat = t.transform(e, n)
+    return num.asarray(lat), num.asarray(lon)
+
+
+def ll_to_epsg(lat, lon, epsg):
+    """Convert latitude/longitude to projected coordinates using pyproj.
+
+    Parameters
+    ----------
+    lat : array-like
+        Latitudes in decimal degrees.
+    lon : array-like
+        Longitudes in decimal degrees.
+    epsg : int
+        EPSG code of the target CRS (e.g. 32755 for UTM zone 55S).
+
+    Returns
+    -------
+    easting : ndarray
+    northing : ndarray
+    """
+    from pyproj import Transformer
+    t = Transformer.from_crs(4326, epsg, always_xy=True)
+    la = num.asarray(lat, dtype=num.float64)
+    lo = num.asarray(lon, dtype=num.float64)
+    if la.size == 1:
+        easting, northing = t.transform(lo.item(), la.item())
+        return num.asarray(easting).reshape(la.shape), num.asarray(northing).reshape(la.shape)
+    easting, northing = t.transform(lo, la)
+    return num.asarray(easting), num.asarray(northing)
+
 def degminsec2decimal_degrees(dd,mm,ss):
     assert abs(mm) == mm
     assert abs(ss) == ss    

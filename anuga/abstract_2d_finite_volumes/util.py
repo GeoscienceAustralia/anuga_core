@@ -131,6 +131,8 @@ def get_textual_float(value, format = '%.2f'):
             return format % float(value)
 
 def get_gauges_from_file(filename):
+    # Imported locally to avoid a circular import: gauge imports from util.
+    from anuga.abstract_2d_finite_volumes.gauge import gauge_get_from_file
     return gauge_get_from_file(filename)
 
 

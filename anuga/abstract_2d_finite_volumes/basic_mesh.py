@@ -146,6 +146,14 @@ class Basic_mesh:
         -------
         Basic_mesh
         """
+        # Force neighbour computation before any reordering.
+        # _triangle_neighbours (if set) contains pre-reorder indices; once
+        # the triangle numbering changes those indices become stale.  Building
+        # _neighbours now ensures they are remapped correctly below and
+        # prevents _build_neighbours() from later reconstructing from the
+        # stale _triangle_neighbours cache.
+        _ = self.neighbours  # triggers _build_neighbours() if not yet done
+
         new_order = num.array(new_order, int)
         N = self.number_of_triangles
         inv_order = num.empty_like(new_order)

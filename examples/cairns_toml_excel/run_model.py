@@ -141,21 +141,12 @@ domain.set_omp_num_threads(project.omp_num_threads)
 
 print('Evolving')
 
-import io
-_logfile = sys.stdout  # Logger or normal stdout
 barrier()
 for t in domain.evolve(yieldstep=project.yieldstep,
                        finaltime=project.finaltime,
                        outputstep=project.outputstep):
     if myid == 0:
-        buf = io.StringIO()
-        sys.stdout = buf
         domain.print_timestepping_statistics()
-        sys.stdout = _logfile
-        stats = buf.getvalue()
-        sys.__stdout__.write(stats)
-        sys.__stdout__.flush()
-        _logfile.write(stats)
 
     if project.report_mass_conservation_statistics:
         domain.report_water_volume_statistics()

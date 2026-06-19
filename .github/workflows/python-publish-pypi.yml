@@ -1,129 +1,184 @@
-# This workflow will upload a Python Package to PyPI when a release is created
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python#publishing-to-package-registries
+# Build wheels on every push / PR for early feedback.
+# On a GitHub Release publish, build wheels then upload to PyPI.
 
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-
-name: Python Publish PYPI
+name: Build and Publish to PyPI
 
 on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
   release:
     types: [published]
-
-  
 
 permissions:
   contents: read
 
 jobs:
-  release-build:
+  # ---------------------------------------------------------------------------
+  # Build one wheel per (python-version, os) combination.
+  # Runs on every push/PR so broken wheels are caught before tagging.
+  # ---------------------------------------------------------------------------
+  build-wheels:
+    name: Build wheel (py${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest] 
+        os: [ubuntu-latest, macos-latest, windows-latest]
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
-        #python-version: ['3.10', '3.11']
 
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0  # fetch full history so git describe can find tags
-      - uses: conda-incubator/setup-miniconda@v3
-        with:
-          miniforge-version: latest      # Installs Miniforge instead of Miniconda
-          use-mamba: true                # Recommended for faster installs
-          python-version: ${{ matrix.python-version }}
-          auto-update-conda: true        # Auto-update conda or mamba
+          fetch-depth: 0  # git describe needs full history for version
 
-      - name: Install Our own environment
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          use-mamba: true
+          python-version: ${{ matrix.python-version }}
+          auto-update-conda: true
+          conda-remove-defaults: true
+
+      - name: Create conda environment with build deps
         shell: bash -el {0}
         run: |
-          conda create -n anuga_env -c conda-forge python=${{matrix.python-version}}
+          conda create -n anuga_env -c conda-forge \
+            python=${{ matrix.python-version }} pip \
+            meson-python meson ninja cython pybind11 numpy pkg-config
 
-      - name: Install gcc compilers on Windows
+      - name: Install compilers (Windows)
         if: runner.os == 'Windows'
         shell: bash -el {0}
-        run: |
-           conda install -c conda-forge -n anuga_env libpython gcc_win-64 gxx_win-64
+        run: conda install -c conda-forge -n anuga_env libpython gcc_win-64 gxx_win-64
 
-           # conda install -c conda-forge -n anuga_env compilers
-           # The compilers package on windows which uses clang. We run into
-           # problems when testing anuga, so we skip it for now.
-
-      - name: Install clang with openmp compiler on macOS
+      - name: Install compilers (macOS)
         if: runner.os == 'macOS'
         shell: bash -el {0}
-        run: |
-           conda install -c conda-forge -n anuga_env compilers
+        run: conda install -c conda-forge -n anuga_env compilers
 
-      - name: Install gxx with openmp compiler on Linux
+      - name: Install compilers (Linux)
         if: runner.os == 'Linux'
         shell: bash -el {0}
-        run: |
-           conda install -c conda-forge -n anuga_env compilers
+        run: conda install -c conda-forge -n anuga_env compilers
 
-      - name: Build wheels
+      - name: Build wheel
         shell: bash -el {0}
         run: |
           conda activate anuga_env
-          python -m pip install build
-          python -m build --wheel --outdir dist-wheel
+          export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$CONDA_PREFIX/share/pkgconfig"
+          pip wheel --no-build-isolation --no-deps -w dist-wheel .
 
-      - name: Repair wheels
+      - name: Repair wheel (bundle external libs; self-contained per platform)
         shell: bash -el {0}
         run: |
           conda activate anuga_env
-          python -m pip install repairwheel
-          repairwheel -o dist dist-wheel/*.whl
+          pip install repairwheel
+          # repairwheel dispatches per platform: auditwheel (Linux, manylinux),
+          # delocate (macOS), delvewheel (Windows). On macOS this copies
+          # libomp.dylib into the wheel and rewrites the @rpath so the wheel is
+          # self-contained — without it `import anuga` from the published wheel
+          # fails with "Library not loaded: @rpath/libomp.dylib" (the build links
+          # conda's libomp via an rpath into the conda env). delvewheel does the
+          # equivalent DLL bundling on Windows. Pass the conda lib dirs that
+          # exist on this OS so dependent libraries are found at repair time.
+          libdirs=()
+          for d in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/Library/bin"; do
+            [ -d "$d" ] && libdirs+=(-l "$d")
+          done
+          repairwheel "${libdirs[@]}" -o dist dist-wheel/*.whl
 
-      - name: Build source distribution
-        if: runner.os == 'linux' && matrix.python-version == '3.13'
-        shell: bash -el {0}
-        run: |
-          conda activate anuga_env
-          python -m build --sdist --outdir dist
-          
-      - name: Upload distributions
+      - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
-          name: release-dists-${{ matrix.python-version }}-${{ matrix.os }}
-          path: dist/
+          name: wheel-py${{ matrix.python-version }}-${{ matrix.os }}
+          path: dist/*.whl
 
-
-
-
-  pypi-publish:
-    name: Upload release to PyPI
+  # ---------------------------------------------------------------------------
+  # Build the source distribution (once, on Linux / Python 3.13).
+  # ---------------------------------------------------------------------------
+  build-sdist:
+    name: Build source distribution
     runs-on: ubuntu-latest
-    needs:
-      - release-build
-    
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          use-mamba: true
+          auto-update-conda: true
+          conda-remove-defaults: true
+
+      - name: Create conda environment
+        shell: bash -el {0}
+        run: |
+          conda create -n anuga_env -c conda-forge python=3.13 pip \
+            meson-python meson ninja cython pybind11 numpy pkg-config
+
+      - name: Build sdist
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          # PKG_CONFIG_PATH is inherited by the isolated build venv so meson
+          # finds conda's Python headers instead of the broken system ones.
+          export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$CONDA_PREFIX/share/pkgconfig"
+          pip install build
+          python -m build --sdist --outdir dist
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+
+  # ---------------------------------------------------------------------------
+  # Publish to PyPI — only runs when a GitHub Release is published.
+  # Requires all wheel builds and the sdist to succeed first.
+  # ---------------------------------------------------------------------------
+  publish:
+    name: Publish to PyPI
+    needs: [build-wheels, build-sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+
     environment:
       name: anuga
       url: https://pypi.org/p/anuga
 
     permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write  # required for trusted publishing (OIDC)
+      contents: write  # required to upload release assets
 
     steps:
-      - name: Retrieve release distributions
+      - name: Download all wheel artifacts
         uses: actions/download-artifact@v8
         with:
-          pattern: release-dists-*
+          pattern: wheel-*
           path: dist
           merge-multiple: true
 
-      - run: ls ./dist  # All wheels from all matrix jobs are now here
+      - name: Download sdist artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: sdist
+          path: dist
 
+      - name: List distributions to upload
+        run: ls -lh dist/
 
-      - name: Publish release distributions to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          #repository-url: https://test.pypi.org/legacy/
           verify-metadata: false
           verbose: true
           packages-dir: dist/
 
+      - name: Upload wheels and sdist as GitHub Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload ${{ github.ref_name }} dist/* --clobber --repo ${{ github.repository }}

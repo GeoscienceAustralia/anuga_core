@@ -1,0 +1,39 @@
+name: anuga_env
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  # Build tools
+  - compilers
+  - cython
+  - meson
+  - meson-python=0.17
+  - ninja
+  - pybind11
+  - pkg-config
+  # Runtime dependencies
+  - dill
+  - matplotlib
+  - meshpy
+  - netcdf4
+  - numpy
+  - pyproj
+  - scipy
+  - xarray
+  # Optional but useful
+  - mpi4py
+  - pymetis
+  - rasterio
+  - fiona
+  - shapely
+  - pandas
+  - openpyxl
+  - cartopy
+  # Testing and notebooks
+  - pytest
+  - pytest-regressions
+  - jupyter
+  - ipykernel
+  - pip:
+    - pmw

@@ -11,7 +11,6 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
     import numpy as np
     import rasterio
     from pyproj import CRS, Transformer
-    from affine import Affine
 
     with rasterio.open(filename) as raster:
         ncols = raster.width
@@ -45,7 +44,13 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
         tif_georeference = CRS.from_epsg(4326)
 
         transformer = Transformer.from_crs(points_utm, tif_georeference)
-        points_lat, points_lon = transformer.transform(points[:, 0], points[:, 1])
+        # pyproj dispatches to _transform_point (scalar path) when given a
+        # 1-element array, which fails with numpy >= 1.25.  Pass plain Python
+        # lists so pyproj always uses the array path, then convert back.
+        _lat, _lon = transformer.transform(
+            points[:, 0].tolist(), points[:, 1].tolist())
+        points_lat = np.asarray(_lat)
+        points_lon = np.asarray(_lon)
 
         ilocs = np.array(~affine_transform * (points_lon, points_lat))
 

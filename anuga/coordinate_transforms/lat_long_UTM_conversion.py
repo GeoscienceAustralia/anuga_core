@@ -57,77 +57,39 @@ _ellipsoid = [
 #Defense Mapping Agency. 1987b. DMA Technical Report: Supplement to Department of Defense World Geodetic System
 #1984 Technical Report. Part I and II. Washington, DC: Defense Mapping Agency
 
-#def LLtoUTM(int ReferenceEllipsoid, const double Lat, const double Long,
-#			 double &UTMNorthing, double &UTMEasting, char* UTMZone)
+def LLtoUTM(Lat, Long, ReferenceEllipsoid=23):
+    """Convert latitude/longitude to UTM coordinates (WGS84).
 
-def LLtoUTM( Lat, Long, ReferenceEllipsoid=23):
+    Parameters
+    ----------
+    Lat : float
+        Latitude in decimal degrees (positive north).
+    Long : float
+        Longitude in decimal degrees (positive east).
+    ReferenceEllipsoid : int, optional
+        Ignored — retained for backward compatibility. pyproj always uses WGS84.
+
+    Returns
+    -------
+    ZoneNumber : int
+    UTMEasting : float
+    UTMNorthing : float
     """
-    converts lat/long to UTM coords.  Equations from USGS Bulletin 1532
-    East Longitudes are positive, West longitudes are negative.
-    North latitudes are positive, South latitudes are negative
-    Lat and Long are in decimal degrees
-    Written by Chuck Gantz- chuck.gantz@globalstar.com
-    """
-    a = _ellipsoid[ReferenceEllipsoid][_EquatorialRadius]
-    eccSquared = _ellipsoid[ReferenceEllipsoid][_eccentricitySquared]
-    k0 = 0.9996
-
-    #Make sure the longitude is between -180.00 .. 179.9
-    LongTemp = (Long+180)-int((Long+180)/360)*360-180 # -180.00 .. 179.9
-
-    LatRad = Lat*_deg2rad
-    LongRad = LongTemp*_deg2rad
-
-    ZoneNumber = int((LongTemp + 180)/6) + 1
-
-    if Lat >= 56.0 and Lat < 64.0 and LongTemp >= 3.0 and LongTemp < 12.0:
+    # Compute UTM zone number, retaining special-zone handling for Norway/Svalbard.
+    LongTemp = (Long + 180) - int((Long + 180) / 360) * 360 - 180
+    ZoneNumber = int((LongTemp + 180) / 6) + 1
+    if 56.0 <= Lat < 64.0 and 3.0 <= LongTemp < 12.0:
         ZoneNumber = 32
+    if 72.0 <= Lat < 84.0:
+        if   LongTemp <  9.0: ZoneNumber = 31
+        elif LongTemp < 21.0: ZoneNumber = 33
+        elif LongTemp < 33.0: ZoneNumber = 35
+        elif LongTemp < 42.0: ZoneNumber = 37
 
-    # Special zones for Svalbard
-    if Lat >= 72.0 and Lat < 84.0:
-        if  LongTemp >= 0.0  and LongTemp <  9.0:ZoneNumber = 31
-        elif LongTemp >= 9.0  and LongTemp < 21.0: ZoneNumber = 33
-        elif LongTemp >= 21.0 and LongTemp < 33.0: ZoneNumber = 35
-        elif LongTemp >= 33.0 and LongTemp < 42.0: ZoneNumber = 37
-
-    LongOrigin = (ZoneNumber - 1)*6 - 180 + 3 #+3 puts origin in middle of zone
-    LongOriginRad = LongOrigin * _deg2rad
-
-    #compute the UTM Zone from the latitude and longitude
-    UTMZone = "%d%c" % (ZoneNumber, _UTMLetterDesignator(Lat))
-
-    eccPrimeSquared = (eccSquared)/(1-eccSquared)
-    N = a/sqrt(1-eccSquared*sin(LatRad)*sin(LatRad))
-    T = tan(LatRad)*tan(LatRad)
-    C = eccPrimeSquared*cos(LatRad)*cos(LatRad)
-    A = cos(LatRad)*(LongRad-LongOriginRad)
-
-    M = a*((1
-            - eccSquared/4
-            - 3*eccSquared*eccSquared/64
-            - 5*eccSquared*eccSquared*eccSquared/256)*LatRad
-           - (3*eccSquared/8
-              + 3*eccSquared*eccSquared/32
-              + 45*eccSquared*eccSquared*eccSquared/1024)*sin(2*LatRad)
-           + (15*eccSquared*eccSquared/256 + 45*eccSquared*eccSquared*eccSquared/1024)*sin(4*LatRad)
-           - (35*eccSquared*eccSquared*eccSquared/3072)*sin(6*LatRad))
-
-    UTMEasting = (k0*N*(A+(1-T+C)*A*A*A/6
-                        + (5-18*T+T*T+72*C-58*eccPrimeSquared)*A*A*A*A*A/120)
-                  + 500000.0)
-
-    UTMNorthing = (k0*(M+N*tan(LatRad)*(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24
-                                        + (61
-                                           -58*T
-                                           +T*T
-                                           +600*C
-                                           -330*eccPrimeSquared)*A*A*A*A*A*A/720)))
-
-    if Lat < 0:
-        UTMNorthing = UTMNorthing + 10000000.0; #10000000 meter offset for southern hemisphere
-    #UTMZone was originally returned here.  I don't know what the
-    #letter at the end was for.
-    return (ZoneNumber, UTMEasting, UTMNorthing)
+    from anuga.coordinate_transforms.redfearn import ll_to_epsg
+    epsg = 32700 + ZoneNumber if Lat < 0 else 32600 + ZoneNumber
+    easting, northing = ll_to_epsg(Lat, Long, epsg)
+    return (ZoneNumber, float(easting), float(northing))
 
 
 def _UTMLetterDesignator(Lat):
@@ -157,92 +119,32 @@ def _UTMLetterDesignator(Lat):
     elif -72 > Lat >= -80: return 'C'
     else: return 'Z'	# if the Latitude is outside the UTM limits
 
-#void UTMtoLL(int ReferenceEllipsoid, const double UTMNorthing, const double UTMEasting, const char* UTMZone,
-#			  double& Lat,  double& Long )
-
 def UTMtoLL(northing, easting, zone, isSouthernHemisphere=True,
             ReferenceEllipsoid=23):
+    """Convert UTM coordinates to latitude/longitude (WGS84).
+
+    Parameters
+    ----------
+    northing : float
+        UTM northing in metres.
+    easting : float
+        UTM easting in metres.
+    zone : int
+        UTM zone number (1–60).
+    isSouthernHemisphere : bool, optional
+        True (default) for southern hemisphere, False for northern.
+    ReferenceEllipsoid : int, optional
+        Ignored — retained for backward compatibility. pyproj always uses WGS84.
+
+    Returns
+    -------
+    lat : float
+    lon : float
     """
-    converts UTM coords to lat/long.  Equations from USGS Bulletin 1532
-    East Longitudes are positive, West longitudes are negative.
-    North latitudes are positive, South latitudes are negative
-    Lat and Long are in decimal degrees.
-    Written by Chuck Gantz- chuck.gantz@globalstar.com
-    Converted to Python by Russ Nelson <nelson@crynwr.com>
-
-    FIXME: This is set up to work for the Southern Hemisphere.
-
-Using
-http://www.ga.gov.au/geodesy/datums/redfearn_geo_to_grid.jsp
-
-    Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
-Zone:   36    
-Easting:  511669.521  Northing: 19328195.112 
-Latitude:   84  0 ' 0.00000 ''  Longitude: 34  0 ' 0.00000 '' 
-Grid Convergence:  0  -59 ' 40.28 ''  Point Scale: 0.99960166
-
-____________
-Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
-Zone:   36    
-Easting:  519384.803  Northing: 1118247.585 
-Latitude:   -80  0 ' 0.00000 ''  Longitude: 34  0 ' 0.00000 '' 
-Grid Convergence:  0  59 ' 5.32 ''  Point Scale: 0.99960459 
-___________
-Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
-Zone:   36    
-Easting:  611263.812  Northing: 10110547.106 
-Latitude:   1  0 ' 0.00000 ''  Longitude: 34  0 ' 0.00000 '' 
-Grid Convergence:  0  -1 ' 2.84 ''  Point Scale: 0.99975325 
-______________
-Site Name:    GDA-MGA: (UTM with GRS80 ellipsoid) 
-Zone:   36    
-Easting:  611263.812  Northing: 9889452.894 
-Latitude:   -1  0 ' 0.00000 ''  Longitude: 34  0 ' 0.00000 '' 
-Grid Convergence:  0  1 ' 2.84 ''  Point Scale: 0.99975325 
-
-So this uses a false northing of 10000000 in the both hemispheres.
-ArcGIS used a false northing of 0 in the northern hem though.
-Therefore it is difficult to actually know what hemisphere you are in.
-    """
-    k0 = 0.9996
-    a = _ellipsoid[ReferenceEllipsoid][_EquatorialRadius]
-    eccSquared = _ellipsoid[ReferenceEllipsoid][_eccentricitySquared]
-    e1 = (1-sqrt(1-eccSquared))/(1+sqrt(1-eccSquared))
-
-    x = easting - 500000.0 #remove 500,000 meter offset for longitude
-    y = northing
-
-    ZoneNumber = int(zone)
-    if isSouthernHemisphere:
-        y -= 10000000.0         # remove 10,000,000 meter offset used
-                                # for southern hemisphere
-
-    LongOrigin = (ZoneNumber - 1)*6 - 180 + 3  # +3 puts origin in middle of zone
-
-    eccPrimeSquared = (eccSquared)/(1-eccSquared)
-
-    M = y/ k0
-    mu = M/(a*(1-eccSquared/4-3*eccSquared*eccSquared/64-5*eccSquared*eccSquared*eccSquared/256))
-
-    phi1Rad = (mu + (3*e1/2-27*e1*e1*e1/32)*sin(2*mu)
-               + (21*e1*e1/16-55*e1*e1*e1*e1/32)*sin(4*mu)
-               +(151*e1*e1*e1/96)*sin(6*mu))
-    phi1 = phi1Rad*_rad2deg;
-
-    N1 = a/sqrt(1-eccSquared*sin(phi1Rad)*sin(phi1Rad))
-    T1 = tan(phi1Rad)*tan(phi1Rad)
-    C1 = eccPrimeSquared*cos(phi1Rad)*cos(phi1Rad)
-    R1 = a*(1-eccSquared)/pow(1-eccSquared*sin(phi1Rad)*sin(phi1Rad), 1.5)
-    D = x/(N1*k0)
-
-    Lat = phi1Rad - (N1*tan(phi1Rad)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*eccPrimeSquared)*D*D*D*D/24
-                                          +(61+90*T1+298*C1+45*T1*T1-252*eccPrimeSquared-3*C1*C1)*D*D*D*D*D*D/720)
-    Lat = Lat * _rad2deg
-
-    Long = (D-(1+2*T1+C1)*D*D*D/6+(5-2*C1+28*T1-3*C1*C1+8*eccPrimeSquared+24*T1*T1)
-            *D*D*D*D*D/120.0)/cos(phi1Rad)
-    Long = LongOrigin + Long * _rad2deg
-    return (Lat, Long)
+    from anuga.coordinate_transforms.redfearn import epsg_to_ll
+    epsg = 32700 + int(zone) if isSouthernHemisphere else 32600 + int(zone)
+    lat, lon = epsg_to_ll(easting, northing, epsg)
+    return float(lat), float(lon)
 
 if __name__ == '__main__':
     (z, e, n) = LLtoUTM(-45.00, -75.00, 23)

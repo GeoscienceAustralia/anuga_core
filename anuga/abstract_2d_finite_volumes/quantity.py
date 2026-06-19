@@ -1731,39 +1731,13 @@ class Quantity(object):
         if verbose:
             print(self.domain.geo_reference)
 
-        utm_zone = self.domain.geo_reference.get_zone()
-        utm_hemisphere = self.domain.geo_reference.get_hemisphere()
-
-        northern = True
-        if utm_hemisphere == 'southern':
-            northern = False
-
-        #import re
-        #utm_zone_number = re.findall(r'\d+', utm_zone)[0]
-        #utm_zone_letter = re.findall(r'[A-z]+', utm_zone)[0]
-
-        #print(utm_zone)
-        #print(points)
-
-        # we could use anuga's utmtoLL but it has not been vectorised so lets
-        # use this library, but we will have to download via pip
-        import utm
-        lat, long = utm.to_latlon(points[:,0], points[:,1], utm_zone, northern=northern)
-
-        #print(lat)
-        #print(long)
+        from anuga.coordinate_transforms.redfearn import epsg_to_ll
+        epsg = self.domain.geo_reference.get_epsg()
+        lat, long = epsg_to_ll(points[:,0], points[:,1], epsg)
 
         lat = num.reshape(lat, (-1,1))
         long = num.reshape(long, (-1,1))
         points_ll = num.hstack((long,lat))
-
-
-        # need to pull out the the utm zone number and letter
-
-        
-
-        #import utm
-        #points_ll = utm.to_latlon(easting = points[:,0], northing=points[:,1])
 
 
         #print('points_ll', points_ll)

@@ -18,6 +18,7 @@ Script Structure
    operators
    evolve
    checkpointing
+   logging
    
 .. only:: html
 
