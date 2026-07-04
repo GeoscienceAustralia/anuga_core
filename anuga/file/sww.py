@@ -996,8 +996,24 @@ class Write_sww(Write_sts):
             # check if time already saved as in check pointing
             if slice_index > 0:
                 if time <= file_time[slice_index-1]:
-                    check = numpy.where(numpy.abs(file_time[:]-time) < 1.0e-14)
-                    slice_index = int(check[0][0])
+                    # This time is being (re)written rather than appended
+                    # (e.g. resuming from a checkpoint, or a near-duplicate
+                    # yield time): find the existing slot to overwrite.
+                    # The tolerance must scale with the time magnitude — a
+                    # fixed 1e-14 is *below* the float64 ULP for any t beyond
+                    # a few tens of seconds, so the match would spuriously
+                    # fail at large t. If nothing matches, append rather than
+                    # crash with an IndexError on an empty result.
+                    tol = 1.0e-9 * max(1.0, abs(time))
+                    check = numpy.where(numpy.abs(file_time[:]-time) <= tol)[0]
+                    if len(check) > 0:
+                        slice_index = int(check[0])
+                    else:
+                        log.warning(
+                            'store_quantities: time %.17g <= last stored time '
+                            '%.17g but no slot matches within %g; appending'
+                            % (time, file_time[slice_index-1], tol))
+                        slice_index = len(file_time)
             file_time[slice_index] = time
         else:
             # Has to be cast in case it was numpy.int
