@@ -313,7 +313,8 @@ class Parallel_Weir_orifice_trapezoid_operator(Parallel_Structure_operator):
                                                 delta_total_energy  =self.delta_total_energy,
                                                 outlet_enquiry_depth=outflow_enq_depth,
                                                 sum_loss            =self.sum_loss,
-                                                manning             =self.manning)
+                                                manning             =self.manning,
+                                                g                   =self.domain.g)
 
                 ################################################
                 # Smooth discharge. This can reduce oscillations

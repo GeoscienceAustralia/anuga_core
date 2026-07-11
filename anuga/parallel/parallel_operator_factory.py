@@ -277,6 +277,11 @@ def Boyd_box_operator(domain,
                                          inlet_procs = inlet_procs,
                                          enquiry_proc = enquiry_proc)
     else:
+        # This proc owns no part of the structure, so the constructor above is
+        # not called here. Still advance the shared counter so every rank stays
+        # in lockstep with the participating procs (which advance it in the
+        # operator constructor) — the factory is entered collectively.
+        Parallel_Structure_operator.counter += 1
         return None
 
 
@@ -441,6 +446,11 @@ def Boyd_pipe_operator(domain,
                                          inlet_procs = inlet_procs,
                                          enquiry_proc = enquiry_proc)
     else:
+        # This proc owns no part of the structure, so the constructor above is
+        # not called here. Still advance the shared counter so every rank stays
+        # in lockstep with the participating procs (which advance it in the
+        # operator constructor) — the factory is entered collectively.
+        Parallel_Structure_operator.counter += 1
         return None
 
 
@@ -626,6 +636,11 @@ def Weir_orifice_trapezoid_operator(domain,
                                          inlet_procs = inlet_procs,
                                          enquiry_proc = enquiry_proc)
     else:
+        # This proc owns no part of the structure, so the constructor above is
+        # not called here. Still advance the shared counter so every rank stays
+        # in lockstep with the participating procs (which advance it in the
+        # operator constructor) — the factory is entered collectively.
+        Parallel_Structure_operator.counter += 1
         return None
 
 
@@ -794,6 +809,11 @@ def Internal_boundary_operator(domain,
                                          inlet_procs = inlet_procs,
                                          enquiry_proc = enquiry_proc)
     else:
+        # This proc owns no part of the structure, so the constructor above is
+        # not called here. Still advance the shared counter so every rank stays
+        # in lockstep with the participating procs (which advance it in the
+        # operator constructor) — the factory is entered collectively.
+        Parallel_Structure_operator.counter += 1
         return None
 
 
