@@ -140,20 +140,24 @@ class Parallel_Structure_operator(anuga.Operator):
             self.description = description
         
         if label is None:
-            self.label = "structure_%g" % Parallel_Structure_operator.counter + "_P" + str(self.myid)
+            self.label = "structure_%g" % Parallel_Structure_operator.counter
         else:
-            self.label = label + '_%g' % Parallel_Structure_operator.counter + "_P" + str(self.myid)
+            self.label = label + '_%g' % Parallel_Structure_operator.counter
 
         if structure_type is None:
             self.structure_type = 'generic structure'
         else:
             self.structure_type = structure_type
-            
-        self.verbose = verbose        
-        
-        # Keep count of structures
-        if self.myid == master_proc:
-            Parallel_Structure_operator.counter += 1
+
+        self.verbose = verbose
+
+        # Keep count of structures. Advance on every participating proc (not
+        # just the master) so this rank's counter stays in lockstep with the
+        # ranks that own no part of the structure — those advance it in the
+        # factory's ``return None`` branch. Because the factory is entered
+        # collectively by all ranks in the same order, every operator ends up
+        # with a unique, rank-consistent number matching the sequential label.
+        Parallel_Structure_operator.counter += 1
 
         # Slots for recording current statistics
         self.accumulated_flow = 0.0
@@ -677,7 +681,7 @@ class Parallel_Structure_operator(anuga.Operator):
         if self.logging and self.myid == self.master_proc:
             self.log_filename = self.domain.get_datadir() + '/' + self.label + '.log'
             log_to_file(self.log_filename, stats, mode='w')
-            log_to_file(self.log_filename, 'time,discharge_instantaneous,discharge_abs_timemean,velocity_instantaneous,driving_energy_instantaneous,delta_total_energy_instantaneous')
+            log_to_file(self.log_filename, 'time, discharge_instantaneous, discharge_abs_timemean, velocity, accumulated_flow, driving_energy_instantaneous, delta_total_energy_instantaneous')
 
             #log_to_file(self.log_filename, self.culvert_type)
 
@@ -703,6 +707,7 @@ class Parallel_Structure_operator(anuga.Operator):
         message += '%.5f, ' % self.discharge
         message += '%.5f, ' % self.discharge_abs_timemean
         message += '%.5f, ' % self.velocity
+        message += '%.5f, ' % self.accumulated_flow
         message += '%.5f, ' % self.driving_energy
         message += '%.5f' % self.delta_total_energy
 
