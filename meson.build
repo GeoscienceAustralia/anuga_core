@@ -75,9 +75,12 @@ if openmp.found()
  
   #if host_machine.system() == 'windows'
   
-  openmp_c_args = ['-O3', '-march=native', '-fopenmp', '-g']
-  # openmp_c_args = ['-O3', '-march=native','-funroll-loops', '-fvectorize', '-Rpass=loop-vectorize', '-Rpass=loop-unroll', '-g'],
-  # openmp_c_args = ['-O3', '-march=native', openmp_flag, '-g'],
+  # Do NOT use -march=native here: it bakes the build host's ISA into the
+  # compiled extensions, so a wheel built on e.g. a Sapphire Rapids CI runner
+  # gets AVX-512 and dies with an illegal instruction at `import anuga` on any
+  # CPU without it (this broke the 3.3.8 PyPI wheels, e.g. on Colab). Leave the
+  # toolchain's portable default in place (conda-forge sets -march=nocona).
+  openmp_c_args = ['-O3', '-fopenmp', '-g']
 
   openmp_deps = dependencies + [openmp]
 
