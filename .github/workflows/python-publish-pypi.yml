@@ -44,8 +44,15 @@ jobs:
       - name: Create conda environment with build deps
         shell: bash -el {0}
         run: |
+          # Pin the standard (GIL) CPython ABI. On Linux `python=3.14` otherwise
+          # resolves to the free-threaded build (cp314t) and yields a cp314t
+          # wheel instead of a standard cp314 one (anuga's OpenMP extensions are
+          # not free-thread-safe anyway). Constrain python_abi to the *_cp<tag>
+          # (GIL) build: python_abi uses the cp3XX tag consistently across
+          # versions, so this excludes cp3XXt and is a no-op for 3.10-3.13.
+          pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
           conda create -n anuga_env -c conda-forge \
-            python=${{ matrix.python-version }} pip \
+            python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config
 
       - name: Install compilers (Windows)
@@ -129,8 +136,10 @@ jobs:
       - name: Create osx-64 conda env (x86_64 packages, run under Rosetta)
         shell: bash -el {0}
         run: |
+          # Pin the standard (GIL) CPython ABI (see build-wheels above).
+          pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
           CONDA_SUBDIR=osx-64 conda create -n anuga_env -c conda-forge \
-            python=${{ matrix.python-version }} pip \
+            python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config compilers
           conda activate anuga_env
           conda config --env --set subdir osx-64
