@@ -66,15 +66,15 @@ cdef int64_t _deserialise(sparse_dok* dok, dict serial_dok):
 
 	cdef int64_t num_entries, k, i, j
 	cdef double val
-	cdef list items
 	cdef list keys
 	cdef edge_key_t key
 
-	items = serial_dok.items()
-	keys = serial_dok.keys()
+	# list(...) is required: dict.keys() returns a view, and since Cython 3.3.0
+	# a dict_keys object can no longer be assigned to a `cdef list`.
+	keys = list(serial_dok.keys())
 	num_entries = len(serial_dok)
 
-	for k in xrange(num_entries):
+	for k in range(num_entries):
 
 		val = serial_dok[keys[k]]
 
