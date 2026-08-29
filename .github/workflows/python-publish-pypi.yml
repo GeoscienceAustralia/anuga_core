@@ -29,7 +29,7 @@ jobs:
         python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # git describe needs full history for version
 
@@ -44,14 +44,57 @@ jobs:
       - name: Create conda environment with build deps
         shell: bash -el {0}
         run: |
+          # Pin the standard (GIL) CPython ABI. On Linux `python=3.14` otherwise
+          # resolves to the free-threaded build (cp314t) and yields a cp314t
+          # wheel instead of a standard cp314 one (anuga's OpenMP extensions are
+          # not free-thread-safe anyway). Constrain python_abi to the *_cp<tag>
+          # (GIL) build: python_abi uses the cp3XX tag consistently across
+          # versions, so this excludes cp3XXt and is a no-op for 3.10-3.13.
+          pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
           conda create -n anuga_env -c conda-forge \
-            python=${{ matrix.python-version }} pip \
+            python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config
 
       - name: Install compilers (Windows)
         if: runner.os == 'Windows'
         shell: bash -el {0}
-        run: conda install -c conda-forge -n anuga_env libpython gcc_win-64 gxx_win-64
+        # PIN: hold the mingw sysroot chain at build 10.
+        #
+        # conda-forge's m2w64-sysroot-feedstock PR #21 ("finish v1 transition",
+        # merged 2026-08-20) rebuilt these four packages as build 11. Since that
+        # day every Windows job dies in meson's compiler sanity check with
+        #   "Executables created by c compiler ... are not runnable"
+        # while gcc_win-64 (16.1.0), binutils (2.46.1) and the runner image are
+        # all unchanged.
+        #
+        # The toolchain compiles fine; the binary crashes on startup. Running
+        # meson's check by hand on 'int main(void){return 0;}' gives:
+        #   compile: OK
+        #   *** stack smashing detected ***: terminated      (exit 127)
+        # i.e. __stack_chk_fail fires on a function with no locals -- the stack
+        # protector ABI between gcc 16.1.0 and the build-11 CRT does not line up.
+        # (Installing libwinpthread explicitly does NOT help; tried and ruled out.)
+        #
+        # TEMPORARY. libwinpthread is the one that bites at RUN time: pinning
+          # only the build packages lets the wheel build succeed and then the
+          # test step dies loading the extension. Reproduced by capytaine,
+          # ollama and raster3d on gcc 15 and 16 alike, so it is the sysroot
+          # chain. The COMPILERS must be held too: gcc/gxx_impl build 3 were
+          # built against the build-11 sysroot (they require libstdcxx-devel
+          # _103), so build 3 + sysroot 10 gives "Unknown compiler(s)" and
+          # build 11 is broken outright. Only gcc 2 + sysroot 10 + libwinpthread
+          # 10 is self-consistent. Remove the block once admin-requests#2297 lands:
+        #   conda-forge/m2w64-sysroot-feedstock#23
+        run: |
+          conda install -c conda-forge -n anuga_env libpython gcc_win-64 gxx_win-64 \
+              "gcc_impl_win-64=16.1.0=h0942c35_2" \
+              "gxx_impl_win-64=16.1.0=he3d2c83_2" \
+              "m2w64-sysroot_win-64=*=*_10" \
+              "mingw-w64-ucrt-x86_64-crt-git=*=*_10" \
+              "mingw-w64-ucrt-x86_64-headers-git=*=*_10" \
+              "mingw-w64-ucrt-x86_64-winpthreads-git=*=*_10" \
+              "libwinpthread=*=*_10" \
+              "libstdcxx=16.1.0=hae5796f_2"
 
       - name: Install compilers (macOS)
         if: runner.os == 'macOS'
@@ -96,6 +139,68 @@ jobs:
           path: dist/*.whl
 
   # ---------------------------------------------------------------------------
+  # Build Intel macOS (osx-64) wheels. GitHub's macos-latest is Apple Silicon
+  # (arm64), so build-wheels above produces only arm64 mac wheels. Apple Silicon
+  # runs x86_64 under Rosetta 2, so we create an osx-64 conda env
+  # (CONDA_SUBDIR=osx-64; x86_64 python + compilers) on the same arm64 runner
+  # and build a native x86_64 wheel there — no scarce macos-13 Intel runners.
+  # Artifacts use the wheel-* name so the publish job picks them up.
+  # ---------------------------------------------------------------------------
+  build-wheels-osx64:
+    name: Build wheel (py${{ matrix.python-version }}, macos osx-64)
+    runs-on: macos-latest   # Apple Silicon (arm64)
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # git describe needs full history for version
+
+      - name: Ensure Rosetta 2 (to run x86_64 binaries on arm64)
+        run: sudo softwareupdate --install-rosetta --agree-to-license || true
+
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          use-mamba: true
+          auto-update-conda: true
+          conda-remove-defaults: true
+
+      - name: Create osx-64 conda env (x86_64 packages, run under Rosetta)
+        shell: bash -el {0}
+        run: |
+          # Pin the standard (GIL) CPython ABI (see build-wheels above).
+          pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
+          CONDA_SUBDIR=osx-64 conda create -n anuga_env -c conda-forge \
+            python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
+            meson-python meson ninja cython pybind11 numpy pkg-config compilers
+          conda activate anuga_env
+          conda config --env --set subdir osx-64
+
+      - name: Build wheel
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          export PKG_CONFIG_PATH="$CONDA_PREFIX/lib/pkgconfig:$CONDA_PREFIX/share/pkgconfig"
+          pip wheel --no-build-isolation --no-deps -w dist-wheel .
+
+      - name: Repair wheel (delocate, x86_64)
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          pip install repairwheel
+          repairwheel -l "$CONDA_PREFIX/lib" -o dist dist-wheel/*.whl
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: wheel-osx64-py${{ matrix.python-version }}
+          path: dist/*.whl
+
+  # ---------------------------------------------------------------------------
   # Build the source distribution (once, on Linux / Python 3.13).
   # ---------------------------------------------------------------------------
   build-sdist:
@@ -103,7 +208,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -142,7 +247,7 @@ jobs:
   # ---------------------------------------------------------------------------
   publish:
     name: Publish to PyPI
-    needs: [build-wheels, build-sdist]
+    needs: [build-wheels, build-wheels-osx64, build-sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
 
