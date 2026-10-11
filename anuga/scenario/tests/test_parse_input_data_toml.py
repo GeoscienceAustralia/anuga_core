@@ -403,6 +403,17 @@ class TestProjectSection(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._make(project_extra=extra)
 
+    def test_starttime_defaults_to_zero(self):
+        self.assertAlmostEqual(self._make().starttime, 0.0)
+
+    def test_negative_starttime_expression(self):
+        p = self._make(project_extra='starttime = "-3*600"')
+        self.assertAlmostEqual(p.starttime, -1800.0)
+
+    def test_starttime_not_before_finaltime_raises(self):
+        with self.assertRaises(ValueError):
+            self._make(project_extra='starttime = 3600.0')
+
     def test_config_filename_attribute(self):
         p = self._make()
         self.assertEqual(p.config_filename, self.toml_path)

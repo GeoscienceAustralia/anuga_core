@@ -109,6 +109,13 @@ class TestScenarioSummary(unittest.TestCase):
         # three distinct n-values -> three bars
         self.assertEqual(html.count('class="fbar"'), 3)
 
+    def test_quoted_times_and_starttime_badge(self):
+        body = _BASE.replace('finaltime = 3600.0',
+                             'finaltime = "3600"\nstarttime = "-3*600"')
+        html = build_summary_html(self._write(body))
+        self.assertIn('-1800 s', html)
+        self.assertIn('3600 s', html)
+
     def test_multiprocessor_mode_maps_to_compute_label(self):
         body = _BASE.replace('compute_mode = "unified"', 'multiprocessor_mode = 2')
         html = build_summary_html(self._write(body))
