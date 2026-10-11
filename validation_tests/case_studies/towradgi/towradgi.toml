@@ -7,9 +7,10 @@
 [project]
 scenario               = "Towradgi_historic_flood"
 output_base_directory  = "OUTPUT/"
-yieldstep              = 120.0
-finaltime              = 3600.0
-outputstep             = 120.0
+yieldstep              = "3*60"
+starttime              = "-3*3600"   # 3 h burn-in; the rain starts at t = 0
+finaltime              = "24*3600"
+outputstep             = "15*60"
 projection_information = "EPSG:32756"
 flow_algorithm         = "DE1"
 compute_mode           = "unified"  # "legacy" (CPU OpenMP) or "unified" (CPU/GPU)
@@ -564,11 +565,11 @@ value   = 0.04
 polygon = "All"
 value   = 0.04
 
-# Inlet — constant 20 m^3/s creek inflow (script creek_inlet)
+# Inlet — constant 3 m^3/s creek inflow (script creek_inlet uses 20)
 [[inlets]]
 name            = "Creek_Inlet_West"
 line_file       = "inlet_line.csv"
-timeseries_file = "inlet_hydrograph.csv"
+timeseries_file = "inlet_hydrograph_3.csv"
 start_time      = 0.0
 
 # Culverts & bridges — 22 Boyd operators (exchange lines in culvert_exchange/).
