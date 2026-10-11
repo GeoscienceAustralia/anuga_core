@@ -36,7 +36,9 @@ for i in range(len(modelled_level)):
 
     if(i==0):
         pyplot.clf()
-        pyplot.plot((pioneerLevel[:,0])/60., pioneerLevel[:,2],color='black', label="Recorded Stage")
+        # The logger clock runs 9 h (540 min) ahead of the rainfall/model
+        # clock, as in the original 2014 version of this script.
+        pyplot.plot((pioneerLevel[:,0]-540.)/60., pioneerLevel[:,2],color='black', label="Recorded Stage")
         pyplot.plot(p2.time/3600.,p2.stage[:, myInd],color='blue', label="ANUGA")
         pyplot.legend(bbox_to_anchor=(1.05, 1), borderaxespad=0.)
         pyplot.xlabel('Time (Hours)')
