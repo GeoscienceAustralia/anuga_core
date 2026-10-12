@@ -12,7 +12,7 @@ starttime              = "-3*3600"   # 3 h burn-in; the rain starts at t = 0
 finaltime              = "24*3600"
 outputstep             = "15*60"
 projection_information = "EPSG:32756"
-flow_algorithm         = "DE1"
+flow_algorithm         = "DE_ader2"
 compute_mode           = "unified"  # "legacy" (CPU OpenMP) or "unified" (CPU/GPU)
 report_mass_conservation_statistics = true  # water balance each yieldstep
 
