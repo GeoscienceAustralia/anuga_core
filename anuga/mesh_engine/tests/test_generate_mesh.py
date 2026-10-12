@@ -25,6 +25,63 @@ class triangTestCase(unittest.TestCase):
     def tearDown(self):
         pass
 
+    def test_refinement_func(self):
+        """Triangle's user test refines wherever it returns True."""
+        import anuga.mesh_engine.mesh_engine as mesh_engine
+        mesh_engine._get_triangulator()
+        if mesh_engine.TRILIB != 'meshpy':
+            self.skipTest('the user test needs the meshpy backend')
+
+        points = [(0.0, 0.0), (10.0, 0.0), (10.0, 10.0), (0.0, 10.0)]
+        segments = [(0, 1), (1, 2), (2, 3), (3, 0)]
+
+        def areas(data):
+            v = num.asarray(data['generatedpointlist'])
+            t = num.asarray(data['generatedtrianglelist'])
+            a, b, c = v[t[:, 0]], v[t[:, 1]], v[t[:, 2]]
+            return 0.5 * num.abs((b[:, 0] - a[:, 0]) * (c[:, 1] - a[:, 1])
+                                 - (c[:, 0] - a[:, 0]) * (b[:, 1] - a[:, 1]))
+
+        plain = areas(generate_mesh(points, segments, mode='Qzp'))
+        assert len(plain) == 2
+
+        calls = []
+
+        def too_big(vertices, area):
+            calls.append(len(vertices))
+            return area > 1.0
+
+        # with no u in the mode, and with one already there
+        for mode in ('Qzp', 'Qzpu'):
+            del calls[:]
+            refined = areas(generate_mesh(points, segments, mode=mode,
+                                          refinement_func=too_big))
+            assert refined.max() <= 1.0
+            assert len(refined) >= 100
+            assert num.isclose(refined.sum(), 100.0)
+            assert calls and set(calls) == {3}
+
+        # an exception in the user test is raised, not swallowed
+        def broken(vertices, area):
+            raise ZeroDivisionError('user test failed')
+
+        with self.assertRaises(ZeroDivisionError):
+            generate_mesh(points, segments, mode='Qzp',
+                          refinement_func=broken)
+
+    def test_refinement_func_needs_meshpy(self):
+        import anuga.mesh_engine.mesh_engine as mesh_engine
+        mesh_engine._get_triangulator()
+        backend = mesh_engine.TRILIB
+        mesh_engine.TRILIB = 'triangle'
+        try:
+            with self.assertRaises(ANUGAError):
+                generate_mesh([(0.0, 0.0), (1.0, 0.0), (0.0, 1.0)],
+                              [(0, 1), (1, 2), (2, 0)], mode='Qzp',
+                              refinement_func=lambda vertices, area: False)
+        finally:
+            mesh_engine.TRILIB = backend
+
     def testrectangleIIb(self):
 
         points = []

@@ -307,6 +307,7 @@ from anuga.simulation.simulation import Simulation
 # -----------------------------
 from anuga.pmesh.mesh_interface import create_pmesh_from_regions
 from anuga.pmesh.mesh_interface import create_mesh_from_regions  # deprecated alias
+from anuga.pmesh.size_field import Size_field, size_field_from_regions
 
 # -----------------------------
 # SWW file access
@@ -595,6 +596,8 @@ __all__ = [
     'create_domain_from_regions',
     'create_mesh_from_regions',   # deprecated alias for create_pmesh_from_regions
     'create_pmesh_from_regions',
+    'Size_field',
+    'size_field_from_regions',
     # System / utility
     'acos',
     'cache',

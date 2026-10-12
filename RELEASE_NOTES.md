@@ -255,6 +255,17 @@ the flow algorithms.
   path does not support, into an error at setup, so a run that should be on
   the GPU cannot quietly run on the CPU.
 * `Domain.set_plotter()` returns the plotter it attaches (#398).
+* Mesh resolution from a size field (#436): `create_domain_from_regions`,
+  `create_pmesh_from_regions` and `Pmesh.generate_mesh` take `size_field`,
+  the maximum triangle area as a function of position, either a function
+  `f(x, y)` or an `anuga.Size_field` raster. Unlike `interior_regions` it
+  adds no segments to the mesh, so the outline of a resolution zone can no
+  longer force the small triangles that set the timestep.
+  `anuga.size_field_from_regions` builds a graded field from the same
+  `(polygon, maximum area)` list. The new `relax_passes` argument, and
+  `Pmesh.relax_worst_cells`, move the vertices of the smallest cells to
+  enlarge them. On a 1,407 km² catchment mesh the two together lengthened
+  the timestep 2.4 to 9.9 times at a similar triangle count.
 * The validation suite: the reports can be rebuilt from the SWW files already
   on disk (`-nr`, #403), the runner prints a summary table (#400, #401), and
   a failing case now makes the report build fail instead of being skipped
