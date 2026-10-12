@@ -47,6 +47,8 @@ from anuga.scenario import (
     setup_rainfall,
     setup_inlets,
     setup_bridges,
+    setup_culverts,
+    setup_weirs,
     setup_pumping_stations,
     setup_erosion,
     setup_sediment,
@@ -87,6 +89,8 @@ setup_riverwalls.setup_riverwalls(domain, project)
 setup_rainfall.setup_rainfall(domain, project)
 setup_inlets.setup_inlets(domain, project)
 setup_bridges.setup_bridges(domain, project)
+setup_culverts.setup_culverts(domain, project)
+setup_weirs.setup_weirs(domain, project)
 setup_pumping_stations.setup_pumping_stations(domain, project)
 setup_erosion.setup_erosion(domain, project)
 

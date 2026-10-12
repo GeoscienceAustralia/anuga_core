@@ -130,11 +130,14 @@ from anuga.scenario import (
     setup_rainfall,
     setup_inlets,
     setup_bridges,
+    setup_culverts,
+    setup_weirs,
     setup_pumping_stations,
     setup_mesh,
     setup_initial_conditions,
     setup_riverwalls,
     setup_erosion,
+    setup_sediment,
     raster_outputs,
 )
 from anuga.scenario.prepare_data import PrepareData
@@ -325,10 +328,14 @@ section('FORCING & STRUCTURES', 3, 6)
 setup_rainfall.setup_rainfall(domain, project)
 setup_inlets.setup_inlets(domain, project)
 setup_bridges.setup_bridges(domain, project)
+setup_culverts.setup_culverts(domain, project)
+setup_weirs.setup_weirs(domain, project)
 setup_pumping_stations.setup_pumping_stations(domain, project)
 # Erosion operators change elevation during the run; added after the other
 # forcing terms and before boundary conditions.
 setup_erosion.setup_erosion(domain, project)
+# Sediment transport from the [sediment] table; a no-op without one.
+setup_sediment.setup_sediment(domain, project)
 if myid == 0:
     _counts = [
         ('rainfall inputs', len(getattr(project, 'rain_data', []) or [])),
