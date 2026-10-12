@@ -19,13 +19,15 @@ exceptions are transcribed from run_small_towradgi.py.
 
 Requires the runner enhancements: rainfall .tms support and dict `losses`.
 
-Two settings depart from run_small_towradgi.py, following the 2026 validation
+Three settings depart from run_small_towradgi.py, following the 2026 validation
 sensitivity runs:
   * the creek inflow is 3 m^3/s, not 20. With 20 the Pioneer Rd gauge stays
     about 0.7 m above the record after the peak; with 3 it follows it.
   * the run starts at t = -3 h ([project] starttime), a burn-in that wets the
     creek with the inflow before the rain, which starts at t = 0. Model time
     then matches the rainfall clock; the Pioneer Rd logger runs 9 h ahead.
+  * the flow algorithm is DE_ader2, not DE1. It gives the same flood-mark
+    and gauge errors (peak levels within 0.05 m) and runs about 25% faster.
 """
 
 import glob
@@ -232,7 +234,7 @@ def main():
     A('finaltime              = "24*3600"')
     A('outputstep             = "15*60"')
     A(f'projection_information = "EPSG:{EPSG}"')
-    A('flow_algorithm         = "DE1"')   # matches run_small_towradgi.py's default (-alg DE1)
+    A('flow_algorithm         = "DE_ader2"')   # run_small_towradgi.py uses DE1; see docstring
     A('compute_mode           = "unified"  # "legacy" (CPU OpenMP) or "unified" (CPU/GPU)')
     A('report_mass_conservation_statistics = true  # water balance each yieldstep')
     A('')
