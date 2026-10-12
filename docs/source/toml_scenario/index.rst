@@ -218,6 +218,14 @@ Top-level simulation settings.
    # Total simulation duration [seconds]
    finaltime = 21600.0
 
+   # Model time at the start of the run [seconds]. default: 0.0
+   # A negative value runs a burn-in before the forcing data, which start at
+   # t = 0: inlet and stage-boundary series hold their first value and rain is
+   # zero until t = 0. Model times then match the forcing and observation
+   # clocks, with no shift. finaltime is on the same clock, so
+   # starttime = "-3*3600" with finaltime = "24*3600" evolves 27 h.
+   # starttime = "-3*3600"
+
    # SWW output interval [seconds].
    # Must be an integer multiple of yieldstep.
    # Omit to write SWW output at every yieldstep (the default).
@@ -251,7 +259,7 @@ Top-level simulation settings.
    max_quantity_update_frequency = 1
 
    # Time from which maximum-quantity tracking begins [seconds]
-   # Must be < finaltime.  default: 0.0
+   # Must be < finaltime.  default: 0.0 (so a negative starttime burn-in is excluded)
    max_quantity_collection_starttime = 0.0
 
    # Store each triangle's three vertex values separately.

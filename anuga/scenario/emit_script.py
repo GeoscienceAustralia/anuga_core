@@ -69,6 +69,7 @@ project = PrepareData({config!r}, output_log='Simulation_logfile.log')
 # Mesh (build + partition/distribute under MPI)
 # ---------------------------------------------------------------------------
 domain = setup_mesh.setup_mesh(project)
+domain.set_starttime(getattr(project, 'starttime', 0.0))   # negative = burn-in before t=0
 
 # Compute path: 'legacy' (CPU OpenMP) or 'unified' (shared CPU/GPU kernels).
 domain.set_compute_mode(getattr(project, 'compute_mode', 'legacy'))

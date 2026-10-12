@@ -13,8 +13,7 @@ Gareth Davies, Geoscience Australia 2014+
 import numpy
 import anuga
 from anuga.utilities import spatialInputUtil as su
-import scipy
-import scipy.interpolate
+from anuga.scenario.timeseries import make_timeseries_function
 
 
 def setup_inlets(domain, project):
@@ -38,7 +37,9 @@ def setup_inlets(domain, project):
         timeseries[:, 0] = timeseries[:, 0] - start_time
 
         # Make discharge function
-        qfun = scipy.interpolate.interp1d(
+        # (held at the first value before the series starts, so a negative
+        # starttime gives a burn-in at the initial inflow)
+        qfun = make_timeseries_function(
             timeseries[:, 0], timeseries[:, 1], kind='linear')
 
         # Make cross-section line

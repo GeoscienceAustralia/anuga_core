@@ -374,10 +374,14 @@ def build_summary_html(config_path, base_dir=None):
         badges.append(_badge('algorithm', p['flow_algorithm']))
     if compute:
         badges.append(_badge('compute', compute))
+    # Times may be quoted arithmetic ("24*3600"), as the parser allows.
+    from anuga.scenario.parse_input_data_toml import _num
+    if p.get('starttime'):
+        badges.append(_badge('start time', f"{_num(p['starttime']):g} s"))
     if 'finaltime' in p:
-        badges.append(_badge('final time', f"{float(p['finaltime']):g} s"))
+        badges.append(_badge('final time', f"{_num(p['finaltime']):g} s"))
     if 'yieldstep' in p:
-        badges.append(_badge('yield', f"{float(p['yieldstep']):g} s"))
+        badges.append(_badge('yield', f"{_num(p['yieldstep']):g} s"))
 
     sections = []
 

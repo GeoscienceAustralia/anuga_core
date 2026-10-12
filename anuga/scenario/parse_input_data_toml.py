@@ -336,6 +336,14 @@ class ProjectDataTOML:
         _v.positive(finaltime, 'finaltime', 'project')
         self.finaltime = finaltime if finaltime is not None else float('inf')
 
+        # Model time at the start of the run. A negative value runs a burn-in
+        # before the forcing data (which start at t=0) begin.
+        self.starttime = _num(p.get('starttime', 0.0))
+        if self.starttime >= self.finaltime:
+            _v.errors.append(
+                '[project] starttime must be < finaltime'
+                f' (got {self.starttime}, finaltime={self.finaltime})')
+
         raw_proj = _v.require(p, 'projection_information', 'project')
         if raw_proj is None:
             self.projection_information = None

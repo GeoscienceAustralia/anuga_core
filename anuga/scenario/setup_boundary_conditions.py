@@ -11,10 +11,9 @@ Gareth Davies, Geoscience Australia 2014+
 import sys
 import traceback
 import numpy
-import scipy
-import scipy.interpolate
 import anuga
 import anuga.utilities.spatialInputUtil as su
+from anuga.scenario.timeseries import make_timeseries_function
 import anuga.shallow_water.boundaries as asb
 
 
@@ -58,8 +57,9 @@ def _setup_boundary_conditions_inner(domain, project):
                 skip_header=1)
             # Make start time = 0
             boundary_data[:, 0] -= start_time
-            # Make interpolation function
-            stage_time_fun = scipy.interpolate.interp1d(
+            # Make interpolation function (held at the first stage before
+            # the series starts, for a negative starttime)
+            stage_time_fun = make_timeseries_function(
                 boundary_data[:, 0],
                 boundary_data[:, 1])
 

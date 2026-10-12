@@ -21,6 +21,7 @@ python_sources = [
     'setup_sediment.py',
     'setup_weirs.py',
     'spatially_averaged_function.py',
+    'timeseries.py',
 ]
 
 py3.install_sources(
