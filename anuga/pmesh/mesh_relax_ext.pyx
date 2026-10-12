@@ -2,7 +2,7 @@
 """Kernels for anuga.pmesh.mesh_relax.relax_worst_cells."""
 
 import cython
-from libc.math cimport hypot, cos, sin, M_PI
+from libc.math cimport hypot
 from libc.stdint cimport int64_t
 
 import numpy as np
@@ -98,9 +98,24 @@ def sweep(double[:, ::1] v not None,
     lap[2] = 0.25
     step[0] = 0.2
     step[1] = 0.07
-    for d in range(NDIRS):
-        dirs[d][0] = cos(d * M_PI / 4.0)
-        dirs[d][1] = sin(d * M_PI / 4.0)
+    # unit vectors at 45 degree intervals
+    cdef double s45 = 0.7071067811865476
+    dirs[0][0] = 1.0
+    dirs[0][1] = 0.0
+    dirs[1][0] = s45
+    dirs[1][1] = s45
+    dirs[2][0] = 0.0
+    dirs[2][1] = 1.0
+    dirs[3][0] = -s45
+    dirs[3][1] = s45
+    dirs[4][0] = -1.0
+    dirs[4][1] = 0.0
+    dirs[5][0] = -s45
+    dirs[5][1] = -s45
+    dirs[6][0] = 0.0
+    dirs[6][1] = -1.0
+    dirs[7][0] = s45
+    dirs[7][1] = -s45
 
     with nogil:
         for n in range(cand.shape[0]):
