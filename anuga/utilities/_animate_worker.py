@@ -13,11 +13,26 @@ _COUNTER_ATTR = {
     'speed':           '_speed_frame_count',
     'speed_depth':     '_speed_depth_frame_count',
     'max_depth':       '_max_depth_frame_count',
+    'max_stage':       '_max_stage_frame_count',
     'max_speed':       '_max_speed_frame_count',
     'max_speed_depth': '_max_speed_depth_frame_count',
     'elev':            '_elev_frame_count',
     'elev_delta':      '_elev_delta_frame_count',
 }
+
+
+def _set_frame_count(plotter, qty, count):
+    """Set the number the plotter gives the next frame it saves of qty.
+
+    Tracer counters are kept per tracer in a dict, since SWW_plotter only
+    learns the tracer names from the file.
+    """
+    if qty.startswith('tracer_'):
+        tracer = qty[len('tracer_'):]
+        if tracer in plotter._tracer_frame_count:
+            plotter._tracer_frame_count[tracer] = count
+            return
+    setattr(plotter, _COUNTER_ATTR[qty], count)
 
 
 def worker_init(sww_path, plot_dir, min_depth, epsg):
@@ -45,7 +60,7 @@ def worker_frame(sww_frame, out_pos, save_method_name, qty,
                  show_elev=False, elev_levels=10, show_mesh=False):
     """Render one frame to disk; returns out_pos on success."""
     global _wp
-    setattr(_wp, _COUNTER_ATTR[qty], out_pos)
+    _set_frame_count(_wp, qty, out_pos)
     save_fn = getattr(_wp, save_method_name)
     save_fn(frame=sww_frame, dpi=dpi, vmin=vmin, vmax=vmax,
             cmap=cmap, basemap=basemap, alpha=alpha,
