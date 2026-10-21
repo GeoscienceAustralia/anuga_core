@@ -299,6 +299,17 @@ class TestSWWPlotter(unittest.TestCase):
         self.assertAlmostEqual(sp.xllcorner, 300000.0)
         self.assertAlmostEqual(sp.yllcorner, 6000000.0)
         self.assertEqual(sp.zone, 55)
+        self.assertEqual(sp.timezone, 'UTC')
+
+    def test_init_without_timezone_defaults_to_utc(self):
+        """Older SWW files have no timezone attribute."""
+        from anuga.file.netcdf import NetCDFFile
+        fid = NetCDFFile(self.swwfile, 'a')
+        fid.delncattr('timezone')
+        fid.close()
+        sp = self._make()
+        self.assertEqual(sp.timezone, 'UTC')
+        self.assertEqual(sp.depth.shape, (3, 2))
 
     def test_init_absolute_mode_shifts_coords(self):
         sp_rel = self._make(absolute=False)

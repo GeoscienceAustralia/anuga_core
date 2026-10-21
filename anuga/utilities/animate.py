@@ -801,7 +801,8 @@ class SWW_plotter:
         self.xllcorner = p.xllcorner
         self.yllcorner = p.yllcorner
         self.zone = p.zone
-        self.timezone = p.timezone
+        # Older files have no timezone; the writer's default is UTC.
+        self.timezone = getattr(p, 'timezone', 'UTC')
         self.starttime = p.starttime
 
         try:
