@@ -26,6 +26,7 @@ python_sources = [
 'test_xml_tools.py',
 'test_parse_time.py',
 'test_animate.py',
+'test_animate_worker.py',
 ]
 
 py3.install_sources(
