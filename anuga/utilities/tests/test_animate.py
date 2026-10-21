@@ -510,7 +510,8 @@ class TestSWWPlotter(unittest.TestCase):
             "    sp.save_elev_frame(dpi=20)\n"
             "    sp.save_depth_frame(frame=0, dpi=20)\n"
             % (sww, self.plot_dir))
-        import subprocess, sys
+        import subprocess
+        import sys
         result = subprocess.run([sys.executable, '-c', script],
                                 capture_output=True, text=True, timeout=120)
         self.assertEqual(result.returncode, 0, result.stderr)
