@@ -1039,10 +1039,7 @@ class SWW_plotter:
                      tuple(ylim) if ylim is not None else None,
                      show_elev, elev_levels, show_mesh)
 
-        if cache_key not in self._figure_cache:
-            self._figure_cache[cache_key] = plt.figure(figsize=figsize, dpi=dpi)
-
-        fig = self._figure_cache[cache_key]
+        fig = self._cached_figure(cache_key, figsize, dpi)
         fig.clf()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
@@ -1163,6 +1160,23 @@ class SWW_plotter:
                          cache=self._basemap_cache)
 
         return fig, ax
+
+    def _cached_figure(self, cache_key, figsize, dpi):
+        """The figure kept for cache_key, or a new one if pyplot has
+        closed it.
+
+        A closed figure must not be drawn on again: with an interactive
+        backend (anuga_sww_gui's TkAgg) its toolbar has been destroyed, and
+        clearing the figure updates that toolbar.
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib._pylab_helpers import Gcf
+        fig = self._figure_cache.get(cache_key)
+        if fig is None or not any(m.canvas.figure is fig
+                                  for m in Gcf.get_all_fig_managers()):
+            fig = plt.figure(figsize=figsize, dpi=dpi)
+            self._figure_cache[cache_key] = fig
+        return fig
 
     def _clear_figure_cache(self):
         """Close all cached figures and release their memory."""
@@ -1403,10 +1417,7 @@ class SWW_plotter:
                      tuple(ylim) if ylim is not None else None,
                      show_mesh)
 
-        if cache_key not in self._figure_cache:
-            self._figure_cache[cache_key] = plt.figure(figsize=figsize, dpi=dpi)
-
-        fig = self._figure_cache[cache_key]
+        fig = self._cached_figure(cache_key, figsize, dpi)
         fig.clf()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
@@ -1555,10 +1566,7 @@ class SWW_plotter:
                      tuple(ylim) if ylim is not None else None,
                      show_mesh)
 
-        if cache_key not in self._figure_cache:
-            self._figure_cache[cache_key] = plt.figure(figsize=figsize, dpi=dpi)
-
-        fig = self._figure_cache[cache_key]
+        fig = self._cached_figure(cache_key, figsize, dpi)
         fig.clf()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
@@ -1748,8 +1756,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_depth_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     def save_max_stage_frame(self, frame=None, figsize=(10, 6), dpi=160,
                              vmin=-20.0, vmax=20.0, cmap='viridis', basemap=False,
@@ -1789,8 +1796,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_stage_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     def save_max_speed_frame(self, frame=None, figsize=(10, 6), dpi=160,
                              vmin=0.0, vmax=10.0, cmap='viridis', basemap=False,
@@ -1830,8 +1836,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_speed_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     def save_max_speed_depth_frame(self, frame=None, figsize=(10, 6), dpi=160,
                                    vmin=0.0, vmax=20.0, cmap='viridis', basemap=False,
@@ -1873,8 +1878,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_speed_depth_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     #------------------------------------------
     # Animation procedures

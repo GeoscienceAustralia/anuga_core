@@ -471,6 +471,50 @@ class TestSWWPlotter(unittest.TestCase):
         sp._clear_figure_cache()
         self.assertEqual(len(sp._figure_cache), 0)
 
+    def test_closed_figure_is_not_reused(self):
+        # save_* closes its figure; drawing on it again fails under TkAgg
+        # (anuga_sww_gui), and a notebook would not show it.
+        import matplotlib.pyplot as plt
+        sp = self._make()
+        sp.save_depth_frame(frame=0, dpi=20)
+        fig, _ = sp.plot_depth_frame(frame=1, dpi=20)
+        self.assertIn(fig.number, plt.get_fignums())
+        self.assertIs(plt.figure(fig.number), fig)
+        plt.close(fig)
+
+    def test_save_max_frames_close_their_figure(self):
+        import matplotlib.pyplot as plt
+        sp = self._make()
+        before = plt.get_fignums()
+        for qty in ('depth', 'stage', 'speed', 'speed_depth'):
+            getattr(sp, 'save_max_%s_frame' % qty)(dpi=20)
+            self.assertEqual(plt.get_fignums(), before)
+
+    def test_frames_save_repeatedly_with_tkagg(self):
+        # What anuga_sww_gui does: max_* and static elev frames are drawn in
+        # the GUI process, where pyplot figures get a Tk toolbar.
+        if os.name != 'nt' and not os.environ.get('DISPLAY'):
+            self.skipTest('needs a display for TkAgg')
+        try:
+            import tkinter
+            tkinter.Tk().destroy()
+        except Exception as e:
+            self.skipTest('Tk is not usable: %s' % e)
+        sww = self.swwfile
+        script = (
+            "import matplotlib; matplotlib.use('TkAgg')\n"
+            "from anuga.utilities.animate import SWW_plotter\n"
+            "sp = SWW_plotter(%r, plot_dir=%r)\n"
+            "for _ in range(2):\n"
+            "    sp.save_max_depth_frame(dpi=20)\n"
+            "    sp.save_elev_frame(dpi=20)\n"
+            "    sp.save_depth_frame(frame=0, dpi=20)\n"
+            % (sww, self.plot_dir))
+        import subprocess, sys
+        result = subprocess.run([sys.executable, '-c', script],
+                                capture_output=True, text=True, timeout=120)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     # --- plot_dir=None writes to cwd ---
 
     def test_plot_dir_none_writes_to_cwd(self):
