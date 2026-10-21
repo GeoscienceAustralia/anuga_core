@@ -724,6 +724,15 @@ class SWW_plotter:
 
     Plotting based on matplotlib's tripcolor and triplot functions.
 
+    The (time, triangle) quantities -- stage, xmom, ymom, depth, xvel, yvel,
+    speed, speed_depth, tracers, and elev when it changes with time -- are
+    read from the file as they are used rather than held in memory, so a
+    long run opens quickly and in little memory.  Indexing a timestep
+    (``depth[frame]``), a few triangles over time (``depth[:, ids]``) and
+    ``min``/``max`` (including ``max(axis=0)``) read only what they need;
+    anything else, such as ``np.asarray(depth)`` or arithmetic on the whole
+    array, reads every timestep.  ``close()`` closes the file.
+
     Example:
 
         Open an SWW file and plot various quantities.
