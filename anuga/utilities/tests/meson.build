@@ -27,6 +27,7 @@ python_sources = [
 'test_parse_time.py',
 'test_animate.py',
 'test_animate_worker.py',
+'test_sww_frames.py',
 ]
 
 py3.install_sources(

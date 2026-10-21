@@ -724,6 +724,15 @@ class SWW_plotter:
 
     Plotting based on matplotlib's tripcolor and triplot functions.
 
+    The (time, triangle) quantities -- stage, xmom, ymom, depth, xvel, yvel,
+    speed, speed_depth, tracers, and elev when it changes with time -- are
+    read from the file as they are used rather than held in memory, so a
+    long run opens quickly and in little memory.  Indexing a timestep
+    (``depth[frame]``), a few triangles over time (``depth[:, ids]``) and
+    ``min``/``max`` (including ``max(axis=0)``) read only what they need;
+    anything else, such as ``np.asarray(depth)`` or arithmetic on the whole
+    array, reads every timestep.  ``close()`` closes the file.
+
     Example:
 
         Open an SWW file and plot various quantities.
@@ -822,30 +831,44 @@ class SWW_plotter:
             self.triang_abs = self.triang
 
 
-        self.elev = p.variables['elevation_c'][:]
-        self.stage = p.variables['stage_c'][:]
-        self.xmom = p.variables['xmomentum_c'][:]
-        self.ymom = p.variables['ymomentum_c'][:]
-
-        self.depth = np.zeros_like(self.stage)
-        if(len(self.elev.shape) == 2):
-            self.depth = self.stage - self.elev
-        else:
-            for i in range(self.depth.shape[0]):
-                self.depth[i, :] = self.stage[i, :]-self.elev
-
-
-        with np.errstate(invalid='ignore'):
-            self.xvel = np.where(self.depth > self.min_depth,
-                             self.xmom / self.depth, 0.0)
-            self.yvel = np.where(self.depth > self.min_depth,
-                             self.ymom / self.depth, 0.0)
-
-        self.speed = np.sqrt(self.xvel**2 + self.yvel**2)
-
-        self.speed_depth = self.speed*self.depth
-
         self.time = p.variables['time'][:]
+
+        # The (time, triangle) quantities are read and derived a timestep at
+        # a time as they are used, rather than all held in memory: see
+        # _sww_frames.  A static elevation is small, so it is read now.
+        from anuga.utilities._sww_frames import FrameArray, SWWSource
+        self._source = source = SWWSource(swwfile)
+        shape = (len(self.time), len(self.triangles))
+
+        def quantity(compute):
+            return FrameArray(source, compute, *shape)
+
+        min_depth = self.min_depth
+
+        def depth(get):
+            return get('stage_c') - get('elevation_c')
+
+        def velocity(get, momentum):
+            d = depth(get)
+            with np.errstate(invalid='ignore', divide='ignore'):
+                return np.where(d > min_depth, get(momentum) / d, 0.0)
+
+        def speed(get):
+            return np.sqrt(velocity(get, 'xmomentum_c')**2
+                           + velocity(get, 'ymomentum_c')**2)
+
+        if p.variables['elevation_c'].ndim == 2:
+            self.elev = quantity(lambda get: get('elevation_c'))
+        else:
+            self.elev = p.variables['elevation_c'][:]
+        self.stage = quantity(lambda get: get('stage_c'))
+        self.xmom = quantity(lambda get: get('xmomentum_c'))
+        self.ymom = quantity(lambda get: get('ymomentum_c'))
+        self.depth = quantity(depth)
+        self.xvel = quantity(lambda get: velocity(get, 'xmomentum_c'))
+        self.yvel = quantity(lambda get: velocity(get, 'ymomentum_c'))
+        self.speed = quantity(speed)
+        self.speed_depth = quantity(lambda get: speed(get) * depth(get))
 
         # Tracers -- and suspended sediment classes, which are tracers -- are
         # stored one dynamic centroid variable each. The file names them in a
@@ -858,7 +881,8 @@ class SWW_plotter:
         for _tname in _tracer_names_from(p):
             if _tname + '_c' not in p.variables:
                 continue
-            self.tracers[_tname] = p.variables[_tname + '_c'][:]
+            self.tracers[_tname] = quantity(
+                lambda get, name=_tname + '_c': get(name))
             self._tracer_frame_count[_tname] = 0
             # Named attribute and bound save method per tracer, so a caller
             # that drives this class by attribute name -- anuga_sww_gui does
@@ -892,6 +916,12 @@ class SWW_plotter:
 
         self._basemap_cache = {}
         self._figure_cache = {}
+
+        p.close()
+
+    def close(self):
+        """Close the SWW file.  It is opened again if a quantity is read."""
+        self._source.close()
 
     #------------------------------------------
     # General plots
@@ -1493,9 +1523,15 @@ class SWW_plotter:
     @property
     def elev_delta(self):
         """Bed elevation change from t=0: shape (n_time, n_tri), or None for static."""
-        if self.elev.ndim == 2:
-            return self.elev - self.elev[0, :]
-        return None
+        if self.elev.ndim != 2:
+            return None
+        if getattr(self, '_elev_delta', None) is None:
+            from anuga.utilities._sww_frames import FrameArray
+            first = self.elev[0, :]
+            self._elev_delta = FrameArray(
+                self._source, lambda get: get('elevation_c') - first,
+                *self.elev.shape)
+        return self._elev_delta
 
     def _elev_delta_frame(self, frame, figsize, dpi, vmin, vmax, cmap='RdBu_r',
                           basemap=False, alpha=1.0,
