@@ -246,6 +246,18 @@ the flow algorithms.
   failures in the GPU halo and inlet setup, the quad tree and the sparse
   matrices are reported instead of exiting or crashing; and GPU errors that
   were only printed to stderr now raise in Python with the message.
+* `anuga_toml_run` read `[[culverts]]` and `[[weirs]]` and counted them, but
+  never built them, so a TOML scenario ran without its structures; the
+  scripts written by `--emit-script` had the same gap. It also skipped
+  `[sediment]`. All three are now built, with the parallel operators under
+  MPI (#431).
+* `anuga_sww_gui` and `SWW_plotter`: generating a maximum-value frame (max
+  depth, speed, ...) failed in the GUI with a Tk `TclError` about the
+  toolbar, and in a notebook a plot made after a save came back closed
+  (#444); animating a tracer over several frames failed in each worker process
+  with a `KeyError` (#441); and an SWW file with no `timezone` attribute, as
+  older versions wrote, would not open. It is now read as UTC, as the SWW
+  writer assumes (#443).
 
 ## Smaller improvements
 
@@ -265,7 +277,16 @@ the flow algorithms.
   `(polygon, maximum area)` list. The new `relax_passes` argument, and
   `Pmesh.relax_worst_cells`, move the vertices of the smallest cells to
   enlarge them. On a 1,407 km² catchment mesh the two together lengthened
-  the timestep 2.4 to 9.9 times at a similar triangle count.
+  the timestep 2.4 to 9.9 times at a similar triangle count. In tests on
+  three river-flood models (#436), they cut the number of steps by 26% and
+  34% on two of them, with the hydraulics essentially unchanged (on one,
+  against HEC-RAS on the same terrain), and by 3% on the third, whose
+  smallest cells sit against buildings meshed as holes, whose vertices stay
+  fixed.
+* `SWW_plotter` reads a quantity a timestep at a time, or one triangle's
+  values over time for a timeseries, instead of holding the whole run in
+  memory several times over, so `anuga_sww_gui` opens long runs that used to
+  need many gigabytes (#442).
 * The validation suite: the reports can be rebuilt from the SWW files already
   on disk (`-nr`, #403), the runner prints a summary table (#400, #401), and
   a failing case now makes the report build fail instead of being skipped
@@ -273,8 +294,11 @@ the flow algorithms.
   described under *Highlights*.
 * Documentation: the sediment physics specification is published as an
   appendix with its equations typeset (#318, #322), the `Domain` reference
-  lists every public method with a guard against drift (#320), and the flow
-  algorithms page warns that `DE0` damps propagating waves (#405).
+  lists every public method with a guard against drift (#320), the flow
+  algorithms page warns that `DE0` damps propagating waves (#405), and the
+  visualisation chapter has a *Choosing a viewer* table and a page on viewing
+  SWW files in ParaView and in a web browser with the separate
+  `anuga-paraview` package (#445).
 
 * The sediment kernel sees the vegetation: in a vegetated cell its bed shear
   is the bed's share of the Baptist resistance by default,
@@ -410,6 +434,13 @@ the flow algorithms.
   grain fractions, with inflow concentrations per boundary tag. Validated
   like the other sections, applied by `setup_sediment` in the generated run
   script, counted in the scenario summary.
+* TOML scenarios take a `[project] starttime`, e.g. `"-3*3600"` for a 3 h
+  burn-in before the forcing starts, on the same clock as `finaltime` (#433).
+  Inlet, stage-boundary and CSV-rainfall series hold their first value before
+  they begin (rain is 0), instead of raising.
+* An inlet whose enquiry point falls in one of its own triangles now warns
+  once per run with `anuga.EnquiryPointWarning`, instead of once per inlet;
+  `verbose=True` on the structure still names each point (#417).
 * GeoPackage in and out (#39, #40): `gpkg2polygons()` / `polygons2gpkg()`
   read and write polygon and polyline layers with attributes and a CRS as
   the `[x, y]` lists ANUGA's regions, buildings and breaklines take, and
