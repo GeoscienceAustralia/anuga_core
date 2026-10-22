@@ -1,4 +1,4 @@
-# ANUGA 4.1.0 (unreleased)
+# ANUGA 4.1.0
 
 ANUGA 4.1.0 adds two new capabilities to the solver: **passive tracers**,
 concentrations carried with the water, and **sediment transport** built on
@@ -480,11 +480,12 @@ the flow algorithms.
 
 ## Thanks
 
-<!-- To fill in at release: the testers who reported on the call for
-     testing (#411), and anyone else to acknowledge. -->
-
-Thanks to everyone who tested the release candidates and reported back on
-the call for testing (#411).
+Thanks to Dave Kennewell, for the fix to the Boyd pipe culvert's critical
+depth (#419) and for taking up the call for testing (#411); and to
+@PMacAddress, who tested the size field and worst-cell relaxation on three
+river-flood models, one against HEC-RAS (#436), and reported on viewing
+large results remotely (anuga-community/anuga-viewer#2), which led to the
+`SWW_plotter` memory fix (#442).
 
 ---
 

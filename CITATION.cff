@@ -39,6 +39,6 @@ license: Apache-2.0
 # tag date -- see claude/RELEASE_PLAN_4.0.0.md Phase 3. It is omitted rather
 # than left stale (it read 2022-06-26 through three releases). The `commit:`
 # pin was dropped for the same reason: the tag identifies the release.
-version: 4.0.0
-date-released: '2026-08-30'
+version: 4.1.0
+date-released: '2026-10-23'
 
