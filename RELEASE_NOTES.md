@@ -15,7 +15,8 @@ A patch release on the 4.1 line.
   bedload, angle-of-repose and suspended-exchange kernels, on the CPU and the
   GPU. Results change only where a bed change is comparable to the depth: on
   the pier case the scour is about half a millimetre shallower and the eroded
-  volume 15% smaller under `DE1`, with the same RMS against the Kinect bed.
+  volume 15% smaller under `DE1`, with the same RMS against the Kinect bed
+  (#450).
 
 ---
 
