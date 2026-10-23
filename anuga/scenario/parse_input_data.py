@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 """
 
@@ -15,7 +14,7 @@ import glob
 from anuga.utilities import spatialInputUtil as su
 
 
-class ProjectData(object):
+class ProjectData:
 
     """Class to hold input data that previously occurred in project.py
 
@@ -131,11 +130,6 @@ class ProjectData(object):
             project_ws, 'flow_algorithm', [0, 1], post_process=str)
 
         # Coerce this to a logical variable
-
-        self.use_local_extrapolation_and_flux_updating = \
-            data_source.get_var(project_ws,
-                                'use_local_extrapolation_and_flux_updating',
-                                offset=[0, 1], post_process=bool)
 
         self.output_tif_cellsize = data_source.get_var(
             project_ws,
@@ -389,7 +383,7 @@ class ProjectData(object):
         #
         # ####################################################################
         pumping_station_data = data_source.get_subtable(
-            pumping_station_ws, 'pumping stations', [1, 1], 
+            pumping_station_ws, 'pumping stations', [1, 1],
             post_process=string_or_float)
 
         # Remove data with 1 in the 'switch off' column
@@ -398,7 +392,7 @@ class ProjectData(object):
             ps = pumping_station_data[i]
             if (ps[0] != 1):
                 self.pumping_station_data.append(ps[1:len(ps)])
-        
+
 
         # Put pumping station basins in the mesh/elevation data
         # and perform checks on files
@@ -412,7 +406,7 @@ class ProjectData(object):
             for j in [6, 8, 9]:
                 msg = 'Cannot find file ' + ps[j]
                 assert os.path.exists(ps[j]), msg
-               
+
 ##############################################################################
 #
 # END OF CLASS
@@ -420,7 +414,7 @@ class ProjectData(object):
 ##############################################################################
 
 
-class AnugaXls(object):
+class AnugaXls:
 
     """Read an xls or xlsx file with the ANUGA input data
 

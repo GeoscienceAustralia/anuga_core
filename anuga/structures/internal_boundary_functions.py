@@ -4,7 +4,7 @@ import scipy
 from scipy.interpolate import interp1d
 
 
-class hecras_internal_boundary_function(object):
+class hecras_internal_boundary_function:
 
     """ Read internal boundary curves for a bridge / culvert from hecras and
         convert to a function which can be input as a structure in ANUGA
@@ -17,7 +17,7 @@ class hecras_internal_boundary_function(object):
         n values to make calibration easier
 
         Note also that when used in an ANUGA structure, this can still give a
-        different result to hecras. 
+        different result to hecras.
             * One reason is that the water surface elevation in hecras is
               assumed constant over a cross-section, whereas substantial
               cross-channel variations can occur in ANUGA, especialy near a
@@ -29,10 +29,10 @@ class hecras_internal_boundary_function(object):
     """
 
     def __init__(self, internal_boundary_curves_file, skip_header_rows=4,
-                 skip_columns=1, allow_sign_reversal=False, verbose=True, 
+                 skip_columns=1, allow_sign_reversal=False, verbose=True,
                  vertical_datum_offset = 0.):
         """ Use a csv file containing the htab-curves from hecras to create an
-            interpolation function for the structure. 
+            interpolation function for the structure.
 
             The header / initial column probably need to be skipped (hecras
             format)
@@ -53,9 +53,9 @@ class hecras_internal_boundary_function(object):
                    left-hand-side of the table), 1 in the examples I have seen
             @param allow_sign_reversal If False, then if the _call_ method is invoked
                     with the headwater < tailwater, it produces an exception.
-                    If True, then in the same situation the code reverses the 
+                    If True, then in the same situation the code reverses the
                     headwater and tailwater, and also reverses the sign of the
-                    resulting discharge. 
+                    resulting discharge.
             @param verbose True/False more messages
 
         """
@@ -94,7 +94,7 @@ class hecras_internal_boundary_function(object):
         self.free_flow_data = free_flow_data
 
         self.free_flow_hw_range = numpy.array(
-            [internal_boundary_curves[:, 1].min(), 
+            [internal_boundary_curves[:, 1].min(),
              internal_boundary_curves[:, 1].max()])
 
         # Aside from the first 2 columns, the file consists of column-stacked
@@ -177,7 +177,7 @@ class hecras_internal_boundary_function(object):
                     - NOTE: This means that we may have to evaluate the function
                             at values above hw -- which can lead to errors if the
                             table does not cover enough hw range.
-                3) Take a weighted average of each Q, with weights 
+                3) Take a weighted average of each Q, with weights
                    inversely proportional to (tw - TW_l) and (TW_u-tw)
 
             This weighting method is nice since it preserves steady states.
@@ -347,7 +347,7 @@ class hecras_internal_boundary_function(object):
             pyplot.xlabel('Tailwater (m)')
             pyplot.ylabel('Headwater (m)')
 
-        # Be nice to use the grid as a quick lookup function. 
+        # Be nice to use the grid as a quick lookup function.
         # But it fails when nan is present
         # self.gridded_interpolation_function = scipy.interpolate.RectBivariateSpline(HW_range, TW_range, Q_store)
 
@@ -360,7 +360,7 @@ def remove_repeated_curve_points(HW, Q):
 
     Return a 2-column array with HW, Q but repeated HW values removed. We
     retain the smallest Q for each HW, except at the highest HW value where the
-    largest Q is used. 
+    largest Q is used.
 
     """
 
@@ -389,7 +389,7 @@ def remove_repeated_curve_points(HW, Q):
 
 
 
-class pumping_station_function(object):
+class pumping_station_function:
     """ Transfer water from one site to another at a given rate,
         based on the pump capacities and observed headwater/tailwater.
 
@@ -398,11 +398,11 @@ class pumping_station_function(object):
 
         The locations of the latter are defined based on the enquiry points
         of the structure. The positive pump direction (positive Q) is from
-        headwater to tailwater. 
+        headwater to tailwater.
     """
 
     def __init__(self, domain, pump_capacity, hw_to_start_pumping, hw_to_stop_pumping,
-                 initial_pump_rate=0., pump_rate_of_increase = 1.0e+100, 
+                 initial_pump_rate=0., pump_rate_of_increase = 1.0e+100,
                  pump_rate_of_decrease = 1.0e+100, verbose=True):
         """
             @param domain ANUGA domain
@@ -412,7 +412,7 @@ class pumping_station_function(object):
             @param initial_pump_rate rate of pumps at start of simulation  (m^3/s)
             @param pump_rate_of_increase Accelleration of pump rate when turning on (m^3/s/s)
             @param pump_rate_of_decrease Decelleration of pump rate when turning off (m^3/s/s)
-            @param verbose 
+            @param verbose
         """
 
         self.pump_capacity = pump_capacity
@@ -431,7 +431,7 @@ class pumping_station_function(object):
 
         if initial_pump_rate > pump_capacity:
             raise Exception('Initial pump rate is > pump capacity')
-        
+
         if ((self.pump_rate_of_increase < 0.) | (self.pump_rate_of_decrease < 0.)):
             raise Exception('Pump rates of increase / decrease MUST be non-negative')
 
@@ -466,8 +466,8 @@ class pumping_station_function(object):
                 print(self.last_time_called)
                 print(self.time - self.last_time_called)
                 raise Exception('Impossible timestepping, ask Gareth')
-          
-        # Increase / decrease the pump rate if needed 
+
+        # Increase / decrease the pump rate if needed
         if hw_in < self.hw_to_stop_pumping:
             self.pump_rate = max(0., self.pump_rate - dt*self.pump_rate_of_decrease)
         elif hw_in > self.hw_to_start_pumping:

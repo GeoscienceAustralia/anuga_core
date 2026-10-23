@@ -1,7 +1,10 @@
 """  Test environmental forcing - rain, wind, etc.
 """
 
-import unittest, os, sys
+import tempfile
+import unittest
+import os
+import sys
 
 import anuga
 
@@ -27,7 +30,7 @@ class Test_DE_cuda(unittest.TestCase):
             try:
                 os.remove(file)
             except OSError:
-                pass 
+                pass
 
 
     def test_runup_cuda(self):
@@ -40,10 +43,10 @@ class Test_DE_cuda(unittest.TestCase):
 
             domain.set_flow_algorithm('DE0')
             domain.set_low_froude(0)
-        
-            domain.set_name(name)  
-            domain.set_datadir('.')
-        
+
+            domain.set_name(name)
+            domain.set_datadir(tempfile.mkdtemp())
+
             #------------------
             # Define topography
             #------------------
@@ -202,8 +205,8 @@ class Test_DE_cuda(unittest.TestCase):
              }
 
 
-              
-            domain = anuga.create_domain_from_regions(bounding_polygon, 
+
+            domain = anuga.create_domain_from_regions(bounding_polygon,
                                            boundary_tags,
                                            maximum_triangle_area = 0.4,
                                            breaklines = riverWalls.values())
@@ -212,8 +215,8 @@ class Test_DE_cuda(unittest.TestCase):
 
             #Initial Conditions
             domain.set_quantity('elevation', lambda x,y : -x/10, location='centroids') # Use function for elevation
-            domain.set_quantity('friction', 0.01, location='centroids')                # Constant friction 
-            domain.set_quantity('stage', expression='elevation', location='centroids') # Dry Bed 
+            domain.set_quantity('friction', 0.01, location='centroids')                # Constant friction
+            domain.set_quantity('stage', expression='elevation', location='centroids') # Dry Bed
 
             # Boundary Conditions
             Bi = anuga.Dirichlet_boundary([0.4, 0, 0])         # Inflow
@@ -312,7 +315,7 @@ class Test_DE_cuda(unittest.TestCase):
         import pprint
 
         #pprint.pprint(domain1.edge_timestep)
-        #pprint.pprint(domain2.edge_timestep)    
+        #pprint.pprint(domain2.edge_timestep)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_DE_cuda)

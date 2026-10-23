@@ -77,12 +77,12 @@ class Test_parallel_sw_flow(unittest.TestCase):
 
     def tearDown(self):
         os.remove(sequential_sww_file)
-        os.remove(parallel_sww_file)    
+        os.remove(parallel_sww_file)
 
     def test_that_sequential_and_parallel_outputs_are_identical(self):
         from anuga.file.sww import sww_files_are_equal
-        assert sww_files_are_equal(sequential_sww_file, parallel_sww_file) 
-        
+        assert sww_files_are_equal(sequential_sww_file, parallel_sww_file)
+
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner()

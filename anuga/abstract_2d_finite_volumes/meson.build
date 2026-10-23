@@ -46,15 +46,6 @@ py3.extension_module('quantity_openmp_ext',
 )
 
 
-py3.extension_module('quantity_cuda_ext',
-  sources: ['quantity_cuda_ext.pyx'],
-  c_args : openmp_c_args,
-  include_directories: inc_dir,
-  dependencies: openmp_deps,
-  subdir: 'anuga/abstract_2d_finite_volumes',
-  install: true,
-)
-
 
 
 python_sources = [
@@ -68,7 +59,6 @@ python_sources = [
   '__init__.py',
   'mesh_factory.py',
   'neighbour_mesh.py',
-  'old_setup.py',
   'pmesh2domain.py',
   'quantity.py',
   'region.py',

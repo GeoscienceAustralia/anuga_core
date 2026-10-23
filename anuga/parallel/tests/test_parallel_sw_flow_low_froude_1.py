@@ -10,6 +10,7 @@ This is a very simple test of the parallel algorithm using the simplified parall
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+import tempfile
 import unittest
 import os
 import sys
@@ -70,7 +71,7 @@ def run_simulation(parallel=False, G = None, seq_interpolation_points=None, verb
     domain.set_low_froude(1)
 
     domain.set_name('runup')                    # Set sww filename
-    domain.set_datadir('.')                     # Set output dir
+    domain.set_datadir(tempfile.mkdtemp())                     # Set output dir
 
     #--------------------------------------------------------------------------
     # Create the parallel domain

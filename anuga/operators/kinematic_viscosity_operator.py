@@ -1,7 +1,8 @@
 
 from anuga import Quantity
 from anuga.utilities.sparse import Sparse, Sparse_CSR
-from anuga.utilities.cg_solve import conjugate_gradient
+from anuga.utilities.cg_solve import conjugate_gradient, Stats, ConvergenceError
+from anuga.utilities.cg_ext import cg_solve_c_precon, jacobi_precon_c
 import anuga.abstract_2d_finite_volumes.neighbour_mesh as neighbour_mesh
 from anuga import Dirichlet_boundary
 import numpy as num
@@ -32,8 +33,8 @@ class Kinematic_viscosity_operator(Operator):
                  add_safety = False,
                  verbose=False):
 
-        if verbose: log.critical('Kinematic Viscosity: Beginning Initialisation')
-        
+        if verbose: log.info('Kinematic Viscosity: Beginning Initialisation')
+
 
         Operator.__init__(self,domain)
 
@@ -56,15 +57,17 @@ class Kinematic_viscosity_operator(Operator):
 
         if isinstance(diffusivity, str):
             self.diffusivity = self.domain.get_quantity(diffusivity)
-            
+
 
         self.add_safety = add_safety
         self.smooth = 0.1
-        
-        assert isinstance(self.diffusivity, Quantity)
-        
 
+        assert isinstance(self.diffusivity, Quantity)
+
+        # n: total local triangles (full + ghost in parallel; all in serial)
+        # n_full: full (owned) triangles only
         self.n = len(self.domain)
+        self.n_full = domain.number_of_full_triangles
 
         self.dt = 0.0 #Need to set to domain.timestep
         self.dt_apply = 0.0
@@ -75,7 +78,7 @@ class Kinematic_viscosity_operator(Operator):
         self.verbose = verbose
 
         #Geometric Information
-        if verbose: log.critical('Kinematic Viscosity: Building geometric structure')
+        if verbose: log.info('Kinematic Viscosity: Building geometric structure')
 
         self.geo_structure_indices = num.zeros((self.n, 3), int)
         self.geo_structure_values = num.zeros((self.n, 3), float)
@@ -84,15 +87,14 @@ class Kinematic_viscosity_operator(Operator):
         kinematic_viscosity_operator_ext.build_geo_structure(self)
 
         # Setup type of scaling
-        self.set_triangle_areas(use_triangle_areas)        
+        self.set_triangle_areas(use_triangle_areas)
 
         # FIXME SR: should this really be a matrix?
         temp  = Sparse(self.n, self.n)
         for i in range(self.n):
             temp[i, i] = 1.0 / self.mesh.areas[i]
-            
+
         self.triangle_areas = Sparse_CSR(temp)
-        #self.triangle_areas
 
         # FIXME SR: More to do with solving equation
         self.qty_considered = 1 #1 or 2 (uh or vh respectively)
@@ -114,7 +116,14 @@ class Kinematic_viscosity_operator(Operator):
         self.u_stats = None
         self.v_stats = None
 
-        if verbose: log.critical('Kinematic Viscosity: Initialisation Done')
+        # Pre-allocate workspace for the distributed CG matvec
+        self._kv_V = num.zeros(self.tot_len, dtype=float)
+
+        if verbose: log.info('Kinematic Viscosity: Initialisation Done')
+
+
+    def parallel_safe(self):
+        return True
 
 
     def __call__(self):
@@ -145,16 +154,11 @@ class Kinematic_viscosity_operator(Operator):
 
         assert num.all(d.centroid_values >= 0.0)
 
-        #d.set_values(num.where(h.centroid_values<1.0, 0.0, 1.0), location= 'centroids')
-        #d.set_boundary_values(num.where(h.boundary_values<1.0, 0.0, 1.0))
-
         # Quantities to solve
         # Boundary values are implied from BC set in advection part of code
         u = domain.quantities['xvelocity']
-        #u.set_boundary_values(0.0)
 
         v = domain.quantities['yvelocity']
-        #v.set_boundary_values(0.0)
 
         #Update operator using current height
         self.update_elliptic_matrix(d)
@@ -194,7 +198,7 @@ class Kinematic_viscosity_operator(Operator):
     def set_triangle_areas(self,flag=True):
 
         self.apply_triangle_areas = flag
-        
+
 
     def set_parabolic_solve(self,flag):
 
@@ -237,11 +241,10 @@ class Kinematic_viscosity_operator(Operator):
             a = Quantity(self.domain)
             a.set_values(1.0)
             a.set_boundary_values(1.0)
-            
+
         kinematic_viscosity_operator_ext.update_elliptic_matrix(self, \
                 a.centroid_values, \
                 a.boundary_values)
-        
 
 
 
@@ -308,7 +311,7 @@ class Kinematic_viscosity_operator(Operator):
         else:
 
             raise TypeError('expecting quantity or numpy array')
-        
+
         return output
 
 
@@ -326,7 +329,7 @@ class Kinematic_viscosity_operator(Operator):
         X = self._elliptic_multiply_array(array_in, array_out)
 
         quantity_out.set_values(X, location = 'centroids')
-        
+
         return quantity_out
 
     def _elliptic_multiply_array(self, array_in, array_out):
@@ -356,7 +359,6 @@ class Kinematic_viscosity_operator(Operator):
 
 
         return array_out
-
 
 
 
@@ -428,10 +430,8 @@ class Kinematic_viscosity_operator(Operator):
         return array_out
 
 
-
-
     def __mul__(self, vector):
-        
+
         #Vector
         if self.parabolic:
             R = self.parabolic_multiply(vector)
@@ -440,7 +440,7 @@ class Kinematic_viscosity_operator(Operator):
             R = self.elliptic_multiply(vector)
 
         return R
-    
+
     def __rmul__(self, other):
         #Right multiply with scalar
         try:
@@ -475,7 +475,7 @@ class Kinematic_viscosity_operator(Operator):
             u_out = Quantity(self.domain)
 
         if update_matrix :
-            self.update_elliptic_matrix(a) 
+            self.update_elliptic_matrix(a)
 
         self.update_elliptic_boundary_term(u_in)
 
@@ -495,7 +495,181 @@ class Kinematic_viscosity_operator(Operator):
         else:
             return u_out
 
-    
+
+    # ------------------------------------------------------------------
+    # Distributed (MPI) CG helpers
+    # ------------------------------------------------------------------
+
+    def _exchange_ghost_vector(self, v):
+        """In-place ghost exchange of vector v (length n = n_full + n_ghost).
+
+        Full-triangle values at v[Idf] are sent to neighbouring ranks and
+        placed into v[Idg] (ghost indices) on each receiving rank.
+        Uses MPI tag 198 to avoid collisions with the existing tag-123 path.
+        """
+        domain = self.domain
+        if domain.numproc == 1:
+            return
+
+        import mpi4py
+        import anuga.utilities.parallel_abstraction as pypar
+
+        recv_bufs = {}
+        recv_reqs  = []
+
+        for recv_proc, recv_entry in domain.ghost_recv_dict.items():
+            Idg = recv_entry[0]
+            buf = num.empty(len(Idg), dtype=float)
+            recv_bufs[recv_proc] = (Idg, buf)
+            recv_reqs.append(pypar.comm.Irecv(buf, recv_proc, tag=198))
+
+        send_bufs = []
+        send_reqs = []
+
+        for send_proc, send_entry in domain.full_send_dict.items():
+            Idf = send_entry[0]
+            buf = v[Idf].copy()   # contiguous copy — MPI must not alias with recv
+            send_bufs.append(buf)
+            send_reqs.append(pypar.comm.Isend(buf, send_proc, tag=198))
+
+        mpi4py.MPI.Request.Waitall(recv_reqs + send_reqs)
+
+        for Idg, buf in recv_bufs.values():
+            v[Idg] = buf
+
+
+    def _distributed_dot(self, a, b):
+        """Global dot product: sum of local dot(a, b) across all ranks."""
+        local = num.array([num.dot(a, b)])
+        if self.domain.numproc == 1:
+            return local[0]
+        import anuga.utilities.parallel_abstraction as pypar
+        from mpi4py.MPI import SUM
+        result = num.zeros(1, dtype=float)
+        pypar.comm.Allreduce(local, result, op=SUM)
+        return result[0]
+
+
+    def _parabolic_matvec_distributed(self, d_full):
+        """Compute P * d_full for the n_full owned triangles.
+
+        d_full : 1-D array of length n_full (search direction on full cells).
+
+        Returns array of length n_full:
+            result = d_full - dt * (A_{nn+ghost} * T^{-1} * d_extended)[:n_full]
+
+        where d_extended = [d_full; d_ghost] after ghost exchange.
+        """
+        n      = self.n        # full + ghost
+        n_full = self.n_full
+        tot_len = self.tot_len
+
+        # Reuse pre-allocated workspace of length tot_len
+        V = self._kv_V
+        V[:n_full]  = d_full
+        V[n_full:n] = 0.0       # ghost portion — will be filled by exchange
+        V[n:]       = 0.0       # boundary virtual nodes always zero here
+
+        # Fill ghost values of the search direction
+        self._exchange_ghost_vector(V)  # operates on V[0:n]
+
+        # Apply T^{-1} (divide by triangle areas) for all local triangles
+        if self.apply_triangle_areas:
+            V[:n] = V[:n] / self.mesh.areas   # element-wise, shape (n,)
+        # V[n:] stays zero (boundary virtual nodes)
+
+        # SpMV: elliptic_matrix is (n x tot_len); take only first n_full rows
+        AV = self.elliptic_matrix * V      # length n
+
+        return d_full - self.dt * AV[:n_full]
+
+
+    def _parabolic_solve_distributed(self, rhs_full, x0_full, imax, tol, atol):
+        """Distributed CG: solve P x = rhs for x on n_full owned triangles.
+
+        Dot products are reduced globally via Allreduce.
+        Each SpMV exchanges ghost values of the search direction so that
+        off-diagonal entries coupling full triangles to ghost triangles are
+        correct.
+
+        Returns x of length n_full.
+        """
+        n_full = self.n_full
+
+        x = x0_full.copy()
+        r = rhs_full - self._parabolic_matvec_distributed(x)
+        d = r.copy()
+
+        rTr  = self._distributed_dot(r, r)
+        rTr0 = rTr
+
+        if rTr0 == 0.0:
+            return x
+
+        for i in range(1, imax + 1):
+            q     = self._parabolic_matvec_distributed(d)
+            dTq   = self._distributed_dot(d, q)
+            alpha = rTr / dTq
+
+            x = x + alpha * d
+            r = r - alpha * q
+
+            rTr_new = self._distributed_dot(r, r)
+
+            if rTr_new <= tol**2 * rTr0 or rTr_new <= atol**2:
+                break
+
+            bt = rTr_new / rTr
+            d  = r + bt * d
+            rTr = rTr_new
+        else:
+            raise ConvergenceError(
+                'parabolic_solve (distributed): CG did not converge '
+                f'after {imax} iterations; rTr={rTr_new:.3e} rTr0={rTr0:.3e}')
+
+        return x
+
+
+    # ------------------------------------------------------------------
+    # _build_parabolic_csr — used only in the serial (single-rank) path
+    # ------------------------------------------------------------------
+
+    def _build_parabolic_csr(self):
+        """Return P = I - dt * A_{nn} * T^{-1} as a Sparse_CSR (n x n).
+
+        Only interior columns (colind < n) of the elliptic matrix contribute;
+        boundary columns are handled via boundary_term in the rhs.
+        If apply_triangle_areas is False, T^{-1} is omitted (identity scaling).
+        """
+        n   = self.n
+        dt  = self.dt
+        areas = self.mesh.areas
+
+        op_data   = self.operator_data    # shape (4n,)
+        op_colind = self.operator_colind  # shape (4n,), some entries may be >= n
+
+        # Row index for every entry (exactly 4 entries per row)
+        row_idx = num.repeat(num.arange(n, dtype=num.int64), 4)
+
+        # Keep only entries whose column is an interior triangle
+        interior = op_colind < n
+        i_rows = row_idx[interior]
+        i_cols = op_colind[interior].astype(num.int64)
+
+        if self.apply_triangle_areas:
+            i_vals = -dt * op_data[interior] / areas[i_cols]
+        else:
+            i_vals = -dt * op_data[interior].copy()
+
+        # Add identity on the diagonal
+        i_vals[i_rows == i_cols] += 1.0
+
+        counts = num.bincount(i_rows, minlength=n).astype(num.int64)
+        rowptr = num.zeros(n + 1, dtype=num.int64)
+        num.cumsum(counts, out=rowptr[1:])
+
+        return Sparse_CSR(None, i_vals, i_cols, rowptr, n, n)
+
 
     def parabolic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
                        output_stats=False, use_dt_tol=True, iprint=None, imax=10000):
@@ -520,44 +694,67 @@ class Kinematic_viscosity_operator(Operator):
 
         """
 
-
         if use_dt_tol:
-            tol  = min(self.dt,1.0e-5)
-            atol = min(self.dt,1.0e-5)
+            tol  = min(self.dt, 1.0e-5)
+            atol = min(self.dt, 1.0e-5)
         else:
             tol  = 1.0e-5
             atol = 1.0e-5
 
-
-
-        
         if u_out is None:
             u_out = Quantity(self.domain)
 
-        if update_matrix :
+        if update_matrix:
             self.update_elliptic_matrix(a)
 
         self.update_elliptic_boundary_term(u_in)
 
-        self.set_parabolic_solve(True)
+        rhs = num.ascontiguousarray(b.centroid_values + self.dt * self.boundary_term)
+        x0  = u_in.centroid_values.copy()
 
+        if self.domain.numproc > 1:
+            # ----------------------------------------------------------
+            # Distributed path: CG with ghost exchange + global Allreduce
+            # ----------------------------------------------------------
+            n_full = self.n_full
 
-        # Pull out arrays and a matrix operator
-        IdtA = self
-        rhs = b.centroid_values + (self.dt * self.boundary_term)
-        x0 = u_in.centroid_values
+            x = self._parabolic_solve_distributed(
+                    rhs[:n_full], x0[:n_full], imax, tol, atol)
 
-        x, stats = conjugate_gradient(IdtA,rhs,x0,imax=imax, tol=tol, atol=atol,
-                                      iprint=iprint, output_stats=True)
+            # Only update owned (full) triangles; ghosts are refreshed by
+            # the domain's normal ghost exchange in the next timestep.
+            u_out.centroid_values[:n_full] = x
 
-        self.set_parabolic_solve(False)
+        else:
+            # ----------------------------------------------------------
+            # Serial path: materialise P and call the OpenMP C CG
+            # ----------------------------------------------------------
+            P = self._build_parabolic_csr()
+            precon = num.empty(self.n, dtype=float)
+            jacobi_precon_c(P, precon)
 
-        u_out.set_values(x, location='centroids')
+            err = cg_solve_c_precon(P, x0, rhs, imax, tol, atol, 1, precon)
+
+            if err == -1:
+                raise ConvergenceError('parabolic_solve: conjugate gradient did not converge')
+            elif err != 0:
+                raise ConvergenceError(
+                    'parabolic_solve: conjugate gradient broke down '
+                    '(C error code %d): the operator matrix is singular, '
+                    'indefinite, or contains NaN' % err)
+
+            u_out.set_values(x0, location='centroids')
+
         u_out.set_boundary_values(u_in.boundary_values)
 
         if output_stats:
+            stats = Stats()
+            stats.iter = 0
+            stats.rTr  = 0.0
+            stats.rTr0 = 0.0
+            stats.dx   = 0.0
+            stats.x    = num.linalg.norm(u_out.centroid_values[:self.n_full])
+            stats.x0   = num.linalg.norm(x0[:self.n_full])
             return u_out, stats
         else:
             return u_out
-
- 

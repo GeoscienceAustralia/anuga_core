@@ -1,32 +1,24 @@
 #!/usr/bin/env python
 import pytest
-import unittest, os, time
-import os.path
-from math import pi, sqrt
+import unittest
+import os
 import tempfile
+from math import pi, sqrt
 
 from anuga.file.netcdf import NetCDFFile
-from anuga.file.sww import extent_sww
 
 from anuga.config import g, epsilon
-from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
-from anuga.utilities.numerical_tools import mean, ensure_numeric
-from anuga.geometry.polygon import is_inside_polygon
+from anuga.config import netcdf_mode_r
+from anuga.utilities.numerical_tools import mean
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
                                             rectangular
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
-from anuga.shallow_water.forcing import Inflow, Cross_section
-from anuga.geospatial_data.geospatial_data import ensure_geospatial
+from anuga.shallow_water.forcing import Cross_section
+from anuga.operators.rate_operators import Rate_operator
 
 from anuga.utilities.system_tools import get_pathname_from_package
-
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
-        import Dirichlet_boundary
-from anuga.shallow_water.forcing import Rainfall, Wind_stress
-from anuga.shallow_water.forcing import Inflow, Cross_section
-from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
 from anuga.shallow_water.shallow_water_domain import Domain
 
@@ -34,14 +26,10 @@ from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
             Transmissive_stage_zero_momentum_boundary
-from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
-     import Transmissive_boundary, Dirichlet_boundary, \
-            Time_boundary, File_boundary, AWI_boundary
+from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
+     import Transmissive_boundary, Dirichlet_boundary, Time_boundary
 
 import numpy as num
-from anuga.config import g
-
-from pprint import pprint
 
 # Get gateway to C implementation of flux function for direct testing
 from anuga.shallow_water.sw_domain_openmp_ext import flux_function_central as flux_function
@@ -121,7 +109,7 @@ def axes2points(x, y):
     # Return
     return P
 
-class Weir(object):
+class Weir:
     """Set a bathymetry for weir with a hole and a downstream gutter
     x,y are assumed to be in the unit square
     """
@@ -187,7 +175,7 @@ class Weir(object):
             x0 = 1.1
             y0 = 0.35
             if num.sqrt((2*(x[i]-x0))**2 + (2*(y[i]-y0))**2) < 0.2:
-                z[i] = num.sqrt(((x[i]-x0))**2 + ((y[i]-y0))**2)-1.0
+                z[i] = num.sqrt(((x[i]-x0))**2 + (y[i]-y0)**2)-1.0
 
             # Tiny channel draining hole
             if x[i] >= 1.14 and x[i] < 1.2 and y[i] >= 0.4 and y[i] < 0.6:
@@ -211,7 +199,7 @@ class Weir(object):
         return z / 2
 
 
-class Weir_simple(object):
+class Weir_simple:
     """Set a bathymetry for weir with a hole and a downstream gutter
 
     x,y are assumed to be in the unit square
@@ -257,7 +245,6 @@ def scalar_func(t, x, y):
     return 17.7
 
 
-
 class Test_Shallow_Water(unittest.TestCase):
     def setUp(self):
         pass
@@ -265,205 +252,6 @@ class Test_Shallow_Water(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_rotate(self):
-        normal = num.array([0.0, -1.0])
-
-        q = num.array([1.0, 2.0, 3.0])
-
-        r = rotate(q, normal, direction = 1)
-        assert r[0] == 1
-        assert r[1] == -3
-        assert r[2] == 2
-
-        w = rotate(r, normal, direction = -1)
-        assert num.allclose(w, q)
-
-        # Check error check
-        try:
-            rotate(r, num.array([1, 1, 1]))
-        except Exception:
-            pass
-        else:
-            raise Exception('Should have raised an exception')
-
-    # Individual flux tests
-    def test_flux_zero_case(self):
-        ql = num.zeros(3, float)
-        qr = num.zeros(3, float)
-        normal = num.zeros(2, float)
-        edgeflux = num.zeros(3, float)
-        zl = zr = ze = 0.
-        H0 = 1.0e-3 # As suggested in the manual
-
-        h = hl = hr = hle = hre = hc = hc_n = 0.0
-        low_froude = 1
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(edgeflux, [0, 0, 0])
-        assert num.allclose(pressure_flux, 0.5*g*h**2)
-        assert max_speed == 0.
-
-    def test_flux_constants(self):
-        w = 2.0
-
-        normal = num.array([1.,0])
-        ql = num.array([w, 0, 0])
-        qr = num.array([w, 0, 0])
-        edgeflux = num.zeros(3, float)
-        zr = zl = ze = 0
-        hl = hr = h = w - (zl+zr) / 2
-        H0 = 0.0
-
-        hle = hre = hc = h
-        hc_n = 0
-
-        for low_froude in [1, 2]:
-            max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-            assert max_speed == num.sqrt(g*h)
-            assert num.allclose(pressure_flux, 0.5*g*h**2)
-            assert num.allclose(edgeflux, [0., 0., 0.])
-
-
-    #def test_flux_slope(self):
-    #    #FIXME: TODO
-    #    w = 2.0
-    #
-    #    normal = array([1.,0])
-    #    ql = array([w, 0, 0])
-    #    qr = array([w, 0, 0])
-    #    zl = zr = 0.
-    #    h = w - (zl+zr)/2
-    #
-    #    flux, max_speed = flux_function(normal, ql, qr, zl, zr)
-    #
-    #    assert allclose(flux, [0., 0.5*g*h**2, 0.])
-    #    assert max_speed == sqrt(g*h)
-
-    def test_flux1(self):
-        # Use data from previous version of abstract_2d_finite_volumes
-        normal = num.array([1., 0])
-        ql = num.array([-0.2, 2, 3])
-        qr = num.array([-0.2, 2, 3])
-
-        zl = zr = ze = -0.5
-        hc = hc_n = hl = hr = hle = hre = h = 0.3
-        low_froude = 2
-        H0 = 0.0
-        edgeflux = num.zeros(3, float)
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(max_speed, 8.38130948661)
-        assert num.allclose(edgeflux, [2., 13.3333333, 20.])
-
-
-    def test_flux2(self):
-        # Use data from previous version of abstract_2d_finite_volumes
-        normal = num.array([0., -1.])
-        ql = num.array([-0.075, 2, 3])
-        qr = num.array([-0.075, 2, 3])
-        zl = zr = ze = -0.375
-
-        edgeflux = num.zeros(3, float)
-        H0 = 0.0
-
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        h = hc = hc_n = (hl + hr)/2
-        low_froude = 2
-        H0 = 0.0
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(edgeflux, [-3., -20.0, -30.0])
-        assert num.allclose(max_speed, 11.7146428199)
-        assert num.allclose(pressure_flux, 0.441)
-
-    def test_flux3(self):
-        # Use data from previous version of abstract_2d_finite_volumes
-        normal = num.array([-sqrt(2) / 2, sqrt(2) / 2])
-        ql = num.array([-0.075, 2, 3])
-        qr = num.array([-0.075, 2, 3])
-        zl = zr = ze = -0.375
-
-        edgeflux = num.zeros(3, float)
-
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        h = hc = hc_n = (hl + hr)/2
-        low_froude = 2
-        H0 = 0.0
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(edgeflux, [sqrt(2) / 2, 4.71404521, 7.07106781])
-        assert num.allclose(max_speed, 4.0716654239)
-        assert num.allclose(pressure_flux, 0.441)
-
-    def test_flux4(self):
-        # Use data from previous version of abstract_2d_finite_volumes
-        normal = num.array([-sqrt(2) / 2, sqrt(2) / 2])
-        ql = num.array([-0.34319278, 0.10254161, 0.07273855])
-        qr = num.array([-0.30683287, 0.1071986, 0.05930515])
-        zl = zr = ze = -0.375
-
-        edgeflux = num.zeros(3, float)
-        H0 = 0.0
-
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        h = hc = hc_n = (hl + hr)/2
-        low_froude = 2
-        H0 = 0.0
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert num.allclose(max_speed, 1.31414103233)
-        assert num.allclose(edgeflux, [-0.04072676, -0.05733579, -0.02967421])
-        assert num.allclose(pressure_flux, 0.0192765311)
-
-    def test_flux_computation(self):
-        """test flux calculation (actual C implementation)
-
-        This one tests the constant case where only the pressure term
-        contributes to each edge and cancels out once the total flux has
-        been summed up.
-        """
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #              bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        domain.check_integrity()
-
-        # The constant case
-        domain.set_quantity('elevation', -1)
-        domain.set_quantity('stage', 1)
-
-        domain.compute_fluxes()
-        # Central triangle
-        assert num.allclose(domain.get_quantity('stage').explicit_update[1], 0)
-
-        # The more general case
-        def surface(x, y):
-            return -x / 2
-
-        domain.set_quantity('elevation', -10)
-        domain.set_quantity('stage', surface)
-        domain.set_quantity('xmomentum', 1)
-
-        domain.compute_fluxes()
-
-        #print domain.get_quantity('stage').explicit_update
-        # FIXME (Ole): TODO the general case
-        #assert allclose(domain.get_quantity('stage').explicit_update[1], ...??)
 
     def test_sw_domain_simple(self):
         a = [0.0, 0.0]
@@ -490,7 +278,6 @@ class Test_Shallow_Water(unittest.TestCase):
             assert name in domain.quantities
 
         assert num.all(domain.get_conserved_quantities(0, edge=1) == 0.)
-
 
 
     def test_algorithm_parameters(self):
@@ -531,14 +318,13 @@ class Test_Shallow_Water(unittest.TestCase):
         assert parameters['alpha_balance']           == domain.alpha_balance
         assert parameters['tight_slope_limiters']    == domain.tight_slope_limiters
         assert parameters['optimise_dry_cells']      == domain.optimise_dry_cells
-        assert parameters['use_edge_limiter']        == domain.use_edge_limiter
         assert parameters['use_centroid_velocities'] == domain.use_centroid_velocities
         assert parameters['use_sloped_mannings']     == domain.use_sloped_mannings
         assert parameters['compute_fluxes_method']   == domain.get_compute_fluxes_method()
         assert parameters['flow_algorithm']          == domain.get_flow_algorithm()
 
-        assert parameters['optimised_gradient_limiter']        == domain.optimised_gradient_limiter
         assert parameters['extrapolate_velocity_second_order'] == domain.extrapolate_velocity_second_order
+
 
     def test_institution(self):
 
@@ -578,1281 +364,13 @@ class Test_Shallow_Water(unittest.TestCase):
         for t in domain.evolve(yieldstep=0.5, finaltime=0.5):
             pass
 
-        fid = NetCDFFile(domain.get_name() + '.sww')
+        fid = NetCDFFile(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
         sww_institution = fid.institution
         fid.close()
 
         assert institution == sww_institution
 
-        os.remove(domain.get_name() + '.sww')
-
-    def test_boundary_conditions(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-        boundary = {(0, 0): 'Third',
-                    (0, 2): 'First',
-                    (2, 0): 'Second',
-                    (2, 1): 'Second',
-                    (3, 1): 'Second',
-                    (3, 2): 'Third'}
-
-        domain = Domain(points, vertices, boundary)
-        domain.check_integrity()
-
-        domain.set_quantity('stage', [[1,2,3], [5,5,5], [0,0,9], [-6,3,3]])
-
-        domain.set_quantity('xmomentum', [[1,1,1], [2,2,2], [3,3,3], [4,4,4]])
-
-        domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
-                                          [30,30,30], [40,40,40]])
-
-        D = Dirichlet_boundary([5, 2, 1])
-        T = Transmissive_boundary(domain)
-        R = Reflective_boundary(domain)
-        domain.set_boundary({'First': D, 'Second': T, 'Third': R})
-
-        domain.update_boundary()
-
-        # Stage
-        assert domain.quantities['stage'].boundary_values[0] == 2.5
-        # Reflective (2.5)
-        assert (domain.quantities['stage'].boundary_values[0] ==
-                domain.get_conserved_quantities(0, edge=0)[0])
-        # Dirichlet
-        assert domain.quantities['stage'].boundary_values[1] == 5.
-        # Transmissive (4.5)
-        assert (domain.quantities['stage'].boundary_values[2] ==
-                domain.get_conserved_quantities(2, edge=0)[0])
-        # Transmissive (4.5)
-        assert (domain.quantities['stage'].boundary_values[3] ==
-                domain.get_conserved_quantities(2, edge=1)[0])
-        # Transmissive (-1.5)
-        assert (domain.quantities['stage'].boundary_values[4] ==
-                domain.get_conserved_quantities(3, edge=1)[0])
-        # Reflective (-1.5)
-        assert (domain.quantities['stage'].boundary_values[5] ==
-                domain.get_conserved_quantities(3, edge=2)[0])
-
-        # Xmomentum
-        #print domain.quantities['xmomentum'].boundary_values
-        #print domain.quantities['ymomentum'].boundary_values
-
-        # Reflective
-        assert domain.quantities['xmomentum'].boundary_values[0] == 1.0
-        # Dirichlet
-        assert domain.quantities['xmomentum'].boundary_values[1] == 2.
-        # Transmissive
-        assert (domain.quantities['xmomentum'].boundary_values[2] ==
-                domain.get_conserved_quantities(2, edge=0)[1])
-        # Transmissive
-        assert (domain.quantities['xmomentum'].boundary_values[3] ==
-                domain.get_conserved_quantities(2, edge=1)[1])
-        # Transmissive
-        assert (domain.quantities['xmomentum'].boundary_values[4] ==
-                domain.get_conserved_quantities(3, edge=1)[1])
-        # Reflective
-        assert domain.quantities['xmomentum'].boundary_values[5] == -4.0
-
-        # Ymomentum
-        # Reflective
-        assert domain.quantities['ymomentum'].boundary_values[0] == -10.0
-        # Dirichlet
-        assert domain.quantities['ymomentum'].boundary_values[1] == 1.
-        # Transmissive
-        assert domain.quantities['ymomentum'].boundary_values[2] == 30.
-        # Transmissive
-        assert domain.quantities['ymomentum'].boundary_values[3] == 30.
-        # Transmissive
-        assert domain.quantities['ymomentum'].boundary_values[4] == 40.
-        # Reflective
-        assert domain.quantities['ymomentum'].boundary_values[5] == 40.
-
-    def test_boundary_conditionsII(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-        boundary = {(0, 0): 'Third',
-                    (0, 2): 'First',
-                    (2, 0): 'Second',
-                    (2, 1): 'Second',
-                    (3, 1): 'Second',
-                    (3, 2): 'Third',
-                    (0, 1): 'Internal',
-                    (1, 2): 'Internal'}
-
-        domain = Domain(points, vertices, boundary)
-        domain.check_integrity()
-
-        domain.set_quantity('stage', [[1,2,3], [5,5,5], [0,0,9], [-6,3,3]])
-
-        domain.set_quantity('xmomentum', [[1,1,1], [2,2,2], [3,3,3], [4,4,4]])
-
-        domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
-                                          [30,30,30], [40,40,40]])
-
-        D = Dirichlet_boundary([5, 2, 1])
-        T = Transmissive_boundary(domain)
-        R = Reflective_boundary(domain)
-        domain.set_boundary({'First': D, 'Second': T,
-                             'Third': R, 'Internal': None})
-
-        domain.update_boundary()
-        domain.check_integrity()
-
-    def test_boundary_conditions_inconsistent_internal(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-        boundary = {(0, 0): 'Third',
-                    (0, 2): 'First',
-                    (2, 0): 'Second',
-                    (2, 1): 'Second',
-                    (3, 1): 'Second',
-                    (3, 2): 'Third',
-                    (0, 1): 'Internal'}
-
-        domain = Domain(points, vertices, boundary)
-
-        try:
-            domain.check_integrity()
-        except AssertionError:
-            pass
-        else:
-            msg = 'should have thrown assertion exception'
-            raise Exception(msg)
-
-
-
-
-
-    def test_boundary_conditionsIII(self):
-        """test_boundary_conditionsIII
-
-        Test Transmissive_stage_zero_momentum_boundary
-        """
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-        boundary = {(0, 0): 'Third',
-                    (0, 2): 'First',
-                    (2, 0): 'Second',
-                    (2, 1): 'Second',
-                    (3, 1): 'Second',
-                    (3, 2): 'Third'}
-
-        domain = Domain(points, vertices, boundary)
-        domain.check_integrity()
-
-        domain.set_quantity('stage', [[1,2,3], [5,5,5], [0,0,9], [-6,3,3]])
-
-        domain.set_quantity('xmomentum', [[1,1,1], [2,2,2], [3,3,3], [4,4,4]])
-
-        domain.set_quantity('ymomentum', [[10,10,10], [20,20,20],
-                                          [30,30,30], [40,40,40]])
-
-        D = Dirichlet_boundary([5, 2, 1])
-        T = Transmissive_stage_zero_momentum_boundary(domain)
-        R = Reflective_boundary(domain)
-        domain.set_boundary({'First': D, 'Second': T, 'Third': R})
-
-        domain.update_boundary()
-
-        # Stage
-        # Reflective (2.5)
-        assert domain.quantities['stage'].boundary_values[0] == 2.5
-        assert (domain.quantities['stage'].boundary_values[0] ==
-                domain.get_conserved_quantities(0, edge=0)[0])
-        # Dirichlet
-        assert domain.quantities['stage'].boundary_values[1] == 5.
-        # Transmissive (4.5)
-        assert (domain.quantities['stage'].boundary_values[2] ==
-                domain.get_conserved_quantities(2, edge=0)[0])
-        # Transmissive (4.5)
-        assert (domain.quantities['stage'].boundary_values[3] ==
-                domain.get_conserved_quantities(2, edge=1)[0])
-        # Transmissive (-1.5)
-        assert (domain.quantities['stage'].boundary_values[4] ==
-                domain.get_conserved_quantities(3, edge=1)[0])
-        # Reflective (-1.5)
-        assert (domain.quantities['stage'].boundary_values[5] ==
-                domain.get_conserved_quantities(3, edge=2)[0])
-
-        # Xmomentum
-        # Reflective
-        assert domain.quantities['xmomentum'].boundary_values[0] == 1.0
-        # Dirichlet
-        assert domain.quantities['xmomentum'].boundary_values[1] == 2.
-        assert domain.quantities['xmomentum'].boundary_values[2] == 0.0
-        assert domain.quantities['xmomentum'].boundary_values[3] == 0.0
-        assert domain.quantities['xmomentum'].boundary_values[4] == 0.0
-        # Reflective
-        assert domain.quantities['xmomentum'].boundary_values[5] == -4.0
-
-        # Ymomentum
-        # Reflective
-        assert domain.quantities['ymomentum'].boundary_values[0] == -10.0
-        # Dirichlet
-        assert domain.quantities['ymomentum'].boundary_values[1] == 1.
-        assert domain.quantities['ymomentum'].boundary_values[2] == 0.0
-        assert domain.quantities['ymomentum'].boundary_values[3] == 0.0
-        assert domain.quantities['ymomentum'].boundary_values[4] == 0.0
-        # Reflective
-        assert domain.quantities['ymomentum'].boundary_values[5] == 40.
-
-    def test_boundary_condition_time(self):
-        """test_boundary_condition_time
-
-        This tests that boundary conditions are evaluated
-        using the right time from domain.
-        """
-
-        # Setup computational domain
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-
-        #--------------------------------------------------------------
-        # Setup computational domain
-        #--------------------------------------------------------------
-        N = 5
-        points, vertices, boundary = rectangular_cross(N, N)
-        domain = Domain(points, vertices, boundary)
-
-        #--------------------------------------------------------------
-        # Setup initial conditions
-        #--------------------------------------------------------------
-        domain.set_quantity('elevation', 0.0)
-        domain.set_quantity('friction', 0.0)
-        domain.set_quantity('stage', 0.0)
-
-        #--------------------------------------------------------------
-        # Setup boundary conditions
-        #--------------------------------------------------------------
-        # Time dependent boundary
-        Bt = Time_boundary(domain=domain, function=lambda t: [t, 0.0, 0.0])
-
-        Br = Reflective_boundary(domain)              # Reflective wall
-
-        domain.set_boundary({'left': Bt, 'right': Br, 'top': Br, 'bottom': Br})
-
-        for t in domain.evolve(yieldstep = 10, finaltime = 20.0):
-            q = Bt.evaluate()
-
-            # FIXME (Ole): This test would not have passed in
-            # changeset:5846.
-            msg = 'Time boundary not evaluated correctly'
-            assert num.allclose(t, q[0]), msg
-
-    def test_compute_fluxes_structure_0(self):
-        # Do a full triangle and check that fluxes cancel out for
-        # the constant stage case
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        domain.set_quantity('stage', [[2,4,6], [4,3,2], [2,0,1], [1,2,3]])
-        domain.check_integrity()
-
-        assert num.allclose(domain.neighbours,
-                            [[-1,1,-2], [2,3,0], [-3,-4,1],[1,-5,-6]])
-        assert num.allclose(domain.neighbour_edges,
-                            [[-1,2,-1], [2,0,1], [-1,-1,0],[1,-1,-1]])
-
-        ze = zl = zr = 0.     # Assume flat bed
-
-        edgeflux = num.zeros(3, float)
-        edgeflux0 = num.zeros(3, float)
-        edgeflux1 = num.zeros(3, float)
-        edgeflux2 = num.zeros(3, float)
-        H0 = 0.0
-
-        # Flux across right edge of volume 1
-        normal = domain.get_normal(1, 0)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = 2
-        low_froude = 1
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert(num.any(edgeflux0 != 0))
-
-        # Check that flux seen from other triangles is inverse
-        (ql, qr) = (qr, ql)
-        normal = domain.get_normal(2, 2)
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert(num.any(edgeflux != 0))
-        assert num.allclose(edgeflux0 + edgeflux, 0.)
-
-        # Flux across upper edge of volume 1
-        normal = domain.get_normal(1, 1)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert(num.any(edgeflux1 != 0))
-
-        # Check that flux seen from other triangles is inverse
-        (ql, qr) = (qr, ql)
-        normal = domain.get_normal(3, 0)
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert(num.any(edgeflux != 0))
-        assert num.allclose(edgeflux1 + edgeflux, 0.)
-
-        # Flux across lower left hypotenuse of volume 1
-        normal = domain.get_normal(1, 2)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert(num.any(edgeflux2 != 0))
-
-        # Check that flux seen from other triangles is inverse
-        (ql, qr) = (qr, ql)
-        normal = domain.get_normal(0, 1)
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-        assert(num.any(edgeflux != 0))
-        assert num.allclose(edgeflux2 + edgeflux, 0.)
-
-        # Now check that compute_fluxes is correct as well
-        domain.compute_fluxes()
-        for name in ['stage', 'xmomentum', 'ymomentum']:
-            assert num.allclose(domain.quantities[name].explicit_update[1], 0)
-
-    def test_compute_fluxes_structure_1(self):
-        #Use values from previous version
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        val0 = 2. + 2.0/3
-        val1 = 4. + 4.0/3
-        val2 = 8. + 2.0/3
-        val3 = 2. + 8.0/3
-
-        domain.set_quantity('stage', [[val0, val0, val0], [val1, val1, val1],
-                                      [val2, val2, val2], [val3, val3, val3]])
-
-        domain.set_quantity('height', [[val0, val0, val0], [val1, val1, val1],
-                                      [val2, val2, val2], [val3, val3, val3]])
-
-        domain.check_integrity()
-
-        zl = zr = zc = 0.    # Assume flat bed
-
-        edgeflux = num.zeros(3, float)
-        edgeflux0 = num.zeros(3, float)
-        edgeflux1 = num.zeros(3, float)
-        edgeflux2 = num.zeros(3, float)
-        H0 = domain.H0
-
-        # Flux across right edge of volume 1
-        normal = domain.get_normal(1, 0)    # Get normal 0 of triangle 1
-        assert num.allclose(normal, [1, 0])
-
-        ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        assert num.allclose(ql, [val1, 0, 0])
-
-        qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        assert num.allclose(qr, [val2, 0, 0])
-
-        ze = (zl + zr) / 2
-        hl = hle = val1 - zl
-        hr = hre = val2 - zr
-        hc = hc_n = (hl + hr) / 2        
-        low_froude = 0
-        max_speed, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-
-        #print(max_speed, pressure_flux, edgeflux0)
-        # Flux across edge in the east direction (as per normal vector)
-        assert num.allclose(max_speed, 9.21592824046)
-        assert num.allclose(pressure_flux0, 253.71111111)
-        assert num.allclose(edgeflux0, [-15.3598804, 0, 0.])
-
-        # Flux across edge in the west direction (opposite sign for xmomentum)
-        normal_opposite = domain.get_normal(2, 2)   # Get normal 2 of triangle 2
-        assert num.allclose(normal_opposite, [-1, 0])
-
-        max_speed, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-        assert num.allclose(max_speed, 9.21592824046)
-        assert num.allclose(pressure_flux0, 253.71111111)        
-
-        # FIXME (Ole): edgeflux used to have direction - now the two last compenents are zero and pressure_flux has a corresponding scalar value).
-        #
-        # The test used to be this:
-        # assert num.allclose(edgeflux, [-15.3598804, -253.71111111, 0.])
-        
-        # Now it is this
-        #assert num.allclose(edgeflux0, [-15.3598804, 0, 0.]) 
-
-        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
-        edgeflux0[1] += normal[0]*bedslope_work0
-        edgeflux0[2] += normal[1]*bedslope_work0
-
-        #print(edgeflux0)
-        assert num.allclose(edgeflux0, [-15.3598804, 253.71111111, 0.])
-
-        # Flux across upper edge of volume 1
-        normal = domain.get_normal(1, 1)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-        
-        
-        # FIXME (Ole): edgeflux used to have direction - now it the two last components are zero and pressure_flux has a corresponding scalar value)                           assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
-        
-        # Now it is this instead:
-        assert num.allclose(max_speed, 7.22956891292)
-        assert num.allclose(pressure_flux1, 123.04444444)
-        assert num.allclose(edgeflux1, [2.4098563, 0., 0.])
-
-        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
-        edgeflux1[1] += normal[0]*bedslope_work1
-        edgeflux1[2] += normal[1]*bedslope_work1
-
-        #print(edgeflux1)
-        assert num.allclose(edgeflux1, [2.4098563, 0., 123.04444444])
-
-        # Flux across lower left hypotenuse of volume 1
-        normal = domain.get_normal(1, 2)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-        max_speed, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-        
-        # FIXME (Ole): The test changed from this
-        #assert num.allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])
-        #assert num.allclose(max_speed, 7.22956891292)
-        
-        # To this:
-        assert num.allclose(max_speed, 7.22956891292)   
-        assert num.allclose(pressure_flux2, 87.111111111)                     
-        assert num.allclose(edgeflux2, [9.63942522, 0., 0.])
-
-        
-        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
-        edgeflux2[1] += normal[0]*bedslope_work2
-        edgeflux2[2] += normal[1]*bedslope_work2
-
-        #print(edgeflux2)
-        assert num.allclose(edgeflux2, [9.63942522, -61.59685738, -61.59685738])   
-
-        # FIXME (Ole): This type of test was great for internal integrity and should really be reinstated by incorporating pressure_flux 
-        
-        # Scale, add up and check that compute_fluxes is correct for vol 1
-        e0 = domain.edgelengths[1, 0]
-        e1 = domain.edgelengths[1, 1]
-        e2 = domain.edgelengths[1, 2]
-
-        total_flux = -(e0*edgeflux0 +
-                       e1*edgeflux1 +
-                       e2*edgeflux2) / domain.areas[1]
-        #print(total_flux)
-        assert num.allclose(total_flux, [-0.68218178, -166.6, -35.93333333])
-
-        # Now check that compute_flux yields the same
-        domain.compute_fluxes()
-
-        for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-
-            #print(i,name, total_flux[i],
-            #                    domain.quantities[name].explicit_update[1])
-            assert num.allclose(total_flux[i],
-                                domain.quantities[name].explicit_update[1])
-
-        assert num.allclose(domain.quantities['stage'].explicit_update,
-                            [0., -0.68218178, -111.77316251, -35.68522449])
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            [-69.68888889, -166.6, 69.68888889, 0])
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update,
-                            [-69.68888889, -35.93333333, 0., 69.68888889])
-
-    def test_compute_fluxes_structure_2(self):
-        # Random values, incl momentum
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        val0 = 2. + 2.0/3
-        val1 = 4. + 4.0/3
-        val2 = 8. + 2.0/3
-        val3 = 2. + 8.0/3
-
-        ze = zl = zr = zc = 0    # Assume flat zero bed
-
-        #ze = (zl + zr) / 2
-        
-        edgeflux = num.zeros(3, float)
-        edgeflux0 = num.zeros(3, float)
-        edgeflux1 = num.zeros(3, float)
-        edgeflux2 = num.zeros(3, float)
-        ql = num.zeros(3, float)
-        qr = num.zeros(3, float)
-
-        H0 = domain.H0
-        low_froude = 0
-
-        domain.set_quantity('elevation', zc*num.ones((4, 3), int)) #array default#
-
-        domain.set_quantity('stage', [[val0, val0-1, val0-2],
-                                      [val1, val1+1, val1],
-                                      [val2, val2-2, val2],
-                                      [val3-0.5, val3, val3]])
-
-        domain.set_quantity('height', [[val0, val0-1, val0-2],
-                                      [val1, val1+1, val1],
-                                      [val2, val2-2, val2],
-                                      [val3-0.5, val3, val3]])
-
-        domain.set_quantity('xmomentum',
-                            [[1,2,3], [3,4,5], [1,-1,0], [0,-2,2]])
-
-        domain.set_quantity('ymomentum',
-                            [[1,-1,0], [0,-3,2], [0,1,0], [-1,2,2]])
-
-        domain.check_integrity()
-
-        Stage  = domain.quantities['stage']
-        Height = domain.quantities['height']
-        Bed    = domain.quantities['elevation']
-        Xmom   = domain.quantities['xmomentum']
-        Ymom   = domain.quantities['ymomentum']
-
-        hc = Height.centroid_values[1]
-        zc = Bed.centroid_values[1]
-
-
-        # Flux across right edge of volume 1
-        normal = domain.get_normal(1, 0)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        # qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[0] - zr
-        # hc = hc_n = (hl + hr) / 2
-
-               
-        ql[0] = Stage.edge_values[1,0]
-        ql[1] = Xmom.edge_values[1,0]
-        ql[2] = Ymom.edge_values[1,0]
-        zl  = Bed.edge_values[1,0]
-        hle = Height.edge_values[1,0]
-
-        hc_n = Height.centroid_values[2]
-        zc_n = Bed.centroid_values[2]
-
-        qr[0] = Stage.edge_values[2,2]
-        qr[1] = Xmom.edge_values[2,2]
-        qr[2] = Ymom.edge_values[2,2]
-        zr  = Bed.edge_values[2,2]
-        hre = Height.edge_values[2,2]
-
-        z_half = max(zl, zr)
-
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)
-
-        low_froude = 0
-
-        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-        
-        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
-        edgeflux0[1] += normal[0]*bedslope_work0
-        edgeflux0[2] += normal[1]*bedslope_work0
-
-
-        # Flux across upper edge of volume 1
-        normal = domain.get_normal(1, 1)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        # qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[0] - zr
-        # hc = hc_n = (hl + hr) / 2
-
-
-        ql[0] = Stage.edge_values[1,1]
-        ql[1] = Xmom.edge_values[1,1]
-        ql[2] = Ymom.edge_values[1,1]
-        zl  = Bed.edge_values[1,1]
-        hl = hle = Height.edge_values[1,1]
-
-        hc_n = Height.centroid_values[3]
-        zc_n = Bed.centroid_values[3]
-
-        qr[0] = Stage.edge_values[3,0]
-        qr[1] = Xmom.edge_values[3,0]
-        qr[2] = Ymom.edge_values[3,0]
-        zr  = Bed.edge_values[3,0]
-        hr = hre = Height.edge_values[3,0]
-
-        z_half = max(zl, zr)
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)
-
-        max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-         
-        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
-        edgeflux1[1] += normal[0]*bedslope_work1
-        edgeflux1[2] += normal[1]*bedslope_work1
-
-        # Flux across lower left hypotenuse of volume 1
-        normal = domain.get_normal(1, 2)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        # qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[0] - zr
-        # hc = hc_n = (hl + hr) / 2
-
-        ql[0] = Stage.edge_values[1,2]
-        ql[1] = Xmom.edge_values[1,2]
-        ql[2] = Ymom.edge_values[1,2]
-        zl  = Bed.edge_values[1,2]
-        hl = hle = Height.edge_values[1,2]
-
-        hc_n = Height.centroid_values[0]
-        zc_n = Bed.centroid_values[0]
-
-        qr[0] = Stage.edge_values[0,1]
-        qr[1] = Xmom.edge_values[0,1]
-        qr[2] = Ymom.edge_values[0,1]
-        zr  = Bed.edge_values[0,1]
-        hr = hre = Height.edge_values[0,1] 
-
-        z_half = max(zl, zr)
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)   
-
-
-        max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-         
-        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
-        edgeflux2[1] += normal[0]*bedslope_work2
-        edgeflux2[2] += normal[1]*bedslope_work2
-
-        # Scale, add up and check that compute_fluxes is correct for vol 1
-        # FIXME (Ole): This no longer works after the introduction of pressure_flux
-        e0 = domain.edgelengths[1, 0]
-        e1 = domain.edgelengths[1, 1]
-        e2 = domain.edgelengths[1, 2]
-
-        total_flux = -(e0*edgeflux0 +
-                       e1*edgeflux1 +
-                       e2*edgeflux2) / domain.areas[1]
-
-
-        domain.compute_fluxes()
-
-        for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            #print(i,name, total_flux[i],
-            #                    domain.quantities[name].explicit_update[1])
-            assert num.allclose(total_flux[i],
-                                domain.quantities[name].explicit_update[1])
-
-    # FIXME (Ole): Need test like this for fluxes in very shallow water.
-    def test_compute_fluxes_structure_3(self):
-        #Random values, incl momentum
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        val0 = 2.+2.0/3
-        val1 = 4.+4.0/3
-        val2 = 8.+2.0/3
-        val3 = 2.+8.0/3
-
-        zl = zr = -3.75    # Assume constant bed (must be less than stage)
-        ze = (zl + zr) / 2
-        
-        domain.set_quantity('elevation', zl*num.ones((4, 3), float)) #array default#
-
-        edgeflux = num.zeros(3, float)
-        edgeflux0 = num.zeros(3, float)
-        edgeflux1 = num.zeros(3, float)
-        edgeflux2 = num.zeros(3, float)
-        ql = num.zeros(3, float)
-        qr = num.zeros(3, float)
-
-        H0 = 0.0
-        low_froude = 0
-
-        stage_vertex = num.array([[val0, val0-1, val0-2],
-                                      [val1, val1+1, val1],
-                                      [val2, val2-2, val2],
-                                      [val3-0.5, val3, val3]])
-
-        domain.set_quantity('stage', stage_vertex )
-
-        domain.set_quantity('height', stage_vertex + zl)
-
-        domain.set_quantity('xmomentum',
-                            [[1,2,3], [3,4,5], [1,-1,0], [0,-2,2]])
-
-        domain.set_quantity('ymomentum',
-                            [[1,-1,0], [0,-3,2], [0,1,0], [-1,2,2]])
-
-        domain.check_integrity()
-
-        # # Flux across right edge of volume 1
-        # normal = domain.get_normal(1, 0)
-
-
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        # qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[1] - zr
-        # hc = hc_n = (hl + hr) / 2        
-        # max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-
-        # # Flux across upper edge of volume 1
-        # normal = domain.get_normal(1, 1)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        # qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[1] - zr
-        # hc = hc_n = (hl + hr) / 2        
-        # max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-        
-        # # Flux across lower left hypotenuse of volume 1
-        # normal = domain.get_normal(1, 2)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        # qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[1] - zr
-        # hc = hc_n = (hl + hr) / 2        
-        # max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)        
-
-        Stage  = domain.quantities['stage']
-        Height = domain.quantities['height']
-        Bed    = domain.quantities['elevation']
-        Xmom   = domain.quantities['xmomentum']
-        Ymom   = domain.quantities['ymomentum']
-
-        hc = Height.centroid_values[1]
-        zc = Bed.centroid_values[1]
-
-
-        # Flux across right edge of volume 1
-        normal = domain.get_normal(1, 0)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        # qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[0] - zr
-        # hc = hc_n = (hl + hr) / 2
-
-               
-        ql[0] = Stage.edge_values[1,0]
-        ql[1] = Xmom.edge_values[1,0]
-        ql[2] = Ymom.edge_values[1,0]
-        zl  = Bed.edge_values[1,0]
-        hle = Height.edge_values[1,0]
-
-        hc_n = Height.centroid_values[2]
-        zc_n = Bed.centroid_values[2]
-
-        qr[0] = Stage.edge_values[2,2]
-        qr[1] = Xmom.edge_values[2,2]
-        qr[2] = Ymom.edge_values[2,2]
-        zr  = Bed.edge_values[2,2]
-        hre = Height.edge_values[2,2]
-
-        z_half = max(zl, zr)
-
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)
-
-        low_froude = 0
-
-        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-        
-        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
-        edgeflux0[1] += normal[0]*bedslope_work0
-        edgeflux0[2] += normal[1]*bedslope_work0
-
-
-        # Flux across upper edge of volume 1
-        normal = domain.get_normal(1, 1)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        # qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[0] - zr
-        # hc = hc_n = (hl + hr) / 2
-
-
-        ql[0] = Stage.edge_values[1,1]
-        ql[1] = Xmom.edge_values[1,1]
-        ql[2] = Ymom.edge_values[1,1]
-        zl  = Bed.edge_values[1,1]
-        hl = hle = Height.edge_values[1,1]
-
-        hc_n = Height.centroid_values[3]
-        zc_n = Bed.centroid_values[3]
-
-        qr[0] = Stage.edge_values[3,0]
-        qr[1] = Xmom.edge_values[3,0]
-        qr[2] = Ymom.edge_values[3,0]
-        zr  = Bed.edge_values[3,0]
-        hr = hre = Height.edge_values[3,0]
-
-        z_half = max(zl, zr)
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)
-
-        max_speed1, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-         
-        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
-        edgeflux1[1] += normal[0]*bedslope_work1
-        edgeflux1[2] += normal[1]*bedslope_work1
-
-        # Flux across lower left hypotenuse of volume 1
-        normal = domain.get_normal(1, 2)
-        # ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        # qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-        
-        # hl = hle = ql[0] - zl
-        # hr = hre = qr[0] - zr
-        # hc = hc_n = (hl + hr) / 2
-
-        ql[0] = Stage.edge_values[1,2]
-        ql[1] = Xmom.edge_values[1,2]
-        ql[2] = Ymom.edge_values[1,2]
-        zl  = Bed.edge_values[1,2]
-        hl = hle = Height.edge_values[1,2]
-
-        hc_n = Height.centroid_values[0]
-        zc_n = Bed.centroid_values[0]
-
-        qr[0] = Stage.edge_values[0,1]
-        qr[1] = Xmom.edge_values[0,1]
-        qr[2] = Ymom.edge_values[0,1]
-        zr  = Bed.edge_values[0,1]
-        hr = hre = Height.edge_values[0,1] 
-
-        z_half = max(zl, zr)
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)   
-
-
-        max_speed2, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-         
-        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
-        edgeflux2[1] += normal[0]*bedslope_work2
-        edgeflux2[2] += normal[1]*bedslope_work2
-
-        # Scale, add up and check that compute_fluxes is correct for vol 1
-        e0 = domain.edgelengths[1, 0]
-        e1 = domain.edgelengths[1, 1]
-        e2 = domain.edgelengths[1, 2]
-
-        total_flux = -(e0*edgeflux0 +
-                       e1*edgeflux1 +
-                       e2*edgeflux2) / domain.areas[1]
-
-
-        # Now check that compute_flux yields the same
-        domain.compute_fluxes()
-
-        for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            #print(i, total_flux[i], domain.quantities[name].explicit_update[1])
-            assert num.allclose(total_flux[i],
-                                domain.quantities[name].explicit_update[1])
-
-
-    def test_compute_fluxes_default_1(self):
-        #Use values from previous version
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        domain.set_flow_algorithm('DE0')
-
-        val0 = 2. + 2.0/3
-        val1 = 4. + 4.0/3
-        val2 = 8. + 2.0/3
-        val3 = 2. + 8.0/3
-
-        domain.set_quantity('stage', [[val0, val0, val0], [val1, val1, val1],
-                                      [val2, val2, val2], [val3, val3, val3]])
-        domain.check_integrity()
-
-        zl = zr = ze = 0.    # Assume flat bed
-
-        edgeflux = num.zeros(3, float)
-        edgeflux0 = num.zeros(3, float)
-        edgeflux1 = num.zeros(3, float)
-        edgeflux2 = num.zeros(3, float)
-        H0 = 0.0
-
-        # Flux across right edge of volume 1
-        normal = domain.get_normal(1, 0)    # Get normal 0 of triangle 1
-        assert num.allclose(normal, [1, 0])
-
-        ql = domain.get_conserved_quantities(vol_id=1, edge=0)
-        assert num.allclose(ql, [val1, 0, 0])
-
-        qr = domain.get_conserved_quantities(vol_id=2, edge=2)
-        assert num.allclose(qr, [val2, 0, 0])
-
-        hl = hle = val1 - zl
-        hr = hre = val2 - zr
-        hc = hc_n = (hl + hr) / 2
-        low_froude = 1
-        domain.set_quantity('height', hc)
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(max_speed, 9.21592824046)
-        assert num.allclose(pressure_flux, 253.71111)
-        # Flux across edge in the east direction (as per normal vector)
-        assert num.allclose(edgeflux0, [-15.3598804, 0, 0.])
-
-
-        # Flux across edge in the west direction (opposite sign for xmomentum)
-        normal_opposite = domain.get_normal(2, 2)   # Get normal 2 of triangle 2
-        assert num.allclose(normal_opposite, [-1, 0])
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-
-        assert num.allclose(max_speed, 9.21592824046)
-        assert num.allclose(pressure_flux, 253.71111)
-        assert num.allclose(edgeflux, [-15.3598804, 0, 0.])
-
-        # Flux across upper edge of volume 1
-        normal = domain.get_normal(1, 1)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=1)
-        qr = domain.get_conserved_quantities(vol_id=3, edge=0)
-
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(max_speed, 7.22956891292)
-        assert num.allclose(pressure_flux, 123.04444444)
-        assert num.allclose(edgeflux1, [2.4098563, 0., 0.])
-
-
-        # Flux across lower left hypotenuse of volume 1
-        normal = domain.get_normal(1, 2)
-        ql = domain.get_conserved_quantities(vol_id=1, edge=2)
-        qr = domain.get_conserved_quantities(vol_id=0, edge=1)
-
-        hl = hle = ql[0] - zl
-        hr = hre = qr[0] - zr
-        hc = hc_n = (hl + hr) / 2
-
-        max_speed, pressure_flux = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, ze, g, H0, hc, hc_n, low_froude)
-
-        assert num.allclose(max_speed, 7.22956891292)
-        assert num.allclose(pressure_flux, 87.111111)
-        assert num.allclose(edgeflux2, [9.63942522, 0., 0.])
-
-        # Scale, add up and check that compute_fluxes is correct for vol 1
-        e0 = domain.edgelengths[1, 0]
-        e1 = domain.edgelengths[1, 1]
-        e2 = domain.edgelengths[1, 2]
-
-        total_flux = -(e0*edgeflux0 +
-                       e1*edgeflux1 +
-                       e2*edgeflux2) / domain.areas[1]
-
-        assert num.allclose(total_flux, [-0.68218178, 0., 0.])
-
-        domain.compute_fluxes()
-
-        # FIXME (Ole): Why does flux in 'stage' work, but flux in xmom and ymom have been lumped into pressure_flux?
-        # Doesn't that affect direction?
-        # Can this be tested?
-        #for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-        #    print(i, name, total_flux[i], domain.quantities[name].explicit_update[1])
-        #    assert num.allclose(total_flux[i],
-        #                        domain.quantities[name].explicit_update[1])
-
-        msg = 'Got %s' % (str(domain.quantities['stage'].explicit_update))
-        assert num.allclose(domain.quantities['stage'].explicit_update,
-                            [-6.46904403, -4.5743049, -100.45244512, -43.89591759]), msg
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            [-120.05, 0., 120.05, 0.])
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update,
-                            [-120.05, 0., 0., 120.05])
-
-    def test_compute_fluxes_DE_1(self):
-        # This is a reuse of test_compute_fluxes_old_2 which used the original (now deprecated algorithm).
-        # We changed the algorithm to DE and used those values to test it.
-        # FIXME (Ole): Need to carefully check how this test can be brought back. It is a very good internal integrity
-        # test - but currently not working.
-        #
-
-        #Random values, incl momentum
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        domain.set_compute_fluxes_method('DE')
-
-        val0 = 2. + 2.0/3
-        val1 = 4. + 4.0/3
-        val2 = 8. + 2.0/3
-        val3 = 2. + 8.0/3
-
-        ze = zl = zr = zc = 0    # Assume flat zero bed
-        edgeflux = num.zeros(3, float)
-        edgeflux0 = num.zeros(3, float)
-        edgeflux1 = num.zeros(3, float)
-        edgeflux2 = num.zeros(3, float)
-
-        ql = num.zeros(3, float)
-        qr = num.zeros(3, float)
-
-        H0 = domain.H0
-
-        domain.set_quantity('elevation', zl*num.ones((4, 3), int)) #array default#
-
-        domain.set_quantity('stage', [[val0, val0-1, val0-2],
-                                      [val1, val1+1, val1],
-                                      [val2, val2-2, val2],
-                                      [val3-0.5, val3, val3]])
-
-        domain.set_quantity('height', [[val0 - zl, val0-1 - zl, val0-2 - zl],
-                                      [val1 - zl, val1+1 - zl, val1 - zl],
-                                      [val2 - zl, val2-2 - zl, val2 - zl],
-                                      [val3-0.5 - zl, val3 - zl, val3 - zl]])
-
-        domain.set_quantity('xmomentum',
-                            [[1,2,3], [3,4,5], [1,-1,0], [0,-2,2]])
-
-        domain.set_quantity('ymomentum',
-                            [[1,-1,0], [0,-3,2], [0,1,0], [-1,2,2]])
-
-        domain.check_integrity()
-
-        Stage  = domain.quantities['stage']
-        Height = domain.quantities['height']
-        Bed    = domain.quantities['elevation']
-        Xmom   = domain.quantities['xmomentum']
-        Ymom   = domain.quantities['ymomentum']
-
-        hc = Height.centroid_values[1]
-        zc = Bed.centroid_values[1]
-
-        l0 = domain.edgelengths[1, 0]
-        l1 = domain.edgelengths[1, 1]
-        l2 = domain.edgelengths[1, 2]
-
-        # Flux across right edge of volume 1 (volume 2)
-        normal = domain.get_normal(1, 0)
-
-        
-        ql[0] = Stage.edge_values[1,0]
-        ql[1] = Xmom.edge_values[1,0]
-        ql[2] = Ymom.edge_values[1,0]
-        zl  = Bed.edge_values[1,0]
-        hle = Height.edge_values[1,0]
-
-        hc_n = Height.centroid_values[2]
-        zc_n = Bed.centroid_values[2]
-
-        qr[0] = Stage.edge_values[2,2]
-        qr[1] = Xmom.edge_values[2,2]
-        qr[2] = Ymom.edge_values[2,2]
-        zr  = Bed.edge_values[2,2]
-        hre = Height.edge_values[2,2]
-
-        z_half = max(zl, zr)
-
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)
-
-        low_froude = 0
-        #domain.set_quantity('height', hc)        
-
-        max_speed0, pressure_flux0 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux0, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-        #print("1 0 edgeflux python %e %e %e"% (edgeflux0[0]*l0,edgeflux0[1]*l0,edgeflux0[2]*l0))
-
-        bedslope_work0 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux0
-        edgeflux0[1] += normal[0]*bedslope_work0
-        edgeflux0[2] += normal[1]*bedslope_work0
-        assert(num.any(edgeflux0 != 0))
-
-
-        # Flux across upper edge of volume 1 (volume 3)
-        normal = domain.get_normal(1, 1)
-        
-        ql[0] = Stage.edge_values[1,1]
-        ql[1] = Xmom.edge_values[1,1]
-        ql[2] = Ymom.edge_values[1,1]
-        zl  = Bed.edge_values[1,1]
-        hl = hle = Height.edge_values[1,1]
-
-        hc_n = Height.centroid_values[3]
-        zc_n = Bed.centroid_values[3]
-
-        qr[0] = Stage.edge_values[3,0]
-        qr[1] = Xmom.edge_values[3,0]
-        qr[2] = Ymom.edge_values[3,0]
-        zr  = Bed.edge_values[3,0]
-        hr = hre = Height.edge_values[3,0]
-
-        z_half = max(zl, zr)
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)
-
-        #hc = hc_n = (hl + hr)/2
-        #domain.set_quantity('height', hc) 
-
-
-
-        max_speed, pressure_flux1 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux1, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-        #print("1 1 edgeflux python %e %e %e"% (edgeflux1[0]*l1,edgeflux1[1]*l1,edgeflux1[2]*l1))
-        
-        bedslope_work1 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux1
-        edgeflux1[1] += normal[0]*bedslope_work1
-        edgeflux1[2] += normal[1]*bedslope_work1
-        assert(num.any(edgeflux1 != 0))
-
-        # Flux across lower left hypotenuse of volume 1 (volume 0)
-        normal = domain.get_normal(1, 2)
-        
-        ql[0] = Stage.edge_values[1,2]
-        ql[1] = Xmom.edge_values[1,2]
-        ql[2] = Ymom.edge_values[1,2]
-        zl  = Bed.edge_values[1,2]
-        hl = hle = Height.edge_values[1,2]
-
-        hc_n = Height.centroid_values[0]
-        zc_n = Bed.centroid_values[0]
-
-        qr[0] = Stage.edge_values[0,1]
-        qr[1] = Xmom.edge_values[0,1]
-        qr[2] = Ymom.edge_values[0,1]
-        zr  = Bed.edge_values[0,1]
-        hr = hre = Height.edge_values[0,1] 
-
-        z_half = max(zl, zr)
-        hl = max(hle+zl-z_half,0.0)
-        hr = max(hre+zr-z_half,0.0)             
-
-        max_speed, pressure_flux2 = flux_function(normal, ql, qr, hl, hr, hle, hre, edgeflux2, epsilon, z_half, g, H0, hc, hc_n, low_froude)
-        #print("1 2 edgeflux python %e %e %e"% (edgeflux2[0]*l2,edgeflux2[1]*l2,edgeflux2[2]*l2))
-
-        bedslope_work2 = -g*0.5*(hl*hl - hle*hle -(hle+hc)*(zl-zc))+pressure_flux2
-        edgeflux2[1] += normal[0]*bedslope_work2
-        edgeflux2[2] += normal[1]*bedslope_work2
-        assert(num.any(edgeflux2 != 0))
-
-        # Scale, add up and check that compute_fluxes is correct for vol 1
-        # FIXME (Ole): This does not work after the introduction of pressure_flux
-
-        total_flux = -(l0*edgeflux0 +
-                       l1*edgeflux1 +
-                       l2*edgeflux2) / domain.areas[1]
-
-        domain.compute_fluxes()
-
-        for i, name in enumerate(['stage', 'xmomentum', 'ymomentum']):
-            msg = 'Expected %f for %s but got %f' % ((domain.quantities[name].explicit_update[1]),
-                                                     name,
-                                                     total_flux[i])
-            #print(total_flux[i])
-            assert num.allclose(total_flux[i],
-                                domain.quantities[name].explicit_update[1]), msg
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
 
     def test_get_wet_elements(self):
@@ -1889,6 +407,7 @@ class Test_Shallow_Water(unittest.TestCase):
         indices = domain.get_wet_elements(indices=[0, 1, 3])
         assert num.allclose(indices, [1])
 
+
     def test_get_maximum_inundation_1(self):
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1917,6 +436,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         x, y = domain.get_maximum_inundation_location()
         assert num.allclose([x, y], domain.get_centroid_coordinates()[0])
+
 
     def test_get_maximum_inundation_2(self):
         """test_get_maximum_inundation_2(self)
@@ -1950,6 +470,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         x, y = domain.get_maximum_inundation_location()
         assert num.allclose([x, y], domain.get_centroid_coordinates()[1])
+
 
     def test_get_maximum_inundation_3(self):
         """test_get_maximum_inundation_3(self)
@@ -2080,6 +601,7 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.all(wet_elevations < final_runup_height)
         assert num.allclose(wet_elevations, z)
 
+
     def test_get_flow_through_cross_section_with_geo(self):
         """test_get_flow_through_cross_section(self):
 
@@ -2182,7 +704,7 @@ class Test_Shallow_Water(unittest.TestCase):
         This run tries it with georeferencing and with elevation = -1
         """
 
-        import time, os
+        import time
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
@@ -2272,7 +794,7 @@ class Test_Shallow_Water(unittest.TestCase):
         This run tries it with georeferencing and with elevation = -1
         """
 
-        import time, os
+        import time
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         # Create basic mesh (20m x 3m)
@@ -2352,10 +874,6 @@ class Test_Shallow_Water(unittest.TestCase):
                 Et = cross_section.get_energy_through_cross_section(kind='total')
 
                 assert num.allclose(Et, w + 0.5*u*u / g)
-
-
-
-
 
 
     def test_another_runup_example(self):
@@ -2850,20 +1368,8 @@ class Test_Shallow_Water(unittest.TestCase):
         # pprint.pprint(gauge_values[2])
         # pprint.pprint(gauge_values[3])
 
-        # print(num.linalg.norm(num.array(G0)-gauge_values[0]))
-        # print(num.linalg.norm(num.array(G1)-gauge_values[1]))
-        # print(num.linalg.norm(num.array(G2)-gauge_values[2]))
-        # print(num.linalg.norm(num.array(G3)-gauge_values[3]))
 
-        # print(num.linalg.norm(num.array(G0_1)-gauge_values[0]))
-        # print(num.linalg.norm(num.array(G1_1)-gauge_values[1]))
-        # print(num.linalg.norm(num.array(G2_1)-gauge_values[2]))
-        # print(num.linalg.norm(num.array(G3_1)-gauge_values[3]))
 
-        # print(num.linalg.norm(num.array(G0_1)-num.array(G0_1)))
-        # print(num.linalg.norm(num.array(G1_1)-num.array(G1_1)))
-        # print(num.linalg.norm(num.array(G2_1)-num.array(G2_1)))
-        # print(num.linalg.norm(num.array(G3_1)-num.array(G3_1)))
 
 
 
@@ -2874,70 +1380,6 @@ class Test_Shallow_Water(unittest.TestCase):
 
     #####################################################
 
-    def test_flux_optimisation(self):
-        """test_flux_optimisation
-
-        Test that fluxes are correctly computed using
-        dry and still cell exclusions
-        """
-
-        from anuga.config import g
-        import copy
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x, y) + h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-
-        # Allow slope limiters to work
-        # (FIXME (Ole): Shouldn't this be automatic in ANUGA?)
-        domain.distribute_to_vertices_and_edges()
-
-        initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
-
-        domain.set_boundary({'exterior': Reflective_boundary(domain)})
-
-        #  Check that update arrays are initialised to zero
-        assert num.allclose(domain.get_quantity('stage').explicit_update, 0)
-        assert num.allclose(domain.get_quantity('xmomentum').explicit_update, 0)
-        assert num.allclose(domain.get_quantity('ymomentum').explicit_update, 0)
-
-        # Get true values
-        domain.optimise_dry_cells = False
-        domain.compute_fluxes()
-        stage_ref = copy.copy(domain.get_quantity('stage').explicit_update)
-        xmom_ref = copy.copy(domain.get_quantity('xmomentum').explicit_update)
-        ymom_ref = copy.copy(domain.get_quantity('ymomentum').explicit_update)
-
-        # Try with flux optimisation
-        domain.optimise_dry_cells = True
-        domain.compute_fluxes()
-
-        assert num.allclose(stage_ref,
-                            domain.get_quantity('stage').explicit_update)
-        assert num.allclose(xmom_ref,
-                            domain.get_quantity('xmomentum').explicit_update)
-        assert num.allclose(ymom_ref,
-                            domain.get_quantity('ymomentum').explicit_update)
 
     def test_initial_condition(self):
         """test_initial_condition
@@ -2992,444 +1434,9 @@ class Test_Shallow_Water(unittest.TestCase):
             else:
                 assert not num.allclose(stage, initial_stage)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
     #####################################################
-
-    def test_gravity(self):
-        #Assuming no friction
-
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x,y) + h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        #domain.compute_forcing_terms()
-        from anuga.shallow_water.sw_domain_openmp_ext import gravity
-        gravity(domain)
-
-        #print domain.quantities['xmomentum'].explicit_update
-        #print domain.quantities['ymomentum'].explicit_update
-
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-
-    def test_gravity_2(self):
-        #Assuming no friction
-
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 15
-        def stage(x, y):
-            return h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        #domain.compute_forcing_terms()
-        from anuga.shallow_water.sw_domain_openmp_ext import gravity
-        gravity(domain)
-
-        #print domain.quantities['xmomentum'].explicit_update
-        #print domain.quantities['ymomentum'].explicit_update
-
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            [-382.2, -323.4, -205.8, -382.2])
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-
-    def test_gravity_wb(self):
-        #Assuming no friction
-
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x,y)+h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        from anuga.shallow_water.sw_domain_openmp_ext import gravity_wb
-        gravity_wb(domain)
-
-
-        #print domain.quantities['xmomentum'].explicit_update
-        #print domain.quantities['ymomentum'].explicit_update
-
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            -g*h*3)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-
-    def test_gravity_wb_2(self):
-        #Assuming no friction
-
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 15.0
-        def stage(x, y):
-            return h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        from anuga.shallow_water.sw_domain_openmp_ext import gravity_wb
-        gravity_wb(domain)
-
-
-        #print domain.quantities['xmomentum'].explicit_update
-        #print domain.quantities['ymomentum'].explicit_update
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            [-396.9, -308.7, -220.5, -396.9])
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-
-    def test_manning_friction(self):
-        """ Assuming flat manning frinction is default
-        """
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        domain.set_sloped_mannings_function(False)
-
-        B = Reflective_boundary(domain)
-        domain.set_boundary( {'exterior': B})
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x, y) + h
-
-        eta = 0.07
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-        domain.set_quantity('friction', eta)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            0)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            0)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            0)
-
-        #Create some momentum for friction to work with
-        domain.set_quantity('xmomentum', 1)
-        S = -g*eta**2 /  h**(7.0/3)
-
-        domain.compute_forcing_terms()
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            S)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            0)
-
-        #A more complex example
-        domain.quantities['stage'].semi_implicit_update[:] = 0.0
-        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
-        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
-
-        domain.set_quantity('xmomentum', 3)
-        domain.set_quantity('ymomentum', 4)
-
-        S = -g*eta**2*5 /  h**(7.0/3)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            3*S)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            4*S)
-
-
-
-    def test_flat_manning_friction(self):
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        B = Reflective_boundary(domain)
-        domain.set_boundary( {'exterior': B})
-
-        # Use the flat function which doesn't takes into account the extra
-        # wetted area due to slope of bed
-        domain.set_sloped_mannings_function(False)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x, y) + h
-
-        eta = 0.07
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-        domain.set_quantity('friction', eta)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            0)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            0)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            0)
-
-        #Create some momentum for friction to work with
-        domain.set_quantity('xmomentum', 1)
-        S = -g*eta**2 /  h**(7.0/3)
-
-        domain.compute_forcing_terms()
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            S)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            0)
-
-        #A more complex example
-        domain.quantities['stage'].semi_implicit_update[:] = 0.0
-        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
-        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
-
-        domain.set_quantity('xmomentum', 3)
-        domain.set_quantity('ymomentum', 4)
-
-        S = -g*eta**2*5 /  h**(7.0/3)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            3*S)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            4*S)
-
-
-    def test_sloped_manning_friction(self):
-        from anuga.config import g
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        B = Reflective_boundary(domain)
-        domain.set_boundary( {'exterior': B})
-
-        # Use the sloped function which takes into account the extra
-        # wetted area due to slope of bed
-        domain.set_sloped_mannings_function(True)
-
-        #Set up for a gradient of (3,0) at mid triangle (bce)
-        def slope(x, y):
-            return 3*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x, y) + h
-
-        eta = 0.07
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-        domain.set_quantity('friction', eta)
-
-        for name in domain.conserved_quantities:
-            assert num.allclose(domain.quantities[name].explicit_update, 0)
-            assert num.allclose(domain.quantities[name].semi_implicit_update, 0)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update,
-                            0)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, 0)
-
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            0)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            0)
-
-        #Create some momentum for friction to work with
-        domain.set_quantity('xmomentum', 1)
-        S = -g*eta**2 /  h**(7.0/3) * sqrt(10)
-
-        domain.compute_forcing_terms()
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            S)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            0)
-
-        #A more complex example
-        domain.quantities['stage'].semi_implicit_update[:] = 0.0
-        domain.quantities['xmomentum'].semi_implicit_update[:] = 0.0
-        domain.quantities['ymomentum'].semi_implicit_update[:] = 0.0
-
-        domain.set_quantity('xmomentum', 3)
-        domain.set_quantity('ymomentum', 4)
-
-        S = -g*eta**2*5 /  h**(7.0/3) * sqrt(10.0)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].semi_implicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].semi_implicit_update,
-                            3*S)
-        assert num.allclose(domain.quantities['ymomentum'].semi_implicit_update,
-                            4*S)
-
 
 
     def test_inflow_using_circle(self):
@@ -3458,19 +1465,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
-        domain.forcing_terms = []
+        I = Rate_operator.inflow(domain, rate=2.0, center=(1,1), radius=1)
 
-        I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
-        domain.forcing_terms.append(I)
-        domain.compute_forcing_terms()
-
-
-        A = I.exchange_area
+        A = I.areas.sum()
         assert num.allclose(A, 4) # Two triangles
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        stage0 = domain.quantities['stage'].centroid_values.copy()
+        domain.timestep = 1.0
+        I()
+        dstage = domain.quantities['stage'].centroid_values - stage0
+
+        assert num.allclose(dstage[1], 2.0/A)
+        assert num.allclose(dstage[0], 2.0/A)
+        assert num.allclose(dstage[2:], 0)
 
 
     def test_inflow_using_circle_function(self):
@@ -3499,20 +1506,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, time dependent inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
-        domain.forcing_terms = []
-        I = Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
-        domain.forcing_terms.append(I)
+        I = Rate_operator.inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
 
-        domain.compute_forcing_terms()
-
-        A = I.exchange_area
+        A = I.areas.sum()
         assert num.allclose(A, 4) # Two triangles
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        stage0 = domain.quantities['stage'].centroid_values.copy()
+        domain.timestep = 1.0
+        I()
+        dstage = domain.quantities['stage'].centroid_values - stage0
 
-
+        assert num.allclose(dstage[1], 2.0/A)
+        assert num.allclose(dstage[0], 2.0/A)
+        assert num.allclose(dstage[2:], 0)
 
 
     def test_inflow_catch_too_few_triangles(self):
@@ -3547,958 +1553,13 @@ class Test_Shallow_Water(unittest.TestCase):
         # Setup only one forcing term, constant inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
         try:
-            Inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
+            Rate_operator.inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
         except Exception:
             pass
         else:
             msg = 'Should have raised exception'
             raise Exception(msg)
 
-    def Xtest_inflow_outflow_conservation(self):
-        """
-        Test what happens if water is abstracted from one area and
-        injected into another - especially if there is not enough
-        water to match the abstraction.
-        This tests that the total volume is kept constant under a range of
-        scenarios.
-
-        This test will fail as the problem was only fixed for culverts.
-        """
-
-        from math import pi, cos, sin
-
-        length = 20.
-        width = 10.
-
-        dx = dy = 2    # 1 or 2 OK
-        points, vertices, boundary = rectangular_cross(int(length / dx),
-                                                       int(width / dy),
-                                                       len1=length,
-                                                       len2=width)
-        domain = Domain(points, vertices, boundary)
-        domain.set_name('test_inflow_conservation')    # Output name
-        domain.set_default_order(2)
-
-        # Flat surface with 1m of water
-        stage = 1.0
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', stage)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'bottom': Br, 'top': Br})
-
-        # Setup one forcing term, constant inflow of 2 m^3/s on a circle
-        domain.forcing_terms = []
-        domain.forcing_terms.append(Inflow(domain, rate=2.0,
-                                           center=(5,5), radius=1))
-
-        domain.compute_forcing_terms()
-
-        # Check that update values are correct
-        for x in domain.quantities['stage'].explicit_update:
-            assert num.allclose(x, 2.0/pi) or num.allclose(x, 0.0)
-
-        # Check volumes without inflow
-        domain.forcing_terms = []
-        initial_volume = domain.quantities['stage'].get_integral()
-
-        assert num.allclose(initial_volume, width*length*stage)
-
-        for t in domain.evolve(yieldstep = 0.05, finaltime = 5.0):
-            volume = domain.quantities['stage'].get_integral()
-            assert num.allclose(volume, initial_volume)
-
-        # Now apply the inflow and check volumes for a range of stage values
-        for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
-            domain.set_time(0.0)
-            domain.set_quantity('stage', stage)
-            domain.forcing_terms = []
-            domain.forcing_terms.append(Inflow(domain, rate=2.0,
-                                               center=(5,5), radius=1))
-            initial_volume = domain.quantities['stage'].get_integral()
-            predicted_volume = initial_volume
-            dt = 0.05
-            for t in domain.evolve(yieldstep=dt, finaltime=5.0):
-                volume = domain.quantities['stage'].get_integral()
-                assert num.allclose (volume, predicted_volume)
-                predicted_volume = predicted_volume + 2.0 / pi / 100 / dt # Why 100?
-
-        # Apply equivalent outflow only and check volumes
-        # for a range of stage values
-        for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
-            #print stage
-
-            domain.set_time(0.0)
-            domain.set_quantity('stage', stage)
-            domain.forcing_terms = []
-            domain.forcing_terms.append(Inflow(domain, rate=-2.0,
-                                               center=(15,5), radius=1))
-            initial_volume = domain.quantities['stage'].get_integral()
-            predicted_volume = initial_volume
-            dt = 0.05
-            for t in domain.evolve(yieldstep=dt, finaltime=5.0):
-                volume = domain.quantities['stage'].get_integral()
-                #print(t, volume, predicted_volume)
-                assert num.allclose (volume, predicted_volume)
-                predicted_volume = predicted_volume - 2.0 / pi / 100 / dt # Why 100?
-
-        # Apply both inflow and outflow and check volumes being constant for a
-        # range of stage values
-        for stage in [2.0, 1.0, 0.5, 0.25, 0.1, 0.0]:
-            #print stage
-
-            domain.set_time(0.0)
-            domain.set_quantity('stage', stage)
-            domain.forcing_terms = []
-            domain.forcing_terms.append(Inflow(domain, rate=2.0,
-                                               center=(5,5), radius=1))
-            domain.forcing_terms.append(Inflow(domain, rate=-2.0,
-                                               center=(15,5), radius=1))
-            initial_volume = domain.quantities['stage'].get_integral()
-
-            dt = 0.05
-            for t in domain.evolve(yieldstep=dt, finaltime=5.0):
-                volume = domain.quantities['stage'].get_integral()
-
-                #print t, volume
-                assert num.allclose(volume, initial_volume)
-
-    #####################################################
-
-    def test_first_order_extrapolator_const_z(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        val0 = 2. + 2.0/3
-        val1 = 4. + 4.0/3
-        val2 = 8. + 2.0/3
-        val3 = 2. + 8.0/3
-
-        zl = zr = -3.75    # Assume constant bed (must be less than stage)
-        domain.set_quantity('elevation', zl*num.ones((4, 3), int)) #array default#
-        domain.set_quantity('stage', [[val0, val0-1, val0-2],
-                                      [val1, val1+1, val1],
-                                      [val2, val2-2, val2],
-                                      [val3-0.5, val3, val3]])
-
-        domain._order_ = 1
-        domain.distribute_to_vertices_and_edges()
-
-        #Check that centroid values were distributed to vertices
-        C = domain.quantities['stage'].centroid_values
-        V = num.sum(domain.quantities['stage'].vertex_values, axis=1)/3.0
-
-        assert num.allclose(V,C)
-
-
-    def test_first_order_limiter_variable_z(self):
-        '''Check that first order limiter follows bed_slope'''
-
-        from anuga.config import epsilon
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0,0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0,0.0]
-
-        points = [a, b, c, d, e, f]
-        #bac, bce, ecf, dbe
-        vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        val0 = 2.+2.0/3
-        val1 = 4.+4.0/3
-        val2 = 8.+2.0/3
-        val3 = 2.+8.0/3
-
-        domain.set_quantity('elevation', [[0,0,0], [6,0,0],
-                                          [6,6,6], [6,6,6]])
-        domain.set_quantity('stage', [[val0, val0, val0],
-                                      [val1, val1, val1],
-                                      [val2, val2, val2],
-                                      [val3, val3, val3]])
-
-        E = domain.quantities['elevation'].vertex_values
-        L = domain.quantities['stage'].vertex_values
-
-
-        #Check that some stages are not above elevation (within eps)
-        #- so that the limiter has something to work with
-        assert not num.all(num.all(num.greater_equal(L,E-epsilon)))
-
-        domain._order_ = 1
-        domain.distribute_to_vertices_and_edges()
-
-        #Check that all stages are above elevation (within eps)
-        assert num.all(num.all(num.greater_equal(L,E-epsilon)))
-
-    def test_distribute_basic(self):
-        #Using test data generated by abstract_2d_finite_volumes-2
-        #Assuming no friction and flat bed (0.0)
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        val0 = 2.
-        val1 = 4.
-        val2 = 8.
-        val3 = 2.
-
-        domain.set_quantity('stage', [val0, val1, val2, val3],
-                            location='centroids')
-        L = domain.quantities['stage'].vertex_values
-
-        # First order
-        domain._order_ = 1
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [ 0.,  6.,  6.])
-        assert num.allclose(num.sum(L[1]), 3*val1)
-
-        # Second order
-        domain._order_ = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-        domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [ 0.,  6.,  6.])
-        assert num.allclose(num.sum(L[1]), 3*val1)
-
-
-    def test_distribute_away_from_bed(self):
-        #Using test data generated by abstract_2d_finite_volumes-2
-        #Assuming no friction and flat bed (0.0)
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        L = domain.quantities['stage'].vertex_values
-
-        def stage(x, y):
-            return x**2
-
-        domain.set_quantity('stage', stage, location='centroids')
-
-        domain.quantities['stage'].compute_gradients()
-
-        a, b = domain.quantities['stage'].get_gradients()
-
-        assert num.allclose(a[1], 3.33333334)
-        assert num.allclose(b[1], 0.0)
-
-        domain._order_ = 1
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [-0.22222222,  2.77777778,  2.77777778])
-
-        domain._order_ = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        domain.update_domain_c_struct()
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [-2.66666667,  4.        ,  4.        ])
-
-    def test_distribute_away_from_bed1(self):
-        #Using test data generated by abstract_2d_finite_volumes-2
-        #Assuming no friction and flat bed (0.0)
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        L = domain.quantities['stage'].vertex_values
-
-        def stage(x, y):
-            return x**4 + y**2
-
-        domain.set_quantity('stage', stage, location='centroids')
-
-        domain.quantities['stage'].compute_gradients()
-        a, b = domain.quantities['stage'].get_gradients()
-        assert num.allclose(a[1], 25.18518519)
-        assert num.allclose(b[1], 3.33333333)
-
-        domain._order_ = 1
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], 4.9382716)
-
-        domain._order_ = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        domain.update_domain_c_struct()
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [ -7.81670675,   9.95991663,  12.67160494])
-
-    def test_distribute_near_bed(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Set up for a gradient of (10,0) at mid triangle (bce)
-        def slope(x, y):
-            return 10*x
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x, y) + h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage, location='centroids')
-
-        E = domain.quantities['elevation'].vertex_values
-        L = domain.quantities['stage'].vertex_values
-
-        # Get reference values
-        volumes = []
-        for i in range(len(L)):
-            volumes.append(num.sum(L[i]) / 3)
-            assert num.allclose(volumes[i],
-                                domain.quantities['stage'].centroid_values[i])
-
-        domain._order_ = 1
-
-        domain.tight_slope_limiters = 0
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [0.1, 20.1, 20.1])
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-        # Allow triangle to be flatter (closer to bed)
-        domain.tight_slope_limiters = 1
-
-        domain.distribute_to_vertices_and_edges()
-
-
-        #print L[1]
-        #print [0.298, 20.001, 20.001]
-
-        assert num.allclose(L[1], [  0.1,  20.1,  20.1])
-
-
-
-
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-        domain._order_ = 2
-
-        domain.tight_slope_limiters = 0
-        domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [0.1, 20.1, 20.1])
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-        # Allow triangle to be flatter (closer to bed)
-        domain.tight_slope_limiters = 1
-
-        domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [0.1, 20.1, 20.1])
-
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-    def test_distribute_near_bed1(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-        domain.set_flow_algorithm('DE0')
-
-        # Set up for a gradient of (8,2) at mid triangle (bce)
-        def slope(x, y):
-            return x**4 + y**2
-
-        h = 0.1
-        def stage(x, y):
-            return slope(x, y) + h
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage', stage)
-
-        E = domain.quantities['elevation'].vertex_values
-        L = domain.quantities['stage'].vertex_values
-
-        # Get reference values
-        volumes = []
-        for i in range(len(L)):
-            volumes.append(num.sum(L[i]) / 3)
-            assert num.allclose(volumes[i],
-                                domain.quantities['stage'].centroid_values[i])
-
-        domain._order_ = 1
-
-        domain.tight_slope_limiters = 0
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [1.469863, 18.7301, 20.1])
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-
-        domain.tight_slope_limiters = 1 # Allow triangle to be flatter (closer to bed)
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(L[1], [1.46986301, 18.7301,  20.00001 ], rtol=1.0e-2)
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-
-        domain._order_ = 2
-
-        domain.tight_slope_limiters = 0
-        domain.distribute_to_vertices_and_edges()
-        assert num.allclose(L[1], [1.46986301, 18.7301,  20.00001], rtol=1.0e-2)
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-        # Allow triangle to be flatter (closer to bed)
-        domain.tight_slope_limiters = 1
-
-        domain.distribute_to_vertices_and_edges()
-        assert  num.allclose(L[1], [1.46986301, 18.7301,  20.00001], rtol=1.0e-2)
-
-
-        for i in range(len(L)):
-            assert num.allclose(volumes[i], num.sum(L[i]) / 3)
-
-
-    def test_second_order_distribute_real_data(self):
-        #Using test data generated by abstract_2d_finite_volumes-2
-        #Assuming no friction and flat bed (0.0)
-
-        a = [0.0, 0.0]
-        b = [0.0, 1.0/5]
-        c = [0.0, 2.0/5]
-        d = [1.0/5, 0.0]
-        e = [1.0/5, 1.0/5]
-        f = [1.0/5, 2.0/5]
-        g = [2.0/5, 2.0/5]
-
-        points = [a, b, c, d, e, f, g]
-        #             bae,     efb,     cbf,     feg
-        vertices = [[1,0,4], [4,5,1], [2,1,5], [5,4,6]]
-
-        domain = Domain(points, vertices)
-
-        def slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage',
-                            [0.01298164, 0.00365611,
-                             0.01440365, -0.0381856437096],
-                            location='centroids')
-        domain.set_quantity('xmomentum',
-                            [0.00670439, 0.01263789,
-                             0.00647805, 0.0178180740668],
-                            location='centroids')
-        domain.set_quantity('ymomentum',
-                            [-7.23510980e-004, -6.30413883e-005,
-                             6.30413883e-005, 0.000200907255866],
-                            location='centroids')
-
-        E = domain.quantities['elevation'].vertex_values
-        L = domain.quantities['stage'].vertex_values
-        X = domain.quantities['xmomentum'].vertex_values
-        Y = domain.quantities['ymomentum'].vertex_values
-
-        domain._order_ = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        # FIXME (Ole): Need tests where this is commented out
-        domain.tight_slope_limiters = 0       # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-        domain.distribute_to_vertices_and_edges()
-
-
-        L_EX = [-0.00825736, -0.00801881,  0.0272445 ]
-        X_EX = [ 0.0170432 ,  0.01674667,  0.00654035]
-        Y_EX = [ -1.56119371e-04,   1.10107449e-04,  -5.74034758e-05]
-
-        #pprint(L[1,:])
-        #pprint(X[1,:])
-        #pprint(Y[1,:])
-
-        L_EX1 = [-0.01434766, -0.01292565,  0.03824164]
-        X_EX1 = [ 0.01631331,  0.01583494,  0.00596076]
-        Y_EX1 = [-0.00036261,  0.00068027, -0.00048923]
-
-        assert num.allclose(L[1,:], L_EX) or \
-            num.allclose(L[1,:], L_EX1)
-
-        assert num.allclose(X[1,:], X_EX) or \
-            num.allclose(X[1,:], X_EX1)
-
-        assert num.allclose(Y[1,:], Y_EX) or \
-            num.allclose(Y[1,:], Y_EX1)
-
-
-    def test_extrapolate_second_order_sw_real_data(self):
-        #Using test data generated by abstract_2d_finite_volumes-2
-        #Assuming no friction and flat bed (0.0)
-
-        a = [0.0, 0.0]
-        b = [0.0, 1.0/5]
-        c = [0.0, 2.0/5]
-        d = [1.0/5, 0.0]
-        e = [1.0/5, 1.0/5]
-        f = [1.0/5, 2.0/5]
-        g = [2.0/5, 2.0/5]
-
-        points = [a, b, c, d, e, f, g]
-        #             bae,     efb,     cbf,     feg
-        vertices = [[1,0,4], [4,5,1], [2,1,5], [5,4,6]]
-
-        domain = Domain(points, vertices)
-
-        def slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', slope)
-        domain.set_quantity('stage',
-                            [0.01298164, 0.00365611,
-                             0.01440365, -0.0381856437096],
-                            location='centroids')
-        domain.set_quantity('xmomentum',
-                            [0.00670439, 0.01263789,
-                             0.00647805, 0.0178180740668],
-                            location='centroids')
-        domain.set_quantity('ymomentum',
-                            [-7.23510980e-004, -6.30413883e-005,
-                             6.30413883e-005, 0.000200907255866],
-                            location='centroids')
-
-        E = domain.quantities['elevation'].vertex_values
-        L = domain.quantities['stage'].vertex_values
-        X = domain.quantities['xmomentum'].vertex_values
-        Y = domain.quantities['ymomentum'].vertex_values
-
-        domain._order_ = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        # FIXME (Ole): Need tests where this is commented out
-        domain.tight_slope_limiters = 0       # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-        domain.optimised_gradient_limiter = True
-
-
-        # Import underlying routine locally.
-        # FIXME (Ole): This routine might have to be removed entirely as likely
-        # superseded by extrapolate_second_order_edge_sw
-        from anuga.shallow_water.sw_domain_openmp_ext import extrapolate_second_order_sw
-
-        extrapolate_second_order_sw(domain)
-
-        #domain.distribute_to_vertices_and_edges()
-
-
-        #print L[1,:]
-        #print X[1,:]
-        #print Y[1,:]
-
-        L_EX = [-0.00137913, -0.00098143,  0.0133289 ]
-        X_EX = [ 0.01998251,  0.01948814,  0.00247195]
-        Y_EX = [ -2.18223005e-04,   2.25636080e-04,  -5.36417393e-05]
-
-
-        #L_EX = [-0.00825736, -0.00801881,  0.0272445 ]
-        #X_EX = [ 0.0170432 ,  0.01674667,  0.00654035]
-        #Y_EX = [ -1.56119371e-04,   1.10107449e-04,  -5.74034758e-05]
-
-        assert num.allclose(L[1,:], L_EX)
-        assert num.allclose(X[1,:], X_EX)
-        assert num.allclose(Y[1,:], Y_EX)
-
-    def test_balance_deep_and_shallow(self):
-        """Test that balanced limiters preserve conserved quantites.
-        This test is using old depth based balanced limiters
-        """
-
-        import copy
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        elements = [[1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
-
-        domain = Domain(points, elements)
-        domain.check_integrity()
-
-        # Create a deliberate overshoot
-        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        domain.set_quantity('elevation', 0)    # Flat bed
-        stage = domain.quantities['stage']
-
-        ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
-
-        # Limit
-        domain.tight_slope_limiters = 0
-        domain.distribute_to_vertices_and_edges()
-
-        # Assert that quantities are conserved
-        for k in range(len(domain)):
-            assert num.allclose(ref_centroid_values[k],
-                                num.sum(stage.vertex_values[k,:] / 3))
-
-        # Now try with a non-flat bed - closely hugging initial stage in places
-        # This will create alphas in the range [0, 0.478260, 1]
-        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        domain.set_quantity('elevation', [[0,0,0],
-                                          [1.8,1.9,5.9],
-                                          [4.6,0,0],
-                                          [0,2,4]])
-        stage = domain.quantities['stage']
-
-        ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
-        ref_vertex_values = copy.copy(stage.vertex_values[:])        # Copy
-
-        # Limit
-        domain.tight_slope_limiters = 0
-        domain.distribute_to_vertices_and_edges()
-
-        # Assert that all vertex quantities have changed
-        for k in range(len(domain)):
-            assert not num.allclose(ref_vertex_values[k,:],
-                                    stage.vertex_values[k,:])
-        # and assert that quantities are still conserved
-        for k in range(len(domain)):
-            assert num.allclose(ref_centroid_values[k],
-                                num.sum(stage.vertex_values[k,:] / 3))
-
-
-        assert num.allclose(stage.vertex_values,
-                            [[ 2.        ,  2.        ,  2.        ],
-                             [ 3.33333333,  3.33333333,  3.33333333],
-                             [ 5.33333333,  5.33333333,  5.33333333],
-                             [ 5.33333333,  5.33333333,  5.33333333]])
-
-    def test_balance_deep_and_shallow_tight_SL(self):
-        """Test that balanced limiters preserve conserved quantites.
-        This test is using Tight Slope Limiters
-        """
-
-        import copy
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        elements = [[1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
-
-        domain = Domain(points, elements)
-        domain.check_integrity()
-
-        # Create a deliberate overshoot
-        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        domain.set_quantity('elevation', 0)    # Flat bed
-        stage = domain.quantities['stage']
-
-        ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
-
-        # Limit
-        domain.tight_slope_limiters = 1
-        domain.distribute_to_vertices_and_edges()
-
-        # Assert that quantities are conserved
-        for k in range(len(domain)):
-            assert num.allclose (ref_centroid_values[k],
-                                 num.sum(stage.vertex_values[k,:] / 3))
-
-        # Now try with a non-flat bed - closely hugging initial stage in places
-        # This will create alphas in the range [0, 0.478260, 1]
-        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        domain.set_quantity('elevation', [[0,0,0],
-                                          [1.8,1.9,5.9],
-                                          [4.6,0,0],
-                                          [0,2,4]])
-        stage = domain.quantities['stage']
-
-        ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
-        ref_vertex_values = copy.copy(stage.vertex_values[:])        # Copy
-
-        # Limit
-        domain.tight_slope_limiters = 1
-        domain.distribute_to_vertices_and_edges()
-
-        # Assert that all vertex quantities have changed
-        for k in range(len(domain)):
-            assert not num.allclose(ref_vertex_values[k,:],
-                                    stage.vertex_values[k,:])
-        # and assert that quantities are still conserved
-        for k in range(len(domain)):
-            assert num.allclose(ref_centroid_values[k],
-                                num.sum(stage.vertex_values[k,:] / 3))
-
-    def test_balance_deep_and_shallow_Froude(self):
-        """Test that balanced limiters preserve conserved quantites -
-        and also that excessive Froude numbers are dealt with.
-        This test is using tight slope limiters.
-        """
-
-        import copy
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        elements = [[1,0,2], [1,2,4], [4,2,5], [3,1,4] ]
-
-        domain = Domain(points, elements)
-        domain.check_integrity()
-        domain.tight_slope_limiters = True
-        domain.use_centroid_velocities = True
-
-        # Create non-flat bed - closely hugging initial stage in places
-        # This will create alphas in the range [0, 0.478260, 1]
-        domain.set_quantity('stage', [[3,0,3], [2,2,6], [5,3,8], [8,3,5]])
-        domain.set_quantity('elevation', [[0,0,0],
-                                          [1.8,1.999,5.999],
-                                          [4.6,0,0],
-                                          [0,2,4]])
-
-        # Create small momenta, that nonetheless will generate large speeds
-        # due to shallow depth at isolated vertices
-        domain.set_quantity('xmomentum', -0.0058)
-        domain.set_quantity('ymomentum', 0.0890)
-
-        stage = domain.quantities['stage']
-        elevation = domain.quantities['elevation']
-        xmomentum = domain.quantities['xmomentum']
-        ymomentum = domain.quantities['ymomentum']
-
-        # Setup triangle #1 to mimick real Froude explosion observed
-        # in the Onslow example 13 Nov 2007.
-        stage.vertex_values[1,:] = [1.6385, 1.6361, 1.2953]
-        elevation.vertex_values[1,:] = [1.6375, 1.6336, 0.4647]
-        xmomentum.vertex_values[1,:] = [-0.0058, -0.0050, -0.0066]
-        ymomentum.vertex_values[1,:] = [0.0890, 0.0890, 0.0890]
-
-        xmomentum.interpolate()
-        ymomentum.interpolate()
-        stage.interpolate()
-        elevation.interpolate()
-
-        # Verify interpolation
-        assert num.allclose(stage.centroid_values[1], 1.5233)
-        assert num.allclose(elevation.centroid_values[1], 1.2452667)
-        assert num.allclose(xmomentum.centroid_values[1], -0.0058)
-        assert num.allclose(ymomentum.centroid_values[1], 0.089)
-
-        # Derived quantities
-        depth = stage - elevation
-        u = xmomentum / depth
-        v = ymomentum / depth
-        assert num.allclose(u.centroid_values, [-0.0029, -0.02086081, -0.00152632, -0.00174])
-        assert num.allclose(v.centroid_values, [0.0445, 0.3201055, 0.02342105, 0.0267])
-
-        denom = (depth*g)**0.5
-        Fx = u / denom
-        Fy = v / denom
-
-        # Verify against Onslow example (14 Nov 2007)
-        assert num.allclose(depth.centroid_values[1], 0.278033)
-        assert num.allclose(u.centroid_values[1], -0.0208608)
-        assert num.allclose(v.centroid_values[1], 0.3201055)
-
-        assert num.allclose(denom.centroid_values[1],
-                            num.sqrt(depth.centroid_values[1]*g))
-
-        assert num.allclose(u.centroid_values[1] / denom.centroid_values[1],
-                            -0.012637746977)
-        assert num.allclose(Fx.centroid_values[1],
-                            u.centroid_values[1] / denom.centroid_values[1])
-
-        # Check that Froude numbers are small at centroids.
-        assert num.allclose(Fx.centroid_values[1], -0.012637746977)
-        assert num.allclose(Fy.centroid_values[1], 0.193924048435)
-
-        # But Froude numbers are huge at some vertices and edges
-        assert num.allclose(Fx.vertex_values[1,:], [-5.85888475e+01,
-                                                    -1.27775313e+01,
-                                                    -2.78511420e-03])
-
-        assert num.allclose(Fx.edge_values[1,:], [-6.89150773e-03,
-                                                  -7.38672488e-03,
-                                                  -2.35626238e+01])
-
-        assert num.allclose(Fy.vertex_values[1,:], [8.99035764e+02,
-                                                    2.27440057e+02,
-                                                    3.75568430e-02])
-
-        assert num.allclose(Fy.edge_values[1,:], [1.05748998e-01,
-                                                  1.06035244e-01,
-                                                  3.88346947e+02])
-
-
-        # The task is now to arrange the limiters such that Froude numbers
-        # remain under control whil at the same time obeying the conservation
-        # laws.
-        ref_centroid_values = copy.copy(stage.centroid_values[:])    # Copy
-        ref_vertex_values = copy.copy(stage.vertex_values[:])        # Copy
-
-        # Limit (and invoke balance_deep_and_shallow)
-        domain.tight_slope_limiters = 1
-        domain.distribute_to_vertices_and_edges()
-
-        # Redo derived quantities
-        depth = stage - elevation
-        u = xmomentum / depth
-        v = ymomentum / depth
-
-        # Assert that all vertex velocities stay within one
-        # order of magnitude of centroid velocities.
-        assert num.all(num.absolute(u.vertex_values[1,:]) <=
-                           num.absolute(u.centroid_values[1])*10)
-        assert num.all(num.absolute(v.vertex_values[1,:]) <=
-                           num.absolute(v.centroid_values[1])*10)
-
-        denom = (depth*g)**0.5
-        Fx = u / denom
-        Fy = v / denom
-
-        # Assert that Froude numbers are less than max value (TBA)
-        # at vertices, edges and centroids.
-        from anuga.config import maximum_froude_number
-
-        assert num.all(num.absolute(Fx.vertex_values[1,:]) <
-                           maximum_froude_number)
-        assert num.all(num.absolute(Fy.vertex_values[1,:]) <
-                           maximum_froude_number)
-
-        # Assert that all vertex quantities have changed
-        for k in range(len(domain)):
-            assert not num.allclose(ref_vertex_values[k,:],
-                                    stage.vertex_values[k,:])
-
-        # Assert that quantities are still conserved
-        for k in range(len(domain)):
-            assert num.allclose(ref_centroid_values[k],
-                                num.sum(stage.vertex_values[k,:]) / 3)
-
-        return
-
-        qwidth = 12
-        for k in [1]:    # range(len(domain)):
-            print('Triangle %d (C, V, E)' % k)
-
-            print(('stage'.ljust(qwidth), stage.centroid_values[k],
-                   stage.vertex_values[k,:], stage.edge_values[k,:]))
-            print(('elevation'.ljust(qwidth), elevation.centroid_values[k],
-                   elevation.vertex_values[k,:], elevation.edge_values[k,:]))
-            print(('depth'.ljust(qwidth), depth.centroid_values[k],
-                   depth.vertex_values[k,:], depth.edge_values[k,:]))
-            print(('xmomentum'.ljust(qwidth), xmomentum.centroid_values[k],
-                   xmomentum.vertex_values[k,:], xmomentum.edge_values[k,:]))
-            print(('ymomentum'.ljust(qwidth), ymomentum.centroid_values[k],
-                   ymomentum.vertex_values[k,:], ymomentum.edge_values[k,:]))
-            print(('u'.ljust(qwidth),u.centroid_values[k],
-                   u.vertex_values[k,:], u.edge_values[k,:]))
-            print(('v'.ljust(qwidth), v.centroid_values[k],
-                   v.vertex_values[k,:], v.edge_values[k,:]))
-            print(('Fx'.ljust(qwidth), Fx.centroid_values[k],
-                   Fx.vertex_values[k,:], Fx.edge_values[k,:]))
-            print(('Fy'.ljust(qwidth), Fy.centroid_values[k],
-                   Fy.vertex_values[k,:], Fy.edge_values[k,:]))
 
     def test_evolve_finaltime(self):
         """Test evolve with finaltime set
@@ -4533,7 +1594,8 @@ class Test_Shallow_Water(unittest.TestCase):
         assert num.allclose(tt,252.5)
 
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_evolve_duration(self):
         """Test evolve with duration set
@@ -4567,7 +1629,8 @@ class Test_Shallow_Water(unittest.TestCase):
 
         assert num.allclose(tt,252.5)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_evolve_and_set_time(self):
         """Test evolve with set_time before evolve
@@ -4605,7 +1668,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         assert num.allclose(tt,252.5)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
 
     def test_evolve_outputstep(self):
@@ -4643,12 +1706,12 @@ class Test_Shallow_Water(unittest.TestCase):
         # Open sww file to check that only store every second
 
         # Read results for specific timesteps t=1 and t=2
-        fid = NetCDFFile(domain.get_name() + '.sww')
+        fid = NetCDFFile(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:,:]
         fid.close()
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
         timeslices = 6
         msg = f' time.shape[0] = {time.shape[0]}, expected {timeslices}'
@@ -4656,6 +1719,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         msg = f' time.shape[0] = {stage.shape[0]}, expected {timeslices}'
         assert stage.shape[0] == timeslices
+
 
     def test_evolve_outputstep_integer(self):
         """Test evolve outputstep when it is an integer multipe of yieldstep
@@ -4692,12 +1756,12 @@ class Test_Shallow_Water(unittest.TestCase):
         # Open sww file to check that only store every second
 
         # Read results for specific timesteps t=1 and t=2
-        fid = NetCDFFile(domain.get_name() + '.sww')
+        fid = NetCDFFile(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:,:]
         fid.close()
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
         timeslices = 101
         msg = f' time.shape[0] = {time.shape[0]}, expected {timeslices}'
@@ -4705,6 +1769,7 @@ class Test_Shallow_Water(unittest.TestCase):
 
         msg = f' time.shape[0] = {stage.shape[0]}, expected {timeslices}'
         assert stage.shape[0] == timeslices
+
 
     def test_evolve_outputstep_non_integer(self):
         """Test exception if evolve outputstep is not integer multiple of yieldstep
@@ -4787,10 +1852,10 @@ class Test_Shallow_Water(unittest.TestCase):
             #I don't believe that the total momentum should be the same
             #It starts with zero and ends with zero though
             #xmom = domain.quantities['xmomentum'].get_integral()
-            #print xmom
             #assert allclose (xmom, initial_xmom)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_conservation_2(self):
         """Test that stage is conserved globally
@@ -4833,10 +1898,10 @@ class Test_Shallow_Water(unittest.TestCase):
 
             #FIXME: What would we expect from momentum
             #xmom = domain.quantities['xmomentum'].get_integral()
-            #print xmom
             #assert allclose (xmom, initial_xmom)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_conservation_3(self):
         """Test that stage is conserved globally
@@ -4902,7 +1967,8 @@ class Test_Shallow_Water(unittest.TestCase):
             volume =  domain.quantities['stage'].get_integral()
             assert num.allclose (volume, initial_volume)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_conservation_4(self):
         """Test that stage is conserved globally
@@ -4970,7 +2036,8 @@ class Test_Shallow_Water(unittest.TestCase):
             volume =  domain.quantities['stage'].get_integral()
             assert num.allclose (volume, initial_volume)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_conservation_5(self):
         """Test that momentum is conserved globally in steady state scenario
@@ -5014,7 +2081,6 @@ class Test_Shallow_Water(unittest.TestCase):
             stage =  domain.quantities['stage'].get_integral()
             xmom = domain.quantities['xmomentum'].get_integral()
             ymom = domain.quantities['ymomentum'].get_integral()
-            #print stage,xmom,ymom
 
             if num.allclose(t, 10):    # Steady state reached
                 steady_xmom = domain.quantities['xmomentum'].get_integral()
@@ -5027,7 +2093,8 @@ class Test_Shallow_Water(unittest.TestCase):
                 assert num.allclose(ymom, steady_ymom)
                 assert num.allclose(stage, steady_stage)
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
+
 
     def test_conservation_real(self):
         """Test that momentum is conserved globally
@@ -5053,7 +2120,7 @@ class Test_Shallow_Water(unittest.TestCase):
         domain.minimum_allowed_height = min_depth
 
         # Set initial condition
-        class Set_IC(object):
+        class Set_IC:
             """Set an initial condition with a constant value, for x0<x<x1"""
 
             def __init__(self, x0=0.25, x1=0.5, h=1.0):
@@ -5081,1183 +2148,8 @@ class Test_Shallow_Water(unittest.TestCase):
         msg = 'Stage not conserved: was %f, now %f' % (ref, now)
         assert num.allclose(ref, now), msg
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
-    def test_second_order_flat_bed_onestep(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-        domain.H0 = 1.0e-3
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.1, 0., 0.])
-        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
-
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.05):
-            pass
-
-        # Data from earlier version of abstract_2d_finite_volumes
-        assert num.allclose(domain.recorded_min_timestep, 0.03571428571428564)
-        assert num.allclose(domain.recorded_max_timestep, 0.03571428571428564)
-
-        msg = ("domain.quantities['stage'].centroid_values[:12]=%s"
-               % str(domain.quantities['stage'].centroid_values[:12]))
-        assert num.allclose(domain.quantities['stage'].centroid_values[:12],
-                            [0.00117244, 0.025897, 0.00200148, 0.025897,
-                             0.00200148, 0.025897, 0.00200148, 0.025897,
-                             0.00200148, 0.025897, 0.00200148, 0.02672604                 
-                            ]), msg
-
-        domain.distribute_to_vertices_and_edges()
-
-        assert num.allclose(domain.quantities['stage'].vertex_values[:12,0],
-                            [-0.00104301, 0.025897, 0.00020015, 0.025897,
-                              0.00020015, 0.025897, 0.00020015, 0.025897,
-                              0.00020015, 0.025897, 0.00011501, 0.02672604])
-
-        assert num.allclose(domain.quantities['stage'].vertex_values[:12,1],
-                            [0.00328283, 0.025897, 0.00020015, 0.025897,
-                             0.00020015, 0.025897, 0.00020015, 0.025897,
-                             0.00020015, 0.025897, 0.00028528, 0.02672604])
-                             
-        assert num.allclose(domain.quantities['stage'].vertex_values[:12,2],
-                            [0.0012775, 0.025897, 0.00560414, 0.025897,
-                             0.00560414, 0.025897, 0.00560414, 0.025897,
-                             0.00560414, 0.025897, 0.00560414, 0.02672604])
-
-                             
-        assert num.allclose(domain.quantities['xmomentum'].centroid_values[:12],
-                            [0.000189, 0.0042, 0.000189, 0.0042, 
-                             0.000189, 0.0042, 0.000189, 0.0042,
-                             0.000189, 0.0042, 0.000189, 0.0042])
-                             
-
-        assert num.allclose(domain.quantities['ymomentum'].centroid_values[:12],
-                            [-1.89000000e-04, 0.00000000e+00, 0.00000000e+00,
-                              0.00000000e+00, -5.57589689e-20, -2.78794844e-20,
-                              8.36384533e-20,  0.00000000e+00, -3.06674329e-19,  
-                              0.00000000e+00,  2.23035875e-19, -1.89000000e-04])
-        
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_second_order_flat_bed_moresteps(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 2
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.1, 0., 0.])
-        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
-
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.1):
-            pass
-
-        # Data from earlier version of abstract_2d_finite_volumes
-        #assert allclose(domain.recorded_min_timestep, 0.0396825396825)
-        #assert allclose(domain.recorded_max_timestep, 0.0396825396825)
-        #print domain.quantities['stage'].centroid_values
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_flatbed_first_order(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        N = 8
-        points, vertices, boundary = rectangular(N, N)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.smooth = False
-        domain.default_order = 1
-        domain.H0 = 1.0e-3 # As suggested in the manual
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
-
-        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.02, finaltime=0.5):
-            pass
-
-
-        assert num.allclose(domain.quantities['xmomentum'].\
-                            edge_values[:4, 0],
-                            [0.07335652, 0.06685681, 0.07071273, 0.06628975])
-                            
-        assert num.allclose(domain.quantities['xmomentum'].\
-                            edge_values[:4, 1],
-                            [0.07343497, 0.06685681, 0.07083783, 0.06628975])
-                            
-        assert num.allclose(domain.quantities['xmomentum'].\
-                            edge_values[:4, 2],
-                            [0.08124162, 0.06685681, 0.07891946, 0.06628975])                            
-        os.remove(domain.get_name() + '.sww')
-        
-
-    def test_flatbed_second_order(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        N = 8
-        points, vertices, boundary = rectangular(N, N)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        domain.H0 = 1.0e-3 # As suggested in the manual
-        domain.use_centroid_velocities = False # Backwards compatibility (8/5/8)
-        domain.set_maximum_allowed_speed(1.0)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
-
-        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
-            pass
-
-        msg = 'Min timestep was %f instead of %f' % (domain.recorded_min_timestep,
-                                                     0.018940360)
-        assert num.allclose(domain.recorded_min_timestep, 0.018940360), msg
-        
-        msg = 'Max timestep was %f instead of %f' % (domain.recorded_max_timestep,
-                                                     0.018940360)        
-        assert num.allclose(domain.recorded_max_timestep, 0.018940360), msg
-
-        W_0 = [-0.00524972, 0.05350326, 0.00077479, 0.05356756]
-        UH_0 = [-0.00271431, 0.02744767, 0.00023944, 0.02746294]
-        VH_0 = [1.10413075e-03, 2.62134850e-04, -2.72890315e-05, 2.77104392e-04]
-
-
-        assert num.allclose(domain.quantities['stage'].vertex_values[:4, 0], W_0)
-        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4, 0], UH_0)
-        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4, 0], VH_0)
-
-
-        os.remove(domain.get_name() + '.sww')
-
-
-    def test_flatbed_second_order_vmax_0(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        N = 8
-        points, vertices, boundary = rectangular(N, N)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-        domain.maximum_allowed_speed = 0.0    # Makes it like the 'oldstyle'
-        domain.H0 = 1.0e-3 # As suggested in the manual
-        domain.use_centroid_velocities = False # Backwards compatibility (8/5/8)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
-
-        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
-            pass
-
-        assert num.allclose(domain.recorded_min_timestep, 0.018940360210353942)
-        assert num.allclose(domain.recorded_max_timestep, 0.018940360210353942)
-
-        UH_EX = [-0.00271431, 0.02744767,  0.00023944, 0.02746294]
-        VH_EX = [1.10413075e-03, 2.62134850e-04, -2.72890315e-05, 2.77104392e-04]
-        
-        assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4, 0], UH_EX)
-        assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4, 0], VH_EX)
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_flatbed_second_order_distribute(self):
-        #Use real data from anuga.abstract_2d_finite_volumes 2
-        #painfully setup and extracted.
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        N = 8
-        points, vertices, boundary = rectangular(N, N)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.set_flow_algorithm('DE0')
-        domain.smooth = False
-        domain.default_order=domain._order_ = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        domain.H0 = 1.0e-3 # ANUGA manual 28/5/9
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        Bd = Dirichlet_boundary([0.2, 0., 0.])
-
-        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
-        domain.check_integrity()
-
-        for V in [False, True]:
-            if V:
-                # Set centroids as if system had been evolved
-                L = num.zeros(2*N*N, float)
-                L[:32] = [7.21205592e-003, 5.35214298e-002, 1.00910824e-002,
-                          5.35439433e-002, 1.00910824e-002, 5.35439433e-002,
-                          1.00910824e-002, 5.35439433e-002, 1.00910824e-002,
-                          5.35439433e-002, 1.00910824e-002, 5.35439433e-002,
-                          1.00910824e-002, 5.35393928e-002, 1.02344264e-002,
-                          5.59605058e-002, 0.00000000e+000, 3.31027800e-004,
-                          0.00000000e+000, 4.37962142e-005, 0.00000000e+000,
-                          4.37962142e-005, 0.00000000e+000, 4.37962142e-005,
-                          0.00000000e+000, 4.37962142e-005, 0.00000000e+000,
-                          4.37962142e-005, 0.00000000e+000, 4.37962142e-005,
-                          0.00000000e+000, 5.57305948e-005]
-
-                X = num.zeros(2*N*N, float)
-                X[:32] = [6.48351607e-003, 3.68571894e-002, 8.50733285e-003,
-                          3.68731327e-002, 8.50733285e-003, 3.68731327e-002,
-                          8.50733285e-003, 3.68731327e-002, 8.50733285e-003,
-                          3.68731327e-002, 8.50733285e-003, 3.68731327e-002,
-                          8.50733285e-003, 3.68693861e-002, 8.65220973e-003,
-                          3.85055387e-002, 0.00000000e+000, 2.86060840e-004,
-                          0.00000000e+000, 3.58905503e-005, 0.00000000e+000,
-                          3.58905503e-005, 0.00000000e+000, 3.58905503e-005,
-                          0.00000000e+000, 3.58905503e-005, 0.00000000e+000,
-                          3.58905503e-005, 0.00000000e+000, 3.58905503e-005,
-                          0.00000000e+000, 4.57662812e-005]
-
-                Y = num.zeros(2*N*N, float)
-                Y[:32] = [-1.39463104e-003, 6.15600298e-004, -6.03637382e-004,
-                          6.18272251e-004, -6.03637382e-004, 6.18272251e-004,
-                          -6.03637382e-004, 6.18272251e-004, -6.03637382e-004,
-                          6.18272251e-004, -6.03637382e-004, 6.18272251e-004,
-                          -6.03637382e-004, 6.18599320e-004, -6.74622797e-004,
-                          -1.48934756e-004, 0.00000000e+000, -5.35079969e-005,
-                          0.00000000e+000, -2.57264987e-005, 0.00000000e+000,
-                          -2.57264987e-005, 0.00000000e+000, -2.57264987e-005,
-                          0.00000000e+000, -2.57264987e-005, 0.00000000e+000,
-                          -2.57264987e-005, 0.00000000e+000, -2.57264987e-005,
-                          0.00000000e+000, -2.57635178e-005]
-
-                domain.set_quantity('stage', L, location='centroids')
-                domain.set_quantity('xmomentum', X, location='centroids')
-                domain.set_quantity('ymomentum', Y, location='centroids')
-
-                domain.check_integrity()
-            else:
-                # Evolution
-                for t in domain.evolve(yieldstep=0.01, finaltime=0.03):
-                    pass
-                    
-                assert num.allclose(domain.recorded_min_timestep, 0.018940360)
-                assert num.allclose(domain.recorded_max_timestep, 0.018940360)
-
-            #print(domain.quantities['stage'].centroid_values[:4])
-            #print(domain.quantities['xmomentum'].centroid_values[:4])
-            #print(domain.quantities['ymomentum'].centroid_values[:4])
-
-            #Centroids were correct but not vertices.
-            #Hence the check of distribute below.
-
-            if not V:
-
-                W_EX = [0.00519999, 0.05350326, 0.00786757, 0.05356756]
-                UH_EX = [0.0026886, 0.02746638, 0.00346158, 0.02746294]
-                VH_EX = [-0.00109367, 0.00026213, -0.0002771, 0.0002771]
-                
-                assert num.allclose(domain.quantities['stage'].centroid_values[:4], W_EX)
-                assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4], UH_EX)
-                assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4], VH_EX)
-
-                assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0, atol=1.0e-3)
-            else:
-                assert num.allclose(domain.quantities['xmomentum'].\
-                                        centroid_values[17],
-                                    0.00028606084)
-                return #FIXME - Bailout for V True
-
-            import copy
-
-            XX = copy.copy(domain.quantities['xmomentum'].centroid_values)
-            assert num.allclose(domain.quantities['xmomentum'].centroid_values,
-                                XX)
-
-            domain.distribute_to_vertices_and_edges()
-
-            assert num.allclose(domain.quantities['xmomentum'].centroid_values[17], 0.0, atol=1.0e-3)
-
-
-            UH_EX = [-0.00271431,  0.02744767,  0.00023944,  0.02746294]
-            VH_EX = [1.10413075e-03,  2.62134850e-04, -2.72890315e-05,  2.77104392e-04]
-
-            #pprint(domain.quantities['stage'].vertex_values[:4,0])
-            #pprint(domain.quantities['xmomentum'].vertex_values[:4,0])
-            #pprint(domain.quantities['ymomentum'].vertex_values[:4,0])
-
-
-            assert num.allclose(domain.quantities['xmomentum'].vertex_values[:4,0],
-                    UH_EX)
-
-            assert num.allclose(domain.quantities['ymomentum'].vertex_values[:4,0],
-                    VH_EX)
-
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_bedslope_problem_first_order(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 1
-
-        # Bed-slope and friction
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.05):
-            pass
-
-        # FIXME (Ole): Need some other assertion here!
-        #print domain.min_timestep, domain.max_timestep
-        #assert allclose(domain.recorded_min_timestep, 0.050010003001)
-        #assert allclose(domain.recorded_max_timestep, 0.050010003001)
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_bedslope_problem_first_order_moresteps_low_froude_0(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 1
-
-        domain.set_low_froude(0)
-
-        # FIXME (Ole): Need tests where these two are commented out
-        domain.H0 = 0                         # Backwards compatibility (6/2/7)
-        domain.tight_slope_limiters = 0       # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-        # Bed-slope and friction
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.5):
-            pass
-
-
-        W_EX = num.array([-0.02933401, -0.01091747, -0.02782667, -0.01057726, -0.02746728,
-       -0.01033124, -0.02724838, -0.01019733, -0.02684617, -0.00965007,
-       -0.02495054, -0.00706089, -0.06890704, -0.06303447, -0.07568528,
-       -0.06161392, -0.07566147, -0.06125286, -0.07537564, -0.06094254,
-       -0.07488436, -0.06058909, -0.07465553, -0.06045194, -0.12205956,
-       -0.10701804, -0.12318423, -0.10795678, -0.12302672, -0.10763744,
-       -0.12279702, -0.10731376, -0.12214772, -0.1071946 , -0.12283814,
-       -0.10858945, -0.16389971, -0.15304369, -0.16428248, -0.15298725,
-       -0.16430596, -0.15254043, -0.16407102, -0.15236021, -0.16390702,
-       -0.15187689, -0.16460111, -0.15549742, -0.2083898 , -0.19912702,
-       -0.20845637, -0.19709535, -0.20648985, -0.19663999, -0.20525695,
-       -0.19631453, -0.20446298, -0.19578452, -0.20735693, -0.19565282,
-       -0.14022868, -0.14262659, -0.13774131, -0.14132395, -0.13707526,
-       -0.14041639, -0.13594765, -0.13910709, -0.13533594, -0.1393996 ,
-       -0.1328638 , -0.1363085 ])
-
-
-        #Data from earlier version of abstract_2d_finite_volumes
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-
-        os.remove(domain.get_name() + '.sww')
-
-
-    def test_bedslope_problem_first_order_moresteps_low_froude_1(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 1
-
-        domain.set_low_froude(0)
-
-        # FIXME (Ole): Need tests where these two are commented out
-        domain.H0 = 0                         # Backwards compatibility (6/2/7)
-        domain.tight_slope_limiters = 0       # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-        # Bed-slope and friction
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.5):
-            pass
-
-
-        W_EX = num.array([-0.02933401, -0.01091747, -0.02782667, -0.01057726, -0.02746728,
-       -0.01033124, -0.02724838, -0.01019733, -0.02684617, -0.00965007,
-       -0.02495054, -0.00706089, -0.06890704, -0.06303447, -0.07568528,
-       -0.06161392, -0.07566147, -0.06125286, -0.07537564, -0.06094254,
-       -0.07488436, -0.06058909, -0.07465553, -0.06045194, -0.12205956,
-       -0.10701804, -0.12318423, -0.10795678, -0.12302672, -0.10763744,
-       -0.12279702, -0.10731376, -0.12214772, -0.1071946 , -0.12283814,
-       -0.10858945, -0.16389971, -0.15304369, -0.16428248, -0.15298725,
-       -0.16430596, -0.15254043, -0.16407102, -0.15236021, -0.16390702,
-       -0.15187689, -0.16460111, -0.15549742, -0.2083898 , -0.19912702,
-       -0.20845637, -0.19709535, -0.20648985, -0.19663999, -0.20525695,
-       -0.19631453, -0.20446298, -0.19578452, -0.20735693, -0.19565282,
-       -0.14022868, -0.14262659, -0.13774131, -0.14132395, -0.13707526,
-       -0.14041639, -0.13594765, -0.13910709, -0.13533594, -0.1393996 ,
-       -0.1328638 , -0.1363085 ])
-
-
-        #Data from earlier version of abstract_2d_finite_volumes
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_bedslope_problem_second_order_one_step(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-
-        # FIXME (Ole): Need tests where this is commented out
-        domain.tight_slope_limiters = 0       # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        #Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        assert num.allclose(domain.quantities['stage'].centroid_values,
-                            [ 0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                              0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.1537037,  -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963])
-
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.05):
-            pass
-
-
-
-        W_EX = [ 0.01571282,  0.02678718,  0.01765727,  0.02678718,  0.01765727,
-        0.02678718,  0.01765727,  0.02678718,  0.01765727,  0.02678718,
-        0.01765727,  0.02873162, -0.04259259, -0.02407407, -0.04259259,
-       -0.02407407, -0.04259259, -0.02407407, -0.04259259, -0.02407407,
-       -0.04259259, -0.02407407, -0.04259259, -0.02407407, -0.09814815,
-       -0.07962963, -0.09814815, -0.07962963, -0.09814815, -0.07962963,
-       -0.09814815, -0.07962963, -0.09814815, -0.07962963, -0.09814815,
-       -0.07962963, -0.1537037 , -0.13518519, -0.1537037 , -0.13518519,
-       -0.1537037 , -0.13518519, -0.1537037 , -0.13518519, -0.1537037 ,
-       -0.13518519, -0.1537037 , -0.13518519, -0.20925926, -0.19074074,
-       -0.20925926, -0.19074074, -0.20925926, -0.19074074, -0.20925926,
-       -0.19074074, -0.20925926, -0.19074074, -0.20925926, -0.19074074,
-       -0.26206496, -0.2509906 , -0.26012051, -0.2509906 , -0.26012051,
-       -0.2509906 , -0.26012051, -0.2509906 , -0.26012051, -0.2509906 ,
-       -0.26012051, -0.24904616]
-
-
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_bedslope_problem_second_order_two_steps(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-
-        domain.set_low_froude(0)
-
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        # FIXME (Ole): Need tests where this is commented out
-        domain.tight_slope_limiters = 0    # Backwards compatibility (14/4/7)
-        domain.H0 = 0    # Backwards compatibility (6/2/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        assert num.allclose(domain.quantities['stage'].centroid_values,
-                            [ 0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                              0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963])
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.1):
-            pass
-
-        # Data from earlier version of abstract_2d_finite_volumes ft=0.1
-        assert num.allclose(domain.recorded_min_timestep, 0.0344607459654)
-        assert num.allclose(domain.recorded_max_timestep, 0.0391090502542)
-
-
-
-        W_EX = [ 0.01308246,  0.02201217,  0.01358687,  0.023575  ,  0.01370201,
-        0.0235574 ,  0.01370201,  0.02355753,  0.0136998 ,  0.02361447,
-        0.01454146,  0.02507853, -0.04254524, -0.022535  , -0.04260359,
-       -0.0225144 , -0.04263851, -0.02252512, -0.04263809, -0.02252512,
-       -0.04264303, -0.02249883, -0.04257228, -0.02296247, -0.0981472 ,
-       -0.07964098, -0.09814502, -0.07968513, -0.09814337, -0.07968807,
-       -0.09814296, -0.07968807, -0.09814296, -0.07968807, -0.09814555,
-       -0.07965964, -0.15368138, -0.13518778, -0.15366285, -0.13519037,
-       -0.15366285, -0.13519037, -0.15366285, -0.13518996, -0.15366479,
-       -0.13518832, -0.15369898, -0.13518613, -0.21012122, -0.19071462,
-       -0.21066837, -0.19057453, -0.21064807, -0.19057613, -0.21064807,
-       -0.19057519, -0.21067682, -0.19061141, -0.21080033, -0.19066023,
-       -0.25755282, -0.24897294, -0.25604086, -0.24820174, -0.25598276,
-       -0.24820504, -0.25598272, -0.24820504, -0.2559903 , -0.2480719 ,
-       -0.25395141, -0.24799187]
-
-
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_bedslope_problem_second_order_two_yieldsteps(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        #Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        #Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-
-        #domain.set_compute_fluxes_method('original')
-
-        domain.set_low_froude(0)
-
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        # FIXME (Ole): Need tests where this is commented out
-        domain.tight_slope_limiters = 0    # Backwards compatibility (14/4/7)
-        domain.H0 = 0    # Backwards compatibility (6/2/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        assert num.allclose(domain.quantities['stage'].centroid_values,
-                            [ 0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                              0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963])
-
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.1):   #0.05??
-            pass
-
-
-
-
-        W_EX = [ 0.01308246,  0.02201217,  0.01358687,  0.023575  ,  0.01370201,
-        0.0235574 ,  0.01370201,  0.02355753,  0.0136998 ,  0.02361447,
-        0.01454146,  0.02507853, -0.04254524, -0.022535  , -0.04260359,
-       -0.0225144 , -0.04263851, -0.02252512, -0.04263809, -0.02252512,
-       -0.04264303, -0.02249883, -0.04257228, -0.02296247, -0.0981472 ,
-       -0.07964098, -0.09814502, -0.07968513, -0.09814337, -0.07968807,
-       -0.09814296, -0.07968807, -0.09814296, -0.07968807, -0.09814555,
-       -0.07965964, -0.15368138, -0.13518778, -0.15366285, -0.13519037,
-       -0.15366285, -0.13519037, -0.15366285, -0.13518996, -0.15366479,
-       -0.13518832, -0.15369898, -0.13518613, -0.21012122, -0.19071462,
-       -0.21066837, -0.19057453, -0.21064807, -0.19057613, -0.21064807,
-       -0.19057519, -0.21067682, -0.19061141, -0.21080033, -0.19066023,
-       -0.25755282, -0.24897294, -0.25604086, -0.24820174, -0.25598276,
-       -0.24820504, -0.25598272, -0.24820504, -0.2559903 , -0.2480719 ,
-       -0.25395141, -0.24799187]
-
-
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_bedslope_problem_second_order_more_steps(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-
-        #domain.set_compute_fluxes_method('original')
-
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        domain.set_low_froude(0)
-
-        # FIXME (Ole): Need tests where these two are commented out
-        domain.H0 = 0                      # Backwards compatibility (6/2/7)
-        domain.tight_slope_limiters = 0    # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = 0    # Backwards compatibility (7/5/8)
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-
-
-        W_EX = [ 0.01296296,  0.03148148,  0.01296296,  0.03148148,  0.01296296,
-        0.03148148,  0.01296296,  0.03148148,  0.01296296,  0.03148148,
-        0.01296296,  0.03148148, -0.04259259, -0.02407407, -0.04259259,
-       -0.02407407, -0.04259259, -0.02407407, -0.04259259, -0.02407407,
-       -0.04259259, -0.02407407, -0.04259259, -0.02407407, -0.09814815,
-       -0.07962963, -0.09814815, -0.07962963, -0.09814815, -0.07962963,
-       -0.09814815, -0.07962963, -0.09814815, -0.07962963, -0.09814815,
-       -0.07962963, -0.1537037 , -0.13518519, -0.1537037 , -0.13518519,
-       -0.1537037 , -0.13518519, -0.1537037 , -0.13518519, -0.1537037 ,
-       -0.13518519, -0.1537037 , -0.13518519, -0.20925926, -0.19074074,
-       -0.20925926, -0.19074074, -0.20925926, -0.19074074, -0.20925926,
-       -0.19074074, -0.20925926, -0.19074074, -0.20925926, -0.19074074,
-       -0.26481481, -0.2462963 , -0.26481481, -0.2462963 , -0.26481481,
-       -0.2462963 , -0.26481481, -0.2462963 , -0.26481481, -0.2462963 ,
-       -0.26481481, -0.2462963 ]
-
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.5):
-            # Check that diagnostics works
-            msg = domain.timestepping_statistics(track_speeds=True)
-            #FIXME(Ole): One might check the contents of msg here.
-
-
-
-
-
-
-
-        W_EX = [-0.0301883 , -0.01127593, -0.02834861, -0.0108968 , -0.02806583,
-       -0.01074475, -0.02788852, -0.01065176, -0.02753658, -0.01013457,
-       -0.02602057, -0.00697983, -0.07333722, -0.06511481, -0.08002821,
-       -0.06234795, -0.07884103, -0.06214974, -0.07867692, -0.06199716,
-       -0.07848496, -0.06160417, -0.07782372, -0.06214378, -0.12379366,
-       -0.10782217, -0.12402788, -0.10970479, -0.12407233, -0.10911802,
-       -0.12375966, -0.10870709, -0.1233677 , -0.10897925, -0.1246598 ,
-       -0.10913556, -0.16030637, -0.15059851, -0.1619466 , -0.15150383,
-       -0.16222821, -0.15126241, -0.16204491, -0.15117909, -0.16170723,
-       -0.15047256, -0.16159564, -0.15306895, -0.20650721, -0.19412466,
-       -0.20661286, -0.193611  , -0.20611843, -0.1932463 , -0.20476096,
-       -0.19336801, -0.20673157, -0.1928249 , -0.20666551, -0.18982871,
-       -0.14177628, -0.13867427, -0.138984  , -0.13970989, -0.13837738,
-       -0.13785944, -0.13772734, -0.13619726, -0.13708211, -0.13865006,
-       -0.13413676, -0.14008116]
-
-
-
-
-        assert num.allclose(domain.quantities['stage'].centroid_values, W_EX)
-
-
-
-        UH_EX = [ 0.00439415,  0.00080998,  0.00359639,  0.00086799,  0.00369947,
-        0.00089459,  0.00376748,  0.00091612,  0.00394185,  0.00100331,
-        0.00423642,  0.00102681,  0.01866626,  0.00841126,  0.01265179,
-        0.00989651,  0.01358962,  0.01007976,  0.01375394,  0.01018847,
-        0.01388854,  0.01057534,  0.01516146,  0.01155302,  0.03130996,
-        0.02572364,  0.03012732,  0.02348833,  0.02999708,  0.02419562,
-        0.03046757,  0.02471555,  0.03088795,  0.02415592,  0.02886438,
-        0.02425477,  0.06609542,  0.04946308,  0.06236933,  0.04715456,
-        0.06176596,  0.04743353,  0.06204203,  0.04760272,  0.06262964,
-        0.04858867,  0.06290163,  0.0447266 ,  0.08245285,  0.07715851,
-        0.08533206,  0.07817769,  0.08610624,  0.07901377,  0.0879718 ,
-        0.07879576,  0.08550203,  0.07963651,  0.08581205,  0.08376399,
-        0.01997027,  0.07948531,  0.02703306,  0.08443647,  0.02694374,
-        0.08404407,  0.02627307,  0.08400949,  0.02649757,  0.08397135,
-        0.03080026,  0.09688469]
-
-
-
-
-        assert num.allclose(domain.quantities['xmomentum'].centroid_values, UH_EX)
-
-
-
-
-
-        VH_EX = [ -4.55438497e-04,   5.60449890e-05,  -1.05041759e-04,
-         1.09474097e-04,   3.37384149e-05,   1.48217622e-04,
-         8.15006870e-05,   1.41778277e-04,  -8.95699377e-05,
-        -1.50989506e-05,  -1.13309713e-03,  -6.56027069e-04,
-         4.08407333e-04,  -5.37824083e-04,  -6.07324848e-04,
-        -1.79169050e-04,  -2.26068995e-04,  -9.40081480e-05,
-        -1.92103118e-04,  -7.38055580e-05,  -2.61634534e-04,
-        -2.18534710e-04,  -3.97532842e-04,  -4.38793389e-04,
-         4.02437237e-04,   1.71996550e-04,  -4.71404571e-04,
-        -7.07195798e-04,  -2.92606384e-04,  -2.89749829e-04,
-        -2.14551908e-04,  -3.47586675e-04,  -4.51408518e-04,
-        -2.85326203e-04,   2.60585517e-04,   1.85996351e-04,
-         1.76070321e-03,   4.27131620e-04,  -1.36487970e-04,
-        -7.48486546e-04,  -2.25542208e-04,  -4.38919415e-04,
-        -1.23010639e-05,  -3.49340425e-04,  -2.36098938e-04,
-        -7.63395297e-04,   6.66099385e-05,   6.22983544e-04,
-         4.52833391e-04,   2.24808947e-03,   4.85972740e-04,
-         7.50193061e-04,   4.53207970e-04,   1.05078134e-03,
-         6.32114704e-04,   1.24869321e-03,   4.06577106e-04,
-         1.01553335e-03,  -5.26250901e-04,   1.78062345e-04,
-        -2.04979836e-03,  -2.70644308e-03,  -3.34067897e-03,
-        -1.94716541e-03,  -2.28075505e-03,  -1.61494727e-03,
-        -2.15457373e-03,  -1.48932625e-03,  -3.24804437e-03,
-        -1.09719715e-03,   3.38706650e-03,  -8.98151209e-04]
-
-        #pprint(domain.quantities['ymomentum'].centroid_values)
-
-
-        assert num.allclose(domain.quantities['ymomentum'].centroid_values, VH_EX)
-
-        os.remove(domain.get_name() + '.sww')
-
-    def NOtest_bedslope_problem_second_order_more_steps_feb_2007(self):
-        """test_bedslope_problem_second_order_more_steps_feb_2007
-
-        Test shallow water finite volumes, using parameters from
-        feb 2007 rather than backward compatibility ad infinitum
-        """
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(6, 6)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-        domain.H0 = 0.001
-        domain.tight_slope_limiters = 1
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        assert num.allclose(domain.quantities['stage'].centroid_values,
-                            [ 0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                              0.01296296,  0.03148148,  0.01296296,
-                              0.03148148,  0.01296296,  0.03148148,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.04259259, -0.02407407, -0.04259259,
-                             -0.02407407, -0.04259259, -0.02407407,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.09814815, -0.07962963, -0.09814815,
-                             -0.07962963, -0.09814815, -0.07962963,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.1537037 , -0.13518519, -0.1537037,
-                             -0.13518519, -0.1537037,  -0.13518519,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.20925926, -0.19074074, -0.20925926,
-                             -0.19074074, -0.20925926, -0.19074074,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963,
-                             -0.26481481, -0.2462963,  -0.26481481,
-                             -0.2462963,  -0.26481481, -0.2462963])
-
-        # Evolution
-        for t in domain.evolve(yieldstep = 0.05, finaltime = 0.5):
-            pass
-
-        assert num.allclose(domain.quantities['stage'].centroid_values,
-         [-0.03348416, -0.01749303, -0.03299091, -0.01739241, -0.03246447, -0.01732016,
-          -0.03205390, -0.01717833, -0.03146383, -0.01699831, -0.03076577, -0.01671795,
-          -0.07952656, -0.06684763, -0.07721455, -0.06668388, -0.07632976, -0.06600113,
-          -0.07523678, -0.06546373, -0.07447040, -0.06508861, -0.07438723, -0.06359288,
-          -0.12526729, -0.11205668, -0.12179433, -0.11068104, -0.12048395, -0.10968948,
-          -0.11912023, -0.10862628, -0.11784090, -0.10803744, -0.11790629, -0.10742354,
-          -0.16859613, -0.15427413, -0.16664444, -0.15464452, -0.16570816, -0.15327556,
-          -0.16409162, -0.15204092, -0.16264608, -0.15102139, -0.16162736, -0.14969205,
-          -0.18736511, -0.19874036, -0.18811230, -0.19758289, -0.18590182, -0.19580301,
-          -0.18234588, -0.19423215, -0.18100376, -0.19380116, -0.18509710, -0.19501636,
-          -0.13982382, -0.14166819, -0.14132775, -0.14528694, -0.14096905, -0.14351126,
-          -0.13800356, -0.14027920, -0.13613538, -0.13936795, -0.13621902, -0.14204982])
-
-
-        assert num.allclose(domain.quantities['xmomentum'].centroid_values,
-      [0.00600290,  0.00175780,  0.00591905,  0.00190903,  0.00644462,  0.00203095,
-       0.00684561,  0.00225089,  0.00708208,  0.00236235,  0.00649095,  0.00222343,
-       0.02068693,  0.01164034,  0.01983343,  0.01159526,  0.02044611,  0.01233252,
-       0.02135685,  0.01301289,  0.02161290,  0.01260280,  0.01867612,  0.01133078,
-       0.04091313,  0.02668283,  0.03634781,  0.02733469,  0.03767692,  0.02836840,
-       0.03906338,  0.02958073,  0.04025669,  0.02953292,  0.03665616,  0.02583565,
-       0.06314558,  0.04830935,  0.05663609,  0.04564362,  0.05756200,  0.04739673,
-       0.05967379,  0.04919083,  0.06124330,  0.04965808,  0.05879240,  0.04629319,
-       0.08220739,  0.06924725,  0.07713556,  0.06782640,  0.07909499,  0.06992544,
-       0.08116621,  0.07210181,  0.08281548,  0.07222669,  0.07941059,  0.06755612,
-       0.01581588,  0.04533609,  0.02017939,  0.04342565,  0.02073232,  0.04476108,
-       0.02117439,  0.04573358,  0.02129473,  0.04694267,  0.02220398,  0.05533458])
-
-
-        assert num.allclose(domain.quantities['ymomentum'].centroid_values,
-     [-7.65882069e-005, -1.46087080e-004, -1.09630102e-004, -7.80950424e-005,
-      -1.15922807e-005, -9.09134899e-005, -1.35994542e-004, -1.95673476e-004,
-      -4.25779199e-004, -2.95890312e-004, -4.00060341e-004, -9.42021290e-005,
-      -3.41372596e-004, -1.54560195e-004, -2.94810038e-004, -1.08844546e-004,
-      -6.97240892e-005,  3.50299623e-005, -2.40159184e-004, -2.01805883e-004,
-      -7.60732405e-004, -5.10897642e-004, -1.00940001e-003, -1.38037759e-004,
-      -1.06169131e-003, -3.12307760e-004, -9.90602307e-004, -4.21634250e-005,
-      -6.02424239e-004,  1.52230578e-004, -7.63833035e-004, -1.10273481e-004,
-      -1.40187071e-003, -5.57831837e-004, -1.63988285e-003, -2.48018092e-004,
-      -1.83309840e-003, -6.19360836e-004, -1.29955242e-003, -3.76237145e-004,
-      -1.00613007e-003, -8.63641918e-005, -1.13604124e-003, -3.90589728e-004,
-      -1.91457355e-003, -9.43783961e-004, -2.28090840e-003, -5.79107025e-004,
-      -1.54091533e-003, -2.39785792e-003, -2.47947427e-003, -2.02694009e-003,
-      -2.10441194e-003, -1.82082650e-003, -1.80229336e-003, -2.10418336e-003,
-      -1.93104408e-003, -2.23200334e-003, -1.57239706e-003, -1.31486358e-003,
-      -1.17564993e-003, -2.85846494e-003, -3.52956754e-003, -5.12658193e-003,
-      -6.24238960e-003, -6.01820113e-003, -6.09602201e-003, -5.04787190e-003,
-      -4.59373845e-003, -3.01393146e-003,  5.08550095e-004, -4.35896549e-004])
-
-        os.remove(domain.get_name() + '.sww')
-
-    def test_temp_play(self):
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(5, 5)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.smooth = False
-        domain.default_order = 2
-        domain.beta_w = 0.9
-        domain.beta_w_dry = 0.9
-        domain.beta_uh = 0.9
-        domain.beta_uh_dry = 0.9
-        domain.beta_vh = 0.9
-        domain.beta_vh_dry = 0.9
-
-        # FIXME (Ole): Need tests where these two are commented out
-        domain.H0 = 0                         # Backwards compatibility (6/2/7)
-        domain.tight_slope_limiters = False   # Backwards compatibility (14/4/7)
-        domain.use_centroid_velocities = False # Backwards compatibility (7/5/8)
-        domain.use_edge_limiter = False       # Backwards compatibility (9/5/8)
-        domain.low_froude = 0                 # Backwards compatibility (25/6/19)
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        def x_slope(x, y):
-            return -x / 3
-
-        domain.set_quantity('elevation', x_slope)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        # Initial condition
-        domain.set_quantity('stage', expression='elevation+0.05')
-        domain.check_integrity()
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.05, finaltime=0.1):
-            pass
-
-        #pprint(domain.quantities['stage'].centroid_values[:4])
-        #pprint(domain.quantities['xmomentum'].centroid_values[:4])
-        #pprint(domain.quantities['ymomentum'].centroid_values[:4])
-
-        W = domain.quantities['stage'].centroid_values[:4]
-        UH = domain.quantities['xmomentum'].centroid_values[:4]
-        VH = domain.quantities['ymomentum'].centroid_values[:4]
-
-        W_0  = [ 0.001362,    0.01344294,  0.00308829, 0.01470289]
-        UH_0 = [ 0.01300239,  0.00537933,  0.01214676,  0.00515825]
-        VH_0 = [ -1.13165691e-03,  -6.55330189e-04, -6.62804076e-05,   5.26313051e-05]
-
-        W_1 = [ 0.00707892,  0.01849914,  0.00783274,  0.01997863]
-        UH_1 = [ 0.01512518,  0.00354391,  0.01503765,  0.00326075]
-        VH_1 = [  5.36531332e-04,  -6.77297008e-04,  -4.58560426e-05, 2.47714988e-05]
-
-
-        assert num.allclose(W,W_0) or num.allclose(W,W_1)
-        assert num.allclose(UH, UH_0) or num.allclose(UH, UH_1)
-        assert num.allclose(VH, VH_0) or num.allclose(VH, VH_1)
-
-
-
-
-        # old values pre revision 8402
-#        assert num.allclose(domain.quantities['stage'].centroid_values[:4],
-#                            [0.00206836, 0.01296714, 0.00363415, 0.01438924])
-#        assert num.allclose(domain.quantities['xmomentum'].centroid_values[:4],
-#                            [0.01360154, 0.00671133, 0.01264578, 0.00648503])
-#        assert num.allclose(domain.quantities['ymomentum'].centroid_values[:4],
-#                            [-1.19201077e-003, -7.23647546e-004,
-#                             -6.39083123e-005, 6.29815168e-005])
-
-        os.remove(domain.get_name() + '.sww')
 
     def test_complex_bed(self):
         # No friction is tested here
@@ -6325,758 +2217,14 @@ class Test_Shallow_Water(unittest.TestCase):
 # -5.48333333e-001, -5.31666667e-001, -5.48333333e-001, -5.31666667e-001,
 # -5.48333333e-001, -5.31666667e-001, -5.48333333e-001, -5.31666667e-001])
 
-        os.remove(domain.get_name() + '.sww')
+        os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
-    def test_spatio_temporal_boundary_1(self):
-        """Test that boundary values can be read from file and interpolated
-        in both time and space.
-
-        Verify that the same steady state solution is arrived at and that
-        time interpolation works.
-
-        The full solution history is not exactly the same as
-        file boundary must read and interpolate from *smoothed* version
-        as stored in sww.
-        """
-
-        # Create sww file of simple propagation from left to right
-        # through rectangular domain
-        verbose = False
-
-        import time
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(3, 3)
-
-        # Create shallow water domain
-        domain1 = Domain(points, vertices, boundary)
-
-        domain1.set_low_froude(0)
-        domain1.reduction = mean
-        domain1.smooth = False    # Exact result
-
-        domain1.default_order = 2
-        domain1.store = True
-        domain1.set_datadir('.')
-        domain1.set_name('spatio_temporal_boundary_source' + str(time.time()))
-
-        # FIXME: This is extremely important!
-        # How can we test if they weren't stored?
-
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain1.set_quantity('elevation', 0)
-        domain1.set_quantity('friction', 0)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3,0,0])
-        domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
-
-        # Initial condition
-        domain1.set_quantity('stage', 0)
-        domain1.check_integrity()
-
-        finaltime = 10
-
-        # Evolution  (full domain - large steps)
-        for t in domain1.evolve(yieldstep=0.671, finaltime=finaltime):
-            pass
-
-        cv1 = domain1.quantities['stage'].centroid_values
-
-        # Create a triangle shaped domain (reusing coordinates from domain 1),
-        # formed from the lower and right hand  boundaries and
-        # the sw-ne diagonal
-        # from domain 1. Call it domain2
-
-        points = [[0,0], [1.0/3,0], [1.0/3,1.0/3],
-                  [2.0/3,0], [2.0/3,1.0/3], [2.0/3,2.0/3],
-                  [1,0], [1,1.0/3], [1,2.0/3], [1,1]]
-
-        vertices = [[1,2,0], [3,4,1], [2,1,4], [4,5,2],
-                    [6,7,3], [4,3,7], [7,8,4], [5,4,8], [8,9,5]]
-
-        boundary = {(0,1): 'bottom',   (1,1): 'bottom',   (4,1): 'bottom',
-                    (4,2): 'right',    (6,2): 'right',    (8,2): 'right',
-                    (0,0): 'diagonal', (3,0): 'diagonal', (8,0): 'diagonal'}
-
-        domain2 = Domain(points, vertices, boundary)
-
-        domain2.low_froude = domain1.low_froude
-        domain2.reduction = domain1.reduction
-        domain2.smooth = False
-        domain2.default_order = 2
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain2.set_quantity('elevation', 0)
-        domain2.set_quantity('friction', 0)
-        domain2.set_quantity('stage', 0)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww', domain2)
-        domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
-        domain2.check_integrity()
-
-        # Evolution (small steps)
-        for t in domain2.evolve(yieldstep=0.0711, finaltime=finaltime):
-            pass
-
-        # Use output from domain1 as spatio-temporal boundary for domain2
-        # and verify that results at right hand side are close.
-        cv2 = domain2.quantities['stage'].centroid_values
-
-        assert num.allclose(num.take(cv1, (0,8,16), axis=0),
-                            num.take(cv2, (0,3,8), axis=0), rtol=1.0e-4)      # Diag
-        assert num.allclose(num.take(cv1, (0,6,12), axis=0),
-                            num.take(cv2, (0,1,4), axis=0), rtol=1.0e-4)      # Bottom
-        assert num.allclose(num.take(cv1, (12,14,16), axis=0),
-                            num.take(cv2, (4,6,8), axis=0), rtol=1.0e-4)      # RHS
-
-        # Cleanup
-        os.remove(domain1.get_name() + '.sww')
-        os.remove(domain2.get_name() + '.sww')
-
-    def test_spatio_temporal_boundary_2(self):
-        """Test that boundary values can be read from file and interpolated
-        in both time and space.
-        This is a more basic test, verifying that boundary object
-        produces the expected results
-        """
-
-        import time
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create sww file of simple propagation from left to right
-        # through rectangular domain
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(3, 3)
-
-        #Create shallow water domain
-        domain1 = Domain(points, vertices, boundary)
-
-        domain1.reduction = mean
-        domain1.smooth = True    # To mimic MOST output
-
-        domain1.default_order = 2
-        domain1.store = True
-        domain1.set_datadir('.')
-        domain1.set_name('spatio_temporal_boundary_source' + str(time.time()))
-
-        # FIXME: This is extremely important!
-        # How can we test if they weren't stored?
-        domain1.quantities_to_be_stored = {'elevation': 1,
-                                           'stage': 2,
-                                           'xmomentum': 2,
-                                           'ymomentum': 2}
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain1.set_quantity('elevation', 0)
-        domain1.set_quantity('friction', 0)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3,0,0])
-        domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
-
-        # Initial condition
-        domain1.set_quantity('stage', 0)
-        domain1.check_integrity()
-
-        finaltime = 5
-
-        # Evolution  (full domain - large steps)
-        for t in domain1.evolve(yieldstep=1, finaltime=finaltime):
-            pass
-
-        # Create an triangle shaped domain (coinciding with some
-        # coordinates from domain 1),
-        # formed from the lower and right hand  boundaries and
-        # the sw-ne diagonal
-        # from domain 1. Call it domain2
-        points = [[0,0],
-                  [1.0/3,0], [1.0/3,1.0/3],
-                  [2.0/3,0], [2.0/3,1.0/3], [2.0/3,2.0/3],
-                  [1,0],     [1,1.0/3],     [1,2.0/3],     [1,1]]
-
-        vertices = [[1,2,0], [3,4,1], [2,1,4], [4,5,2],
-                    [6,7,3], [4,3,7], [7,8,4], [5,4,8], [8,9,5]]
-
-        boundary = {(0,1): 'bottom',   (1,1): 'bottom',   (4,1): 'bottom',
-                    (4,2): 'right',    (6,2): 'right',    (8,2): 'right',
-                    (0,0): 'diagonal', (3,0): 'diagonal', (8,0): 'diagonal'}
-
-        domain2 = Domain(points, vertices, boundary)
-
-        domain2.reduction = domain1.reduction
-        domain2.smooth = False
-        domain2.default_order = 2
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain2.set_quantity('elevation', 0)
-        domain2.set_quantity('friction', 0)
-        domain2.set_quantity('stage', 0)
-
-        # Read results for specific timesteps t=1 and t=2
-        fid = NetCDFFile(domain1.get_name() + '.sww')
-
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        s1 = fid.variables['stage'][1,:]
-        s2 = fid.variables['stage'][2,:]
-        fid.close()
-
-        shp = (len(x), 1)
-        points = num.concatenate((num.reshape(x, shp), num.reshape(y, shp)),
-                                 axis=1)
-
-        # The diagonal points of domain 1 are 0, 5, 10, 15
-        msg = ('value was\n%s\nshould be\n'
-               '[[0,0], [1.0/3, 1.0/3],\n'
-               '[2.0/3, 2.0/3], [1,1]]'
-               % str(num.take(points, [0,5,10,15], axis=0)))
-        assert num.allclose(num.take(points, [0,5,10,15], axis=0),
-                            [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]]), msg
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww',
-                            domain2, verbose=False)
-        domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
-        domain2.check_integrity()
-
-        # Test that interpolation points are the mid points of the all boundary
-        # segments
-        boundary_midpoints = [[1.0/6, 0], [1.0/2, 0], [5.0/6,0],
-                              [1.0, 1.0/6], [1.0, 1.0/2], [1.0, 5.0/6],
-                              [1.0/6, 1.0/6], [0.5, 0.5], [5.0/6, 5.0/6]]
-
-        boundary_midpoints.sort()
-        R = Bf.F.interpolation_points.tolist()
-        R.sort()
-        assert num.allclose(boundary_midpoints, R)
-
-        # Check spatially interpolated output at time == 1
-        domain2.set_time(1)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(0, 0)
-        assert num.allclose(R0[0], (s1[0] + s1[5]) / 2)
-
-        # Second diagonal midpoint
-        R0 = Bf.evaluate(3, 0)
-        assert num.allclose(R0[0], (s1[5] + s1[10]) / 2)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(8, 0)
-        assert num.allclose(R0[0], (s1[10] + s1[15]) / 2)
-
-        # Check spatially interpolated output at time == 2
-        domain2.set_time(2)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(0, 0)
-        assert num.allclose(R0[0], (s2[0] + s2[5]) / 2)
-
-        # Second diagonal midpoint
-        R0 = Bf.evaluate(3, 0)
-        assert num.allclose(R0[0], (s2[5] + s2[10]) / 2)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(8, 0)
-        assert num.allclose(R0[0], (s2[10] + s2[15]) / 2)
-
-        # Now check temporal interpolation
-        domain2.set_time(1 + 2.0/3)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(0,0)
-        assert num.allclose(R0[0],
-                            ((s1[0] + s1[5]) / 2 + 2.0*(s2[0] + s2[5]) / 2) / 3)
-
-        # Second diagonal midpoint
-        R0 = Bf.evaluate(3, 0)
-        assert num.allclose(R0[0],
-                            ((s1[5] + s1[10]) / 2 + 2.0*(s2[5] + s2[10]) / 2) / 3)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(8, 0)
-        assert num.allclose(R0[0],
-                            ((s1[10] + s1[15]) / 2 + 2.0*(s2[10] + s2[15]) / 2) / 3)
-
-        # Cleanup
-        os.remove(domain1.get_name() + '.sww')
-
-    def test_spatio_temporal_boundary_3(self):
-        """Test that boundary values can be read from file and interpolated
-        in both time and space.
-        This is a more basic test, verifying that boundary object
-        produces the expected results
-
-        This tests adjusting using mean_stage
-        """
-
-        #Create sww file of simple propagation from left to right
-        #through rectangular domain
-
-        import time
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        mean_stage = 5.2    # Adjust stage by this amount in boundary
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(3, 3)
-
-        # Create shallow water domain
-        domain1 = Domain(points, vertices, boundary)
-
-        domain1.reduction = mean
-        domain1.smooth = True    # To mimic MOST output
-
-        domain1.default_order = 2
-        domain1.store = True
-        domain1.set_datadir('.')
-        domain1.set_name('spatio_temporal_boundary_source' + str(time.time()))
-
-        # FIXME: This is extremely important!
-        # How can we test if they weren't stored?
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain1.set_quantity('elevation', 0)
-        domain1.set_quantity('friction', 0)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3, 0, 0])
-        domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
-
-        # Initial condition
-        domain1.set_quantity('stage', 0)
-        domain1.check_integrity()
-
-        finaltime = 5
-
-        # Evolution  (full domain - large steps)
-        for t in domain1.evolve(yieldstep=1, finaltime=finaltime):
-            pass
-
-        # Create an triangle shaped domain (coinciding with some
-        # coordinates from domain 1),
-        # formed from the lower and right hand  boundaries and
-        # the sw-ne diagonal
-        # from domain 1. Call it domain2
-        points = [[0,0],
-                  [1.0/3,0], [1.0/3,1.0/3],
-                  [2.0/3,0], [2.0/3,1.0/3], [2.0/3,2.0/3],
-                  [1,0],     [1,1.0/3],     [1,2.0/3],     [1,1]]
-
-        vertices = [[1,2,0],
-                    [3,4,1], [2,1,4], [4,5,2],
-                    [6,7,3], [4,3,7], [7,8,4], [5,4,8], [8,9,5]]
-
-        boundary = {(0,1): 'bottom',   (1,1): 'bottom',   (4,1): 'bottom',
-                    (4,2): 'right',    (6,2): 'right',    (8,2): 'right',
-                    (0,0): 'diagonal', (3,0): 'diagonal', (8,0): 'diagonal'}
-
-        domain2 = Domain(points, vertices, boundary)
-
-        domain2.reduction = domain1.reduction
-        domain2.smooth = False
-        domain2.default_order = 2
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain2.set_quantity('elevation', 0)
-        domain2.set_quantity('friction', 0)
-        domain2.set_quantity('stage', 0)
-
-        # Read results for specific timesteps t=1 and t=2
-        fid = NetCDFFile(domain1.get_name() + '.sww')
-
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        s1 = fid.variables['stage'][1,:]
-        s2 = fid.variables['stage'][2,:]
-        fid.close()
-
-        shp = (len(x), 1)
-        points = num.concatenate((num.reshape(x, shp), num.reshape(y, shp)),
-                                 axis=1)
-        #The diagonal points of domain 1 are 0, 5, 10, 15
-
-        msg = ('values was\n%s\nshould be\n'
-               '[[0,0], [1.0/3, 1.0/3],\n'
-               '[2.0/3, 2.0/3], [1,1]]'
-               % str(num.take(points, [0,5,10,15], axis=0)))
-        assert num.allclose(num.take(points, [0,5,10,15], axis=0),
-                            [[0,0], [1.0/3, 1.0/3], [2.0/3, 2.0/3], [1,1]]), msg
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww',
-                            domain2, mean_stage=mean_stage, verbose=False)
-
-        domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
-        domain2.check_integrity()
-
-        # Test that interpolation points are the mid points of the all boundary
-        # segments
-        boundary_midpoints = [[1.0/6, 0], [1.0/2, 0], [5.0/6,0],
-                              [1.0, 1.0/6], [1.0, 1.0/2], [1.0, 5.0/6],
-                              [1.0/6, 1.0/6], [0.5, 0.5], [5.0/6, 5.0/6]]
-
-        boundary_midpoints.sort()
-        R = Bf.F.interpolation_points.tolist()
-        R.sort()
-        assert num.allclose(boundary_midpoints, R)
-
-        # Check spatially interpolated output at time == 1
-        domain2.set_time(1)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(0, 0)
-        assert num.allclose(R0[0], (s1[0] + s1[5]) / 2 + mean_stage)
-
-        # Second diagonal midpoint
-        R0 = Bf.evaluate(3, 0)
-        assert num.allclose(R0[0], (s1[5] + s1[10]) / 2 + mean_stage)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(8, 0)
-        assert num.allclose(R0[0], (s1[10] + s1[15]) / 2 + mean_stage)
-
-        # Check spatially interpolated output at time == 2
-        domain2.set_time(2)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(0, 0)
-        assert num.allclose(R0[0], (s2[0] + s2[5]) / 2 + mean_stage)
-
-        # Second diagonal midpoint
-        R0 = Bf.evaluate(3, 0)
-        assert num.allclose(R0[0], (s2[5] + s2[10]) / 2 + mean_stage)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(8, 0)
-        assert num.allclose(R0[0], (s2[10] + s2[15]) / 2 + mean_stage)
-
-        #Now check temporal interpolation
-        domain2.set_time(1 + 2.0/3)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(0, 0)
-        assert num.allclose(R0[0],
-                            ((s1[0] + s1[5]) / 2 + 2.0*(s2[0] + s2[5]) / 2) / 3 +
-                                mean_stage)
-
-        # Second diagonal midpoint
-        R0 = Bf.evaluate(3, 0)
-        assert num.allclose(R0[0],
-                            ((s1[5] + s1[10]) / 2 + 2.0*(s2[5] + s2[10]) / 2) / 3 +
-                                mean_stage)
-
-        # First diagonal midpoint
-        R0 = Bf.evaluate(8, 0)
-        assert num.allclose(R0[0],
-                            ((s1[10] + s1[15]) / 2 + 2.0*(s2[10] + s2[15]) / 2) / 3 +
-                                mean_stage)
-
-        # Cleanup
-        os.remove(domain1.get_name() + '.sww')
-
-    def test_spatio_temporal_boundary_outside(self):
-        """Test that field_boundary catches if a point is outside the sww
-        that defines it
-        """
-
-        import time
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create sww file of simple propagation from left to right
-        # through rectangular domain
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(3, 3)
-
-        # Create shallow water domain
-        domain1 = Domain(points, vertices, boundary)
-
-        domain1.reduction = mean
-        domain1.smooth = True    # To mimic MOST output
-
-        domain1.default_order = 2
-        domain1.store = True
-        domain1.set_datadir('.')
-        domain1.set_name('spatio_temporal_boundary_source' + str(time.time()))
-
-        # FIXME: This is extremely important!
-        # How can we test if they weren't stored?
-        domain1.set_quantities_to_be_stored({'elevation': 1,
-                                             'stage': 2,
-                                             'xmomentum': 2,
-                                             'ymomentum': 2})
-
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain1.set_quantity('elevation', 0)
-        domain1.set_quantity('friction', 0)
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain1)
-        Bd = Dirichlet_boundary([0.3, 0, 0])
-        domain1.set_boundary({'left': Bd, 'top': Bd, 'right': Br, 'bottom': Br})
-
-        # Initial condition
-        domain1.set_quantity('stage', 0)
-        domain1.check_integrity()
-
-        finaltime = 5
-
-        # Evolution  (full domain - large steps)
-        for t in domain1.evolve(yieldstep=1, finaltime=finaltime):
-            pass
-
-        # Create an triangle shaped domain (coinciding with some
-        # coordinates from domain 1, but one edge outside!),
-        # formed from the lower and right hand  boundaries and
-        # the sw-ne diagonal as in the previous test but scaled
-        # in the x direction by a factor of 2
-        points = [[0,0],
-                  [2.0/3,0], [2.0/3,1.0/3],
-                  [4.0/3,0], [4.0/3,1.0/3], [4.0/3,2.0/3],
-                  [2,0],     [2,1.0/3],     [2,2.0/3],     [2,1]]
-
-        vertices = [[1,2,0],
-                    [3,4,1], [2,1,4], [4,5,2],
-                    [6,7,3], [4,3,7], [7,8,4], [5,4,8], [8,9,5]]
-
-        boundary = {(0,1): 'bottom',   (1,1): 'bottom',   (4,1): 'bottom',
-                    (4,2): 'right',    (6,2): 'right',    (8,2): 'right',
-                    (0,0): 'diagonal', (3,0): 'diagonal', (8,0): 'diagonal'}
-
-        domain2 = Domain(points, vertices, boundary)
-
-        domain2.reduction = domain1.reduction
-        domain2.smooth = False
-        domain2.default_order = 2
-
-        # Bed-slope and friction at vertices (and interpolated elsewhere)
-        domain2.set_quantity('elevation', 0)
-        domain2.set_quantity('friction', 0)
-        domain2.set_quantity('stage', 0)
-
-        # Read results for specific timesteps t=1 and t=2
-        fid = NetCDFFile(domain1.get_name() + '.sww')
-
-        x = fid.variables['x'][:]
-        y = fid.variables['y'][:]
-        s1 = fid.variables['stage'][1,:]
-        s2 = fid.variables['stage'][2,:]
-        fid.close()
-
-        shp = (len(x), 1)
-        points = num.concatenate((num.reshape(x, shp), num.reshape(y, shp)),
-                                 axis=1)
-        #The diagonal points of domain 1 are 0, 5, 10, 15
-
-        assert num.allclose(num.take(points, [0,5,10,15], axis=0),
-                            [[0,0], [1.0/3,1.0/3], [2.0/3,2.0/3], [1,1]])
-
-        # Boundary conditions
-        Br = Reflective_boundary(domain2)
-        Bf = Field_boundary(domain1.get_name() + '.sww',
-                            domain2, mean_stage=1, verbose=False)
-
-        domain2.set_boundary({'right':Br, 'bottom':Br, 'diagonal':Bf})
-        domain2.check_integrity()
-
-        try:
-            for t in domain2.evolve(yieldstep=1, finaltime=finaltime):
-                pass
-        except Exception:
-            pass
-        else:
-            msg = 'This should have caught NAN at boundary'
-            raise Exception(msg)
-
-        #Cleanup
-        os.remove(domain1.get_name() + '.sww')
-
-    def test_extrema(self):
-        """Test that extrema of quantities are computed correctly
-        Extrema are updated at every *internal* timestep
-        """
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-
-        initial_runup_height = -0.4
-        final_runup_height = -0.3
-
-        #--------------------------------------------------------------
-        # Setup computational domain
-        #--------------------------------------------------------------
-        N = 5
-        points, vertices, boundary = rectangular_cross(N, N)
-        domain = Domain(points, vertices, boundary)
-        domain.set_name('extrema_test')
-
-        #--------------------------------------------------------------
-        # Setup initial conditions
-        #--------------------------------------------------------------
-        def topography(x,y):
-            return -x / 2                             # linear bed slope
-
-        domain.set_quantity('elevation', topography)    # function for elevation
-        domain.set_quantity('friction', 0.)             # Zero friction
-        # Constant negative initial stage
-        domain.set_quantity('stage', initial_runup_height)
-        domain.set_quantities_to_be_monitored(['stage', 'stage-elevation'],
-                                              time_interval=[0.5, 2.7],
-                                              polygon=[[0,0], [0,1],
-                                                       [1,1], [1,0]])
-
-        assert len(domain.quantities_to_be_monitored) == 2
-        assert 'stage' in domain.quantities_to_be_monitored
-        assert 'stage-elevation' in domain.quantities_to_be_monitored
-        for key in list(domain.quantities_to_be_monitored['stage'].keys()):
-            assert domain.quantities_to_be_monitored['stage'][key] is None
-
-        #--------------------------------------------------------------
-        # Setup boundary conditions
-        #--------------------------------------------------------------
-        Br = Reflective_boundary(domain)              # Reflective wall
-        # Constant inflow
-        Bd = Dirichlet_boundary([final_runup_height, 0, 0])
-
-        # All reflective to begin with (still water)
-        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-
-        #--------------------------------------------------------------
-        # Let triangles adjust and check extrema
-        #--------------------------------------------------------------
-        for t in domain.evolve(yieldstep=0.1, finaltime=1.0):
-            domain.quantity_statistics() # Run it silently
-
-        #--------------------------------------------------------------
-        # Test extrema
-        #--------------------------------------------------------------
-        stage = domain.quantities_to_be_monitored['stage']
-        assert stage['min'] <= stage['max']
-
-        assert num.allclose(stage['min'], initial_runup_height,
-                            rtol=1.0/N)    # First order accuracy
-
-        depth = domain.quantities_to_be_monitored['stage-elevation']
-        assert depth['min'] <= depth['max']
-        assert depth['min'] >= 0.0
-        assert depth['max'] >= 0.0
-
-        #--------------------------------------------------------------
-        # Update boundary to allow inflow
-        #--------------------------------------------------------------
-        domain.set_boundary({'right': Bd})
-
-        #--------------------------------------------------------------
-        # Evolve system through time
-        #--------------------------------------------------------------
-        for t in domain.evolve(yieldstep=0.1, finaltime=3.0):
-            domain.quantity_statistics()    # Run it silently
-
-        #--------------------------------------------------------------
-        # Test extrema again
-        #--------------------------------------------------------------
-        stage = domain.quantities_to_be_monitored['stage']
-        assert stage['min'] <= stage['max']
-
-        assert num.allclose(stage['min'], initial_runup_height,
-                            rtol = 1.0/N) # First order accuracy
-
-        depth = domain.quantities_to_be_monitored['stage-elevation']
-        assert depth['min'] <= depth['max']
-        assert depth['min'] >= 0.0
-        assert depth['max'] >= 0.0
-
-        # Cleanup
-        os.remove(domain.get_name() + '.sww')
-
-    def test_tight_slope_limiters(self):
-        """Test that new slope limiters (Feb 2007) don't induce extremely
-        small timesteps. This test actually reveals the problem as it
-        was in March-April 2007
-        """
-
-        # Create basic mesh
-        points, vertices, boundary = rectangular(2, 2)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary)
-        domain.default_order = 2
-
-        # This will pass
-        #domain.tight_slope_limiters = 1
-        #domain.H0 = 0.01
-
-        # This will fail
-        #domain.tight_slope_limiters = 1
-        #domain.H0 = 0.001
-
-        # This will pass provided C extension implements limiting of
-        # momentum in _compute_speeds
-        domain.tight_slope_limiters = 1
-        domain.H0 = 0.001
-        domain.protect_against_isolated_degenerate_timesteps = True
-
-        # Set some field values
-        domain.set_quantity('elevation', lambda x,y: -x)
-        domain.set_quantity('friction', 0.03)
-
-        # Boundary conditions
-        B = Transmissive_boundary(domain)
-        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
-
-        # Initial condition - with jumps
-        bed = domain.quantities['elevation'].vertex_values
-        stage = num.zeros(bed.shape, float)
-
-        h = 0.3
-        for i in range(stage.shape[0]):
-            if i % 2 == 0:
-                stage[i,:] = bed[i,:] + h
-            else:
-                stage[i,:] = bed[i,:]
-
-        domain.set_quantity('stage', stage)
-
-        domain.distribute_to_vertices_and_edges()
-
-        domain.set_name('tight_limiters')
-        domain.smooth = True
-        domain.reduction = mean
-        domain.set_datadir('.')
-        domain.smooth = False
-        domain.store = True
-
-        # Evolution
-        for t in domain.evolve(yieldstep=0.1, finaltime=0.3):
-            #domain.write_time(track_speeds=True)
-            stage = domain.quantities['stage'].vertex_values
-
-            # Get NetCDF
-            fid = NetCDFFile(domain.writer.filename, netcdf_mode_r)
-            stage_file = fid.variables['stage']
-
-            fid.close()
-
-        os.remove(domain.writer.filename)
 
     def test_pmesh2Domain(self):
-         import os
          import tempfile
 
-         fileName = tempfile.mktemp(".tsh")
+         fd, fileName = tempfile.mkstemp(".tsh")
+         os.close(fd)
          file = open(fileName, "w")
          file.write("4 3 # <vertex #> <x> <y> [attributes]\n \
 0 0.0 0.0 0.0 0.0 0.01 \n \
@@ -7190,6 +2338,7 @@ friction  \n \
 
          os.remove(fileName)
 
+
     def test_get_lone_vertices(self):
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -7210,6 +2359,7 @@ friction  \n \
 
         domain = Domain(points, vertices, boundary)
         domain.get_lone_vertices()
+
 
     def test_fitting_using_shallow_water_domain(self):
         #Mesh in zone 56 (absolute coords)
@@ -7258,7 +2408,8 @@ friction  \n \
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -7279,7 +2430,6 @@ friction  \n \
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(ptsfile)
 
 
@@ -7602,7 +2752,6 @@ friction  \n \
         from anuga.abstract_2d_finite_volumes.mesh_factory \
                 import rectangular_cross
         from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water.forcing import Inflow
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -7675,6 +2824,7 @@ friction  \n \
 
         os.remove('Inflow_flowline_test.sww')
 
+
     def test_volume_conservation_inflow(self):
         """test_volume_conservation
 
@@ -7734,12 +2884,11 @@ friction  \n \
         #--------------------------------------------------------------
 
         # Fixed Flowrate onto Area
-        fixed_inflow = Inflow(domain,
-                              center=(10.0, 10.0),
-                              radius=5.00,
-                              rate=10.00)
-
-        domain.forcing_terms.append(fixed_inflow)
+        inflow_rate = 10.00   # m^3/s
+        Rate_operator.inflow(domain,
+                             center=(10.0, 10.0),
+                             radius=5.00,
+                             rate=inflow_rate)
 
         #----------------------------------------------------------------------
         # Setup boundary conditions
@@ -7766,11 +2915,10 @@ friction  \n \
 
 
             # Update reference volume
-            ref_volume += ys * fixed_inflow.rate
+            ref_volume += ys * inflow_rate
 
 
         os.remove('Inflow_volume_test.sww')
-
 
 
     def test_volume_conservation_rain(self):
@@ -7826,12 +2974,11 @@ friction  \n \
         #--------------------------------------------------------------
 
         # Fixed rain onto small circular area
-        fixed_rain = Rainfall(domain,
-                              center=(10.0, 10.0),
-                              radius=5.00,
-                              rate=10.00)   # 10 mm/s
-
-        domain.forcing_terms.append(fixed_rain)
+        rain_rate = 10.00   # mm/s
+        fixed_rain = Rate_operator.rainfall(domain,
+                                            center=(10.0, 10.0),
+                                            radius=5.00,
+                                            rate=rain_rate*3600)   # mm/hr
 
         #----------------------------------------------------------------------
         # Setup boundary conditions
@@ -7860,136 +3007,11 @@ friction  \n \
                 print(V)
 
 
-            # Update reference volume.
-            # FIXME: Note that rate has now been redefined
-            # as m/s internally. This is a little confusing
-            # when it was specfied as mm/s.
-
-            delta_V = fixed_rain.rate*fixed_rain.exchange_area
+            # Update reference volume (mm/s -> m/s over the rained area)
+            delta_V = rain_rate/1000.0*fixed_rain.areas.sum()
             ref_volume += ys * delta_V
 
         os.remove('Rain_volume_test.sww')
-
-    def Xtest_rain_conservation_and_runoff(self):
-        """test_rain_conservation_and_runoff
-
-        Test that total volume in domain is as expected, based on questions
-        raised by Petar Milevski in May 2009.
-
-        This test adds rain at a known rate and verifies that the total
-        volume and outflows are as expected.
-
-        """
-
-        # FIXME (Ole): Does not work yet. Investigate boundary flows
-
-        verbose = True #False
-
-
-        #---------------------------------------------------------------------
-        # Import necessary modules
-        #---------------------------------------------------------------------
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
-        from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water.boundaries import Reflective_boundary
-        from anuga import Dirichlet_boundary
-        from anuga.shallow_water.forcing import Rainfall
-        from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
-
-        #----------------------------------------------------------------------
-        # Setup computational domain
-        #----------------------------------------------------------------------
-        finaltime = 500.0
-
-        length = 300.
-        width  = 20.
-        dx = dy = 5       # Resolution: of grid on both axes
-
-
-        points, vertices, boundary = rectangular_cross(int(length / dx),
-                                                       int(width / dy),
-                                                       len1=length, len2=width)
-
-
-        domain = Domain(points, vertices, boundary)
-        domain.set_name('Rain_volume_runoff_test')         # Output name
-
-
-        #----------------------------------------------------------------------
-        # Setup initial conditions
-        #----------------------------------------------------------------------
-        slope = 0.0
-        def topography(x, y):
-            z=-x * slope
-            return z
-
-        domain.set_quantity('elevation', topography) # Use function for elevation
-        domain.set_quantity('friction', 0.0)         # Constant friction
-
-        domain.set_quantity('stage',
-                            expression='elevation')  # Dry initially
-
-
-        #--------------------------------------------------------------
-        # Setup rain
-        #--------------------------------------------------------------
-
-        # Fixed rain onto small circular area
-        fixed_rain = Rainfall(domain,
-                              center=(10.0, 10.0),
-                              radius=5.00,
-                              rate=10.00)   # 10 mm/s
-
-        domain.forcing_terms.append(fixed_rain)
-
-        #----------------------------------------------------------------------
-        # Setup boundary conditions
-        #----------------------------------------------------------------------
-
-        Br = Reflective_boundary(domain) # Solid reflective wall
-        Bt = Transmissive_stage_zero_momentum_boundary(domain)
-        Bd = Dirichlet_boundary([-10, 0, 0])
-        domain.set_boundary({'left': Bt, 'right': Bd, 'top': Bt, 'bottom': Bt})
-
-
-        #----------------------------------------------------------------------
-        # Evolve system through time
-        #----------------------------------------------------------------------
-        ref_volume = 0.0
-        ys = 10.0  # Yieldstep
-        for t in domain.evolve(yieldstep=ys, finaltime=finaltime):
-
-            # Check volume
-            V = domain.compute_total_volume()
-            msg = 'V = %e, Ref = %e' % (V, ref_volume)
-            #assert num.allclose(V, ref_volume) or V < ref_volume, msg
-
-            if verbose:
-                print(domain.timestepping_statistics())
-                print(domain.volumetric_balance_statistics())
-                print('reference volume', ref_volume)
-                print(V)
-
-
-            # Update reference volume.
-            # FIXME: Note that rate has now been redefined
-            # as m/s internally. This is a little confusing
-            # when it was specfied as mm/s.
-
-            delta_V = fixed_rain.rate*fixed_rain.exchange_area
-            ref_volume += ys * delta_V
-
-            # Compute outflow at right hand downstream boundary
-            boundary_flows, inflow , outflow = domain.compute_boundary_flows()
-            net_outflow = outflow - inflow
-
-            outflow = boundary_flows['right']
-            if verbose:
-                print('Outflow', outflow)
-                print('Net outflow', net_outflow)
-
-            # Update reference volume
-            ref_volume += ys * outflow
 
 
     def test_variable_elevation_de0(self):
@@ -8025,7 +3047,6 @@ friction  \n \
         domain.set_quantities_to_be_stored({'elevation': 2,
                                             'stage': 2})
 
-        #pprint(domain.get_algorithm_parameters())
         #---------------------------------------------------------------------
         # Setup initial conditions
         #---------------------------------------------------------------------
@@ -8062,13 +3083,12 @@ friction  \n \
         #-------------------------------------------------------------------
 
         for t in domain.evolve(yieldstep=1, finaltime=3.0):
-            #print domain.timestepping_statistics()
 
             domain.add_quantity('elevation', pole_increment, location='centroids')
 
 
         # Check that quantities have been stored correctly
-        sww_file = domain.get_name() + '.sww'
+        sww_file = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         fid = NetCDFFile(sww_file)
 
         stage = fid.variables['stage_c'][:]
@@ -8089,6 +3109,8 @@ friction  \n \
 
 
     @pytest.mark.slow
+
+
     def test_inflow_using_flowline(self):
         """test_inflow_using_flowline
 
@@ -8152,16 +3174,16 @@ friction  \n \
                 #--------------------------------------------------------------
 
                 # Fixed Flowrate onto Area
-                fixed_inflow = Inflow(domain,
-                                      center=(10.0, 10.0),
-                                      radius=5.00,
-                                      rate=10.00)
+                inflow_rate = 10.00   # m^3/s
 
                 # Stack this flow
                 for i in range(number_of_inflows):
-                    domain.forcing_terms.append(fixed_inflow)
+                    Rate_operator.inflow(domain,
+                                         center=(10.0, 10.0),
+                                         radius=5.00,
+                                         rate=inflow_rate)
 
-                ref_flow = fixed_inflow.rate*number_of_inflows
+                ref_flow = inflow_rate*number_of_inflows
 
                 # Compute normal depth on plane using Mannings equation
                 # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
@@ -8235,287 +3257,6 @@ friction  \n \
         os.remove('inflow_flowline_test.sww')
 
 
-    def Xtest_inflow_boundary_using_flowline(self):
-        """test_inflow_boundary_using_flowline
-        Test the ability of a flowline to match inflow above the flowline by
-        creating constant inflow into the boundary at the head of a 20m
-        wide by 300m long plane dipping at various slopes with a
-        perpendicular flowline and gauge downstream of the inflow and
-        a 45 degree flowlines at 200m downstream
-
-
-        """
-
-        # FIXME (Ole): Work in progress
-
-        verbose = False
-
-
-
-        #----------------------------------------------------------------------
-        # Setup computational domain
-        #----------------------------------------------------------------------
-
-        finaltime = 500 #700.0 # If this is too short, steady state will not be achieved
-
-        length = 250.
-        width  = 20.
-        dx = dy = 5          # Resolution: of grid on both axes
-
-        points, vertices, boundary = rectangular_cross(int(length / dx), int(width / dy),
-                                                       len1=length, len2=width)
-
-        for mannings_n in [0.1, 0.01]:
-            # Loop over a range of roughnesses
-
-            for slope in [1.0/300, 1.0/100]:
-                # Loop over a range of bedslopes representing sub to super critical flows
-
-
-                domain = Domain(points, vertices, boundary)
-                domain.set_name('inflow_boundary_flowline_test')
-
-
-                #-------------------------------------------------------------
-                # Setup initial conditions
-                #-------------------------------------------------------------
-
-                def topography(x, y):
-                    z=-x * slope
-                    return z
-
-                domain.set_quantity('elevation', topography)
-                domain.set_quantity('friction', mannings_n)
-                domain.set_quantity('stage',
-                                    expression='elevation')
-
-
-
-                #--------------------------------------------------------------
-                # Setup boundary conditions
-                #--------------------------------------------------------------
-
-
-
-                ref_flow = 10.00
-
-                # Compute normal depth on plane using Mannings equation
-                # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
-                normal_depth=(ref_flow*mannings_n / (slope**0.5*width))**0.6
-                if verbose:
-                    print()
-                    print('Slope:', slope, 'Mannings n:', mannings_n)
-
-
-                from anuga.shallow_water.boundaries import Inflow_boundary
-
-                Bi = Inflow_boundary(domain, rate=ref_flow)
-
-                Br = Reflective_boundary(domain)
-
-                # Define downstream boundary based on predicted depth
-                def normal_depth_stage_downstream(t):
-                    return (-slope*length) + normal_depth
-
-                Bt = Transmissive_momentum_set_stage_boundary(domain=domain,
-                                                              function=normal_depth_stage_downstream)
-
-
-
-
-                domain.set_boundary({'left': Bi,
-                                     'right': Bt,
-                                     'top': Br,
-                                     'bottom': Br})
-
-
-
-                #--------------------------------------------------------------
-                # Evolve system through time
-                #--------------------------------------------------------------
-
-
-                for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
-                    pass
-                    #if verbose :
-                    #    print domain.timestepping_statistics()
-                    #    print domain.volumetric_balance_statistics()
-
-
-
-                #--------------------------------------------------------------
-                # Compute flow thru flowlines ds of inflow
-                #--------------------------------------------------------------
-
-                # Square on flowline at 200m
-                q=domain.get_flow_through_cross_section([[200.0,0.0],[200.0,20.0]])
-                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
-                if verbose:
-                    print('90 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow))
-                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg
-
-
-                # 45 degree flowline at 200m
-                q=domain.get_flow_through_cross_section([[200.0,0.0],[220.0,20.0]])
-                msg = 'Predicted flow was %f, should have been %f' % (q, ref_flow)
-                if verbose:
-                    print('45 degree flowline: ANUGA = %f, Ref = %f' % (q, ref_flow))
-
-                assert num.allclose(q, ref_flow, rtol=1.0e-2), msg
-
-
-
-    def Xtest_friction_dependent_flow_using_flowline(self):
-        """test_friction_dependent_flow_using_flowline
-
-        Test the internal flow (using flowline) as a function of
-        different values of Mannings n and different slopes.
-
-        Flow is applied in the form of boundary conditions with fixed momentum.
-        """
-
-        verbose = True
-
-        #----------------------------------------------------------------------
-        # Import necessary modules
-        #----------------------------------------------------------------------
-
-        from anuga.abstract_2d_finite_volumes.mesh_factory \
-                import rectangular_cross
-        from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water.boundaries import Reflective_boundary
-        from anuga import Dirichlet_boundary
-        from anuga.shallow_water.forcing import Inflow
-
-        from anuga.abstract_2d_finite_volumes.util \
-                import sww2csv_gauges, csv2timeseries_graphs
-
-
-        #----------------------------------------------------------------------
-        # Setup computational domain
-        #----------------------------------------------------------------------
-
-        finaltime = 1000.0
-
-        length = 300.
-        width  = 20.
-        dx = dy = 5       # Resolution: of grid on both axes
-
-        # Input parameters
-        uh = 1.0
-        vh = 0.0
-        d = 1.0
-
-        ref_flow = uh*d*width # 20 m^3/s in the x direction across entire domain
-
-        points, vertices, boundary = rectangular_cross(int(length / dx),
-                                                       int(width / dy),
-                                                       len1=length,
-                                                       len2=width)
-
-        for mannings_n in [0.035]:          #[0.0, 0.012, 0.035]:
-            for slope in [1.0/300]:         #[0.0, 1.0/300, 1.0/150]:
-                # Loop over a range of bedslopes representing
-                # sub to super critical flows
-                if verbose:
-                    print()
-                    print('Slope:', slope, 'Mannings n:', mannings_n)
-                domain = Domain(points, vertices, boundary)
-                domain.set_name('Inflow_flowline_test')     # Output name
-
-                #--------------------------------------------------------------
-                # Setup initial conditions
-                #--------------------------------------------------------------
-
-                def topography(x, y):
-                    z = -x * slope
-                    return z
-
-                # Use function for elevation
-                domain.set_quantity('elevation', topography)
-                # Constant friction
-                domain.set_quantity('friction', mannings_n)
-
-                #domain.set_quantity('stage', expression='elevation')
-
-                # Set initial flow as depth=1m, uh=1.0 m/s, vh = 0.0
-                # making it 20 m^3/s across entire domain
-                domain.set_quantity('stage', expression='elevation + %f' % d)
-                domain.set_quantity('xmomentum', uh)
-                domain.set_quantity('ymomentum', vh)
-
-                #--------------------------------------------------------------
-                # Setup boundary conditions
-                #--------------------------------------------------------------
-
-                Br = Reflective_boundary(domain)      # Solid reflective wall
-
-                # Constant flow in and out of domain
-                # Depth = 1m, uh=1 m/s, i.e. a flow of 20 m^3/s
-                # across boundaries
-                Bi = Dirichlet_boundary([d, uh, vh])
-                Bo = Dirichlet_boundary([-length*slope+d, uh, vh])
-                #Bo = Dirichlet_boundary([-100, 0, 0])
-
-                domain.set_boundary({'left': Bi, 'right': Bo,
-                                     'top': Br,  'bottom': Br})
-
-                #--------------------------------------------------------------
-                # Evolve system through time
-                #--------------------------------------------------------------
-
-                for t in domain.evolve(yieldstep=100.0, finaltime=finaltime):
-                    if verbose :
-                        print(domain.timestepping_statistics())
-                        print(domain.volumetric_balance_statistics())
-
-                # 90 degree flowline at 200m
-                q = domain.get_flow_through_cross_section([[200.0,  0.0],
-                                                           [200.0, 20.0]])
-                msg = ('Predicted flow was %f, should have been %f'
-                       % (q, ref_flow))
-                if verbose:
-                    print ('90 degree flowline: ANUGA = %f, Ref = %f'
-                           % (q, ref_flow))
-
-                # 45 degree flowline at 200m
-                q = domain.get_flow_through_cross_section([[200.0,  0.0],
-                                                           [220.0, 20.0]])
-                msg = ('Predicted flow was %f, should have been %f'
-                       % (q, ref_flow))
-                if verbose:
-                    print ('45 degree flowline: ANUGA = %f, Ref = %f'
-                           % (q, ref_flow))
-
-                # Stage recorder (gauge) in middle of plane at 200m
-                x = 200.0
-                y = 10.00
-                w = domain.get_quantity('stage').\
-                        get_values(interpolation_points=[[x, y]])[0]
-                z = domain.get_quantity('elevation').\
-                        get_values(interpolation_points=[[x, y]])[0]
-                domain_depth = w-z
-
-                xmom = domain.get_quantity('xmomentum').\
-                        get_values(interpolation_points=[[x, y]])[0]
-                ymom = domain.get_quantity('ymomentum').\
-                        get_values(interpolation_points=[[x, y]])[0]
-                if verbose:
-                    print(('At interpolation point (h, uh, vh): ',
-                           domain_depth, xmom, ymom))
-                    print('uh * d * width = ', xmom*domain_depth*width)
-
-                if slope > 0.0:
-                    # Compute normal depth at gauge location using Manning eqn
-                    # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6
-                    normal_depth = (ref_flow*mannings_n / (slope**0.5*width))**0.6
-                    if verbose:
-                        print ('Depth: ANUGA = %f, Mannings = %f'
-                               % (domain_depth, normal_depth))
-
-        os.remove('Inflow_flowline_test.sww')
-
-
     def test_track_speeds(self):
         """
         get values based on triangle lists.
@@ -8528,7 +3269,6 @@ friction  \n \
         #Create shallow water domain
         domain = Domain(points, vertices, boundary)
         domain.timestepping_statistics(track_speeds=True)
-
 
 
     def test_tag_region_tags(self):
@@ -8629,8 +3369,6 @@ friction  \n \
                              [ 11.0,  11.0,  11.0]])
 
 
-
-
     def test_vertex_values_no_smoothing(self):
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -8699,6 +3437,8 @@ friction  \n \
 
 
     # Test smoothing
+
+
     def test_smoothing_de0(self):
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -8787,6 +3527,8 @@ friction  \n \
 
     #Test calculating velocities and back to momenta
     # useful for kinematic viscosity calc
+
+
     def test_update_centroids_of_velocities_and_height(self):
 
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
@@ -8879,6 +3621,7 @@ friction  \n \
         assert num.allclose(UHc, (2*Xc+3*Yc)*(Xc+Yc))
         assert num.allclose(VHc, (5*Xc+7*Yc)*(Xc+Yc))
 
+
     def test_set_quantity_from_file(self):
         '''test the new set_values for the set_quantity procedures. The results of setting quantity values by using set_quantities and set_values for pts, asc and dem files are tested here. They should be equal.'''
 
@@ -8927,7 +3670,8 @@ friction  \n \
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -9067,7 +3811,6 @@ friction  \n \
         assert num.allclose(mesh4_stage.centroid_values, answer_centroid_values)
 
         # Cleanup
-        import os
         try:
             os.remove(ptsfile)
             os.remove(txt_file)
@@ -9075,6 +3818,7 @@ friction  \n \
             os.remove(txt_file_dem)
         except OSError:
             pass
+
 
     def test_that_mesh_methods_exist(self):
         """test_that_mesh_methods_exist
@@ -9117,6 +3861,62 @@ friction  \n \
         domain.get_extent()
 
 
+class Test_OMP_Num_Threads(unittest.TestCase):
+    """OpenMP thread count is process-wide, so anuga.set_omp_num_threads(n)
+    must be reflected by every domain in the session, including ones already
+    constructed (the notebook use-case)."""
+
+    def setUp(self):
+        from anuga.shallow_water.shallow_water_domain import get_omp_num_threads
+        self._saved = get_omp_num_threads()
+        self._saved_env = os.environ.get('OMP_NUM_THREADS')
+
+    def tearDown(self):
+        from anuga.shallow_water.shallow_water_domain import set_omp_num_threads
+        set_omp_num_threads(self._saved, verbose=False)
+        if self._saved_env is None:
+            os.environ.pop('OMP_NUM_THREADS', None)
+        else:
+            os.environ['OMP_NUM_THREADS'] = self._saved_env
+
+    def _make_domain(self):
+        points, vertices, boundary = rectangular_cross(4, 4)
+        return Domain(points, vertices, boundary)
+
+    def test_module_level_propagates_to_existing_and_new_domains(self):
+        from anuga.shallow_water.shallow_water_domain import (
+            set_omp_num_threads, get_omp_num_threads)
+
+        set_omp_num_threads(1, verbose=False)
+        d1 = self._make_domain()
+        self.assertEqual(d1.omp_num_threads, 1)
+
+        # Bump the session count AFTER d1 already exists.
+        set_omp_num_threads(3, verbose=False)
+        self.assertEqual(get_omp_num_threads(), 3)
+        self.assertEqual(d1.omp_num_threads, 3)          # existing domain updates
+        self.assertEqual(os.environ['OMP_NUM_THREADS'], '3')
+
+        d2 = self._make_domain()
+        self.assertEqual(d2.omp_num_threads, 3)          # new domain inherits it
+
+    def test_backward_compatible_setters_are_process_wide(self):
+        from anuga.shallow_water.shallow_water_domain import set_omp_num_threads
+
+        set_omp_num_threads(1, verbose=False)
+        d1 = self._make_domain()
+        d2 = self._make_domain()
+
+        # Legacy attribute assignment still works and is process-wide.
+        d1.omp_num_threads = 2
+        self.assertEqual(d1.omp_num_threads, 2)
+        self.assertEqual(d2.omp_num_threads, 2)
+
+        # Legacy Domain.set_omp_num_threads() method still works and is process-wide.
+        d2.set_omp_num_threads(4, verbose=False)
+        self.assertEqual(d1.omp_num_threads, 4)
+        self.assertEqual(d2.omp_num_threads, 4)
+
 
 #################################################################################
 
@@ -9126,3 +3926,8 @@ if __name__ == "__main__":
 ])
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
+
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -15,6 +15,7 @@ Run in parallel (4 procs)::
     mpirun -np 4 python anuga/parallel/tests/test_distribute_basic_mesh.py
 """
 
+import tempfile
 import os
 import sys
 import unittest
@@ -71,7 +72,7 @@ def make_serial_domain(name='test_serial'):
     domain.set_quantity('friction', 0.03)
     domain.set_quantity('stage', expression='elevation')
     domain.set_name(name)
-    domain.set_datadir('.')
+    domain.set_datadir(tempfile.mkdtemp())
     domain.set_quantities_to_be_stored(None)
     return domain
 
@@ -139,7 +140,7 @@ class TestBasic_meshConstruction(unittest.TestCase):
     def test_reorder_preserves_boundary_count(self):
         bm = rectangular_cross_basic_mesh(M, N)
         n_bnd = len(bm.boundary)
-        order = num.random.permutation(bm.number_of_triangles)
+        order = num.random.default_rng().permutation(bm.number_of_triangles)
         bm2 = bm.reorder(order, in_place=False)
         self.assertEqual(len(bm2.boundary), n_bnd)
 
@@ -171,7 +172,7 @@ class TestDistributeBasic_meshSerial(unittest.TestCase):
         bm = rectangular_cross_basic_mesh(M, N, len1=float(M), len2=float(N))
         domain = distribute_basic_mesh(bm)
         domain.set_name('test_evolve_serial')
-        domain.set_datadir('.')
+        domain.set_datadir(tempfile.mkdtemp())
         domain.set_quantities_to_be_stored(None)
         domain.set_quantity('elevation', topography)
         domain.set_quantity('friction', 0.03)
@@ -194,7 +195,7 @@ class TestDistributeBasic_meshSerial(unittest.TestCase):
                                                     len1=float(M),
                                                     len2=float(N))
         domain_ref.set_name('ref_serial')
-        domain_ref.set_datadir('.')
+        domain_ref.set_datadir(tempfile.mkdtemp())
         domain_ref.set_quantities_to_be_stored(None)
         domain_ref.set_quantity('elevation', topography)
         domain_ref.set_quantity('friction', 0.03)
@@ -210,7 +211,7 @@ class TestDistributeBasic_meshSerial(unittest.TestCase):
         bm = rectangular_cross_basic_mesh(M, N, len1=float(M), len2=float(N))
         domain_bm = distribute_basic_mesh(bm)
         domain_bm.set_name('bm_serial')
-        domain_bm.set_datadir('.')
+        domain_bm.set_datadir(tempfile.mkdtemp())
         domain_bm.set_quantities_to_be_stored(None)
         domain_bm.set_quantity('elevation', topography)
         domain_bm.set_quantity('friction', 0.03)
@@ -273,7 +274,7 @@ def run_distribute_basic_mesh_parallel(verbose=False):
 
     domain = distribute_basic_mesh(bm, verbose=False)
     domain.set_name('test_bm_parallel')
-    domain.set_datadir('.')
+    domain.set_datadir(tempfile.mkdtemp())
     domain.set_quantities_to_be_stored(None)
     domain.set_quantity('elevation', topography)
     domain.set_quantity('friction', 0.03)
@@ -318,7 +319,7 @@ def run_basic_mesh_no_sww(verbose=False):
 
     domain = distribute_basic_mesh(bm)
     domain.set_name('test_no_sww')
-    domain.set_datadir('.')
+    domain.set_datadir(tempfile.mkdtemp())
     domain.set_quantities_to_be_stored(None)
     domain.set_quantity('elevation', topography)
     domain.set_quantity('friction', 0.03)

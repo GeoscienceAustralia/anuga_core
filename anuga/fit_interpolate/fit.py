@@ -13,19 +13,12 @@
    A negative alpha is not allowed.
    A typical value of alpha is 1.0e-6
 
-
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia, 2004.
-
-   TO DO
-   * test geo_ref, geo_spatial
-
-   IDEAS
-   * (DSG-) Change the interface of fit, so a domain object can
-      be passed in. (I don't know if this is feasible). If could
-      save time/memory.
 """
 import numpy as num
+import scipy.sparse as sp
+import scipy.sparse.linalg as spla
 from . import fitsmooth_ext as fitsmooth
 import sys
 
@@ -102,7 +95,7 @@ class Fit(FitInterpolate):
         if alpha is None:
             self.alpha = DEFAULT_ALPHA
         else:
-            self.alpha = alpha
+            self.alpha = alpha  # may be a float or the string 'auto'
 
         FitInterpolate.__init__(self,
                                 vertex_coordinates,
@@ -115,13 +108,14 @@ class Fit(FitInterpolate):
         self.Atz = None
         self.D = None
         self.point_count = 0
+        self.z_sq = None  # accumulated ||z||² for L-curve alpha selection
 
         # The smoothing matrix D is always built, even when alpha=0, because
         # the underlying C solver (fit_ext) expects the D array to be present.
         # Skipping construction when alpha=0 would require changes to the C
         # interface and is deferred.
         if verbose:
-            log.critical('Building smoothing matrix')
+            log.info('Building smoothing matrix')
         self.D = self._build_smoothing_matrix_D()
 
         bd_poly = self.mesh.get_boundary_polygon()
@@ -246,6 +240,10 @@ class Fit(FitInterpolate):
 
         self.point_count += z.shape[0]
 
+        # Accumulate ||z||² per attribute for L-curve alpha selection
+        z_sq_block = num.sum(z**2, axis=0) if z.ndim > 1 else float(z @ z)
+        self.z_sq = z_sq_block if self.z_sq is None else self.z_sq + z_sq_block
+
         zdim = 1
         if len(z.shape) != 1:
             zdim = z.shape[1]
@@ -269,6 +267,122 @@ class Fit(FitInterpolate):
         else:
             fitsmooth.combine_partial_AtA_Atz(self.AtA, AtA,
                                               self.Atz, Atz, zdim, self.mesh.number_of_nodes)
+
+    def select_alpha(self, return_curve=False):
+        """Select smoothing parameter alpha using the L-curve criterion.
+
+        Tries alpha on a log scale (1e-6 … 1) and finds the corner of the
+        L-curve (log residual norm vs log smoothing norm).  The corner
+        corresponds to the best balance between data fit and smoothness.
+
+        Must be called after _build_matrix_AtA_Atz (i.e. after data has been
+        accumulated).
+
+        Parameters
+        ----------
+        return_curve : bool
+            If True, also return ``(log10_rss, log10_s, curvature)`` arrays.
+
+        Returns
+        -------
+        float
+            Optimal alpha value.
+        tuple (optional)
+            ``(log10_rss, log10_s, curvature)`` if return_curve is True.
+        """
+        assert self.AtA is not None, 'Call _build_matrix_AtA_Atz before select_alpha'
+        assert self.z_sq is not None, 'z_sq not accumulated; re-run with current code'
+
+        m = self.mesh.number_of_nodes
+        # 20 candidates spanning 1e-6 … 100: wide enough to capture the L-corner
+        # for both underdetermined (few data) and overdetermined (many data) cases.
+        alphas = num.logspace(-6, 2, 20)
+
+        # Extract AtA and D as scipy sparse matrices (non-destructive: dok_to_csr
+        # only sorts the hash table, it does not modify values).
+        #
+        # Two row_ptr repairs are needed:
+        # (a) sparse_dok.num_rows tracks only the highest row index seen, so
+        #     row_ptr may be shorter than m+1 if high-indexed nodes have no data.
+        #     Extend it with the sentinel (num_entries).
+        # (b) convert_to_csr_ptr uses malloc (not calloc), so rows before the
+        #     first populated row are uninitialized garbage.  Since entries are
+        #     sorted, the first populated row always has rp[i_first]=0.  A
+        #     backward min-scan propagates 0 back over any garbage entries.
+        def _to_scipy_csr(cap):
+            raw = fitsmooth.dok_to_csr(cap)
+            data_   = num.array(raw[0], dtype=float)
+            colind_ = num.array(raw[1], dtype=num.int64)
+            rp      = num.array(raw[2], dtype=num.int64)
+            n_ent   = len(data_)
+            # (a) extend to m+1 if needed
+            if len(rp) < m + 1:
+                rp = num.concatenate(
+                    [rp, num.full(m + 1 - len(rp), n_ent, dtype=num.int64)])
+            # (b) repair garbage in leading uninitialized entries:
+            #     clip to [0, n_ent], then backward scan to enforce monotonicity
+            rp = num.clip(rp, 0, n_ent)
+            for k in range(len(rp) - 2, -1, -1):
+                if rp[k] > rp[k + 1]:
+                    rp[k] = rp[k + 1]
+            return sp.csr_matrix((data_, colind_, rp), shape=(m, m))
+
+        AtA_sp = _to_scipy_csr(self.AtA)
+        D_sp   = _to_scipy_csr(self.D)
+
+        # Use first attribute only for alpha selection
+        Atz = self.Atz
+        if Atz.ndim > 1:
+            Atz_1d = num.ascontiguousarray(Atz[:, 0])
+            z_sq = float(self.z_sq[0])
+        else:
+            Atz_1d = Atz
+            z_sq = float(self.z_sq)
+
+        log_rss = num.zeros(len(alphas))
+        log_s   = num.zeros(len(alphas))
+
+        for i, alpha in enumerate(alphas):
+            B = AtA_sp + float(alpha) * D_sp
+            f = spla.spsolve(B, Atz_1d)
+
+            # Numerically stable RSS: since (AtA + alpha*D)*f = Atz we have
+            # f^T AtA f = f^T Atz - alpha*f_D_f, so
+            # RSS = z_sq - 2*f·Atz + f^T AtA f = z_sq - f·Atz - alpha*f_D_f
+            # This avoids catastrophic cancellation at small alpha.
+            Atz_dot_f = float(Atz_1d @ f)
+            f_D_f     = float(f @ (D_sp @ f))
+
+            rss = z_sq - Atz_dot_f - float(alpha) * f_D_f
+            rss = max(rss, 1e-300)
+            s   = max(f_D_f, 1e-300)
+
+            log_rss[i] = num.log10(rss)
+            log_s[i]   = num.log10(s)
+
+        # L-curve corner: maximum curvature of the log-log curve
+        x, y = log_rss, log_s
+        dx  = num.gradient(x)
+        ddx = num.gradient(dx)
+        dy  = num.gradient(y)
+        ddy = num.gradient(dy)
+        denom  = num.where((dx**2 + dy**2)**1.5 < 1e-300, 1e-300,
+                           (dx**2 + dy**2)**1.5)
+        kappa  = (ddx * dy - dx * ddy) / denom
+        best   = int(num.argmax(kappa))
+
+        # Degenerate cases: no clear interior corner.
+        # (a) All-negative kappa: nearly vertical L-curve (overdetermined system)
+        # (b) Corner lands on last candidate: L-curve hasn't turned within this range
+        # In both cases fall back to DEFAULT_ALPHA which is a safe, conservative value.
+        if kappa[best] <= 0 or best == len(alphas) - 1:
+            opt_alpha = DEFAULT_ALPHA
+        else:
+            opt_alpha = float(alphas[best])
+
+        if return_curve:
+            return opt_alpha, (log_rss, log_s, kappa)
+        return opt_alpha
 
     def fit(self, point_coordinates_or_filename=None, z=None,
             verbose=False,
@@ -330,7 +444,7 @@ class Fit(FitInterpolate):
         # recieved a None as input
         if point_coordinates is None:
             if verbose:
-                log.critical('Fit.fit: Warning: no data points in fit')
+                log.warning('Fit.fit: Warning: no data points in fit')
             msg = 'No interpolation matrix.'
             assert self.AtA is not None, msg
             assert self.Atz is not None
@@ -355,18 +469,20 @@ class Fit(FitInterpolate):
             msg += 'positive value,\ne.g. 1.0e-3.'
             raise TooFewPointsError(msg)
 
+        if self.alpha == 'auto':
+            self.alpha = self.select_alpha()
+            if verbose:
+                log.info('L-curve selected alpha = %.2e' % self.alpha)
+
         self._build_coefficient_matrix_B(verbose)
         loners = self.mesh.get_lone_vertices()
-        # FIXME  - make this as error message.
-        # test with
-        # Not_yet_test_smooth_att_to_mesh_with_excess_verts.
         if len(loners) > 0:
             msg = 'WARNING: (least_squares): \nVertices with no triangles\n'
             msg += 'All vertices should be part of a triangle.\n'
             msg += 'In the future this will be inforced.\n'
             msg += 'The following vertices are not part of a triangle;\n'
             msg += str(loners)
-            log.critical(msg)
+            log.info(msg)
 
             #raise VertsWithNoTrianglesError(msg)
         return conjugate_gradient(self.B, self.Atz, self.Atz,
@@ -423,9 +539,7 @@ def fit_to_mesh(point_coordinates,
                      compression=False,
                      dependencies=dep)
     else:
-        res = _fit_to_mesh(*args, **kwargs)
-        "print intep should go out of range"
-        return res
+        return _fit_to_mesh(*args, **kwargs)
 
 
 # point_coordinates can also be a points file name
@@ -475,16 +589,13 @@ def _fit_to_mesh(point_coordinates,
     """
 
     if mesh is None:
-        # FIXME(DSG): Throw errors if triangles or vertex_coordinates
-        # are None
-
         # Convert input to numeric arrays
         triangles = ensure_numeric(triangles, int)
         vertex_coordinates = ensure_absolute(vertex_coordinates,
                                              geo_reference=mesh_origin)
 
         if verbose:
-            log.critical('_fit_to_mesh: Building mesh')
+            log.info('_fit_to_mesh: Building mesh')
         mesh = Mesh(vertex_coordinates, triangles)
 
         # Don't need this as we have just created the mesh
@@ -534,10 +645,10 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
 
     try:
         mesh_dict = import_mesh_file(mesh_file)
-    except IOError as e:
+    except OSError as e:
         if display_errors:
-            log.critical("Could not load bad file: %s" % str(e))
-        raise IOError  # Could not load bad mesh file.
+            log.warning("Could not load bad file: %s" % str(e))
+        raise OSError  # Could not load bad mesh file.
 
     vertex_coordinates = mesh_dict['vertices']
     triangles = mesh_dict['triangles']
@@ -552,30 +663,30 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         old_title_list = mesh_dict['vertex_attribute_titles']
 
     if verbose:
-        log.critical('tsh file %s loaded' % mesh_file)
+        log.info('tsh file %s loaded' % mesh_file)
 
     # load in the points file
     try:
         geo = Geospatial_data(point_file, verbose=verbose)
-    except IOError as e:
+    except OSError as e:
         if display_errors:
-            log.critical("Could not load bad file: %s" % str(e))
-        raise IOError  # Re-raise exception
+            log.warning("Could not load bad file: %s" % str(e))
+        raise OSError  # Re-raise exception
 
     point_coordinates = geo.get_data_points(absolute=True)
     title_list, point_attributes = concatinate_attributelist(
         geo.get_all_attributes())
 
     if 'geo_reference' in mesh_dict and \
-            not mesh_dict['geo_reference'] is None:
+            mesh_dict['geo_reference'] is not None:
         mesh_origin = mesh_dict['geo_reference'].get_origin()
     else:
         mesh_origin = None
 
     if verbose:
-        log.critical("points file loaded")
+        log.info("points file loaded")
     if verbose:
-        log.critical("fitting to mesh")
+        log.info("fitting to mesh")
     f = fit_to_mesh(point_coordinates,
                     vertex_coordinates,
                     triangles,
@@ -586,9 +697,8 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
                     data_origin=None,
                     mesh_origin=mesh_origin)
     if verbose:
-        log.critical("finished fitting to mesh")
+        log.info("finished fitting to mesh")
 
-    # FIXME have this overwrite attributes with the same title - DSG
     # Put the newer attributes last
     if old_title_list != []:
         old_title_list.extend(title_list)
@@ -600,11 +710,11 @@ def fit_to_mesh_file(mesh_file, point_file, mesh_output_file,
         mesh_dict['vertex_attribute_titles'] = title_list
 
     if verbose:
-        log.critical("exporting to file %s" % mesh_output_file)
+        log.info("exporting to file %s" % mesh_output_file)
 
     try:
         export_mesh_file(mesh_output_file, mesh_dict)
-    except IOError as e:
+    except OSError as e:
         if display_errors:
-            log.critical("Could not write file %s", str(e))
-        raise IOError
+            log.warning("Could not write file %s" % str(e))
+        raise OSError

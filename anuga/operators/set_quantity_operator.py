@@ -31,7 +31,7 @@ class Set_quantity_operator(Operator, Set_quantity):
 
     __call__ = Set_quantity.__call__
 
-    
+
     def __init__(self,
                  domain,
                  quantity,
@@ -50,17 +50,17 @@ class Set_quantity_operator(Operator, Set_quantity):
                  test_elevation=True):
 
 
- 
 
-        Set_quantity.__init__(self, 
-                              domain, 
-                              quantity, 
+
+        Set_quantity.__init__(self,
+                              domain,
+                              quantity,
                               value,
-                              region=region,   
-                              indices=indices, 
-                              polygon=polygon, 
-                              center=center, 
-                              radius=radius, 
+                              region=region,
+                              indices=indices,
+                              polygon=polygon,
+                              center=center,
+                              radius=radius,
                               line=line,
                               test_stage=test_stage,
                               test_elevation=test_elevation)
@@ -152,7 +152,7 @@ class Polygonal_set_quantity_operator(Set_quantity_operator):
 
 
 
-        
+
 
 
 

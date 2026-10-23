@@ -46,14 +46,14 @@ class Test_data_audit(unittest.TestCase):
       <accountable>Jane Sexton</accountable>
       <source>Unknown</source>
       <IP_owner>Geoscience Australia</IP_owner>
-      <IP_info>This is a polygon comprising easting and northing locations 
+      <IP_info>This is a polygon comprising easting and northing locations
       tracing parts of the coastline at Dampier WA as well as a rectangular area inland.
       This is used to specifically set the onshore initial condition in a tsunami scenario
       and here, it is used with a unit test in test_polygon.py.
-      
+
       The coastline was derived from Maritime Boundaries which is a public dataset. However,
       rumour has it that some of it was digitised from a Landgate supplied image.
-      
+
       The origin and license issues are still undecided</IP_info>
     </datafile>
 
@@ -313,7 +313,7 @@ class Test_data_audit(unittest.TestCase):
       <source>Generated on the fly</source>
       <IP_owner>Geoscience Australia</IP_owner>
       <IP_info>This is another test</IP_info>
-    </datafile>    
+    </datafile>
   </ga_license_file>
 """ % (data_filename1, '2810517858', data_filename2, '2972536556')
 

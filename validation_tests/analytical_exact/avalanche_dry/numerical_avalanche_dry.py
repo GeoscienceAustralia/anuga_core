@@ -10,6 +10,7 @@ similar to a beach environment
 import sys
 import anuga
 from anuga import Domain as Domain
+from anuga import Operator
 from math import cos
 from numpy import zeros
 from time import localtime, strftime, gmtime
@@ -58,40 +59,58 @@ def elevation(X,Y):
     return y
 
 
-class Coulomb_friction:
-    
+class Coulomb_friction(object):
+
     def __init__(self,
                  friction_slope=0.05,
                  bed_slope=0.1):
-        
+
         self.friction_slope = friction_slope   #tan(delta) # NOTE THAT friction_slope must less than bed_slope
         self.bed_slope = bed_slope             #tan(theta) # bottom slope, positive if it is increasing bottom.
 
         thet = arctan(bed_slope)
         self.F = g*cos(thet)*cos(thet)*friction_slope
         self.m = -1.0*g*bed_slope + self.F
-        
-    def __call__(self, domain):        
 
-        w = domain.quantities['stage'].centroid_values
-        z = domain.quantities['elevation'].centroid_values
-        h = w-z
 
-        xmom_update = domain.quantities['xmomentum'].explicit_update
-        ymom_update = domain.quantities['ymomentum'].explicit_update
+class Friction_operator(Operator):
 
-        xmom_update[:] = xmom_update + self.F*h
+    def __init__(self,
+                 domain,
+                 friction=None,
+                 description=None,
+                 label=None,
+                 logging=False,
+                 verbose=False):
+
+        Operator.__init__(self, domain, description, label, logging, verbose)
+
+        self.friction = friction
+        self.F = self.friction.F
+        self.m = self.friction.m
+
+    def __call__(self):
+
+        timestep = self.domain.get_timestep()
+
+        h = self.stage_c - self.elev_c
+
+        self.xmom_c[:] = self.xmom_c + timestep*self.F*h
+
+    def parallel_safe(self):
+        """Operator is applied independently on each cell and so is parallel safe."""
+        return True
 
 
 bed_slope = 0.1
 friction_slope = 0.05
-Coulomb_forcing_term = Coulomb_friction(friction_slope, bed_slope)
+coulomb_friction = Coulomb_friction(friction_slope, bed_slope)
 
 def f_right(t):
     z_r = bed_slope*(0.5*L)
     h_r = h_0 #+ bed_slope*cell_len
     w_r = z_r + h_r
-    u_r = Coulomb_forcing_term.m*t
+    u_r = coulomb_friction.m*t
     #['stage', 'xmomentum', 'ymomentum']
     return [w_r,  u_r*h_r,  0.0]
 
@@ -134,9 +153,11 @@ domain = distribute(domain)
 
 
 #-----------------------------------------------------------------------------
-# Special implementation of Coulomb friction
-#-----------------------------------------------------------------------------  
-domain.forcing_terms.append(Coulomb_forcing_term)
+# Special implementation of Coulomb friction as a fractional-step operator, so
+# mode-2 ('unified') applies it via the CPU-only host fallback (a raw
+# forcing_terms entry would be silently skipped in mode-2).
+#-----------------------------------------------------------------------------
+Friction_operator(domain, friction=coulomb_friction)
 
 
 #-----------------------------------------------------------------------------

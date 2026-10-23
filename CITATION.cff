@@ -2,7 +2,7 @@
 # Visit https://bit.ly/cffinit to generate yours today!
 
 cff-version: 1.2.0
-title: ANUGA Github Repository
+title: "ANUGA: hydrodynamic modelling of floods, storm surges and tsunamis"
 message: >-
   If you use this software, please cite it using the
   metadata from this file.
@@ -34,8 +34,11 @@ keywords:
   - tsunami
   - shallow water equations
   - finite volume method
-license: Apache License, Version 2.0
-commit: 564d7c88b06d7ae3b3a3a2862673d597b7a950bd
-version: 3.1.9
-date-released: '2022-06-26'
+license: Apache-2.0
+# NOTE: set `date-released: 'YYYY-MM-DD'` in the release commit, matching the
+# tag date -- see claude/RELEASE_PLAN_4.0.0.md Phase 3. It is omitted rather
+# than left stale (it read 2022-06-26 through three releases). The `commit:`
+# pin was dropped for the same reason: the tag identifies the release.
+version: 4.1.0
+date-released: '2026-10-23'
 

@@ -1,12 +1,9 @@
 
 import anuga
-import math
-import numpy
 
 from anuga.structures.boyd_pipe_operator import boyd_pipe_function
 from anuga.structures.boyd_box_operator import total_energy, smooth_discharge
 
-from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
 
 class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
@@ -148,187 +145,91 @@ class Parallel_Boyd_pipe_operator(Parallel_Structure_operator):
 
 
     def discharge_routine(self):
-        """
-        Get info from inlets and then call sequential function
-        """
-
-        from anuga.utilities import parallel_abstraction as pypar
+        """Get info from inlets and then call sequential function."""
 
         local_debug = False
+        forward_Euler_smooth = True
 
-        # If the cuvert has been closed, then no water gets through
+        # If the culvert has been closed, then no water gets through
         if self.culvert_diameter <= 0.0:
-            Q = 0.0
-            barrel_velocity = 0.0
-            outlet_culvert_depth = 0.0
             self.case = "Culvert blocked"
-            self.inflow  = self.inlets[0]
+            self.inflow = self.inlets[0]
             self.outflow = self.inlets[1]
-            return Q, barrel_velocity, outlet_culvert_depth
+            return 0.0, 0.0, 0.0
 
-        #Send attributes of both enquiry points to the master proc
+        # Gather total energy and stage from both enquiry points → master
+        enq_data = self._gather_enquiry_stage_and_energy()
+
+        # Master computes delta_total_energy, smooths it, and sets flow direction
+        self.inflow_index = 0
+        self.outflow_index = 1
+        reverse = False
+        ts = 1.0
+
         if self.myid == self.master_proc:
-
-            if self.myid == self.enquiry_proc[0]:
-                enq_total_energy0 = self.inlets[0].get_enquiry_total_energy()
-                enq_stage0 = self.inlets[0].get_enquiry_stage()
-            else:
-                enq_total_energy0 = pypar.receive(self.enquiry_proc[0])
-                enq_stage0 = pypar.receive(self.enquiry_proc[0])
-
-
-            if self.myid == self.enquiry_proc[1]:
-                enq_total_energy1 = self.inlets[1].get_enquiry_total_energy()
-                enq_stage1 = self.inlets[1].get_enquiry_stage()
-            else:
-                enq_total_energy1 = pypar.receive(self.enquiry_proc[1])
-                enq_stage1 = pypar.receive(self.enquiry_proc[1])
-
-        else:
-            if self.myid == self.enquiry_proc[0]:
-                pypar.send(self.inlets[0].get_enquiry_total_energy(), self.master_proc)
-                pypar.send(self.inlets[0].get_enquiry_stage(), self.master_proc)
-
-            if self.myid == self.enquiry_proc[1]:
-                pypar.send(self.inlets[1].get_enquiry_total_energy(), self.master_proc)
-                pypar.send(self.inlets[1].get_enquiry_stage(), self.master_proc)
-
-
-        # Determine the direction of the flow
-        if self.myid == self.master_proc:
+            enq_total_energy0, enq_stage0, enq_total_energy1, enq_stage1 = enq_data
             if self.use_velocity_head:
                 self.delta_total_energy = enq_total_energy0 - enq_total_energy1
             else:
                 self.delta_total_energy = enq_stage0 - enq_stage1
 
-        self.inflow_index = 0
-        self.outflow_index = 1
-        # master proc orders reversal if applicable
-        if self.myid == self.master_proc:
-            # May/June 2014 -- change the driving forces gradually, with forward euler timestepping
-            #
-            forward_Euler_smooth = True
-            self.smooth_delta_total_energy, ts = total_energy(self.smooth_delta_total_energy,
-                                                            self.delta_total_energy,
-                                                            self.domain.timestep,
-                                                            self.smoothing_timescale,
-                                                            forward_Euler_smooth)
+            self.smooth_delta_total_energy, ts = total_energy(
+                self.smooth_delta_total_energy, self.delta_total_energy,
+                self.domain.timestep, self.smoothing_timescale, forward_Euler_smooth)
 
-            # Reverse the inflow and outflow direction?
             if self.smooth_delta_total_energy < 0:
                 self.inflow_index = 1
                 self.outflow_index = 0
-
-                #self.delta_total_energy = -self.delta_total_energy
                 self.delta_total_energy = -self.smooth_delta_total_energy
-
-                for i in self.procs:
-                    if i == self.master_proc: continue
-                    pypar.send(True, i)
+                reverse = True
             else:
                 self.delta_total_energy = self.smooth_delta_total_energy
-                for i in self.procs:
-                    if i == self.master_proc: continue
-                    pypar.send(False, i)
 
-            #print "ZZZZ: Delta total energy = %f" %(self.delta_total_energy)
-        else:
-            reverse = pypar.receive(self.master_proc)
+        # Broadcast direction to non-master procs
+        self._broadcast_flow_direction(reverse)
 
-            if reverse:
-                self.inflow_index = 1
-                self.outflow_index = 0
+        # Gather inflow depth + specific energy and outflow depth → master
+        flow_data = self._gather_inflow_outflow_depths()
 
-        # Get attribute from inflow enquiry point
-        if self.myid == self.master_proc:
-
-            if self.myid == self.enquiry_proc[self.inflow_index]:
-                    inflow_enq_depth = self.inlets[self.inflow_index].get_enquiry_depth()
-                    inflow_enq_specific_energy = self.inlets[self.inflow_index].get_enquiry_specific_energy()
-            else:
-                    inflow_enq_depth = pypar.receive(self.enquiry_proc[self.inflow_index])
-                    inflow_enq_specific_energy = pypar.receive(self.enquiry_proc[self.inflow_index])
-        else:
-            if self.myid == self.enquiry_proc[self.inflow_index]:
-                pypar.send(self.inlets[self.inflow_index].get_enquiry_depth(), self.master_proc)
-                pypar.send(self.inlets[self.inflow_index].get_enquiry_specific_energy(), self.master_proc)
-
-        # Get attribute from outflow enquiry point
-        if self.myid == self.master_proc:
-
-            if self.myid == self.enquiry_proc[self.outflow_index]:
-                outflow_enq_depth = self.inlets[self.outflow_index].get_enquiry_depth()
-            else:
-                outflow_enq_depth = pypar.receive(self.enquiry_proc[self.outflow_index])
-
-            #print "ZZZZZ: outflow_enq_depth = %f" %(outflow_enq_depth)
-
-        else:
-            if self.myid == self.enquiry_proc[self.outflow_index]:
-                pypar.send(self.inlets[self.outflow_index].get_enquiry_depth(), self.master_proc)
-
-
-
-
-        # Master proc computes return values
-        if self.myid == self.master_proc:
-
-            #inflow_enq_specific_energy
-
-
-            if inflow_enq_depth > 0.01: #this value was 0.01:
-                if local_debug:
-                    anuga.log.critical('Specific E & Deltat Tot E = %s, %s'
-                                 % (str(inflow_enq_specific_energy),
-                                    str(self.delta_total_energy)))
-
-                    anuga.log.critical('culvert type = %s' % str(self.structure_type))
-
-                # Water has risen above inlet
-
-
-                msg = 'Specific energy at inlet is negative'
-                assert inflow_enq_specific_energy >= 0.0, msg
-
-                if self.use_velocity_head :
-                    self.driving_energy = inflow_enq_specific_energy
-                else:
-                    self.driving_energy = inflow_enq_depth
-
-
-                Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
-                              boyd_pipe_function(depth              =inflow_enq_depth,
-                                                diameter            =self.culvert_diameter,
-                                                length              =self.culvert_length,
-                                                blockage            =self.culvert_blockage,
-                                                barrels             =self.culvert_barrels,
-                                                driving_energy      =self.driving_energy,
-                                                delta_total_energy  =self.delta_total_energy,
-                                                outlet_enquiry_depth=outflow_enq_depth,
-                                                sum_loss            =self.sum_loss,
-                                                manning             =self.manning)
-
-                self.smooth_Q, Q, barrel_velocity = smooth_discharge(self.smooth_delta_total_energy,
-                                                                    self.smooth_Q,
-                                                                    Q,
-                                                                    flow_area,
-                                                                    ts,
-                                                                    forward_Euler_smooth)
-
-            else: # self.inflow.get_enquiry_depth() < 0.01:
-                Q = barrel_velocity = outlet_culvert_depth = 0.0
-                case = 'Inlet dry'
-
-
-            self.case = case
-
-            # Temporary flow limit
-            if barrel_velocity > self.max_velocity:
-                barrel_velocity = self.max_velocity
-                Q = flow_area * barrel_velocity
-
-
-
-            return Q, barrel_velocity, outlet_culvert_depth
-        else:
+        if self.myid != self.master_proc:
             return None, None, None
+
+        inflow_enq_depth, inflow_enq_specific_energy, outflow_enq_depth = flow_data
+
+        if inflow_enq_depth > 0.01:
+            if local_debug:
+                anuga.log.info('Specific E & Deltat Tot E = %s, %s'
+                             % (str(inflow_enq_specific_energy), str(self.delta_total_energy)))
+                anuga.log.info('culvert type = %s' % str(self.structure_type))
+
+            assert inflow_enq_specific_energy >= 0.0, 'Specific energy at inlet is negative'
+
+            self.driving_energy = inflow_enq_specific_energy if self.use_velocity_head else inflow_enq_depth
+
+            Q, barrel_velocity, outlet_culvert_depth, flow_area, case = \
+                boyd_pipe_function(depth=inflow_enq_depth,
+                                   diameter=self.culvert_diameter,
+                                   length=self.culvert_length,
+                                   blockage=self.culvert_blockage,
+                                   barrels=self.culvert_barrels,
+                                   driving_energy=self.driving_energy,
+                                   delta_total_energy=self.delta_total_energy,
+                                   outlet_enquiry_depth=outflow_enq_depth,
+                                   sum_loss=self.sum_loss,
+                                   manning=self.manning)
+
+            self.smooth_Q, Q, barrel_velocity = smooth_discharge(
+                self.smooth_delta_total_energy, self.smooth_Q, Q,
+                flow_area, ts, forward_Euler_smooth)
+
+        else:
+            Q = barrel_velocity = outlet_culvert_depth = 0.0
+            case = 'Inlet dry'
+
+        self.case = case
+
+        if barrel_velocity > self.max_velocity:
+            barrel_velocity = self.max_velocity
+            Q = flow_area * barrel_velocity
+
+        return Q, barrel_velocity, outlet_culvert_depth

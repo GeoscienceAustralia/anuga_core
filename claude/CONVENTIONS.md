@@ -36,6 +36,38 @@ Conventions observed in or established for the ANUGA codebase.
 
 ---
 
+## Compute mode in tests
+
+Domains default to the `legacy` compute path (mode 1); `unified` (mode 2) routes
+the step through the C `gpu_ext` kernels and, on a GPU build, offloads to the
+device. The default is selectable per process via `ANUGA_DEFAULT_COMPUTE_MODE`
+(`legacy`|`unified`), so tests should not assume one mode unless they pin it.
+
+- **Pin mode-1-only white-box tests to legacy.** A test that calls
+  `compute_forcing_terms()` / `compute_fluxes()` directly and asserts on the host
+  `quantities[...].semi_implicit_update` / `explicit_update` arrays is exercising
+  mode-1 internals: mode-2 computes those on-device and never syncs the host
+  arrays back, so they read stale zeros. Pin such a test right after constructing
+  the domain:
+
+  ```python
+  domain = Domain(points, vertices)
+  domain.set_compute_mode('legacy')   # white-box: reads host *_update arrays
+  ```
+
+  Existing examples: `test_forcing.py`, `test_friction.py`, `test_physics_sw.py`
+  (Manning-friction cases), `test_data_manager.py::test_sww_extrema`. Numerical
+  snapshot/reference tests recorded under legacy (e.g.
+  `test_regression_snapshots.py`) are pinned the same way — mode-2 differs at the
+  ~1e-6 level from a different reduction/eval order.
+- **End-to-end (evolve-based) tests need no pin** — they run correctly in either
+  mode; mode-1-vs-mode-2 equivalence is covered separately in `test_DE_gpu_omp.py`.
+- **Run a suite under a chosen mode** with the isolated runner's flag:
+  `anuga_run_isolated_tests --pyargs anuga.shallow_water -cm unified` (see
+  `CLAUDE.md` → "Testing a GPU-offload (nvc) build").
+
+---
+
 ## Naming
 
 - New public methods: `snake_case`

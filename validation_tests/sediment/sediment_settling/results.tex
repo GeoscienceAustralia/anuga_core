@@ -1,0 +1,41 @@
+
+\section{Settling of suspended sediment in still water}
+
+A tank of still water of depth $h_0 = 1$~m carries a uniform volumetric
+concentration $c_0 = 0.01$ of a single sediment fraction (100~$\mu$m grains).
+There is no flow, so the bed shear stress is zero and nothing is entrained;
+the only exchange with the bed is deposition with a constant near-bed profile
+factor $d^{*} = 1$,
+\begin{equation}
+D = d^{*} v_s c ,
+\end{equation}
+with the settling velocity $v_s$ from Ferguson and Church~\cite{FergusonChurch2004}.
+The conserved variable is the sediment mass per unit area $m = hc$, and the
+bed rises by the deposited volume divided by the packing fraction
+$(1-\lambda)$, $\lambda = 0.3$:
+\begin{equation}
+\frac{dm}{dt} = -D, \qquad \frac{dz}{dt} = \frac{D}{1-\lambda} .
+\end{equation}
+The free surface does not move, so the depth $h = w - z$ falls as the bed
+rises. With that feedback the system has no closed form and is integrated to
+machine precision for the reference; without it the concentration decays
+exponentially with e-folding time $h_0/(d^{*}v_s)$, which the reference
+approaches as $c_0 \to 0$. The case checks the deposition term, its coupling
+into the conserved sediment mass, and the bed update, and that sediment mass
+is conserved between the water column and the bed.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{concentration_plot.png}
+\end{center}
+\caption{Depth-averaged concentration against time.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_rise_plot.png}
+\end{center}
+\caption{Bed rise from deposition against time.}
+\end{figure}
+
+\endinput

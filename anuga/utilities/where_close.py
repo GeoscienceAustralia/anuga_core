@@ -20,13 +20,13 @@
 # Notes:
 # - Written for Python 2.2.2.
 # - Function is based on code from the MA module by Paul F. Dubois.
-#   Some snippets of code in this function are copied directly from 
+#   Some snippets of code in this function are copied directly from
 #   lines in that module.
 # - Module docstrings can be tested using the doctest module.  To
 #   test, execute "python where_close.py".
 # - See import statements throughout for packages/modules required.
 #
-# Copyright (c) 2004 by Johnny Lin.  For licensing, distribution 
+# Copyright (c) 2004 by Johnny Lin.  For licensing, distribution
 # conditions, contact information, and additional documentation see
 # the URL http://www.johnny-lin.com/py_pkgs/gemath/doc/;
 
@@ -58,28 +58,28 @@
 def where_close(x, y, rtol=1.e-5, atol=1.e-8):
     """Mask of where x and y are element-wise "equal" to each other.
 
-    Returns a long integer array with elements equal to 1 where x and 
-    y are "equal", and 0 otherwise.  If x or y are floating point, 
-    "equal" means where abs(x-y) <= atol + rtol * abs(y).  This is 
-    essentially the same algorithm used in the numeric function 
-    allclose.  If x and y are integer, "equal" means strict equality.  
-    Shape and size of output is the same as x and y; if one is an 
-    array and the other is scalar, shape and size of the output is the 
-    same as the array.  Output is a numeric array, unless both inputs 
+    Returns a long integer array with elements equal to 1 where x and
+    y are "equal", and 0 otherwise.  If x or y are floating point,
+    "equal" means where abs(x-y) <= atol + rtol * abs(y).  This is
+    essentially the same algorithm used in the numeric function
+    allclose.  If x and y are integer, "equal" means strict equality.
+    Shape and size of output is the same as x and y; if one is an
+    array and the other is scalar, shape and size of the output is the
+    same as the array.  Output is a numeric array, unless both inputs
     are scalar in which the output is a Python integer scalar.
 
     Positional Input Arguments:
-    * x:  Scalar or numeric array, Python list/tuple of any size and 
+    * x:  Scalar or numeric array, Python list/tuple of any size and
       shape.  Floating or integer type.
-    * y:  Scalar or numeric array, Python list/tuple of any size and 
+    * y:  Scalar or numeric array, Python list/tuple of any size and
       shape.  Floating or integer type.
 
     Keyword Input Arguments:
     * rtol:   "Relative" tolerance.  Default is 1.e-5.  Used in the
-              comparison between x and y only if the two are floating 
+              comparison between x and y only if the two are floating
               point.
     * atol:   "Absolute" tolerance.  Default is 1.e-8.  Used in the
-              comparison between x and y only if the two are floating 
+              comparison between x and y only if the two are floating
               point.
 
     Examples:
@@ -202,13 +202,15 @@ __test__ = { 'Additional Examples':
 if __name__ == "__main__":
     """Test the module.
 
-    Tests the examples in all the module documentation 
+    Tests the examples in all the module documentation
     strings, plus __test__.
 
     Note:  To help ensure that module testing of this file works, the
     parent directory to the current directory is added to sys.path.
     """
-    import doctest, sys, os
+    import doctest
+    import sys
+    import os
     sys.path.append(os.pardir)
     doctest.testmod(sys.modules[__name__])
 

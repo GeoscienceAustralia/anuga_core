@@ -41,7 +41,7 @@ class Set_depth_friction_operator(Operator):
 
         #-----------------------------------------------------
         # Make sure region is actually an instance of a region
-        # Otherwise create a new region based on the other 
+        # Otherwise create a new region based on the other
         # input arguments
         #-----------------------------------------------------
         if isinstance(region,Region):
@@ -55,13 +55,6 @@ class Set_depth_friction_operator(Operator):
                         center=center,
                         radius=radius,
                         verbose=verbose)
-
-        # Region.__init__(self, domain,
-        #         indices=indices,
-        #         polygon=polygon,
-        #         center=center,
-        #         radius=radius,
-        #         verbose=verbose)
 
         #------------------------------------------
         # Local variables

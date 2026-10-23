@@ -46,8 +46,8 @@ def test_morton_order_from_points_degenerate():
 
 def test_morton_order_from_points_large_array():
     """Test with larger array of points."""
-    np.random.seed(42)
-    points = np.random.rand(100, 2)
+    rng = np.random.default_rng(42)
+    points = rng.random((100, 2))
     order = morton_order_from_points(points)
     assert len(order) == 100
     assert np.array_equal(np.sort(order), np.arange(100))
@@ -102,8 +102,8 @@ def test_hilbert_order_from_points_degenerate():
 
 def test_hilbert_order_from_points_large_array():
     """Test with larger array of points."""
-    np.random.seed(42)
-    points = np.random.rand(100, 2)
+    rng = np.random.default_rng(42)
+    points = rng.random((100, 2))
     order = hilbert_order_from_points(points)
     assert len(order) == 100
     assert np.array_equal(np.sort(order), np.arange(100))

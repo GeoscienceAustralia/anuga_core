@@ -2,9 +2,9 @@
 #
 # Plain-text replacement for the Excel (.xls) interface.
 # Run with:
-#   anuga_run_toml.py cairns_example.toml
+#   anuga_toml_run.py cairns_example.toml
 # or in parallel:
-#   mpirun -np 6 anuga_run_toml.py cairns_example.toml
+#   mpirun -np 6 anuga_toml_run.py cairns_example.toml
 
 
 # =============================================================================
@@ -28,10 +28,11 @@ yieldstep = 120.0
 # Total simulation duration [seconds]
 finaltime = 21600.0
 
-# Coordinate reference system.
-# Integer: UTM zone (negative = southern hemisphere).
-# String: full proj4 string for non-UTM projections.
-projection_information = -55   # UTM zone 55 south
+# Coordinate reference system. One of:
+#   Integer       — UTM zone (negative = southern hemisphere), e.g. -55
+#   "EPSG:<code>" — an EPSG code, e.g. "EPSG:32755"
+#   String        — a full proj4 string for other projections
+projection_information = "EPSG:32755"   # UTM zone 55 south (= -55)
 
 # Numerical flow algorithm.
 # "DE0" = first-order (faster), "DE1" = second-order (more accurate)
@@ -74,10 +75,8 @@ report_operator_statistics               = false
 # Omit (or set to 1) to use a single thread; reads OMP_NUM_THREADS env var if present.
 # omp_num_threads = 4
 
-# Multiprocessor mode:
-#   1 = OpenMP (default)
-#   2 = CuPy / GPU
-multiprocessor_mode = 1
+# Compute path: "legacy" (CPU OpenMP, default) or "unified" (shared CPU/GPU kernels)
+compute_mode = "legacy"
 
 
 
@@ -231,7 +230,7 @@ type = "Reflective"
 # elevation_spatial_average = 100.0  # uncomment to smooth at 100 m scale
 [[initial_conditions.elevation]]
 polygon  = "Extent"
-value    = "cairns_initialcond/cairns.asc"
+value    = "../data/cairns/cairns.asc"
 clip_min = -inf
 clip_max = inf
 
@@ -348,6 +347,113 @@ enquiry_gap                  = 2.0
 internal_boundary_curve_file = "cairns_mesh/bridge1_rating_curve.csv"
 vertical_datum_offset        = 0.0
 smoothing_timescale          = 20.0
+
+
+# =============================================================================
+# Culverts  (Boyd box culverts and Boyd pipe culverts)
+# =============================================================================
+# Set enabled = false to disable a culvert without removing its definition.
+#
+# type:   "boyd_box"  — rectangular barrel (requires width; height defaults to width)
+#         "boyd_pipe" — circular barrel    (requires diameter)
+#
+# Geometry — choose ONE of:
+#   exchange_line_0 / exchange_line_1:
+#       Paths to CSV polyline files defining the upstream / downstream
+#       exchange zones.  This is the preferred approach for field models
+#       because the exchange zone widths govern how much of the mesh
+#       perimeter is coupled to the culvert.
+#   end_point_0 / end_point_1:
+#       [x, y] coordinate pairs for the two barrel ends.  ANUGA derives
+#       short perpendicular exchange lines automatically.
+#
+# losses:      head-loss coefficient(s); scalar, list (summed), or dict.
+#              Typical: 0.5 sharp-edge inlet, 1.0 re-entrant inlet.
+# barrels:     number of parallel identical barrels.
+# blockage:    fractional cross-section blockage [0,1]; 0.0 = fully open.
+# z1 / z2:    batter slopes (rise/run) at each end; used when inferring
+#              invert elevations from the DEM.
+# apron:       flat apron width [m] at each end; extends the exchange zone.
+# manning:     Manning's n for barrel friction.
+# enquiry_gap: distance [m] from exchange line to headwater enquiry point.
+# invert_elevations: [upstream_m, downstream_m] invert elevations.
+#              Omit to have ANUGA sample them from the DEM.
+# smoothing_timescale: exponential smoothing time constant [seconds].
+# use_momentum_jet / use_velocity_head: toggle momentum and velocity-head
+#              terms in the discharge formula (normally leave true).
+
+[[culverts]]
+enabled              = false
+type                 = "boyd_box"
+label                = "culvert_box_1"
+width                = 0.9
+height               = 0.6
+exchange_line_0      = "cairns_mesh/culvert1_exchange_up.csv"
+exchange_line_1      = "cairns_mesh/culvert1_exchange_down.csv"
+enquiry_gap          = 0.2
+losses               = 0.5
+barrels              = 1.0
+blockage             = 0.0
+z1                   = 0.0
+z2                   = 0.0
+apron                = 0.1
+manning              = 0.013
+smoothing_timescale  = 0.0
+use_momentum_jet     = true
+use_velocity_head    = true
+# invert_elevations  = [1.0, 0.8]   # optional; sampled from DEM if omitted
+
+[[culverts]]
+enabled              = false
+type                 = "boyd_pipe"
+label                = "culvert_pipe_1"
+diameter             = 0.9
+exchange_line_0      = "cairns_mesh/culvert_pipe1_exchange_up.csv"
+exchange_line_1      = "cairns_mesh/culvert_pipe1_exchange_down.csv"
+enquiry_gap          = 0.2
+losses               = 0.5
+barrels              = 1.0
+blockage             = 0.0
+z1                   = 0.0
+z2                   = 0.0
+apron                = 0.1
+manning              = 0.013
+smoothing_timescale  = 0.0
+use_momentum_jet     = true
+use_velocity_head    = true
+# invert_elevations  = [1.0, 0.8]   # optional; sampled from DEM if omitted
+
+
+# =============================================================================
+# Weirs  (weir / orifice with trapezoidal cross-section)
+# =============================================================================
+# Set enabled = false to disable a weir without removing its definition.
+#
+# width:  bottom width [m] of the trapezoidal cross-section.
+# height: height [m] of the section; defaults to width if omitted.
+#
+# All other parameters (exchange lines, losses, barrels, …) follow the same
+# conventions as [[culverts]] above.
+
+[[weirs]]
+enabled              = false
+label                = "weir_1"
+width                = 3.0
+height               = 1.2
+exchange_line_0      = "cairns_mesh/weir1_exchange_up.csv"
+exchange_line_1      = "cairns_mesh/weir1_exchange_down.csv"
+enquiry_gap          = 0.0
+losses               = 0.5
+barrels              = 1.0
+blockage             = 0.0
+z1                   = 0.0
+z2                   = 0.0
+apron                = 0.1
+manning              = 0.013
+smoothing_timescale  = 0.0
+use_momentum_jet     = true
+use_velocity_head    = true
+# invert_elevations  = [1.0, 0.8]   # optional; sampled from DEM if omitted
 
 
 # =============================================================================

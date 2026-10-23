@@ -7,7 +7,7 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.geometry.quad import Cell
 from anuga.geometry.aabb import AABB
 from anuga.utilities.numerical_tools import ensure_numeric
-from anuga.geometry.polygon import is_inside_polygon, is_inside_triangle    
+from anuga.geometry.polygon import is_inside_polygon, is_inside_triangle
 
 import numpy as num
 
@@ -52,8 +52,8 @@ class Test_search_functions(unittest.TestCase):
 
         found, s0, s1, s2, k = root.search_fast([0, 0])
         assert found is True
-        
-        
+
+
     def test_small(self):
         """test_small: Two triangles
         """
@@ -70,11 +70,11 @@ class Test_search_functions(unittest.TestCase):
         x = [0.2, 0.7]
         found, s0, s1, s2, k = root.search_fast(x)
         assert k == 1 # Triangle one
-        assert found is True        
-        
+        assert found is True
+
     def test_bigger(self):
         """test_bigger
-        
+
         test larger mesh
         """
 
@@ -90,18 +90,18 @@ class Test_search_functions(unittest.TestCase):
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
-            
-            found, s0, s1, s2, k = root.search_fast(ensure_numeric(x))                                   
-                                         
+
+            found, s0, s1, s2, k = root.search_fast(ensure_numeric(x))
+
             if k >= 0:
                 V = mesh.get_vertex_coordinates(k) # nodes for triangle k
                 assert is_inside_polygon(x, V)
                 assert found is True
                 #print k, x
             else:
-                assert found is False                
+                assert found is False
 
-        
+
 
     def test_large(self):
         """test_larger mesh and different quad trees
@@ -113,7 +113,7 @@ class Test_search_functions(unittest.TestCase):
         #Test that points are arranged in a counter clock wise order
         mesh.check_integrity()
 
-        
+
 
         root = MeshQuadtree(mesh)
         root.set_last_triangle()
@@ -122,7 +122,7 @@ class Test_search_functions(unittest.TestCase):
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
-            
+
             found, s0, s1, s2, k = root.search_fast(x)
 
             if k >= 0:
@@ -131,10 +131,10 @@ class Test_search_functions(unittest.TestCase):
                 assert is_inside_polygon(x, V)
                 assert found is True
             else:
-                assert found is False                
+                assert found is False
 
-        
-            if k == 0: return    
+
+            if k == 0: return
     # NOTE PADARN: This function is no longer exposed
     # have passed this test - but could expose
     # c function if deemed neccesary.
@@ -159,15 +159,15 @@ class Test_search_functions(unittest.TestCase):
             assert is_inside_polygon(x, V)
             assert found is True
         else:
-            assert found is False                
+            assert found is False
 
-        
 
-        # More points    
+
+        # More points
         for x in [[0.6, 0.3], [0.1, 0.2], [0.7,0.7],
                   [0.1,0.9], [0.4,0.6], [0.9,0.1],
                   [10, 3]]:
-                
+
             triangles = root.search(x)
 
             #print x, candidate_vertices
@@ -181,12 +181,12 @@ class Test_search_functions(unittest.TestCase):
             else:
                 assert found is False
 
-                
+
 
     def expanding_search(self):
         """test_larger mesh and different quad trees
         """
-        
+
         p0 = [2,1]
         p1 = [4,1]
         p2 = [4.,4]
@@ -205,7 +205,7 @@ class Test_search_functions(unittest.TestCase):
 
         # Don't do this, want to control the max and mins
         #root = build_quadtree(mesh, max_points_per_cell=4)
-    
+
 
         root = Cell(-3, 9, -3, 9,
                     max_points_per_cell = 4)
@@ -214,7 +214,7 @@ class Test_search_functions(unittest.TestCase):
 
         #Build quad tree and return
         root.split()
-        
+
         # One point
         #x = [3.5, 1.5]
         x = [2.5, 1.5]
@@ -224,11 +224,11 @@ class Test_search_functions(unittest.TestCase):
         element_found, sigma0, sigma1, sigma2, k = root.search_fast(x)
         assert element_found is True
         assert k == 1
-        
+
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_search_functions)
     runner = unittest.TextTestRunner(verbosity=1)
     runner.run(suite)
-    
+

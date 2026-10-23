@@ -39,6 +39,33 @@ This creates a directory `anuga_core`.
 
         git clone git@github.com:anuga-community/anuga_core.git
 
+Choose a branch
+^^^^^^^^^^^^^^^
+
+The clone leaves you on ``main``, which is the released line -- currently
+ANUGA 4.0.0. Work that has not been released yet lives on ``develop``:
+
+.. code-block:: bash
+
+    cd anuga_core
+    git checkout develop
+
+Take ``develop`` if you want the passive tracer and sediment transport
+modules, :ref:`tracers` and :ref:`sediment`, which are not in 4.0.0 and are
+the parts we would most like tested before the next release. Stay on ``main``
+if you want the released code.
+
+.. note::
+
+    The documentation is published for both branches, and they describe
+    different code:
+
+    * https://anuga.readthedocs.io/en/latest/ follows ``main``
+    * https://anuga.readthedocs.io/en/develop/ follows ``develop``
+
+    Read the one that matches the branch you built, or the API you find in
+    the documentation may not be the API you have installed.
+
 Install ANUGA using Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -250,6 +277,16 @@ You can set the environment variable `OMP_NUM_THREADS=4`, as such:
     conda activate anuga_env_3.12
     export OMP_NUM_THREADS=4
     python my_anuga_script.py
+
+.. note::
+
+   Run your scripts from a directory other than the repository root. Python
+   searches the working directory before the installed packages, so a script
+   started from inside the ``anuga_core`` clone imports the source tree in
+   preference to the installed ANUGA. If that tree has not been built (or was
+   built for a different environment) the import fails with a message saying
+   ``anuga/_version.py`` is missing; the fix is to ``cd`` somewhere else, or
+   to build the tree in place with ``pip install --no-build-isolation -e .``.
 
 
 Updating

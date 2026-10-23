@@ -49,3 +49,7 @@ class NewQuantity(Exception):
 class TitleValueError(Exception):
     """ Title of data column in file has wrong value. """
     pass
+
+class BoundsError(Exception):
+    """ Interpolation point is outside the domain. """
+    pass

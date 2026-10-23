@@ -28,16 +28,19 @@ typedef struct {
 
 segment_t *segment_table = NULL;
 
-void add_segment(segment_key_t key, anuga_int vol_id, anuga_int edge_id) {
+/* Returns 0, or -1 if the entry could not be allocated. */
+anuga_int add_segment(segment_key_t key, anuga_int vol_id, anuga_int edge_id) {
     segment_t *s;
 
     s = (segment_t*) malloc(sizeof (segment_t));
+    if (s == NULL) return -1;
     memset(s, 0, sizeof (segment_t));
     s->key.i = key.i;
     s->key.j = key.j;
     s->vol_id = vol_id;
     s->edge_id = edge_id;
     HASH_ADD(hh, segment_table, key, sizeof (segment_key_t), s); /* key: name of key field */
+    return 0;
 }
 
 segment_t *find_segment(segment_key_t key) {

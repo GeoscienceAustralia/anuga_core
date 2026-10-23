@@ -22,7 +22,7 @@ from anuga.config import MULTIPROCESSOR_OPENMP, MULTIPROCESSOR_GPU
 
 
 def manning_friction_semi_implicit(domain):
-    
+
     if domain.multiprocessor_mode == MULTIPROCESSOR_OPENMP:
         if domain.use_sloped_mannings:
             # OpenMP version for sloped mannings
@@ -34,6 +34,9 @@ def manning_friction_semi_implicit(domain):
             # OpenMP version for flat mannings
             from .sw_domain_openmp_ext import manning_friction_flat_semi_implicit
             manning_friction_flat_semi_implicit(domain)
+        if getattr(domain, 'vegetation_mode', 0):
+            from .sw_domain_openmp_ext import vegetation_friction_semi_implicit
+            vegetation_friction_semi_implicit(domain)
 
 
     elif domain.multiprocessor_mode == MULTIPROCESSOR_GPU:
@@ -46,6 +49,9 @@ def manning_friction_semi_implicit(domain):
             # OpenMP version for flat mannings
             from .sw_domain_openmp_ext import manning_friction_flat_semi_implicit
             manning_friction_flat_semi_implicit(domain)
+        if getattr(domain, 'vegetation_mode', 0):
+            from .sw_domain_openmp_ext import vegetation_friction_semi_implicit
+            vegetation_friction_semi_implicit(domain)
     else:
         raise ValueError(f"""
 manning_friction_semi_implicit:
@@ -56,11 +62,11 @@ multiprocessor_mode {domain.multiprocessor_mode} not supported
 # def manning_friction_semi_implicit_cpu(domain):
 #     """Apply (Manning) friction to water momentum
 #     """
-    
+
 #     from .sw_domain_openmp_ext import manning_friction_flat
 #     from .sw_domain_openmp_ext import manning_friction_sloped
 #     from .sw_domain_openmp_ext import manning_friction_sloped_edge_based
-    
+
 #     xmom = domain.quantities['xmomentum']
 #     ymom = domain.quantities['ymomentum']
 
@@ -101,76 +107,6 @@ multiprocessor_mode {domain.multiprocessor_mode} not supported
 #     else:
 #         from .sw_domain_openmp_ext import manning_friction_flat_semi_implicit
 #         manning_friction_flat_semi_implicit(domain)
-
-
-# def manning_friction_explicit(domain):
-    
-#     if domain.multiprocessor_mode in [0,1,2,3]:
-#         manning_friction_explicit_cpu(domain)
-#     elif domain.multiprocessor_mode == 4:
-#         manning_friction_explicit_gpu(domain)
-
-
-# def manning_friction_explicit_cpu(domain):
-#     """Apply (Manning) friction to water momentum
-#     Wrapper for c version
-#     """
-
-#     if domain.multiprocessor_mode == MULTIPROCESSOR_GPU:
-#         from .sw_domain_openmp_ext import manning_friction_flat
-#         from .sw_domain_openmp_ext import manning_friction_sloped
-#     else:
-#         from .sw_domain_orig_ext import manning_friction_flat
-#         from .sw_domain_orig_ext import manning_friction_sloped
-
-
-#     xmom = domain.quantities['xmomentum']
-#     ymom = domain.quantities['ymomentum']
-
-#     x = domain.get_vertex_coordinates()
-
-#     w = domain.quantities['stage'].centroid_values
-#     z = domain.quantities['elevation'].centroid_values
-#     zv = domain.quantities['elevation'].vertex_values
-
-#     uh = xmom.centroid_values
-#     vh = ymom.centroid_values
-#     eta = domain.quantities['friction'].centroid_values
-
-#     xmom_update = xmom.explicit_update
-#     ymom_update = ymom.explicit_update
-
-#     eps = domain.minimum_allowed_height
-
-#     if domain.use_sloped_mannings:
-#         manning_friction_sloped(domain.g, eps, x, w, uh, vh, zv, eta, xmom_update, \
-#                             ymom_update)
-#     else:
-#         manning_friction_flat(domain.g, eps, w, uh, vh, z, eta, xmom_update, \
-#                             ymom_update)
-
-
-
-# #GPU version of manning_friction_implicit that'll call the kernel written in sw_domain_cuda
-# def manning_friction_implicit_gpu(domain):
-#     """Apply (Manning) friction to water momentum
-#     Wrapper for c version
-#     """
-#     if domain.use_sloped_mannings:
-#         domain.gpu_interface.compute_forcing_terms_manning_friction_sloped()
-#     else:
-#         domain.gpu_interface.compute_forcing_terms_manning_friction_flat()
-
-
-# #GPU version of manning_friction_explicit that'll call the kernel written in sw_domain_cuda
-# def manning_friction_explicit_gpu(domain):
-#     """Apply (Manning) friction to water momentum
-#     Wrapper for c version
-#     """
-#     if domain.use_sloped_mannings:
-#         domain.gpu_interface.compute_forcing_terms_manning_friction_sloped()
-#     else:
-#         domain.gpu_interface.compute_forcing_terms_manning_friction_flat()
 
 
 # FIXME (Ole): This was implemented for use with one of the analytical solutions
@@ -262,7 +198,7 @@ def depth_dependent_friction(domain, default_friction,
 
         # Check sanity of result
         if ddf < 0.010 or ddf > 9999.0:
-            log.critical('>>>> WARNING: computed depth_dependent friction '
+            log.warning('>>>> WARNING: computed depth_dependent friction '
                          'out of range, ddf%f, n1=%f, n2=%f'
                          % (ddf, n1, n2))
 
@@ -278,7 +214,7 @@ def depth_dependent_friction(domain, default_friction,
         n_min = min(nvals)
         n_max = max(nvals)
 
-        log.critical('         ++++ calculate_depth_dependent_friction - '
+        log.info('         ++++ calculate_depth_dependent_friction - '
                      'Updated friction - range  %7.3f to %7.3f'
                      % (n_min, n_max))
 

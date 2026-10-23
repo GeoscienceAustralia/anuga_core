@@ -1,22 +1,22 @@
 def parse_time(time = None, verbose=False, debug=False):
     """
-    Time: seconds since epoch  or 
+    Time: seconds since epoch  or
     string of form '20120229'  '20120229_1210' '20120229 1210' '201202291210'
     or '20120229_121000' '20120229 121000' '20120229121000'
     """
-    
+
     if time is None: return None
-    
+
     if not isinstance(time, str):
-        
+
         try:
             time = float(time)
             return time
         except ValueError:
             pass
-    
+
     year, month, day, hour, minute, second  = 1970, 1, 1, 0, 0, 0
-    
+
     try:
         year = int(time[0:4])
     except (ValueError, TypeError):
@@ -64,19 +64,19 @@ def parse_time(time = None, verbose=False, debug=False):
         else:
             second = int(time[13:15])
     except (ValueError, TypeError):
-        second = 0         
-       
+        second = 0
+
     if debug:
         print(year, month, day, hour, minute, second)
         print('Convert to epoch')
 
-            
-                
+
+
     import datetime
     time = int((datetime.datetime(year,month,day,hour,minute,second) - datetime.datetime(1970,1,1)).total_seconds())
 
     if debug: print(time)
-    
+
     return float(time)
 
 def seconds_to_hhmmss(seconds):

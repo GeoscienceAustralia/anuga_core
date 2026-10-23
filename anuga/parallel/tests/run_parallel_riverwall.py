@@ -103,6 +103,7 @@ else:
     domain = distribute(base_domain, verbose=verbose)
     domain.set_name('p_riverwall')
 domain.set_store_vertices_uniquely()
+
 domain.riverwallData.create_riverwalls(riverWall,
                                        riverWall_Par,
                                        verbose=verbose)

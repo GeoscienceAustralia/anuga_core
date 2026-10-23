@@ -11,19 +11,20 @@ from anuga.file.ungenerate import load_ungenerate
 class ungenerateTestCase(unittest.TestCase):
     def setUp(self):
         pass
-    
+
     def tearDown(self):
         for filename in ['swamp.tsh']:
             try:
                 os.remove(filename)
             except OSError:
                 pass
-        
+
     def test_ungenerateFileLoading(self):
-        
-        fileName = tempfile.mktemp(".txt")
-        file = open(fileName,"w")
-        file.write("         1       ??      ??\n\
+
+        fd, fileName = tempfile.mkstemp(".txt")
+        os.close(fd)
+        with open(fileName, "w") as file:
+            file.write("         1       ??      ??\n\
        0.0       0.0\n\
        1.0       0.0\n\
        1.0       1.0\n\
@@ -37,19 +38,18 @@ END\n\
        10.0       10.0\n\
 END\n\
 END\n")
-        file.close()
-        
-        
+
+
         a = Vertex (0.0, 0.0) #, attributes = [1.1])
         b = Vertex (0.0, 40.0) #, attributes = [1.2])
         c = Vertex (40.0,40.0) #, attributes = [1.3])
         d = Vertex (40.0,0.0) #, attributes = [1.4])
-    
+
         s1 = Segment(a,b)
         s2 = Segment(b,c)
         s3 = Segment(c,d)
         s4 = Segment(d,a)
-     
+
         m = Pmesh(userVertices=[a,b,c,d], userSegments=[s1,s2,s3,s4])
         dict = load_ungenerate(fileName)
         #os.remove(fileName)
@@ -60,7 +60,7 @@ END\n")
 
         # have to reset this , since it's a class attribute
         Segment.set_default_tag("")
-            
+
         self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
         self.assertTrue(len(m.userVertices) == 11,
@@ -77,15 +77,15 @@ END\n")
         b = Vertex (0.0, 40.0) #, attributes = [1.2])
         c = Vertex (40.0,40.0) #, attributes = [1.3])
         d = Vertex (40.0,0.0) #, attributes = [1.4])
-    
+
         s1 = Segment(a,b)
         s2 = Segment(b,c)
         s3 = Segment(c,d)
         s4 = Segment(d,a)
-     
+
         m = Pmesh(userVertices=[a,b,c,d], userSegments=[s1,s2,s3,s4])
 
-        tag = "DSG"        
+        tag = "DSG"
         initial_tag = "PIG"
         Segment.set_default_tag(initial_tag)
         m.import_ungenerate_file(fileName, tag=tag)
@@ -94,11 +94,11 @@ END\n")
 
         self.assertTrue(Segment.get_default_tag() == initial_tag,
                         'Wrong segment list length.')
-        
+
 
         # have to reset this , since it's a class attribute
         Segment.set_default_tag("")
-            
+
         self.assertTrue(len(m.userSegments) ==11,
                         'Wrong segment list length.')
         self.assertTrue(len(m.userVertices) == 11,
@@ -109,12 +109,13 @@ END\n")
                         'Bad segment.')
         self.assertTrue(m.userSegments[10].tag == tag,
                         'wrong tag.')
-        
+
     def test_import_ungenerate_file(self):
-        
-        fileName = tempfile.mktemp(".txt")
-        file = open(fileName,"w")
-        file.write("         1       ??      ??\n\
+
+        fd, fileName = tempfile.mkstemp(".txt")
+        os.close(fd)
+        with open(fileName, "w") as file:
+            file.write("         1       ??      ??\n\
        10.0       10.0\n\
        11.0       10.0\n\
        11.0       11.0\n\
@@ -127,19 +128,18 @@ END\n\
        30.0       30.0\n\
 END\n\
 END\n")
-        file.close()
-        
-        
+
+
         a = Vertex (0.0, 0.0) #, attributes = [1.1])
         b = Vertex (0.0, 40.0) #, attributes = [1.2])
         c = Vertex (40.0,40.0) #, attributes = [1.3])
         d = Vertex (40.0,0.0) #, attributes = [1.4])
-    
+
         s1 = Segment(a,b)
         s2 = Segment(b,c)
         s3 = Segment(c,d)
         s4 = Segment(d,a)
-     
+
         m = Pmesh(userVertices=[a,b,c,d], userSegments=[s1,s2,s3,s4])
         dict = load_ungenerate(fileName)
         #os.remove(fileName)
@@ -158,14 +158,14 @@ END\n")
         b = Vertex (0.0, 40.0) #, attributes = [1.2])
         c = Vertex (40.0,40.0) #, attributes = [1.3])
         d = Vertex (40.0,0.0) #, attributes = [1.4])
-    
+
         s1 = Segment(a,b)
         s2 = Segment(b,c)
         s3 = Segment(c,d)
         s4 = Segment(d,a)
-     
+
         m = Pmesh(userVertices=[a,b,c,d], userSegments=[s1,s2,s3,s4])
-        tag = "DSG"        
+        tag = "DSG"
         initial_tag = "PIG"
         Segment.set_default_tag(initial_tag)
         m.import_ungenerate_file(fileName, tag=tag, region_tag="swamp")
@@ -186,16 +186,17 @@ END\n")
                         'Wrong regions tag.')
         self.assertTrue(m.regions[1].get_tag() == "swamp",
                         'Wrong regions 1 tag.')
-        
+
         # have to reset this , since it's a class attribute
         Segment.set_default_tag("")
-        
-        
+
+
     def test_import_ungenerate_file_different_region_tags(self):
-        
-        fileName = tempfile.mktemp(".txt")
-        file = open(fileName,"w")
-        file.write("         1       ??      ??\n\
+
+        fd, fileName = tempfile.mkstemp(".txt")
+        os.close(fd)
+        with open(fileName, "w") as file:
+            file.write("         1       ??      ??\n\
        10.0       10.0\n\
        11.0       10.0\n\
        11.0       11.0\n\
@@ -208,19 +209,18 @@ END\n\
        30.0       30.0\n\
 END\n\
 END\n")
-        file.close()
-        
-        
+
+
         a = Vertex (0.0, 0.0) #, attributes = [1.1])
         b = Vertex (0.0, 40.0) #, attributes = [1.2])
         c = Vertex (40.0,40.0) #, attributes = [1.3])
         d = Vertex (40.0,0.0) #, attributes = [1.4])
-    
+
         s1 = Segment(a,b)
         s2 = Segment(b,c)
         s3 = Segment(c,d)
         s4 = Segment(d,a)
-     
+
         m = Pmesh(userVertices=[a,b,c,d], userSegments=[s1,s2,s3,s4])
         dict = load_ungenerate(fileName)
         #os.remove(fileName)
@@ -239,14 +239,14 @@ END\n")
         b = Vertex (0.0, 40.0) #, attributes = [1.2])
         c = Vertex (40.0,40.0) #, attributes = [1.3])
         d = Vertex (40.0,0.0) #, attributes = [1.4])
-    
+
         s1 = Segment(a,b)
         s2 = Segment(b,c)
         s3 = Segment(c,d)
         s4 = Segment(d,a)
-     
+
         m = Pmesh(userVertices=[a,b,c,d], userSegments=[s1,s2,s3,s4])
-        tag = "DSG"        
+        tag = "DSG"
         initial_tag = "PIG"
         Segment.set_default_tag(initial_tag)
         m.import_ungenerate_file(fileName, tag=tag, region_tag=["swamp","coastalp"])
@@ -267,8 +267,8 @@ END\n")
                         'Wrong regions tag.')
         self.assertTrue(m.regions[1].get_tag() == "coastalp",
                         'Wrong regions 1 tag.')
-        
-        
+
+
         # have to reset this , since it's a class attribute
         Segment.set_default_tag("")
 
@@ -280,4 +280,4 @@ if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(ungenerateTestCase)
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
-    
+

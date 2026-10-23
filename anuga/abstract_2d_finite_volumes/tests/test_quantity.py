@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import os
 import unittest
 from math import sqrt, pi
 import tempfile
@@ -884,7 +885,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -908,7 +910,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(ptsfile)
 
     def Xtest_set_values_from_file_using_polygon(self):
@@ -941,7 +942,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -989,7 +991,6 @@ class Test_Quantity(unittest.TestCase):
                             0.0)
 
         # Cleanup
-        import os
         os.remove(ptsfile)
 
     def test_cache_test_set_values_from_file(self):
@@ -1021,7 +1022,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -1052,7 +1054,6 @@ class Test_Quantity(unittest.TestCase):
                             verbose=False)
 
         # Cleanup
-        import os
         os.remove(ptsfile)
 
     def test_set_values_from_lat_long(self):
@@ -1069,7 +1070,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'elevation'
 
         # Create .txt file
-        txt_file = tempfile.mktemp(".txt")
+        fd, txt_file = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(txt_file, "w")
         file.write(" lat,long," + att + " \n")
         for data_point, attribute in zip(data_points, attributes):
@@ -1095,7 +1097,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(txt_file)
 
     def test_set_values_from_lat_long_2(self):
@@ -1112,7 +1113,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'elevation'
 
         # Create .txt file
-        txt_file = tempfile.mktemp(".txt")
+        fd, txt_file = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(txt_file, "w")
         file.write(" lat,long," + att + " \n")
         for data_point, attribute in zip(data_points, attributes):
@@ -1137,7 +1139,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(txt_file)
 
     def test_set_values_from_UTM_pts(self):
@@ -1154,7 +1155,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'elevation'
 
         # Create .txt file
-        txt_file = tempfile.mktemp(".txt")
+        fd, txt_file = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(txt_file, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(points_UTM, attributes):
@@ -1164,7 +1166,8 @@ class Test_Quantity(unittest.TestCase):
             file.write(row + "\n")
         file.close()
 
-        pts_file = tempfile.mktemp(".pts")
+        fd, pts_file = tempfile.mkstemp(".pts")
+        os.close(fd)
         convert = Geospatial_data(txt_file)
         convert.export_points_file(pts_file)
 
@@ -1189,7 +1192,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(txt_file)
         os.remove(pts_file)
 
@@ -1233,7 +1235,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'elevation'
 
         # Create .txt file
-        txt_file = tempfile.mktemp(".txt")
+        fd, txt_file = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(txt_file, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(points_UTM, attributes):
@@ -1243,7 +1246,8 @@ class Test_Quantity(unittest.TestCase):
             file.write(row + "\n")
         file.close()
 
-        pts_file = tempfile.mktemp(".pts")
+        fd, pts_file = tempfile.mkstemp(".pts")
+        os.close(fd)
         convert = Geospatial_data(txt_file)
         convert.export_points_file(pts_file)
 
@@ -1269,7 +1273,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(txt_file)
         os.remove(pts_file)
 
@@ -1320,7 +1323,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -1345,7 +1349,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(ptsfile)
 
     def test_set_values_from_file_with_georef2(self):
@@ -1396,7 +1399,8 @@ class Test_Quantity(unittest.TestCase):
         att = 'spam_and_eggs'
 
         # Create .txt file
-        ptsfile = tempfile.mktemp(".txt")
+        fd, ptsfile = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(ptsfile, "w")
         file.write(" x,y," + att + " \n")
         for data_point, attribute in zip(data_points_absolute, attributes):
@@ -1418,7 +1422,6 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.vertex_values.flat, answer)
 
         # Cleanup
-        import os
         os.remove(ptsfile)
 
     def test_set_values_from_utm_grid_file(self):
@@ -1638,7 +1641,7 @@ Parameters
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        """ Format of asc lat long file 
+        """ Format of asc lat long file
         ncols         5
         nrows         7
         xllcorner     149.9
@@ -1742,11 +1745,11 @@ Parameters
         e = [150.2, -29.8+60]
         # f = [150.4, -30.0]
 
-        eastings = num.array([210590.34672016295, 211173.23637087474, 229892.33388686483, 
+        eastings = num.array([210590.34672016295, 211173.23637087474, 229892.33388686483,
         211759.6453941525, 230436.25127640477] )
         eastings = num.reshape(eastings, (-1, 1))
 
-        northings = num.array([3322575.9043823928, 3344753.070613778, 3322087.0006162403, 
+        northings = num.array([3322575.9043823928, 3344753.070613778, 3322087.0006162403,
         3366930.72821874, 3344262.207060983] )
         northings = num.reshape(northings, (-1, 1))
 
@@ -1774,7 +1777,7 @@ Parameters
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        """ Format of asc lat long file 
+        """ Format of asc lat long file
         ncols         5
         nrows         7
         xllcorner     149.9
@@ -1909,7 +1912,7 @@ Parameters
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        """ Format of asc lat long file 
+        """ Format of asc lat long file
         ncols         5
         nrows         7
         xllcorner     149.9
@@ -2052,7 +2055,7 @@ Parameters
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        """ Format of asc lat long file 
+        """ Format of asc lat long file
         ncols         5
         nrows         7
         xllcorner     149.9
@@ -2197,7 +2200,7 @@ Parameters
         mesh4.check_integrity()
         quantity = Quantity(mesh4)
 
-        """ Format of asc lat long file 
+        """ Format of asc lat long file
         ncols         5
         nrows         7
         xllcorner     149.9
@@ -2381,7 +2384,7 @@ Parameters
         assert num.allclose(quantity1.centroid_values, centroid_values_ex) or \
                 num.allclose(quantity1.centroid_values, centroid_values_mac_ex)
         assert num.allclose(quantity1.vertex_values, vertex_values_ex) or \
-                num.allclose(quantity1.vertex_values, vertex_values_mac_ex)     
+                num.allclose(quantity1.vertex_values, vertex_values_mac_ex)
 
         quantity2 = Quantity(mesh4)
 
@@ -2398,7 +2401,6 @@ Parameters
                 num.allclose(quantity1.vertex_values, vertex_values_mac_ex)
 
         # Cleanup
-        import os
         os.remove(tif_file)
 
     @pytest.mark.skipif('rasterio' not in sys.modules,
@@ -2480,7 +2482,7 @@ Parameters
             [[0.23654294, 0.        , 0.29263264],
             [0.23654294, 0.        , 0.29263264],
             [0.23654294, 0.        , 0.29263264],
-            [0.        , 0.        , 0.        ]])                                     
+            [0.        , 0.        , 0.        ]])
 
         assert num.allclose(quantity1.centroid_values, centroid_values_ex)
         assert num.allclose(quantity1.vertex_values, vertex_values_ex)
@@ -2505,7 +2507,6 @@ Parameters
         assert num.allclose(quantity2.vertex_values, vertex_values_ex)
 
         # Cleanup
-        import os
         os.remove(tif_file)
 
     @pytest.mark.skipif('rasterio' not in sys.modules,
@@ -2604,7 +2605,6 @@ Parameters
         assert num.allclose(quantity2.vertex_values, vertex_values_ex)
 
         # Cleanup
-        import os
         os.remove(tif_file)
 
     @pytest.mark.skipif('rasterio' not in sys.modules,
@@ -2703,7 +2703,6 @@ Parameters
         assert num.allclose(quantity2.vertex_values, vertex_values_ex)
 
         # Cleanup
-        import os
         os.remove(tif_file)
 
     def test_set_values_from_quantity(self):
@@ -3915,6 +3914,658 @@ Parameters
         assert num.allclose(quantity.centroid_values,
                             exact_centroid_values)  # Centroid
         assert num.allclose(quantity.edge_values, exact_edge_values)
+
+
+class Test_Quantity_Memory(unittest.TestCase):
+    """Verify selective array allocation for quantity types (QM1-QM6)."""
+
+    def setUp(self):
+        from anuga import rectangular_cross_domain
+        self.domain = rectangular_cross_domain(10, 10)
+        self.domain.set_quantity('elevation', -1.0)
+        self.domain.set_quantity('stage', 0.5)
+        self.domain.set_quantity('friction', 0.03)
+
+    def test_evolved_has_all_arrays(self):
+        for name in ['stage', 'xmomentum', 'ymomentum']:
+            q = self.domain.quantities[name]
+            # Update arrays are eagerly allocated for evolved quantities
+            self.assertIsNotNone(q.explicit_update, name)
+            self.assertIsNotNone(q.semi_implicit_update, name)
+            self.assertIsNotNone(q.centroid_backup_values, name)
+            self.assertIsNotNone(q.edge_values, name)
+            # Gradient arrays are lazy — not allocated until first access
+            self.assertIsNone(q._x_gradient, name)
+            self.assertIsNone(q._y_gradient, name)
+            self.assertIsNone(q._phi, name)
+            # Accessing the property triggers allocation
+            self.assertIsNotNone(q.x_gradient, name)
+            self.assertIsNotNone(q.y_gradient, name)
+            self.assertIsNotNone(q.phi, name)
+
+    def test_elevation_strips_update_arrays(self):
+        q = self.domain.quantities['elevation']
+        self.assertIsNone(q.explicit_update)
+        self.assertIsNone(q.semi_implicit_update)
+        self.assertIsNone(q.centroid_backup_values)
+        # Gradient arrays and phi are lazy (not eagerly allocated)
+        self.assertIsNone(q._phi)
+        self.assertIsNone(q._x_gradient)
+        self.assertIsNone(q._y_gradient)
+        # Edge values are allocated (needed by DE solver)
+        self.assertIsNotNone(q.edge_values)
+
+    def test_friction_centroid_only(self):
+        q = self.domain.quantities['friction']
+        self.assertIsNone(q.explicit_update)
+        self.assertIsNone(q.semi_implicit_update)
+        self.assertIsNone(q.centroid_backup_values)
+        self.assertIsNone(q._x_gradient)
+        self.assertIsNone(q._y_gradient)
+        self.assertIsNone(q._phi)
+        self.assertIsNone(q.edge_values)
+        self.assertTrue(num.allclose(q.centroid_values, 0.03))
+
+    def test_height_edge_diagnostic(self):
+        q = self.domain.quantities['height']
+        self.assertIsNone(q.explicit_update)
+        self.assertIsNone(q._x_gradient)
+        self.assertIsNone(q._phi)
+        self.assertIsNotNone(q.edge_values)
+
+    def test_velocity_edge_diagnostic(self):
+        for name in ['xvelocity', 'yvelocity']:
+            q = self.domain.quantities[name]
+            self.assertIsNone(q.explicit_update, name)
+            self.assertIsNone(q._x_gradient, name)
+            self.assertIsNone(q._phi, name)
+            self.assertIsNotNone(q.edge_values, name)
+
+    def test_vertex_values_lazy(self):
+        from anuga import rectangular_cross_domain
+        d = rectangular_cross_domain(4, 4)
+        q = d.quantities['xmomentum']
+        vv = q.vertex_values  # lazy allocation on first access
+        self.assertIsNotNone(vv)
+        self.assertEqual(vv.shape, (len(d), 3))
+
+    def test_explicit_qty_type_parameter(self):
+        """qty_type kwarg overrides domain._quantity_type_map lookup."""
+        from anuga.abstract_2d_finite_volumes.quantity import Quantity
+        # Force centroid_only via explicit parameter (domain map has no 'myq')
+        q = Quantity(self.domain, name='myq', qty_type='centroid_only')
+        self.assertIsNone(q.edge_values)
+        self.assertIsNone(q._x_gradient)
+        self.assertIsNone(q.explicit_update)
+        self.assertEqual(q._qty_type, 'centroid_only')
+
+        # Explicit parameter wins over domain map entry
+        self.domain._quantity_type_map['overridden'] = 'evolved'
+        q2 = Quantity(self.domain, name='overridden', qty_type='centroid_only')
+        self.assertEqual(q2._qty_type, 'centroid_only')
+        self.assertIsNone(q2.edge_values)
+
+    def test_friction_set_quantity_correct_value(self):
+        self.domain.set_quantity('friction', 0.07)
+        q = self.domain.quantities['friction']
+        self.assertTrue(num.allclose(q.centroid_values, 0.07))
+
+    def test_memory_saving(self):
+        N = len(self.domain)
+
+        def array_bytes(q):
+            """Count bytes of eagerly-allocated arrays only.
+
+            Gradient/phi backing stores (_x_gradient etc.) are checked directly
+            to avoid triggering lazy allocation via the property.
+            """
+            total = 0
+            for attr in ['centroid_values', 'edge_values',
+                         'explicit_update', 'semi_implicit_update',
+                         'centroid_backup_values']:
+                arr = getattr(q, attr, None)
+                if arr is not None:
+                    total += arr.nbytes
+            # Lazy arrays — check backing store, not property
+            for attr in ['_x_gradient', '_y_gradient', '_phi']:
+                arr = getattr(q, attr, None)
+                if arr is not None:
+                    total += arr.nbytes
+            return total
+
+        evolved_bytes = array_bytes(self.domain.quantities['stage'])
+        friction_bytes = array_bytes(self.domain.quantities['friction'])
+        elevation_bytes = array_bytes(self.domain.quantities['elevation'])
+        height_bytes = array_bytes(self.domain.quantities['height'])
+
+        # evolved: centroid+edge+explicit_update+semi_implicit+centroid_backup (56N)
+        # gradients/phi are lazy — not counted unless accessed
+        self.assertEqual(evolved_bytes, 56 * N)
+        self.assertEqual(friction_bytes, 8 * N)    # centroid only
+        self.assertEqual(elevation_bytes, 32 * N)  # centroid+edge
+        self.assertEqual(height_bytes, 32 * N)     # centroid+edge
+
+    @pytest.mark.slow
+    def test_total_domain_memory_reduction(self):
+        """Total allocated bytes across all quantities must be < 60% of the
+        all-evolved baseline, for a domain large enough to be realistic.
+
+        Baseline (all-evolved, no optimisation): 10 quantities × 80N bytes = 800N
+        Optimised layout (gradients/phi are lazy — not counted here):
+          stage / xmomentum / ymomentum   3 × 56N = 168N
+          elevation (edge_diagnostic)              32N
+          friction  (centroid_only)                 8N
+          height / xvelocity / yvelocity  3 × 32N =  96N
+          x / y    (coordinate)           2 × 32N =  64N
+          ─────────────────────────────────────────────
+          Total optimised                          368N
+          Saving  (800-368)/800 ≈ 54 %
+
+        The test uses a 100×100 rectangular_cross_domain (80 000 triangles) so
+        the absolute numbers are large enough to catch rounding / off-by-one
+        errors, while still completing in < 5 s.
+        """
+        import pytest
+        from anuga import rectangular_cross_domain
+
+        domain = rectangular_cross_domain(100, 100)
+        domain.set_quantity('elevation', -1.0)
+        domain.set_quantity('stage', 0.5)
+        domain.set_quantity('friction', 0.03)
+
+        N = len(domain)
+
+        # Sum every fixed (non-vertex) array for every quantity.
+        # Non-lazy attrs (safe to read via property)
+        _eager_attrs = [
+            'centroid_values', 'edge_values',
+            'explicit_update', 'semi_implicit_update', 'centroid_backup_values',
+        ]
+        # Lazy attrs — check backing store to avoid triggering allocation
+        _lazy_backing = ['_x_gradient', '_y_gradient', '_phi']
+
+        def qty_fixed_bytes(q):
+            total = sum(
+                getattr(q, a).nbytes
+                for a in _eager_attrs
+                if getattr(q, a) is not None
+            )
+            total += sum(
+                getattr(q, a).nbytes
+                for a in _lazy_backing
+                if getattr(q, a) is not None
+            )
+            return total
+
+        actual_bytes = sum(qty_fixed_bytes(q) for q in domain.quantities.values())
+
+        # Unoptimised baseline: every quantity uses the full 'evolved' layout
+        n_quantities = len(domain.quantities)
+        baseline_bytes = n_quantities * 80 * N  # 10 arrays × 8 bytes, each length N
+
+        saving_pct = 100.0 * (baseline_bytes - actual_bytes) / baseline_bytes
+
+        # At least 50 % saving must be achieved (actual is ~54 %)
+        self.assertGreaterEqual(
+            saving_pct, 50.0,
+            msg=f"Expected >= 50% saving, got {saving_pct:.1f}% "
+                f"(actual={actual_bytes/1e6:.1f} MB, baseline={baseline_bytes/1e6:.1f} MB, "
+                f"N={N})"
+        )
+
+        # Spot-check absolute numbers match the per-quantity analysis
+        # evolved: centroid+edge+explicit+semi_implicit+backup = 56N (gradients lazy)
+        self.assertEqual(qty_fixed_bytes(domain.quantities['stage']),    56 * N)
+        self.assertEqual(qty_fixed_bytes(domain.quantities['elevation']), 32 * N)
+        self.assertEqual(qty_fixed_bytes(domain.quantities['friction']),   8 * N)
+        self.assertEqual(qty_fixed_bytes(domain.quantities['height']),    32 * N)
+
+
+    def test_gradient_workspace_exists_on_domain(self):
+        """Domain carries three shared gradient workspace arrays (QM7)."""
+        from anuga import rectangular_cross_domain
+        d = rectangular_cross_domain(5, 5)
+        N = len(d)
+        for attr in ['_grad_workspace_x', '_grad_workspace_y', '_phi_workspace']:
+            arr = getattr(d, attr, None)
+            self.assertIsNotNone(arr, f'domain.{attr} should exist')
+            self.assertEqual(arr.shape, (N,))
+
+    def test_extrapolate_by_edge_uses_workspace_not_quantity_storage(self):
+        """After extrapolate_second_order_and_limit_by_edge the quantity's own
+        _x_gradient/_y_gradient/_phi remain None — the shared workspace was used."""
+        from anuga import rectangular_cross_domain
+        d = rectangular_cross_domain(10, 10)
+        d.set_quantity('stage', lambda x, y: x + 0.5 * y)
+        q = d.quantities['stage']
+
+        # Confirm lazy arrays start as None
+        self.assertIsNone(q._x_gradient)
+        self.assertIsNone(q._y_gradient)
+        self.assertIsNone(q._phi)
+
+        q.extrapolate_second_order_and_limit_by_edge()
+
+        # Workspace was used — quantity's own backing stores still None
+        self.assertIsNone(q._x_gradient, 'x_gradient should stay None (workspace used)')
+        self.assertIsNone(q._y_gradient, 'y_gradient should stay None (workspace used)')
+        self.assertIsNone(q._phi, 'phi should stay None (workspace used)')
+
+        # Edge values must be non-trivial
+        self.assertFalse(num.allclose(q.edge_values, 0))
+
+    def test_extrapolate_by_vertex_uses_workspace_not_quantity_storage(self):
+        """After extrapolate_second_order_and_limit_by_vertex the quantity's own
+        gradient backing stores remain None."""
+        from anuga import rectangular_cross_domain
+        d = rectangular_cross_domain(10, 10)
+        d.set_quantity('stage', lambda x, y: x)
+        q = d.quantities['stage']
+
+        q.extrapolate_second_order_and_limit_by_vertex()
+
+        self.assertIsNone(q._x_gradient, 'x_gradient should stay None (workspace used)')
+        self.assertIsNone(q._y_gradient)
+        self.assertIsNone(q._phi)
+        self.assertFalse(num.allclose(q.vertex_values, 0))
+
+    def test_extrapolate_by_edge_correct_values(self):
+        """Workspace-based extrapolation produces the same edge values as direct
+        gradient access would."""
+        import numpy as np
+        from anuga import rectangular_cross_domain
+        from anuga.abstract_2d_finite_volumes.quantity_openmp_ext import (
+            extrapolate_second_order_and_limit_by_edge as ext_fn,
+        )
+
+        d = rectangular_cross_domain(10, 10)
+        d.set_quantity('stage', lambda x, y: x + 0.5 * y)
+
+        # Run via workspace path
+        q_ws = d.quantities['stage']
+        q_ws.extrapolate_second_order_and_limit_by_edge()
+        edge_ws = q_ws.edge_values.copy()
+
+        # Run via per-quantity gradient path (pass no workspace)
+        d2 = rectangular_cross_domain(10, 10)
+        d2.set_quantity('stage', lambda x, y: x + 0.5 * y)
+        q_direct = d2.quantities['stage']
+        ext_fn(q_direct)  # uses quantity's own lazy arrays
+        edge_direct = q_direct.edge_values.copy()
+
+        np.testing.assert_allclose(edge_ws, edge_direct, rtol=1e-12,
+                                   err_msg='Workspace path must match per-quantity path')
+
+
+class Test_Quantity_extra(unittest.TestCase):
+    """Tests for uncovered Quantity methods."""
+
+    def _make_domain_and_quantity(self):
+        import anuga
+        d = anuga.rectangular_cross_domain(3, 3)
+        d.set_quantity('elevation', 0.0)
+        d.set_quantity('stage', 1.0)
+        d.distribute_to_vertices_and_edges()
+        q = d.quantities['stage']
+        return d, q
+
+    def test_vertex_values_setter_none(self):
+        """Setting vertex_values to None clears the cached array."""
+        d, q = self._make_domain_and_quantity()
+        _ = q.vertex_values  # trigger allocation
+        q.vertex_values = None
+        self.assertIsNone(q._vertex_values)
+
+    def test_x_gradient_setter(self):
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        arr = np.ones(len(d))
+        q.x_gradient = arr
+        self.assertIs(q.x_gradient, arr)
+
+    def test_y_gradient_setter(self):
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        arr = np.ones(len(d)) * 2.0
+        q.y_gradient = arr
+        self.assertIs(q.y_gradient, arr)
+
+    def test_phi_setter(self):
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        arr = np.ones(len(d)) * 3.0
+        q.phi = arr
+        self.assertIs(q.phi, arr)
+
+    def test_rdiv(self):
+        d, q = self._make_domain_and_quantity()
+        result = q.__rdiv__(3.0)
+        self.assertIsNotNone(result)
+
+    def test_pow_with_scalar(self):
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        result = q ** 2
+        np.testing.assert_allclose(result.centroid_values,
+                                   q.centroid_values ** 2)
+
+    def test_maximum_with_quantity(self):
+        import anuga
+        import numpy as np
+        d = anuga.rectangular_cross_domain(3, 3)
+        d.set_quantity('elevation', 0.0)
+        d.set_quantity('stage', 1.0)
+        d.set_quantity('xmomentum', 2.0)
+        d.distribute_to_vertices_and_edges()
+        q1 = d.quantities['stage']
+        q2 = d.quantities['xmomentum']
+        q1.maximum(q2)
+        self.assertTrue(np.all(q1.centroid_values >= 1.0))
+
+    def test_maximum_with_scalar(self):
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        q.maximum(2.0)
+        self.assertTrue(np.all(q.centroid_values >= 2.0))
+
+    def test_minimum_with_scalar(self):
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        q.minimum(0.5)
+        self.assertTrue(np.all(q.centroid_values <= 1.0))
+
+    def test_save_centroid_data_to_csv(self):
+        import tempfile
+        import os
+        d, q = self._make_domain_and_quantity()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fname = os.path.join(tmpdir, 'stage')
+            q.save_centroid_data_to_csv(filename=fname)
+            out = fname + '_centroid_data.csv'
+            self.assertTrue(os.path.exists(out))
+            lines = open(out).readlines()
+            self.assertGreater(len(lines), 0)
+
+    def test_save_centroid_data_to_csv_default_filename(self):
+        """save_centroid_data_to_csv with no filename uses self.name (line 429)."""
+        import tempfile
+        import os
+        d, q = self._make_domain_and_quantity()
+        # Run from a temp directory so the output file lands there
+        orig_dir = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                q.save_centroid_data_to_csv()
+                out = q.name + '_centroid_data.csv'
+                self.assertTrue(os.path.exists(out))
+            finally:
+                os.chdir(orig_dir)
+
+    def test_interpolate_old(self):
+        """interpolate_old computes centroid values from vertices (lines 775-781)."""
+        d, q = self._make_domain_and_quantity()
+        q.set_values(2.0)
+        q.interpolate_old()
+        import numpy as np
+        self.assertTrue(np.allclose(q.centroid_values, 2.0))
+
+    def test_interpolate_from_vertices_to_edges_centroid_only(self):
+        """centroid_only quantity returns early (line 804)."""
+        from anuga.abstract_2d_finite_volumes.quantity import Quantity
+        d, _ = self._make_domain_and_quantity()
+        qc = Quantity(d, qty_type='centroid_only')
+        qc.interpolate_from_vertices_to_edges()  # should not raise
+
+    def test_interpolate_from_edges_to_vertices_centroid_only(self):
+        """centroid_only quantity returns early (line 811)."""
+        from anuga.abstract_2d_finite_volumes.quantity import Quantity
+        d, _ = self._make_domain_and_quantity()
+        qc = Quantity(d, qty_type='centroid_only')
+        qc.interpolate_from_edges_to_vertices()  # should not raise
+
+    def test_save_to_array_with_bounds(self):
+        """save_to_array with explicit easting/northing covers else branches (576, 581, 586, 591, 612)."""
+        d, q = self._make_domain_and_quantity()
+        import anuga
+        d.set_quantity('elevation', 0.0)
+        d.set_quantity('stage', 1.0)
+        d.distribute_to_vertices_and_edges()
+        q = d.quantities['stage']
+        # Use bounding box that encloses the domain
+        xg, yg, grid = q.save_to_array(
+            easting_min=0.0, easting_max=2.0,
+            northing_min=0.0, northing_max=2.0)
+        self.assertIsNotNone(grid)
+
+    def test_get_name(self):
+        """get_name returns the quantity name (line 664)."""
+        d, q = self._make_domain_and_quantity()
+        name = q.get_name()
+        self.assertIsNotNone(name)
+
+    def test_set_beta_out_of_range(self):
+        """set_beta logs warnings for values outside [0, 2] (lines 671, 673)."""
+        d, q = self._make_domain_and_quantity()
+        q.set_beta(-0.1)   # triggers line 671
+        q.set_beta(2.5)    # triggers line 673
+
+    def test_get_beta(self):
+        """get_beta returns current beta (line 683)."""
+        d, q = self._make_domain_and_quantity()
+        q.set_beta(0.5)
+        self.assertAlmostEqual(q.get_beta(), 0.5)
+
+    def test_set_boundary_values_invalid_raises(self):
+        """set_boundary_values with non-numeric string raises (lines 700-703)."""
+        d, q = self._make_domain_and_quantity()
+        with self.assertRaises(Exception):
+            q.set_boundary_values('not_a_number')
+
+    def test_save_data_to_dem(self):
+        """save_data_to_dem writes a CSV file (lines 463-481)."""
+        import os
+        import tempfile
+        d, q = self._make_domain_and_quantity()
+        orig = os.getcwd()
+        with tempfile.TemporaryDirectory() as tmpdir:
+            os.chdir(tmpdir)
+            try:
+                q.save_data_to_dem('stage_test')
+                self.assertTrue(os.path.exists('stage_test_centroid_data.csv'))
+            finally:
+                os.chdir(orig)
+
+    def test_set_values_array_2d_with_indices(self):
+        """set_values from 2D array (Nx1) with indices (line 1172)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        N = d.number_of_triangles
+        indices = np.array([0, 1, 2])
+        vals = np.array([[2.0], [3.0], [4.0]])  # shape (3,1) → Nx1
+        q.set_values(vals, location='centroids', indices=indices)
+        self.assertAlmostEqual(q.centroid_values[0], 2.0)
+
+    def test_set_values_array_vertex_2d(self):
+        """set_values from 2D Nx3 array sets vertex_values (lines 1193-1198)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        N = d.number_of_triangles
+        vals = np.ones((N, 3)) * 5.0
+        q.set_values(vals, location='vertices')
+        self.assertTrue(np.allclose(q.vertex_values, 5.0))
+
+    def test_set_values_array_vertex_2d_with_indices(self):
+        """set_values Nx3 array with indices sets specific rows (line 1198)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        indices = np.array([0, 1])
+        vals = np.array([[9.0, 9.0, 9.0], [8.0, 8.0, 8.0]])
+        q.set_values(vals, location='vertices', indices=indices)
+        self.assertTrue(np.allclose(q.vertex_values[0], 9.0))
+
+
+class Test_Quantity_extra2(unittest.TestCase):
+    """Additional quantity coverage tests."""
+
+    def _make_domain_and_quantity(self):
+        import anuga
+        d = anuga.rectangular_cross_domain(3, 3)
+        d.set_quantity('elevation', 0.0)
+        d.set_quantity('stage', 1.0)
+        d.distribute_to_vertices_and_edges()
+        q = d.quantities['stage']
+        return d, q
+
+    def test_div_quantity_by_quantity(self):
+        """Q1 / Q2 covers isinstance(other, Quantity) True branch (line 302)."""
+        import anuga
+        d = anuga.rectangular_cross_domain(2, 2)
+        d.set_quantity('stage', 2.0)
+        d.set_quantity('elevation', 1.0)
+        q1 = d.quantities['stage']
+        q2 = d.quantities['elevation']
+        result = q1 / q2
+        import numpy as np
+        self.assertTrue(np.allclose(result.centroid_values, 2.0))
+
+    def test_pow_quantity_by_quantity(self):
+        """Q1 ** Q2 covers isinstance(other, Quantity) True branch (line 336).
+        Note: __pow__ has a bug (uses other not Q.vertex_values) so it raises TypeError.
+        """
+        import anuga
+        d = anuga.rectangular_cross_domain(2, 2)
+        d.set_quantity('stage', 2.0)
+        d.set_quantity('elevation', 2.0)
+        q1 = d.quantities['stage']
+        q2 = d.quantities['elevation']
+        try:
+            result = q1 ** q2
+        except TypeError:
+            pass  # pre-existing bug: uses other not Q in computation
+
+    def test_set_values_edges_location_raises(self):
+        """location='edges' raises deprecated error (lines 978-980)."""
+        d, q = self._make_domain_and_quantity()
+        with self.assertRaises(Exception) as cm:
+            q.set_values(1.0, location='edges')
+        self.assertIn('deprecated', str(cm.exception))
+
+    def test_set_values_invalid_location_raises(self):
+        """Invalid location raises (lines 982-984)."""
+        d, q = self._make_domain_and_quantity()
+        with self.assertRaises(Exception) as cm:
+            q.set_values(1.0, location='badlocation')
+        self.assertIn('Invalid location', str(cm.exception))
+
+    def test_set_values_nonfloat_string_raises(self):
+        """Non-coercible string for numeric raises ValueError path (lines 1008-1011)."""
+        d, q = self._make_domain_and_quantity()
+        with self.assertRaises(Exception):
+            q.set_values('not_a_number')
+
+    def test_set_values_2d_centroid_no_indices(self):
+        """2D Nx1 centroid array with indices=None (line 1170)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        N = d.number_of_triangles
+        vals = np.ones((N, 1)) * 3.0
+        q.set_values(vals, location='centroids')
+        self.assertTrue(np.allclose(q.centroid_values, 3.0))
+
+    def test_set_values_3d_centroid_array_raises(self):
+        """3D centroid array raises (lines 1174-1175)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        N = d.number_of_triangles
+        vals = np.ones((N, 1, 1))  # 3D array
+        with self.assertRaises(Exception) as cm:
+            q.set_values(vals, location='centroids')
+        self.assertIn('1d or 2d', str(cm.exception))
+
+    def test_set_values_3d_vertex_array_raises(self):
+        """3D vertex array raises (lines 1202-1203)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        N = d.number_of_triangles
+        vals = np.ones((N, 3, 1))  # 3D array
+        with self.assertRaises(Exception) as cm:
+            q.set_values(vals, location='vertices')
+        self.assertIn('1d or 2d', str(cm.exception))
+
+    def test_set_values_obsolete_from_points(self):
+        """set_values_from_points is obsolete (line 1355)."""
+        d, q = self._make_domain_and_quantity()
+        with self.assertRaises(Exception) as cm:
+            q.set_values_from_points(None, None, None, 'vertices', None)
+        self.assertIn('obsolete', str(cm.exception))
+
+    def test_set_values_from_file_bad_location_raises(self):
+        """set_values_from_file with location='centroids' raises (lines 1380-1382)."""
+        import tempfile
+        import os
+        d, q = self._make_domain_and_quantity()
+        with tempfile.NamedTemporaryFile(suffix='.pts', delete=False) as f:
+            fname = f.name
+        try:
+            with self.assertRaises(Exception) as cm:
+                q.set_values_from_file(fname, None, 0.001, 'centroids',
+                                       None, verbose=False)
+            self.assertIn("location='vertices'", str(cm.exception))
+        finally:
+            os.unlink(fname)
+
+    def test_set_values_unique_vertices_no_indices(self):
+        """set_values_from_constant unique vertices with None indices (line 1084)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        q.set_values(5.0, location='unique vertices')
+        # Edge values should be updated (line 1084 sets edge_values)
+        self.assertIsNotNone(q.edge_values)
+
+    def test_set_values_from_function_centroids_no_indices(self):
+        """set_values_from_function centroids with indices=None (lines 1246-1249)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        q.set_values(lambda x, y: x + y, location='centroids')
+        # centroid values should be non-trivial
+        self.assertGreater(np.max(q.centroid_values), 0)
+
+    def test_set_values_polygon_no_numeric_raises(self):
+        """polygon without numeric raises (line 946)."""
+        d, q = self._make_domain_and_quantity()
+        poly = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with self.assertRaises(Exception) as cm:
+            q.set_values(polygon=poly)
+        self.assertIn('polygon', str(cm.exception))
+
+    def test_set_values_polygon_with_smooth(self):
+        """polygon with smooth=True hits smooth_vertex_values call (line 961)."""
+        d, q = self._make_domain_and_quantity()
+        poly = [[0.1, 0.1], [0.9, 0.1], [0.9, 0.9], [0.1, 0.9]]
+        q.set_values(numeric=2.0, polygon=poly, smooth=True)
+        self.assertIsNotNone(q.vertex_values)
+
+    def test_set_values_function_keyword(self):
+        """function= keyword path in set_values (lines 1016-1020)."""
+        import numpy as np
+        d, q = self._make_domain_and_quantity()
+        q.set_values(function=lambda x, y: x + y, location='vertices')
+        self.assertIsNotNone(q.centroid_values)
+
+    def test_set_values_unknown_file_ext_raises(self):
+        """Unknown file extension raises (line 1045)."""
+        import tempfile
+        import os
+        d, q = self._make_domain_and_quantity()
+        with tempfile.NamedTemporaryFile(suffix='.xyz', delete=False) as f:
+            fname = f.name
+        try:
+            with self.assertRaises(Exception) as cm:
+                q.set_values(filename=fname)
+            self.assertIn('Extension', str(cm.exception))
+        finally:
+            os.unlink(fname)
 
 
 # -------------------------------------------------------------

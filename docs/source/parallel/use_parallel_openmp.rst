@@ -167,37 +167,19 @@ using 4 MPI ranks with 4 OpenMP threads each (16 cores total):
 GPU acceleration (experimental)
 --------------------------------
 
-An experimental GPU backend is under active development in the ``sp26``
-branch.  It uses **OpenMP target offloading** to run the flux and friction
-kernels on a GPU without requiring Python-level changes to your script.
-
-To try it, check out the ``sp26`` branch and build with a compiler that
-supports OpenMP offloading (e.g. GCC 12+ with offload targets, or LLVM with
-``libomptarget``):
-
-.. code-block:: bash
-
-   git checkout sp26
-   pip install --no-build-isolation -v .
-
-Then set ``multiprocessor_mode = 2`` in your TOML file or via:
+An experimental GPU backend is included in the ``develop`` branch.  It uses
+**OpenMP target offloading** to run flux, friction, and momentum kernels on a
+GPU without requiring Python-level changes to your script:
 
 .. code-block:: python
 
-   domain.set_multiprocessor_mode(2)
+   domain.set_compute_mode('unified')   # enable GPU mode
 
-.. note::
-
-   The GPU backend in ``sp26`` is experimental and subject to change without
-   notice.  It has been tested on NVIDIA GPUs with GCC offload support.
-   For production runs, use the standard OpenMP CPU backend
-   (``multiprocessor_mode = 1``).
+See :ref:`use_gpu_offloading` for hardware requirements, supported operators,
+slot limits, and troubleshooting.
 
 
-See Also
----------
+.. seealso::
 
-.. autosummary::
-   :toctree:
-
-   Domain.set_omp_num_threads
+   :ref:`api_domain` — full API of ``Domain.set_omp_num_threads`` and the other
+   ``Domain`` methods.

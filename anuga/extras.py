@@ -27,7 +27,7 @@ def rectangular_cross_domain(*args, **kwargs):
     len2 : float, optional
         Length of domain in y direction (bottom to top) (default 1.0)
     origin : tuple, optional
-        Tuple (x, y) specifying location of lower left corner of domain 
+        Tuple (x, y) specifying location of lower left corner of domain
         (default (0, 0))
     verbose : bool, optional
         Boolean flag to output information (default False)
@@ -70,7 +70,7 @@ def rectangular_cross_mesh(*args, **kwargs):
     len2 : float, optional
         Length of domain in y direction (bottom to top) (default 1.0)
     origin : tuple, optional
-        Tuple (x, y) specifying location of lower left corner of domain 
+        Tuple (x, y) specifying location of lower left corner of domain
         (default (0, 0))
     verbose : bool, optional
         Boolean flag to output information (default False)
@@ -113,7 +113,9 @@ def create_basic_mesh_from_regions(bounding_polygon,
                                    minimum_triangle_angle=28.0,
                                    fail_if_polygons_outside=True,
                                    use_cache=False,
-                                   verbose=False):
+                                   verbose=False,
+                                   size_field=None,
+                                   relax_passes=0):
     """Create a Basic_mesh from bounding polygons and resolutions.
 
     Like :func:`create_domain_from_regions` but returns a
@@ -163,6 +165,18 @@ def create_basic_mesh_from_regions(bounding_polygon,
         Whether to use caching (default: False).
     verbose : bool, optional
         Output information (default: False).
+    size_field : Size_field or callable, optional
+        Target triangle area as a function of position, applied as well as
+        the maximum areas above: a triangle is refined if its area exceeds
+        the field at its centroid. Either an :class:`anuga.Size_field`
+        (see :func:`anuga.size_field_from_regions`) or a callable
+        ``f(x, y) -> maximum area`` taking absolute coordinates. Unlike
+        interior regions it adds no segments to the mesh. Needs meshpy.
+    relax_passes : int, optional
+        If positive, follow the triangulation with up to this many passes of
+        worst-cell relaxation, which moves the vertices of the smallest
+        cells to enlarge them and so lengthen the timestep (default: 0).
+        See :meth:`anuga.pmesh.mesh.Pmesh.relax_worst_cells`.
 
     Returns
     -------
@@ -187,7 +201,9 @@ def create_basic_mesh_from_regions(bounding_polygon,
               'regionPtArea': regionPtArea,
               'minimum_triangle_angle': minimum_triangle_angle,
               'fail_if_polygons_outside': fail_if_polygons_outside,
-              'verbose': verbose}
+              'verbose': verbose,
+              'size_field': size_field,
+              'relax_passes': relax_passes}
 
     if use_cache is True:
         try:
@@ -219,7 +235,9 @@ def _create_basic_mesh_from_regions(bounding_polygon,
                                     regionPtArea=None,
                                     minimum_triangle_angle=28.0,
                                     fail_if_polygons_outside=True,
-                                    verbose=True):
+                                    verbose=True,
+                                    size_field=None,
+                                    relax_passes=0):
     """Internal implementation — see create_basic_mesh_from_regions."""
 
     from anuga.pmesh.mesh_interface import create_pmesh_from_regions
@@ -237,7 +255,9 @@ def _create_basic_mesh_from_regions(bounding_polygon,
                                      minimum_triangle_angle=minimum_triangle_angle,
                                      fail_if_polygons_outside=fail_if_polygons_outside,
                                      use_cache=False,
-                                     verbose=verbose)
+                                     verbose=verbose,
+                                     size_field=size_field,
+                                     relax_passes=relax_passes)
 
     return pmesh_to_basic_mesh(pmesh, verbose=verbose)
 
@@ -293,54 +313,68 @@ def create_domain_from_regions(bounding_polygon,
                                minimum_triangle_angle=28.0,
                                fail_if_polygons_outside=True,
                                use_cache=False,
-                               verbose=False):
-    
+                               verbose=False,
+                               size_field=None,
+                               relax_passes=0):
+
     """Create domain from bounding polygons and resolutions.
 
     Parameters
     ----------
     bounding_polygon : list of tuples
-        Points in Eastings and Northings, relative to the zone stated in 
-        poly_geo_reference if specified. Otherwise points are just x, y 
+        Points in Eastings and Northings, relative to the zone stated in
+        poly_geo_reference if specified. Otherwise points are just x, y
         coordinates with no particular association to any location.
     boundary_tags : dict
-        Symbolic tags where each key maps to a list of indices referring to 
-        segments associated with that tag. Omitted segments are assigned 
+        Symbolic tags where each key maps to a list of indices referring to
+        segments associated with that tag. Omitted segments are assigned
         the default tag ''.
     maximum_triangle_area : float, optional
-        Maximal area per triangle for the bounding polygon, excluding the 
+        Maximal area per triangle for the bounding polygon, excluding the
         interior regions.
     interior_regions : list of tuples, optional
-        List of (polygon, resolution) tuples for each region to be separately 
-        refined. Polygon lines must not cross or overlap, and polygons should 
-        not be close to each other. Interior regions outside the bounding_polygon 
+        List of (polygon, resolution) tuples for each region to be separately
+        refined. Polygon lines must not cross or overlap, and polygons should
+        not be close to each other. Interior regions outside the bounding_polygon
         will raise an error.
     interior_holes : list of polygons, optional
-        Polygons for each hole. These polygons do not need to be closed, but 
+        Polygons for each hole. These polygons do not need to be closed, but
         their points must be specified in counter-clockwise order.
     hole_tags : list of dict, optional
         List of tag segment dictionaries. Segments cannot share points.
     poly_geo_reference : GeoReference, optional
-        Geo-reference of the bounding polygon and interior polygons. If None, 
+        Geo-reference of the bounding polygon and interior polygons. If None,
         assume absolute coordinates.
     mesh_geo_reference : GeoReference, optional
-        Geo-reference of the mesh to be created. If None, one will be 
-        automatically generated using the lower left corner of bounding_polygon 
+        Geo-reference of the mesh to be created. If None, one will be
+        automatically generated using the lower left corner of bounding_polygon
         as the x and y values.
     breaklines : list of polygons, optional
-        Lines to be preserved by the triangulation algorithm (e.g., coastlines, 
+        Lines to be preserved by the triangulation algorithm (e.g., coastlines,
         walls). Polygons are not closed.
     regionPtArea : list of 3-tuples, optional
         Points with maximum area for the region containing each point.
     minimum_triangle_angle : float, optional
         Minimum triangle angle in degrees (default: 28.0).
     fail_if_polygons_outside : bool, optional
-        If True (default), raise an Exception when interior polygons fall 
+        If True (default), raise an Exception when interior polygons fall
         outside the bounding polygon. If False, ignore and continue.
     use_cache : bool, optional
         Whether to use caching (default: False).
     verbose : bool, optional
         Output information (default: False).
+    size_field : Size_field or callable, optional
+        Target triangle area as a function of position, applied as well as
+        the maximum areas above: a triangle is refined if its area exceeds
+        the field at its centroid. Either an :class:`anuga.Size_field`
+        (see :func:`anuga.size_field_from_regions`) or a callable
+        ``f(x, y) -> maximum area`` taking absolute coordinates. Unlike
+        interior regions it adds no segments to the mesh. Needs meshpy.
+    relax_passes : int, optional
+        If positive, follow the triangulation with up to this many passes of
+        worst-cell relaxation, which moves the vertices of the smallest
+        cells to enlarge them and so lengthen the timestep (default: 0).
+        See :meth:`anuga.pmesh.mesh.Pmesh.relax_worst_cells`.
 
     Returns
     -------
@@ -349,7 +383,7 @@ def create_domain_from_regions(bounding_polygon,
 
     Notes
     -----
-    Interior regions should be fully nested, as overlaps may cause unintended 
+    Interior regions should be fully nested, as overlaps may cause unintended
     resolutions.
     """
 
@@ -357,12 +391,12 @@ def create_domain_from_regions(bounding_polygon,
     # Build arguments and keyword arguments for use with caching or apply.
     args = (bounding_polygon,
             boundary_tags)
-    
+
     # if mesh_filename is None:
     #     import tempfile
     #     import time
     #     mesh_filename = 'mesh_%d.msh'%int(time.time())
-    
+
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
               'interior_regions': interior_regions,
               'interior_holes': interior_holes,
@@ -373,11 +407,13 @@ def create_domain_from_regions(bounding_polygon,
               'regionPtArea' : regionPtArea,
               'minimum_triangle_angle': minimum_triangle_angle,
               'fail_if_polygons_outside': fail_if_polygons_outside,
-              'verbose': verbose} #FIXME (Ole): See ticket:14
+              'verbose': verbose,
+              'size_field': size_field,
+              'relax_passes': relax_passes} #FIXME (Ole): See ticket:14
 
     # Call underlying engine with or without caching
 
-    # FIXME SR: The _create_domain_from_regions function creates a mesh file which is then read in to 
+    # FIXME SR: The _create_domain_from_regions function creates a mesh file which is then read in to
     # create the domain. It would make sense to take the created pmesh Mesh and then convert it to an anuga.Mesh
     # and use that to create the domain.
     if use_cache is True:
@@ -398,10 +434,10 @@ def create_domain_from_regions(bounding_polygon,
 
     return domain
 
-        
+
 def _create_domain_from_regions(bounding_polygon,
                                 boundary_tags,
-                                maximum_triangle_area=None,                         
+                                maximum_triangle_area=None,
                                 interior_regions=None,
                                 interior_holes=None,
                                 hole_tags=None,
@@ -411,7 +447,9 @@ def _create_domain_from_regions(bounding_polygon,
                                 regionPtArea=None,
                                 minimum_triangle_angle=28.0,
                                 fail_if_polygons_outside=True,
-                                verbose=True):
+                                verbose=True,
+                                size_field=None,
+                                relax_passes=0):
     """_create_domain_from_regions - internal function.
 
     See create_domain_from_regions for documentation.
@@ -419,7 +457,7 @@ def _create_domain_from_regions(bounding_polygon,
 
     #from anuga.shallow_water.shallow_water_domain import Domain
     from anuga.pmesh.mesh_interface import create_pmesh_from_regions
-    
+
     pmesh = create_pmesh_from_regions(bounding_polygon,
                              boundary_tags,
                              maximum_triangle_area=maximum_triangle_area,
@@ -433,7 +471,9 @@ def _create_domain_from_regions(bounding_polygon,
                              minimum_triangle_angle=minimum_triangle_angle,
                              fail_if_polygons_outside=fail_if_polygons_outside,
                              use_cache=False,
-                             verbose=verbose)
+                             verbose=verbose,
+                             size_field=size_field,
+                             relax_passes=relax_passes)
 
     mesh = pmesh_to_mesh(pmesh)
 

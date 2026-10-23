@@ -63,7 +63,7 @@ class Parallel_domain(Domain):
         #LINDA:
         # moved the calculation so that it is done after timestep
         # has been broadcast
-        
+
 #        # Calculate local timestep
 #        Domain.update_timestep(self, yieldstep, finaltime)
 
@@ -79,22 +79,22 @@ class Parallel_domain(Domain):
         #ltimestep = self.flux_timeste
 
         #print self.processor, ltimestep, gtimestep
-        
+
         gtimestep = pypar.reduce(ltimestep, pypar.MIN, 0, buffer=gtimestep)
 
         #print self.processor, ltimestep, gtimestep
-        
+
         pypar.broadcast(gtimestep,0)
 
         #print self.processor, ltimestep, gtimestep
 
         self.flux_timestep = gtimestep[0]
-        
+
         self.communication_reduce_time += time.time()-t0
 
         # LINDA:
         # Now update time stats
-        
+
         # Calculate local timestep
         Domain.update_timestep(self, yieldstep, finaltime)
 

@@ -7,7 +7,7 @@ Gareth Davies, Geoscience Australia 2014+
 """
 
 def setup_riverwalls(domain, project):
-    
+
     # #########################################################################
     #
     # Add Riverwalls [ must happen after distribute(domain) in parallel ]

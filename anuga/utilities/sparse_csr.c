@@ -6,8 +6,11 @@ static void *emalloc(size_t amt, char * location)
 {
     void *v = malloc(amt);  
     if(!v){
-        fprintf(stderr, "out of mem in quad_tree: %s\n",location);
-        exit(EXIT_FAILURE);
+        /* Report and return NULL; callers propagate the failure up to the
+           Cython layer, which raises MemoryError. exit() here used to kill
+           the whole interpreter and every MPI rank. */
+        fprintf(stderr, "out of mem in %s: %s\n", __FILE__, location);
+        return NULL;
     }
     return v;
 };
@@ -18,6 +21,7 @@ static void *emalloc(size_t amt, char * location)
 sparse_csr * make_csr(){
 
     sparse_csr * ret = emalloc(sizeof(sparse_csr),"make_csr");
+    if (!ret) return NULL;
     ret->data=NULL;
 	ret->colind=NULL;
 	ret->row_ptr=NULL;

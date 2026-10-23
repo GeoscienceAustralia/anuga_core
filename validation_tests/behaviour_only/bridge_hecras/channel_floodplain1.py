@@ -15,6 +15,7 @@ from anuga import distribute, myid, numprocs, finalize, barrier
 args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
+debug = args.debug
 
 #------------------------------------------------------------------------------
 # Useful parameters for controlling this case
@@ -72,7 +73,7 @@ regionPtAreas=[ [0.01, 0.01, 0.5*l0*l0*4], # lower-left
 
 if(myid==0):
     # Define domain with appropriate boundary conditions
-    anuga.create_mesh_from_regions(boundary_polygon, 
+    pmesh = anuga.create_pmesh_from_regions(boundary_polygon, 
                                    boundary_tags={'left': [0],
                                                   'top1': [1],
                                                   'chan_out': [2],
@@ -83,12 +84,12 @@ if(myid==0):
                                                   'bottom2': [7] },
                                    maximum_triangle_area = 1.0e+06, #0.5*l0*l0,
                                    minimum_triangle_angle = 28.0,
-                                   filename = 'channel_floodplain1.msh',
                                    interior_regions = [ ],
                                    breaklines=breakLines.values(),
                                    regionPtArea=regionPtAreas,
                                    verbose=verbose)
-    domain=anuga.create_domain_from_file('channel_floodplain1.msh')
+    #domain=anuga.create_domain_from_file('channel_floodplain1.msh')
+    domain = anuga.Domain(pmesh)
     domain.set_name('channel_floodplain1') # Output name
     domain.set_flow_algorithm(alg)
 else:
@@ -230,7 +231,7 @@ save_parameters_tex(domain)
 #------------------------------------------------------------------------------
 for t in domain.evolve(yieldstep=10.0, 
                        finaltime=dtQdata * (len(Qdata) - 2)):
-    if(myid==0 & verbose):
+    if(myid==0 and verbose):
         print(domain.timestepping_statistics())
 
 domain.sww_merge(delete_old=True)

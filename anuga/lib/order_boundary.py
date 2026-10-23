@@ -77,7 +77,7 @@ def order_boundary(infile, outfile):
         return ordered
 
     # read file into list of tuples, convert first 2 fields to floats.
-    fd = open(infile, 'r')
+    fd = open(infile)
     data = []
     for row in csv.reader(fd):
         try:

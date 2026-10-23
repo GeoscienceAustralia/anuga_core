@@ -31,7 +31,7 @@ cdef extern from "sparse_dok.c":
 		int64_t num_rows
 	void delete_dok_matrix(sparse_dok* mat)
 	void sort_by_key(sparse_dok* hashtable)
-	void add_dok_entry(sparse_dok* edgetable, edge_key_t key, double value)
+	int64_t add_dok_entry(sparse_dok* edgetable, edge_key_t key, double value)
 	sparse_dok* make_dok()
 
 cdef delete_dok_cap(object cap):
@@ -50,7 +50,7 @@ cdef int64_t _serialise(sparse_dok* dok, dict serial_dok):
 	num_entries = dok.num_entries
 	edge = dok.edgetable
 
-	for k in xrange(num_entries):
+	for k in range(num_entries):
 
 		i = edge.key.i
 		j = edge.key.j
@@ -84,7 +84,8 @@ cdef int64_t _deserialise(sparse_dok* dok, dict serial_dok):
 		key.i = i
 		key.j = j
 
-		add_dok_entry(dok, key, val)
+		if add_dok_entry(dok, key, val) != 0:
+			return -1
 
 	return 0
 
@@ -110,7 +111,12 @@ def deserialise_dok(dict serial_sparse_dok):
 	cdef sparse_dok* dok
 
 	dok = make_dok()
+	if dok == NULL:
+		raise MemoryError("deserialise_dok: could not allocate the sparse matrix")
 
 	err = _deserialise(dok, serial_sparse_dok)
+	if err != 0:
+		delete_dok_matrix(dok)
+		raise MemoryError("deserialise_dok: could not allocate a sparse matrix entry")
 
 	return PyCapsule_New(<void* > dok, "sparse dok", <PyCapsule_Destructor> delete_dok_cap)

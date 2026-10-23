@@ -31,12 +31,12 @@ class Test_Quad(unittest.TestCase):
         h = [30, 30]
 
         points = [a, b, c, d, e, f, g, h]
-        
+
         #bac, bce, ecf, dbe, daf, dae
         vertices = [[1,0,2], [1,3,4], [1,2,3], [5,4,7], [4,6,7]]
 
         mesh = Mesh(points, vertices)
-    
+
         Q = MeshQuadtree(mesh)
         #Q.show()
         #print Q.count()
@@ -45,10 +45,10 @@ class Test_Quad(unittest.TestCase):
         # test a point that falls within a triangle
         result = Q.search([10, 10])
         assert isinstance(result, (list, tuple)), 'should be a list'
-         
-        # Padarn Note: The result of Q.search is no longer in 
-        # the same format, and so this test fails. However, the 
-        # old functionality does not seem to be needed.                    
+
+        # Padarn Note: The result of Q.search is no longer in
+        # the same format, and so this test fails. However, the
+        # old functionality does not seem to be needed.
         #self.assertEqual(result[0][0][0], 1)
 
 
@@ -69,11 +69,11 @@ class Test_Quad(unittest.TestCase):
 
         #This was causing round off error
         Q = MeshQuadtree(mesh)
-        
+
     def NOtest_interpolate_one_point_many_triangles(self):
         # this test has 10 triangles that share the same vert.
         # If the number of points per cell in  a quad tree is less
-        # than 10 it should crash 
+        # than 10 it should crash
         z0 = [2.0, 5.0]
         z1 = [2.0, 5.0]
         z2 = [2.0, 5.0]
@@ -85,7 +85,7 @@ class Test_Quad(unittest.TestCase):
         z8 = [2.0, 5.0]
         z9 = [2.0, 5.0]
         z10 = [2.0, 5.0]
-        
+
         v0 = [0.0, 0.0]
         v1 = [1.0, 0.0]
         v2 = [2.0, 0.0]
@@ -111,7 +111,7 @@ class Test_Quad(unittest.TestCase):
                       [6,1,19],
                       [5,10,0]
                       ]
-        
+
         mesh = Mesh(vertices, triangles)
         try:
             Q = MeshQuadtree(mesh, max_points_per_cell = 9)
@@ -120,7 +120,7 @@ class Test_Quad(unittest.TestCase):
         else:
             self.assertTrue(0 ==1,  'many verts at the same position no  \
             longer causes as error')
-    
+
     def test_retrieve_triangles(self):
 
         cell = Cell(AABB(0, 6, 0, 6), 'cell')
@@ -139,15 +139,15 @@ class Test_Quad(unittest.TestCase):
 
         Q = MeshQuadtree(mesh)
         results = Q.search([4.5, 3])
-        # Padarn Note: The result of Q.search is no longer in 
-        # the same format, and so this test fails. However, the 
-        # old functionality does not seem to be needed. 
+        # Padarn Note: The result of Q.search is no longer in
+        # the same format, and so this test fails. However, the
+        # old functionality does not seem to be needed.
         #assert len(results) == 1
         #self.assertEqual(results[0][0][0], 2)
         #results = Q.search([5,4.])
         #self.assertEqual(len(results),1)
         #self.assertEqual(results[0][0][0], 2)
-        
+
     def NOtest_num_visits(self):
         """ Test optimisation code.
         """
@@ -161,25 +161,25 @@ class Test_Quad(unittest.TestCase):
         h = [30, 30]
 
         points = [a, b, c, d, e, f, g, h]
-        
+
         #bac, bce, ecf, dbe, daf, dae
         vertices = [[1,0,2], [1,3,4], [1,2,3], [5,4,7], [4,6,7]]
 
         mesh = Mesh(points, vertices)
 
-        Q = MeshQuadtree(mesh)    
+        Q = MeshQuadtree(mesh)
 
 
         results = Q.search_fast([5.5, 5.5])
         print('visits: ', Q.count_visits())
-        
+
         Q.clear_visits()
         results = Q.search_fast([30, 10])
         print('visits: ', Q.count_visits())
-        
+
         print('second time:')
 
-        Q.clear_visits()        
+        Q.clear_visits()
         results = Q.search_fast([5.5, 5.5])
         print('visits: ', Q.count_visits())
 ################################################################################

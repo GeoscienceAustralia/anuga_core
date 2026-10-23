@@ -2,12 +2,16 @@
 
 // **************** UTILITIES ***********************
 
+/* malloc that reports where it failed and returns NULL. It used to call
+   exit(EXIT_FAILURE), which took the whole Python interpreter (and every
+   MPI rank) down with it; callers now propagate NULL / -1 up to the Cython
+   layer, which raises MemoryError. */
 static void *emalloc(size_t amt,char * location)
 {
     void *v = malloc(amt);  
     if(!v){
         fprintf(stderr, "out of mem in quad_tree: %s\n",location);
-        exit(EXIT_FAILURE);
+        return NULL;
     }
     return v;
 }
@@ -27,6 +31,7 @@ triangle * new_triangle(anuga_int index,double x1,double y1,double x2,double y2,
 {
 
 	triangle * T = emalloc(sizeof(triangle),"new_triangle"); 
+	if (!T) return NULL;
 	 
 	T->index = index;
 	T->x1 = x1; T->x2 = x2; T->x3 = x3;
@@ -79,19 +84,17 @@ void delete_triangle_list(triangle * T)
   }
 }
 
-double * calculate_sigma(triangle * T,double x,double y)
+void calculate_sigma(triangle * T,double x,double y,double sigma[3])
 {
-
-
-	// FIXME SR: Should remove this malloc and just pass a pointer to array
-	double  * ret_sigma = malloc(3 * sizeof(double));
-	ret_sigma[0] = dot_points(x - T->x2, y - T->y2, T->nx1, T->ny1)/
+	/* Barycentric weights of (x, y) in T, written into the caller's array.
+	   This used to malloc a 3-double array per call, inside the OpenMP
+	   fitting loop, and every caller freed it straight after use. */
+	sigma[0] = dot_points(x - T->x2, y - T->y2, T->nx1, T->ny1)/
 					dot_points(T->x1 - T->x2, T->y1 - T->y2, T->nx1, T->ny1);
-	ret_sigma[1] = dot_points(x - T->x3, y - T->y3, T->nx2, T->ny2)/
+	sigma[1] = dot_points(x - T->x3, y - T->y3, T->nx2, T->ny2)/
 					dot_points(T->x2 - T->x3, T->y2 - T->y3, T->nx2, T->ny2);
-	ret_sigma[2] = dot_points(x - T->x1, y - T->y1, T->nx3, T->ny3)/
+	sigma[2] = dot_points(x - T->x1, y - T->y1, T->nx3, T->ny3)/
 					dot_points(T->x3 - T->x1, T->y3 - T->y1, T->nx3, T->ny3);
-	return ret_sigma;				
 }
 
 double dist(double x,
@@ -303,6 +306,7 @@ quad_tree * new_quad_tree(double xmin, double xmax, double ymin, double ymax)
 {
 
 	quad_tree * ret = emalloc(sizeof(quad_tree),"new_quad_tree");
+	if (!ret) return NULL;
 	ret -> xmin = xmin; ret-> xmax = xmax; 
 	ret -> ymin = ymin; ret -> ymax = ymax;
 	ret -> parent = NULL;
@@ -322,6 +326,8 @@ void delete_quad_tree(quad_tree * quadtree)
   quad_tree_ll * temp;
   anuga_int i;
 
+  if (!nodelist) return;  // OOM: cannot walk the tree; leak rather than crash
+
   while(nodelist !=NULL){
       
       quadtree=nodelist->tree;
@@ -330,6 +336,7 @@ void delete_quad_tree(quad_tree * quadtree)
       if (quadtree->q[0]!=NULL){
           for (i=0;i<4;i++){
               quad_tree_ll * child = new_quad_tree_ll(quadtree->q[i],0);
+              if (!child) continue;  // OOM while freeing: that subtree leaks, nothing better to do
               last->next=child;
               last=child;
           }
@@ -349,7 +356,7 @@ void delete_quad_tree(quad_tree * quadtree)
 
 }
 
-void quad_tree_make_children(quad_tree *node){
+anuga_int quad_tree_make_children(quad_tree *node){
 
   //double xmid = (node->xmin+node->xmax)/2;
   //double ymid = (node->ymin+node->ymax)/2;
@@ -358,18 +365,22 @@ void quad_tree_make_children(quad_tree *node){
   // add quads 1-4
   // include border expansion
   double border=0.55;
+  anuga_int i;
   node->q[0] = new_quad_tree(node->xmax-width*border,node->xmax,node->ymax-height*border,node->ymax);
-  node->q[0]->parent = node; 
-  
   node->q[1] = new_quad_tree(node->xmin,node->xmin+width*border,node->ymax-height*border,node->ymax);
-  node->q[1]->parent = node; 
-  
   node->q[2] = new_quad_tree(node->xmin,node->xmin+width*border,node->ymin,node->ymin+height*border);
-  node->q[2]->parent = node; 
-  
   node->q[3] = new_quad_tree(node->xmax-width*border,node->xmax,node->ymin,node->ymin+height*border);
-  node->q[3]->parent = node; 
 
+  if (!node->q[0] || !node->q[1] || !node->q[2] || !node->q[3]) {
+    // Leave the node childless again so it is still a valid tree.
+    for (i=0;i<4;i++){
+      free(node->q[i]);   // fresh nodes: no leaves, nothing else to release
+      node->q[i] = NULL;
+    }
+    return -1;
+  }
+  for (i=0;i<4;i++) node->q[i]->parent = node;
+  return 0;
 }
 
 void quad_tree_add_triangle_to_list(quad_tree *node,triangle *T){
@@ -385,7 +396,7 @@ void quad_tree_add_triangle_to_list(quad_tree *node,triangle *T){
 
 }
 
-void quad_tree_insert_triangle(quad_tree *node,triangle *T)
+anuga_int quad_tree_insert_triangle(quad_tree *node,triangle *T)
 {
 	
 	// find the quadrant of the current node's extents in which the
@@ -393,25 +404,20 @@ void quad_tree_insert_triangle(quad_tree *node,triangle *T)
 
 	anuga_int quad = trivial_contain_split(node,T);
 
-  // always increase point count, as storing the total in tree below
-  node->count+=1;
-
 	if (quad != 0){
 		// if current node has no children yet, split:
 		if(node->q[0] == NULL){
-			
-			quad_tree_make_children(node); 
-			
+			if (quad_tree_make_children(node) != 0) return -1;  // T not inserted
 	    }
 	    // insert triangle into node corresponding to given quadrant
-	   	quad_tree_insert_triangle(node->q[quad-1],T);
-		return;
-		
+	    node->count+=1;
+	   	return quad_tree_insert_triangle(node->q[quad-1],T);
 	}
 	// if triangle intersects the center axes of the node's extents, insert
 	// the triangle here
+	node->count+=1;
 	quad_tree_add_triangle_to_list(node,T);
-
+	return 0;
 }
 
 
@@ -514,6 +520,7 @@ anuga_int quad_tree_node_count(quad_tree * tree)
 
 quad_tree_ll * new_quad_tree_ll(quad_tree * start,anuga_int index){
     quad_tree_ll * list = malloc(sizeof(quad_tree_ll));
+    if (!list) return NULL;
     list->tree = start;
     list->next = NULL;
     list->index = index;
@@ -526,6 +533,7 @@ quad_tree_ll * new_quad_tree_ll(quad_tree * start,anuga_int index){
 
 queue_ll * new_queue_ll(anuga_int node){
     queue_ll * list = malloc(sizeof(queue_ll));
+    if (!list) return NULL;
     list->node=node;
     list->next = NULL;
     return list;

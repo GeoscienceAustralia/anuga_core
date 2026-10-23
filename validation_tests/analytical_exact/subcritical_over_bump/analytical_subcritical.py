@@ -32,7 +32,7 @@ def analytic_sol(x):
     h = zeros(len(x))
     for i in range(len(x)):
         zb = z[i]
-        h[i] = fsolve(find_hL, 2.0)
+        h[i] = fsolve(find_hL, 2.0)[0]
     return h,z
 
 ##N = 401

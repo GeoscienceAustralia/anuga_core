@@ -5,7 +5,7 @@ being made in a task.
 """
 from tkinter import *
 
-class ProgressBar(object):
+class ProgressBar:
     def __init__(self, master=None, orientation="horizontal",
                  min=0, max=100, width=100, height=18,
                  doLabel=1, appearance="sunken",

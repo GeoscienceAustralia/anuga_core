@@ -392,6 +392,23 @@ class Test_CG_Solve(unittest.TestCase):
 
         assert num.allclose(x, xe)
 
+    def test_breakdown_on_singular_matrix_using_c_ext(self):
+        """A singular matrix makes d'Ad vanish; the C solver must report
+        it rather than divide by zero and return NaN."""
+
+        A = [[1.0, 1.0],
+             [1.0, 1.0]]
+        A = Sparse_CSR(Sparse(A))
+        b = num.array([1.0, -1.0])
+
+        for precon in (None, 'Jacobi'):
+            try:
+                conjugate_gradient(A, b, use_c_cg=True, precon=precon)
+            except ConvergenceError as e:
+                assert 'broke down' in str(e), str(e)
+            else:
+                raise Exception('Should have raised ConvergenceError')
+
     def test_max_iter_using_c_ext_with_jacobi(self):
         """Test max iteration Small Sparse Matrix"""
 
@@ -547,6 +564,33 @@ class Test_CG_Solve(unittest.TestCase):
             A, b, x, iprint=0, use_c_cg=True, precon='Jacobi')
 
         assert num.allclose(x, xe)
+
+class Test_CG_Solve_extra(unittest.TestCase):
+    """Cover previously uncovered lines in cg_solve.py."""
+
+    def test_stats_str(self):
+        """Stats.__str__ covers lines 35-37."""
+        from anuga.utilities.cg_solve import Stats
+        s = Stats()
+        s.iter = 1; s.rTr = 0.5; s.x = 1.0; s.dx = 0.01; s.rTr0 = 1.0; s.x0 = 0.0
+        result = str(s)
+        self.assertIn('iter', result)
+
+    def test_conjugate_gradient_output_stats(self):
+        """conjugate_gradient with output_stats=True covers line 137."""
+        A = Sparse([[4.0, 0.0], [0.0, 2.0]])
+        b = num.array([8.0, 4.0])
+        x0 = num.zeros(2)
+        x, stats = conjugate_gradient(A, b, x0=x0, output_stats=True)
+        assert num.allclose(x, [2.0, 2.0])
+
+    def test_conjugate_gradient_x0_none(self):
+        """_conjugate_gradient with x0=None covers line 169."""
+        A = Sparse([[4.0, 0.0], [0.0, 2.0]])
+        b = num.array([8.0, 4.0])
+        x, stats = _conjugate_gradient(A, b, None)
+        assert num.allclose(x, [2.0, 2.0])
+
 
 ################################################################################
 

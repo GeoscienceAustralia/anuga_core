@@ -10,7 +10,7 @@ import os
 import numpy as num
 
 # ANUGA modules
-from anuga.abstract_2d_finite_volumes.util import remove_lone_verts     
+from anuga.abstract_2d_finite_volumes.util import remove_lone_verts
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.utilities.system_tools import get_vars_in_expression
 import anuga.utilities.log as log
@@ -79,9 +79,9 @@ def sww2dem(name_in, name_out,
     an expression involving existing quantities. The default is
     'elevation'. Quantity is not a list of quantities.
 
-    If reduction is given and it's an index, sww2dem will output the quantity at that time-step. 
-    If reduction is given and it's a built in function (eg max, min, mean), then that 
-    function is used to reduce the quantity over all time-steps. If reduction is not given, 
+    If reduction is given and it's an index, sww2dem will output the quantity at that time-step.
+    If reduction is given and it's a built in function (eg max, min, mean), then that
+    function is used to reduce the quantity over all time-steps. If reduction is not given,
     reduction is set to "max" by default.
 
     datum
@@ -103,10 +103,10 @@ def sww2dem(name_in, name_out,
     out_ext = out_ext.lower()
 
     if in_ext != '.sww':
-        raise IOError('Input format for %s must be .sww' % name_in)
+        raise OSError('Input format for %s must be .sww' % name_in)
 
     if out_ext not in ['.asc', '.ers']:
-        raise IOError('Format for %s must be either asc or ers.' % name_out)
+        raise OSError('Format for %s must be either asc or ers.' % name_out)
 
 
 
@@ -114,7 +114,7 @@ def sww2dem(name_in, name_out,
 
     if quantity is None:
         quantity = 'elevation'
-    
+
     if reduction is None:
         reduction = max
 
@@ -133,8 +133,8 @@ def sww2dem(name_in, name_out,
     # Read sww file
     # ---------------------------------------------------------
     if verbose:
-        log.critical('Reading from %s' % name_in)
-        log.critical('Output directory is %s' % name_out)
+        log.info('Reading from %s' % name_in)
+        log.info('Output directory is %s' % name_out)
 
     from anuga.file.netcdf import NetCDFFile
     fid = NetCDFFile(name_in)
@@ -183,37 +183,37 @@ def sww2dem(name_in, name_out,
     # (in interpolate.py)
     # Something like print swwstats(swwname)
     if verbose:
-        log.critical('------------------------------------------------')
-        log.critical('Statistics of SWW file:')
-        log.critical('  Name: %s' % name_in)
-        log.critical('  Reference:')
-        log.critical('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
+        log.info('------------------------------------------------')
+        log.info('Statistics of SWW file:')
+        log.info('  Name: %s' % name_in)
+        log.info('  Reference:')
+        log.info('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
         if type(reduction) is not types.BuiltinFunctionType:
-            log.critical('    Time: %f' % times)
+            log.info('    Time: %f' % times)
         else:
-            log.critical('    Start time: %f' % fid.starttime)
-        log.critical('  Extent:')
-        log.critical('    x [m] in [%f, %f], len(x) == %d'
+            log.info('    Start time: %f' % fid.starttime)
+        log.info('  Extent:')
+        log.info('    x [m] in [%f, %f], len(x) == %d'
                      %(num.min(x), num.max(x), len(x.flat)))
-        log.critical('    y [m] in [%f, %f], len(y) == %d'
+        log.info('    y [m] in [%f, %f], len(y) == %d'
                      % (num.min(y), num.max(y), len(y.flat)))
         if type(reduction) is not types.BuiltinFunctionType:
-            log.critical('    t [s] = %f, len(t) == %d' % (times, 1))
+            log.info('    t [s] = %f, len(t) == %d' % (times, 1))
         else:
-            log.critical('    t [s] in [%f, %f], len(t) == %d'
+            log.info('    t [s] in [%f, %f], len(t) == %d'
                          % (min(times), max(times), len(times)))
-        log.critical('  Quantities [SI units]:')
-        
+        log.info('  Quantities [SI units]:')
+
         # Comment out for reduced memory consumption
         for name in ['stage', 'xmomentum', 'ymomentum']:
             q = fid.variables[name][:].flatten()
             if type(reduction) is not types.BuiltinFunctionType:
                 q = q[reduction*len(x):(reduction+1)*len(x)]
-            if verbose: log.critical('    %s in [%f, %f]'
+            if verbose: log.info('    %s in [%f, %f]'
                                      % (name, min(q), max(q)))
         for name in ['elevation']:
             q = fid.variables[name][:].flatten()
-            if verbose: log.critical('    %s in [%f, %f]'
+            if verbose: log.info('    %s in [%f, %f]'
                                      % (name, min(q), max(q)))
 
     # Get the variables in the supplied expression.
@@ -240,12 +240,12 @@ def sww2dem(name_in, name_out,
     if verbose:
         msg = 'Slicing sww file, num points: ' + str(number_of_points)
         msg += ', block size: ' + str(block_size)
-        log.critical(msg)
+        log.info(msg)
 
     for start_slice in range(0, number_of_points, block_size):
         # Limit slice size to array end if at last block
         end_slice = min(start_slice + block_size, number_of_points)
-        
+
         # Get slices of all required variables
         q_dict = {}
         for name in var_list:
@@ -268,13 +268,13 @@ def sww2dem(name_in, name_out,
             res = new_res
 
         result[start_slice:end_slice] = res
-                                    
+
     # Post condition: Now q has dimension: number_of_points
     assert len(result.shape) == 1
     assert result.shape[0] == number_of_points
 
     if verbose:
-        log.critical('Processed values for %s are in [%f, %f]'
+        log.info('Processed values for %s are in [%f, %f]'
                      % (quantity, min(result), max(result)))
 
     # Create grid and update xll/yll corner and x,y
@@ -307,7 +307,7 @@ def sww2dem(name_in, name_out,
     msg += 'I got ymin = %f, ymax = %f' %(ymin, ymax)
     assert ymax >= ymin, msg
 
-    if verbose: log.critical(u'Creating grid')
+    if verbose: log.info('Creating grid')
     ncols = int((xmax-xmin)/cellsize) + 1
     nrows = int((ymax-ymin)/cellsize) + 1
 
@@ -359,7 +359,7 @@ def sww2dem(name_in, name_out,
         interp = Interpolate(vertex_points, volumes, verbose = verbose)
 
         # Interpolate using quantity values
-        if verbose: log.critical('Interpolating')
+        if verbose: log.info('Interpolating')
         grid_values[:] = interp.interpolate(result, grid_points,
                                          NODATA_value= NODATA_value,
                                          verbose=verbose).flatten()
@@ -384,11 +384,11 @@ def sww2dem(name_in, name_out,
     #print outside_indices
 
     if verbose:
-        log.critical('Interpolated values are in [%f, %f]'
+        log.info('Interpolated values are in [%f, %f]'
                      % (num.min(grid_values), num.max(grid_values)))
 
     # Assign NODATA_value to all points outside bounding polygon (from interpolation mesh)
-    
+
 #    P = interp.mesh.get_boundary_polygon()
 #    outside_indices = outside_polygon(grid_points, P, closed=True)
 
@@ -475,8 +475,8 @@ def sww2dem(name_in, name_out,
             slice = grid_values[base_index:base_index+ncols]
 
             num.savetxt(ascid, slice.reshape(1,ncols), format, ' ' )
-            
-        
+
+
         #Close
         ascid.close()
         fid.close()
@@ -559,7 +559,7 @@ def sww2dem_batch(basename_in, extra_name_out=None,
                                verbose,
                                origin,
                                datum)
-                               
+
             files_out.append(file_out)
     return files_out
 

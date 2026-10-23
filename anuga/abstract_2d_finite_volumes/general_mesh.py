@@ -84,7 +84,7 @@ class General_mesh:
 
         self.verbose = verbose
 
-        if verbose: log.critical('General_mesh: Building basic mesh structure')
+        if verbose: log.info('General_mesh: Building basic mesh structure')
 
         self.use_inscribed_circle = use_inscribed_circle
 
@@ -146,7 +146,7 @@ class General_mesh:
 
         # Initialise each triangle
         if verbose:
-            log.critical('General_mesh: Computing areas, normals, '
+            log.info('General_mesh: Computing areas, normals, '
                          'edgelengths, centroids and radii')
 
 
@@ -275,7 +275,7 @@ class General_mesh:
 
 
         # Build structure listing which triangles belong to which node.
-        if verbose: log.critical('General_mesh: Building inverted triangle structure')
+        if verbose: log.info('General_mesh: Building inverted triangle structure')
         self.build_inverted_triangle_structure()
 
         if verbose: log.timingInfo("aoi, '%s'" % self.get_area())
@@ -596,7 +596,7 @@ class General_mesh:
         # could be easily sped up many fold.
         #
         # Have we profiled it? (Ole 31/5/2020)
-        
+
     def get_triangles_and_vertices_per_node(self, node=None):
         """Get triangles associated with given node.
 
@@ -620,9 +620,9 @@ class General_mesh:
 
                 # FIXME(Ole): This must be floor division ('//')
                 # However, tests pass either way. Need to update tests.
-                volume_id = index // 3  
+                volume_id = index // 3
                 #print('volume_id', volume_id, index)
-                
+
                 vertex_id = index % 3
 
                 triangle_list.append( (volume_id, vertex_id) )

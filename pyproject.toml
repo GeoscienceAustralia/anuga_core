@@ -20,7 +20,7 @@ license = "Apache-2.0"
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
-requires-python = ">=3.10, <3.15"
+requires-python = ">=3.10, <3.16"
 dependencies = [
     'numpy>=2.0.0',
     'dill>=0.3.7',
@@ -28,6 +28,7 @@ dependencies = [
     'netCDF4>=1.6',
     'scipy>=1.11',
     'meshpy>=2022.1',
+    'pymetis>=2023.1',
     'pyproj>=3.6',
     'xarray',
 ]
@@ -48,12 +49,12 @@ classifiers = [
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
     'Programming Language :: Python :: 3.14',
+    'Programming Language :: Python :: 3.15',
 ]
 
 [project.optional-dependencies]
 parallel = [
     'mpi4py',
-    'pymetis>=2023.1',
 ]
 data = [
     'rasterio',
@@ -64,8 +65,14 @@ data = [
     'openpyxl',
     'tomli; python_version < "3.11"',
 ]
+gui = [
+    'contextily>=1.3',
+    'Pillow>=9.0',
+]
 dev = [
     'pytest',
+    'pytest-cov',
+    'pytest-regressions',
     'psutil',
 ]
 
@@ -77,6 +84,46 @@ download      = "https://github.com/anuga-community/anuga_core/releases"
 tracker       = "https://github.com/anuga-community/anuga_core/issues"
 
 
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "UP"]
+ignore = [
+    # ── High-violation rules deferred for a dedicated cleanup pass ──
+    "E501",   # line too long (3002) — fix separately
+    "E402",   # module import not at top (331) — ANUGA uses conditional imports
+    "E701",   # multiple statements on one line (567)
+    "E702",   # statement ends with semicolon (97)
+    "E711",   # comparison to None (24) — some intentional
+    "E712",   # comparison to True/False (54)
+    "E721",   # type comparison (47)
+    "E731",   # lambda assignment (30)
+    "E741",   # ambiguous variable name (101) — mathematical names l, I, O
+    "W191",   # tab indentation (70) — legacy files
+    "E101",   # mixed tabs/spaces (legacy files)
+    "I001",   # import sort order (915) — too risky to bulk-change
+    "UP030",  # format literals (23)
+    "UP031",  # printf-style formatting (1830)
+    "UP032",  # f-string conversion (31)
+    "B006",   # mutable argument default (22) — main ones already fixed
+    "B007",   # unused loop control variable (368)
+    "B023",   # function uses loop variable (13)
+    "B028",   # no-explicit-stacklevel in warnings.warn (15)
+    "B904",   # raise without from inside except (147)
+    "B905",   # zip() without explicit strict= (103)
+    "F401",   # unused import (1705) — handled per-file
+    "F403",   # star import (57) — ANUGA uses * imports for domain API
+    "F405",   # may be from star import (1405)
+    "F811",   # redefined while unused (190) — some intentional
+    "F841",   # local variable assigned but never used (1034)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"anuga/__init__.py" = ["F401", "E401"]       # public re-exports
+"anuga/*/tests/test_*.py" = ["B017", "B018"] # assertRaises patterns in tests
+
 [tool.pytest.ini_options]
 minversion = '6.0'
 testpaths = [
@@ -84,5 +131,21 @@ testpaths = [
 ]
 markers = [
     "slow: marks tests as slow — omit --run-fast to include in the default run",
+]
+filterwarnings = [
+    # numpy.ndarray size-changed warning is a known side-effect of importing
+    # ANUGA's C extensions when numpy was compiled with a different ABI than
+    # the running numpy.  It is harmless and appears across the whole suite.
+    "ignore:numpy.ndarray size changed:RuntimeWarning",
+    # rasterio (<=1.5.0) still does `arr.shape = ...` internally, which NumPy 2.5
+    # deprecates; the warning is attributed to ANUGA's raster.read() call sites
+    # via stacklevel.  Not fixable in ANUGA — remove once rasterio ships a
+    # NumPy-2.5-compatible release.  (ANUGA's own .shape= assignments were
+    # converted to .reshape().)
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning",
+    # Small test meshes routinely put culvert enquiry points inside inlet
+    # triangles (EnquiryPointWarning). Expected there; the tests that check
+    # for it record it explicitly with simplefilter('always').
+    "ignore:Enquiry point is in an inlet triangle:UserWarning",
 ]
 

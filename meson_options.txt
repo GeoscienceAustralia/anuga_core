@@ -1,0 +1,23 @@
+# ANUGA build options
+
+# Use Intel MKL for BLAS/LAPACK (recommended when building with Intel compilers)
+option('use_mkl', type: 'boolean', value: false,
+       description: 'Link against Intel MKL for optimised BLAS/LAPACK (auto-enabled for Intel compilers)')
+
+# GPU offload - when true, targets GPU; when false, runs on CPU multicore
+option('gpu_offload', type: 'boolean', value: false,
+       description: 'Target GPU (true) or CPU multicore (false)')
+
+# GPU-aware MPI for direct device-to-device communication
+option('gpu_aware_mpi', type: 'boolean', value: false,
+       description: 'Enable GPU-aware MPI for direct device communication (requires GPU-aware MPI library)')
+
+# NVTX profiling hooks for Nsight Systems / Nsight Compute
+option('use_nvtx', type: 'boolean', value: false,
+       description: 'Add NVTX range markers around GPU kernels for nsys/ncu profiling (requires nvToolsExt)')
+
+# GPU architecture/compute capability
+# NVIDIA: cc70 (V100), cc80 (A100), cc90 (H100)
+# AMD: gfx908 (MI100), gfx90a (MI210/MI250), gfx942 (MI300X)
+option('gpu_arch', type: 'string', value: 'cc70',
+       description: 'GPU architecture: cc70 (V100), cc80 (A100), cc90 (H100), or AMD gfx* targets')

@@ -42,7 +42,7 @@ class Collect_max_stage_operator(Operator):
         #------------------------------------------
         self.stage  = domain.quantities['stage']
 
-        
+
 
     def __call__(self):
         """

@@ -29,8 +29,17 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--threads",
+    type=str,
+    default=None,
+    help="Comma-separated list of OMP_NUM_THREADS values to benchmark "
+         "(e.g. --threads 1,2,4,8,16). Overrides the PBS queue defaults "
+         "and the local default of 1,2,4."
+)
+
+parser.add_argument(
     "script_args",
-    type=str, 
+    type=str,
     default=" ",
     nargs=argparse.REMAINDER,
     help="Arguments for the benchmarked script")
@@ -80,7 +89,11 @@ if 'PBS_QUEUE' in os.environ:
         openmp_threads = [1, 2, 4, 6, 8, 12, 16, 24, 32, 48]
 else:
     queue = 'local'
-    openmp_threads = [1,2,4]
+    openmp_threads = [1, 2, 4]
+
+if args.threads is not None:
+    openmp_threads = [int(t.strip()) for t in args.threads.split(',')]
+    print(f"Using threads (from --threads): {openmp_threads}")
 
 print(f"Using queue: {queue}")
 

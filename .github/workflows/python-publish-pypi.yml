@@ -1,18 +1,57 @@
 # Build wheels on every push / PR for early feedback.
 # On a GitHub Release publish, build wheels then upload to PyPI.
+# On manual dispatch with publish_to=testpypi, upload to TestPyPI instead --
+# used for release candidates, which should never touch real PyPI.
 
 name: Build and Publish to PyPI
 
 on:
+  # develop omitted: the pull_request trigger below already builds every wheel
+  # against the merge result, so building them again on merge is 21 jobs for
+  # an answer we have. Publishing is gated on the release event regardless.
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main, develop]
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      publish_to:
+        description: 'Where to upload the built distributions'
+        type: choice
+        default: none
+        options:
+          - none          # build only, upload nothing (default: safe to run anytime)
+          - testpypi      # upload to TestPyPI (release candidates)
+      version:
+        description: 'Version for this build, e.g. 4.0.0rc1. Required when publish_to=testpypi. Empty = derive from git describe.'
+        type: string
+        default: ''
+
+# One run per ref: updating a branch supersedes the run already going for it,
+# rather than leaving both to finish for a result nobody will read. Applies to
+# an open PR getting a fixup and to a directly-worked branch getting a second
+# push alike.
+#
+# Two things are never cancelled, because there is no later run coming to
+# replace them: a push to main, and a release publish (whose ref is the tag,
+# not main, so it needs saying separately).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: >-
+    ${{ github.event_name != 'release' && github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
+
+# Overrides the version that meson derives from `git describe` (see
+# _git_version.py). Empty for push/PR/release events -- `inputs` is null there,
+# so this expands to '' and the normal git-describe path is used. Set only by a
+# manual dispatch, which is how a release candidate gets a real version
+# (4.0.0rc1) without putting an rc tag on develop.
+env:
+  ANUGA_VERSION: ${{ inputs.version }}
 
 jobs:
   # ---------------------------------------------------------------------------
@@ -26,18 +65,24 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
 
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0  # git describe needs full history for version
-
       - uses: conda-incubator/setup-miniconda@v4
         with:
           miniforge-version: latest
           use-mamba: true
-          python-version: ${{ matrix.python-version }}
+          # No python-version here. The action would create its own 'test' env
+          # from conda-forge alone, which cannot resolve a CPython release
+          # candidate: 3.15 failed with "_python_rc does not exist (perhaps a
+          # missing channel)" before any of our steps ran. Nothing uses that
+          # env -- every later step activates anuga_env, built below with the
+          # right channels -- so it is simply not asked for. This is what
+          # build-wheels-osx64 already does, and why it passed on 3.15 when
+          # these three did not.
           auto-update-conda: true
           conda-remove-defaults: true
 
@@ -51,7 +96,10 @@ jobs:
           # (GIL) build: python_abi uses the cp3XX tag consistently across
           # versions, so this excludes cp3XXt and is a no-op for 3.10-3.13.
           pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
-          conda create -n anuga_env -c conda-forge \
+          # conda-forge/label/python_rc carries the CPython release candidates
+          # (3.15 until it ships). It is empty of released versions, so listing
+          # it is a no-op for 3.10-3.14; drop it once 3.15 is final.
+          conda create -n anuga_env -c conda-forge/label/python_rc -c conda-forge \
             python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config
 
@@ -86,7 +134,12 @@ jobs:
           # 10 is self-consistent. Remove the block once admin-requests#2297 lands:
         #   conda-forge/m2w64-sysroot-feedstock#23
         run: |
-          conda install -c conda-forge -n anuga_env libpython gcc_win-64 gxx_win-64 \
+          # libpython deliberately omitted -- see #255 and the note in
+          # conda-setup.yml. It was a leftover from the m2w64-toolchain era,
+          # gcc_win-64 does not depend on it, and unpinned it resolved to a
+          # _cp314 build in every environment. This is the workflow that builds
+          # the released Windows wheels, so it matters here too.
+          conda install -c conda-forge -n anuga_env gcc_win-64 gxx_win-64 \
               "gcc_impl_win-64=16.1.0=h0942c35_2" \
               "gxx_impl_win-64=16.1.0=he3d2c83_2" \
               "m2w64-sysroot_win-64=*=*_10" \
@@ -132,10 +185,16 @@ jobs:
           done
           repairwheel "${libdirs[@]}" -o dist dist-wheel/*.whl
 
+      # 3.15 is built to prove it compiles, but NOT published: the wheel
+      # would be built against a release candidate. Its artifact is named
+      # outside the `wheel-*` pattern the publish jobs collect. Rename it
+      # back to wheel-py... once 3.15 is final.
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
-          name: wheel-py${{ matrix.python-version }}-${{ matrix.os }}
+          name: ${{ matrix.python-version == '3.15'
+                    && format('unpublished-py{0}-{1}', matrix.python-version, matrix.os)
+                    || format('wheel-py{0}-{1}', matrix.python-version, matrix.os) }}
           path: dist/*.whl
 
   # ---------------------------------------------------------------------------
@@ -152,7 +211,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
 
     steps:
       - uses: actions/checkout@v7
@@ -174,7 +233,8 @@ jobs:
         run: |
           # Pin the standard (GIL) CPython ABI (see build-wheels above).
           pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
-          CONDA_SUBDIR=osx-64 conda create -n anuga_env -c conda-forge \
+          CONDA_SUBDIR=osx-64 conda create -n anuga_env \
+            -c conda-forge/label/python_rc -c conda-forge \
             python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config compilers
           conda activate anuga_env
@@ -194,10 +254,14 @@ jobs:
           pip install repairwheel
           repairwheel -l "$CONDA_PREFIX/lib" -o dist dist-wheel/*.whl
 
+      # Built but not published while 3.15 is a release candidate; see the
+      # note on the build-wheels job above.
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
-          name: wheel-osx64-py${{ matrix.python-version }}
+          name: ${{ matrix.python-version == '3.15'
+                    && format('unpublished-osx64-py{0}', matrix.python-version)
+                    || format('wheel-osx64-py{0}', matrix.python-version) }}
           path: dist/*.whl
 
   # ---------------------------------------------------------------------------
@@ -245,6 +309,62 @@ jobs:
   # Publish to PyPI — only runs when a GitHub Release is published.
   # Requires all wheel builds and the sdist to succeed first.
   # ---------------------------------------------------------------------------
+  # ---------------------------------------------------------------------------
+  # Publish to TestPyPI. Manual only, and only when explicitly asked for:
+  # `gh workflow run python-publish-pypi.yml -f publish_to=testpypi`.
+  #
+  # Deliberately separate from the PyPI job rather than a parameter on it, so no
+  # combination of inputs can send a release candidate to real PyPI. Uses its own
+  # environment (`testpypi`), which must match the trusted publisher configured
+  # at https://test.pypi.org/manage/project/anuga/settings/publishing/ --
+  # owner anuga-community, repo anuga_core, workflow python-publish-pypi.yml.
+  # ---------------------------------------------------------------------------
+  publish-testpypi:
+    name: Publish to TestPyPI
+    needs: [build-wheels, build-wheels-osx64, build-sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' && inputs.publish_to == 'testpypi'
+
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/p/anuga
+
+    permissions:
+      id-token: write  # required for trusted publishing (OIDC)
+
+    steps:
+      - name: Require an explicit version
+        if: inputs.version == ''
+        run: |
+          echo "publish_to=testpypi needs an explicit 'version' input (e.g. 4.0.0rc1)." >&2
+          echo "Without it the artifacts carry a git-describe dev version such as" >&2
+          echo "3.3.10.dev1004+gabc1234, which is not what you want on TestPyPI." >&2
+          exit 1
+
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: wheel-*
+          path: dist
+          merge-multiple: true
+
+      - name: Download sdist artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: sdist
+          path: dist
+
+      - name: List distributions to upload
+        run: ls -lh dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          verify-metadata: false
+          verbose: true
+          packages-dir: dist/
+
   publish:
     name: Publish to PyPI
     needs: [build-wheels, build-wheels-osx64, build-sdist]

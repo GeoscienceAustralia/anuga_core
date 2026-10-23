@@ -24,7 +24,7 @@
 #
 # Version 1.5.6 February 2002
 # =============================================================================
- 
+
 """Module caching.py - Supervised caching of function results.
 
 Public functions:
@@ -80,12 +80,12 @@ if unix:
         user = getenv('LOGNAME')
         if not user:
             cache_dir += '_' + user
-    
+
     CR = '\n'
 else:
     homedir = 'c:'
     CR = '\r\n'  #FIXME: Not tested under windows
-  
+
 cachedir = os.path.join(homedir, cache_dir)
 
 # It turns out hashes are no longer stable under Python3 (grr).
@@ -98,15 +98,15 @@ if system_tools.major_version == 3:
     def hash(x):
         res = hashlib.sha256(str(x).encode()).hexdigest()
         #print('MY:', x, res)
-        
+
         return res
 
 # -----------------------------------------------------------------------------
 # Options directory with default values - to be set by user
 #
 
-options = { 
-  'cachedir': cachedir,  # Default cache directory 
+options = {
+  'cachedir': cachedir,  # Default cache directory
   'maxfiles': 1000000,   # Maximum number of cached files
   'savestat': True,      # Log caching info to stats file
   'verbose': True,       # Write messages to standard output
@@ -147,10 +147,10 @@ def cache(my_F,
           kwargs=None,
           dependencies=None,
           cachedir=None,
-          verbose=None, 
-          compression=None, 
-          evaluate=False, 
-          test=False, 
+          verbose=None,
+          compression=None,
+          evaluate=False,
+          test=False,
           clear=False,
           return_filename=False):
   """Supervised caching of function results. Also known as memoization.
@@ -162,7 +162,7 @@ def cache(my_F,
   ARGUMENTS:
     my_F --            Callable object (Required)
     args --            Arguments to my_F (Default: ())
-    kwargs --          Keyword arguments to my_F (Default: {})    
+    kwargs --          Keyword arguments to my_F (Default: {})
     dependencies --    Filenames that my_F depends on (Default: None)
     cachedir --        Directory for cache files (Default: options['cachedir'])
     verbose --         Flag verbose output to stdout
@@ -170,8 +170,8 @@ def cache(my_F,
     compression --     Flag zlib compression (Default: options['compression'])
     evaluate --        Flag forced evaluation of my_F (Default: False)
     test --            Flag test for cached results (Default: False)
-    clear --           Flag delete cached results (Default: False)    
-    return_filename -- Flag return of cache filename (Default: False)    
+    clear --           Flag delete cached results (Default: False)
+    return_filename -- Flag return of cache filename (Default: False)
 
   DESCRIPTION:
     A Python function call of the form
@@ -186,7 +186,7 @@ def cache(my_F,
   The latter form returns the same output as the former but reuses cached
   results if the function has been computed previously in the same context.
   'result' and the arguments can be simple types, tuples, list, dictionaries or
-  objects, but not unhashable types such as functions or open file objects. 
+  objects, but not unhashable types such as functions or open file objects.
   The function 'my_F' may be a member function of an object or a module.
 
   This type of caching is particularly useful for computationally intensive
@@ -199,9 +199,9 @@ def cache(my_F,
   func_defaults, co_argcount) and it will be recomputed.
 
   LIMITATIONS:
-    1 Caching uses function(*args, **kwargs) to evaluate and will work 
+    1 Caching uses function(*args, **kwargs) to evaluate and will work
       with anything that can be pickled, so any limitation in function(,)
-      or pickle extends to caching. 
+      or pickle extends to caching.
     2 A function to be cached should not depend on global variables
       as wrong results may occur if globals are changed after a result has
       been cached.
@@ -211,18 +211,18 @@ def cache(my_F,
 
   Keyword args
     Keyword arguments (kwargs) can be added as a dictionary of keyword: value
-    pairs, following Python's 'extended call syntax'. 
-    
+    pairs, following Python's 'extended call syntax'.
+
     A Python function call of the form
-    
-      result = my_F(arg1,...,argn, kwarg1=val1,...,kwargm=valm)    
+
+      result = my_F(arg1,...,argn, kwarg1=val1,...,kwargm=valm)
 
     is then cached as follows
 
       from caching import cache
       result = cache(my_F,(arg1,...,argn), {kwarg1:val1,...,kwargm:valm})
-    
-    The default value of kwargs is {}  
+
+    The default value of kwargs is {}
 
   Explicit dependencies:
     The call
@@ -261,11 +261,11 @@ def cache(my_F,
     be evaluated. If both evaluate and test are switched on, evaluate takes
     precedence.
     ??NOTE: In case of hash collisions, this may return the wrong result as
-    ??it only checks if *a* cached result is present. 
+    ??it only checks if *a* cached result is present.
     # I think this was due to the bytecode option being False for some reason. (23/1/2009).
-    
+
   Obtain cache filenames:
-    The call    
+    The call
       cache(my_F,(arg1,...,argn), return_filename=True)
     returns the hashed base filename under which this function and its
     arguments would be cached
@@ -276,19 +276,20 @@ def cache(my_F,
     clears all cached data for 'my_F' and
       cache('clear')
     clears all cached data.
- 
+
     NOTE: The string 'clear' can be passed an *argument* to my_F using
       cache(my_F,('clear',)) or cache(my_F,tuple(['clear'])).
 
     New form of clear:
       cache(my_F,(arg1,...,argn), clear=True)
-    clears cached data for particular combination my_F and args 
-      
+    clears cached data for particular combination my_F and args
+
   """
 
   # Imports and input checks
   #
-  import time, string
+  import time
+  import string
 
   if not cachedir:
     cachedir = options['cachedir']
@@ -325,10 +326,10 @@ def cache(my_F,
   # Check that kwargs is a dictionary
   if not isinstance(kwargs, dict):
     raise TypeError
-    
+
   # Hash arguments (and keyword args) to integer
   arghash = myhash((args, kwargs))
-  
+
   # Get sizes and timestamps for files listed in dependencies.
   # Force singletons into a tuple.
   if dependencies and not isinstance(dependencies, (tuple, list)):
@@ -339,13 +340,13 @@ def cache(my_F,
   funcname = get_funcname(my_F)
 
   # Create cache filename
-  FN = funcname+'_'+str(arghash)  
+  FN = funcname+'_'+str(arghash)
   #print()
   #print('FN', FN)
   #print('repr(arghash)', repr(arghash))
-  #print('arghash', arghash)  
+  #print('arghash', arghash)
   #print()
-  
+
   if return_filename:
     return(FN)
 
@@ -353,31 +354,31 @@ def cache(my_F,
     for file_type in file_types:
       file_name = CD+FN+'_'+file_type
       for fn in [file_name, file_name + '.z']:
-        if os.access(fn, os.F_OK):              
+        if os.access(fn, os.F_OK):
           if unix:
             os.remove(fn)
           else:
-            # FIXME: os.remove doesn't work under windows        
+            # FIXME: os.remove doesn't work under windows
             os.system('del '+fn)
           if verbose is True:
-            log.critical('MESSAGE (caching): File %s deleted' % fn)
+            log.info('MESSAGE (caching): File %s deleted' % fn)
         ##else:
-        ##  log.critical('%s was not accessed' % fn)
+        ##  log.info('%s was not accessed' % fn)
     return None
 
 
-  #-------------------------------------------------------------------        
-  
+  #-------------------------------------------------------------------
+
   # Check if previous computation has been cached
   if evaluate is True:
     Retrieved = None  # Force evaluation of my_F regardless of caching status.
     reason = 5
   else:
     T, FN, Retrieved, reason, comptime, loadtime, compressed = \
-        CacheLookup(CD, FN, my_F, 
-                    args, kwargs, 
-                    deps, 
-                    verbose, 
+        CacheLookup(CD, FN, my_F,
+                    args, kwargs,
+                    deps,
+                    verbose,
                     compression,
                     dependencies)
 
@@ -386,13 +387,13 @@ def cache(my_F,
       T = None
     else:  # Evaluate function and save to cache
       if verbose is True:
-        
+
         msg1(funcname, args, kwargs,reason)
 
       # Remove expired files automatically
       if options['expire']:
         DeleteOldFiles(CD,verbose)
-        
+
       # Save args before function is evaluated in case
       # they are modified by function
       save_args_to_cache(CD,FN,args,kwargs,compression)
@@ -400,8 +401,8 @@ def cache(my_F,
       # Execute and time function with supplied arguments
       t0 = time.time()
 
-      T = my_F(*args, **kwargs) # Built-in 'apply' deprecated in Py3K    
-      
+      T = my_F(*args, **kwargs) # Built-in 'apply' deprecated in Py3K
+
       #comptime = round(time.time()-t0)
       comptime = time.time()-t0
 
@@ -456,7 +457,7 @@ def cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 # -----------------------------------------------------------------------------
 
 # Has mostly been moved to proper unit test.
-# What remains here includes example of the 
+# What remains here includes example of the
 # cache statistics form.
 def test(cachedir=None, verbose=False, compression=None):
   """Test the functionality of caching.
@@ -469,8 +470,9 @@ def test(cachedir=None, verbose=False, compression=None):
     cachedir --    Directory for cache files (Default: options['cachedir'])
     compression -- Flag zlib compression (Default: options['compression'])
   """
-   
-  import string, time
+
+  import string
+  import time
 
   # Initialise
   #
@@ -482,7 +484,7 @@ def test(cachedir=None, verbose=False, compression=None):
 
   if verbose is None:  # Do NOT write 'if not verbose:', it could be zero.
     verbose = options['verbose']
-  
+
   if compression is None:  # Do NOT write 'if not compression:',
                            # it could be zero.
     compression = options['compression']
@@ -490,19 +492,19 @@ def test(cachedir=None, verbose=False, compression=None):
     try:
       set_option('compression', compression)
     except Exception:
-      logtesterror('Set option failed')      
+      logtesterror('Set option failed')
 
   try:
     import zlib
   except ImportError:
-    log.critical()
-    log.critical('*** Could not find zlib, default to no-compression      ***')
-    log.critical('*** Installing zlib will improve performance of caching ***')
-    log.critical()
-    compression = 0        
-    set_option('compression', compression)    
-  
-  log.critical('\nTesting caching module - please stand by\n')
+    log.info()
+    log.warning('*** Could not find zlib, default to no-compression      ***')
+    log.info('*** Installing zlib will improve performance of caching ***')
+    log.info()
+    compression = 0
+    set_option('compression', compression)
+
+  log.info('\nTesting caching module - please stand by\n')
 
   # Define a test function to be cached
   #
@@ -518,14 +520,14 @@ def test(cachedir=None, verbose=False, compression=None):
       s = str(n+2.0/(n + 4.0))+'.a'*10
       B.append((a,b,c,s,n,x,y))
     return(B)
-    
+
   # Check that default cachedir is OK
-  #      
-  CD = checkdir(cachedir,verbose)    
-    
-    
+  #
+  CD = checkdir(cachedir,verbose)
+
+
   # Make a dependency file
-  #    
+  #
   try:
     DepFN = CD + 'testfile.tmp'
     DepFN_wildcard = CD + 'test*.tmp'
@@ -538,14 +540,14 @@ def test(cachedir=None, verbose=False, compression=None):
                % DepFN)
 
   # Check set_option (and switch stats off
-  #    
+  #
   try:
     set_option('savestat',0)
     assert(options['savestat'] == 0)
     logtestOK('Set option')
   except Exception:
-    logtesterror('Set option failed')    
-    
+    logtesterror('Set option failed')
+
   # Make some test input arguments
   #
   N = 5000  #Make N fairly small here
@@ -564,7 +566,7 @@ def test(cachedir=None, verbose=False, compression=None):
     comprange = 1
 
   for comp in range(comprange):
-  
+
     # Evaluate and store
     #
     try:
@@ -581,10 +583,10 @@ def test(cachedir=None, verbose=False, compression=None):
         logtesterror('Caching evaluation failed - try caching.test(verbose=1)')
 
     # Retrieve
-    #                           
-    try:                         
+    #
+    try:
       T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                   compression=comp) 
+                   compression=comp)
 
       if comp:
         logtestOK('Caching retrieval with compression')
@@ -593,13 +595,13 @@ def test(cachedir=None, verbose=False, compression=None):
     except Exception:
       if comp:
         logtesterror('Caching retrieval with compression failed - try caching.test(compression=0)')
-      else:                                      
+      else:
         logtesterror('Caching retrieval failed - try caching.test(verbose=1)')
 
     # Reference result
-    #   
+    #
     T3 = f(a,b,c,N,x=x,y=y)  # Compute without caching
-    
+
     if T1 == T2 and T2 == T3:
       if comp:
         logtestOK('Basic caching functionality (with compression)')
@@ -610,17 +612,17 @@ def test(cachedir=None, verbose=False, compression=None):
 
 
   # Test return_filename
-  #    
+  #
   try:
     FN = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-                 return_filename=1)    
+                 return_filename=1)
     assert(FN[:2] == 'f[')
     logtestOK('Return of cache filename')
   except Exception:
     logtesterror('Return of cache filename failed')
 
   # Test existence of cachefiles
-  #  
+  #
   try:
     (datafile,compressed0) = myopen(CD+FN+'_'+file_types[0],"rb",compression)
     (argsfile,compressed1) = myopen(CD+FN+'_'+file_types[1],"rb",compression)
@@ -630,19 +632,19 @@ def test(cachedir=None, verbose=False, compression=None):
     argsfile.close()
     admfile.close()
   except OSError:
-    logtesterror('Expected cache files did not exist') 
-              
+    logtesterror('Expected cache files did not exist')
+
   # Test 'test' function when cache is present
-  #      
+  #
   try:
     #T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-    #                   evaluate=1)  
+    #                   evaluate=1)
     T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
     assert(T1 == T4)
 
     logtestOK("Option 'test' when cache file present")
   except Exception:
-    logtesterror("Option 'test' when cache file present failed")      
+    logtesterror("Option 'test' when cache file present failed")
 
   # Test that 'clear' works
   #
@@ -655,26 +657,26 @@ def test(cachedir=None, verbose=False, compression=None):
     cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, clear=1)
     logtestOK('Clearing of cache files')
   except Exception:
-    logtesterror('Clear does not work')  
+    logtesterror('Clear does not work')
 
-  
+
 
   # Test 'test' function when cache is absent
-  #      
+  #
   try:
     T4 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, test=1)
     assert(T4 is None)
     logtestOK("Option 'test' when cache absent")
   except Exception:
-    logtesterror("Option 'test' when cache absent failed")      
-          
+    logtesterror("Option 'test' when cache absent failed")
+
   # Test dependencies
   #
   T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-               dependencies=DepFN)  
+               dependencies=DepFN)
   T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-               dependencies=DepFN)                     
-                       
+               dependencies=DepFN)
+
   if T1 == T2:
     logtestOK('Basic dependencies functionality')
   else:
@@ -683,8 +685,8 @@ def test(cachedir=None, verbose=False, compression=None):
   # Test basic wildcard dependency
   #
   T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-               dependencies=DepFN_wildcard)                     
-    
+               dependencies=DepFN_wildcard)
+
   if T1 == T3:
     logtestOK('Basic dependencies with wildcard functionality')
   else:
@@ -692,31 +694,31 @@ def test(cachedir=None, verbose=False, compression=None):
 
 
   # Test that changed timestamp in dependencies triggers recomputation
-  
+
   # Modify dependency file
   Depfile = open(DepFN,'a')
   Depfile.write('You must cut down the mightiest tree in the forest with a Herring')
   Depfile.close()
-  
+
   T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-               dependencies=DepFN, test = 1)                     
-  
+               dependencies=DepFN, test = 1)
+
   if T3 is None:
     logtestOK('Changed dependencies recognised')
   else:
-    logtesterror('Changed dependencies not recognised')    
-  
+    logtesterror('Changed dependencies not recognised')
+
   # Test recomputation when dependencies have changed
   #
   T3 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose, \
-               dependencies=DepFN)                       
+               dependencies=DepFN)
   if T1 == T3:
     logtestOK('Recomputed value with changed dependencies')
   else:
     logtesterror('Recomputed value with changed dependencies failed')
 
   # Performance test (with statistics)
-  # Don't really rely on this as it will depend on specific computer. 
+  # Don't really rely on this as it will depend on specific computer.
   #
 
   set_option('savestat',1)
@@ -725,56 +727,56 @@ def test(cachedir=None, verbose=False, compression=None):
   tt = time.time()
   T1 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose)
   t1 = time.time() - tt
-  
+
   tt = time.time()
   T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=verbose)
   t2 = time.time() - tt
-  
+
   if T1 == T2:
     if t1 > t2:
       logtestOK('Performance test: relative time saved = %s pct' \
               %str(round((t1-t2)*100/t1,2)))
-  else:       
+  else:
     logtesterror('Basic caching failed for new problem')
-            
+
   # Test presence of statistics file
   #
-  try: 
+  try:
     DIRLIST = os.listdir(CD)
     SF = []
     for FN in DIRLIST:
       if string.find(FN,statsfile) >= 0:
-        fid = open(CD+FN,'r')
+        fid = open(CD+FN)
         fid.close()
     logtestOK('Statistics files present')
   except OSError:
-    logtestOK('Statistics files cannot be opened')          
-      
+    logtestOK('Statistics files cannot be opened')
+
   print_header_box('Show sample output of the caching function:')
-  
+
   T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0)
   T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=0)
   T2 = cache(f,(a,b,c,N), {'x':x, 'y':y}, verbose=1)
-  
+
   print_header_box('Show sample output of cachestat():')
   if unix:
-    cachestat()    
+    cachestat()
   else:
     try:
       import time
       t = time.strptime('2030','%Y')
       cachestat()
     except Exception:
-      log.critical('cachestat() does not work here, because it relies on '
+      log.info('cachestat() does not work here, because it relies on '
                    'time.strptime() which is unavailable in Windows')
-      
-  logtestOK('Caching self test completed')    
-      
-            
+
+  logtestOK('Caching self test completed')
+
+
   # Test setoption (not yet implemented)
   #
 
-  
+
 #==============================================================================
 # Auxiliary functions
 #==============================================================================
@@ -785,7 +787,7 @@ def test(cachedir=None, verbose=False, compression=None):
 #import cPickle  # 10 to 100 times faster than pickle
 #import pickle as pickler
 import dill as pickler
-#pickler = cPickle 
+#pickler = cPickle
 
 # Local immutable constants
 #
@@ -805,21 +807,21 @@ file_types = ['Result',     # File name extension for cached function results.
               'Admin']      # File name extension for administrative info.
 
 Reason_msg = ['OK',         # Verbose reasons for recomputation
-              'No cached result', 
-              'Dependencies have changed', 
+              'No cached result',
+              'Dependencies have changed',
               'Arguments have changed',
               'Bytecode has changed',
               'Recomputation was requested by caller',
-              'Cached file was unreadable']              
-              
+              'Cached file was unreadable']
+
 # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression, 
+def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
                 dependencies):
   r"""Determine whether cached result exists and return info.
 
   USAGE:
-    (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \  
+    (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \
     CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression, \
                 dependencies)
 
@@ -828,26 +830,26 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
     FN --            Suggested cache file name
     my_F --          Callable object
     args --          Tuple of arguments
-    kwargs --        Dictionary of keyword arguments    
+    kwargs --        Dictionary of keyword arguments
     deps --          Dependencies time stamps
     verbose --       Flag text output
     compression --   Flag zlib compression
     dependencies --  Given list of dependencies
-    
+
   OUTPUT ARGUMENTS:
     T --             Cached result if present otherwise None
     FN --            File name under which new results must be saved
     Retrieved --     True if a valid cached result was found
-    reason --        0: OK (if Retrieved), 
-                     1: No cached result, 
-                     2: Dependencies have changed, 
+    reason --        0: OK (if Retrieved),
+                     1: No cached result,
+                     2: Dependencies have changed,
                      3: Arguments have changed
                      4: Bytecode has changed
                      5: Recomputation was forced
                      6: Unreadable file
     comptime --      Number of seconds it took to computed cachged result
     loadtime --      Number of seconds it took to load cached result
-    compressed --    Flag (0,1) if cached results were compressed or not 
+    compressed --    Flag (0,1) if cached results were compressed or not
 
   DESCRIPTION:
     Determine if cached result exists as follows:
@@ -860,19 +862,20 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
     modified filename.
   """
 
-  import time, string
+  import time
+  import string
 
   # Assess whether cached result exists - compressed or not.
   #
   if verbose:
-    log.critical('Caching: looking for cached files %s_{%s,%s,%s}.z'
+    log.info('Caching: looking for cached files %s_{%s,%s,%s}.z'
                  % (CD+FN, file_types[0], file_types[1], file_types[2]))
   (datafile,compressed0) = myopen(CD+FN+'_'+file_types[0],"rb",compression)
   (argsfile,compressed1) = myopen(CD+FN+'_'+file_types[1],"rb",compression)
   (admfile,compressed2) =  myopen(CD+FN+'_'+file_types[2],"rb",compression)
 
   if verbose is True and deps is not None:
-    log.critical('Caching: Dependencies are %s' % list(deps.keys()))
+    log.info('Caching: Dependencies are %s' % list(deps.keys()))
 
   if not (argsfile and datafile and admfile) or \
      not (compressed0 == compressed1 and compressed0 == compressed2):
@@ -891,20 +894,20 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   #
   R, reason = myload(argsfile, compressed)  # The original arguments
   argsfile.close()
-  
+
   if reason > 0:
-      # Recompute using same filename   
+      # Recompute using same filename
       return(None, FN, None, reason, None, None, None)
-  else:   
+  else:
       (argsref, kwargsref) = R
 
   R, reason = myload(admfile, compressed)
-  admfile.close()  
+  admfile.close()
 
   if reason > 0:
-    return(None,FN,None,reason,None,None,None) # Recompute using same filename 
+    return(None,FN,None,reason,None,None,None) # Recompute using same filename
 
-  
+
   depsref  = R[0]  # Dependency statistics
   comptime = R[1]  # The computation time
   coderef  = R[2]  # The byte code
@@ -914,7 +917,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
   #
   if dependencies and not compare(depsref, deps):
     if verbose:
-      log.critical('Dependencies %s have changed - recomputing' % dependencies)
+      log.info('Dependencies %s have changed - recomputing' % dependencies)
 
     # Don't use cached file - recompute
     reason = 2
@@ -931,7 +934,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
     # Arguments and dependencies match. Get cached results
     T, loadtime, compressed, reason = load_from_cache(CD, FN, compressed)
     if reason > 0:
-        # Recompute using same FN     
+        # Recompute using same FN
         return(None, FN, None, reason, None, None, None)
 
     Retrieved = 1
@@ -941,8 +944,8 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
       msg4(funcname,args,kwargs,deps,comptime,loadtime,CD,FN,compressed)
 
       if loadtime >= comptime:
-        log.critical('Caching did not yield any gain.')
-        log.critical('Consider executing function %s without caching.'
+        log.info('Caching did not yield any gain.')
+        log.info('Consider executing function %s without caching.'
                      % funcname)
   else:
 
@@ -951,7 +954,7 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
     # until either a matching or an unused filename is found.
     #
     (T, FN, Retrieved, reason, comptime, loadtime, compressed) = \
-        CacheLookup(CD, FN+'x', my_F, args, kwargs, deps, 
+        CacheLookup(CD, FN+'x', my_F, args, kwargs, deps,
                     verbose, compression, dependencies)
 
     # The real reason is that args or bytecodes have changed.
@@ -959,14 +962,14 @@ def CacheLookup(CD, FN, my_F, args, kwargs, deps, verbose, compression,
     if not Retrieved:
       if not compare(bytecode, coderef):
         reason = 4 # Bytecode has changed
-      else:   
-        reason = 3 # Arguments have changed 
-        
-  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
+      else:
+        reason = 3 # Arguments have changed
+
+  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a
   # FitInterpolate object. C Structures are serialised so they can be pickled.
   #---------------------------------------------------------------------------
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
-  
+
   # Setup for quad_tree extension
   #from anuga.utilities import compile
   #if compile.can_use_C_extension('quad_tree_ext.c'):
@@ -1017,11 +1020,11 @@ def clear_cache(CD, my_F=None, verbose=None):
     otherwise clear only files pertaining to my_F.
   """
 
-  import os, re
-   
+  import re
+
   if CD[-1] != os.sep:
     CD = CD+os.sep
-  
+
   if verbose is None:
     verbose = options['verbose']
 
@@ -1030,7 +1033,7 @@ def clear_cache(CD, my_F=None, verbose=None):
   if my_F:
     funcname = get_funcname(my_F)
     if verbose:
-      log.critical('Clearing %s' % CD+funcname+'*')
+      log.info('Clearing %s' % CD+funcname+'*')
 
     file_names = os.listdir(CD)
     for file_name in file_names:
@@ -1046,21 +1049,21 @@ def clear_cache(CD, my_F=None, verbose=None):
     file_names = os.listdir(CD)
     if len(file_names) > 0:
       if verbose:
-        log.critical('Remove the following files:')
+        log.info('Remove the following files:')
         for file_name in file_names:
-            log.critical('     ' + file_name)
+            log.info('     ' + file_name)
 
         A = input('Delete (Y/N)[N] ?')
       else:
-        A = 'Y' 
-        
+        A = 'Y'
+
       if A == 'Y' or A == 'y':
         for file_name in file_names:
           if unix:
             os.remove(CD+file_name)
           else:
             os.system('del '+CD+file_name)
-            # FIXME: os.remove doesn't work under windows 
+            # FIXME: os.remove doesn't work under windows
           #exitcode=os.system('/bin/rm '+CD+'* 2> /dev/null')
 
 # -----------------------------------------------------------------------------
@@ -1079,7 +1082,6 @@ def DeleteOldFiles(CD,verbose=None):
 
   # FIXME: Windows version
 
-  import os
   block = 1000  # How many files to delete per invokation
   Files = os.listdir(CD)
   numfiles = len(Files)
@@ -1088,7 +1090,7 @@ def DeleteOldFiles(CD,verbose=None):
   if numfiles > maxfiles:
     delfiles = numfiles-maxfiles+block
     if verbose:
-      log.critical('Deleting %d expired files:' % delfiles)
+      log.info('Deleting %d expired files:' % delfiles)
       os.system('ls -lur '+CD+'* | head -' + repr(delfiles))            # List them
     os.system('ls -ur '+CD+'* | head -' + repr(delfiles) + ' | xargs /bin/rm')
                                                                   # Delete them
@@ -1103,12 +1105,13 @@ def save_args_to_cache(CD, FN, args, kwargs, compression):
     save_args_to_cache(CD,FN,args,kwargs,compression)
   """
 
-  import time, os, sys
+  import time
+  import sys
 
   (argsfile, compressed) = myopen(CD+FN+'_'+file_types[1], 'wb', compression)
   if argsfile is None:
     msg = 'ERROR (caching): Could not open argsfile for writing: %s' %FN
-    raise IOError(msg)
+    raise OSError(msg)
 
   mysave((args,kwargs),argsfile,compression)  # Save args and kwargs to cache
   argsfile.close()
@@ -1136,14 +1139,15 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
                           dependencies, compression)
   """
 
-  import time, os, sys
+  import time
+  import sys
   verbose = False
 
-  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a 
+  # PADARN NOTE 17/12/12: Adding a special case to handle the existence of a
   # FitInterpolate object. C Structures are serialised so they can be pickled.
   #---------------------------------------------------------------------------
   from anuga.fit_interpolate.general_fit_interpolate import FitInterpolate
-  
+
   import anuga.utilities.quad_tree_ext as quad_tree_ext
   import anuga.utilities.sparse_matrix_ext as sparse_matrix_ext
   from anuga.geometry.aabb import AABB
@@ -1164,20 +1168,20 @@ def save_results_to_cache(T, CD, FN, my_F, deps, comptime, funcname,
 
   if not datafile:
     if verbose:
-        log.critical('ERROR: Could not open %s' % datafile.name)
-    raise IOError
+        log.info('ERROR: Could not open %s' % datafile.name)
+    raise OSError
 
   if not admfile:
     if verbose:
-        log.critical('ERROR: Could not open %s' % admfile.name)
-    raise IOError
+        log.info('ERROR: Could not open %s' % admfile.name)
+    raise OSError
 
   t0 = time.time()
 
   mysave(T,datafile,compression)  # Save data to cache
   datafile.close()
   #savetime = round(time.time()-t0,2)
-  savetime = time.time()-t0  
+  savetime = time.time()-t0
 
   bytecode = get_bytecode(my_F)  # Get bytecode from function object
   admtup = (deps, comptime, bytecode, funcname)  # Gather admin info
@@ -1214,7 +1218,7 @@ def load_from_cache(CD, FN, compression):
   T, reason = myload(datafile,compressed)
 
   loadtime = time.time()-t0
-  datafile.close() 
+  datafile.close()
 
   return T, loadtime, compressed, reason
 
@@ -1246,19 +1250,19 @@ def myopen(FN, mode, compression=True):
   #
   if 'w' in mode or 'a' in mode:
     try:
-      file = open(FN+'.z','r')
+      file = open(FN+'.z')
       file.close()
       new_file = 0
     except OSError:
       try:
-        file = open(FN,'r')
+        file = open(FN)
         file.close()
         new_file = 0
       except OSError:
         new_file = 1
   else:
     new_file = 0 #Assume it exists if mode was not 'w'
-  
+
 
   compressed = 0
   if compression:
@@ -1315,9 +1319,9 @@ def myload(file, compressed):
         #  zlib.error: Error -5 while decompressing data
         #raise Exception
         reason = 6  # Unreadable file
-        return None, reason  
-      
-      
+        return None, reason
+
+
       del RsC  # Free up some space
       R = pickler.loads(Rs)
     else:
@@ -1328,10 +1332,10 @@ def myload(file, compressed):
         #Catch e.g., file with 0 length or corrupted
         reason = 6  # Unreadable file
         return None, reason
-      
+
   except MemoryError:
     if options['verbose']:
-      log.critical('ERROR: Out of memory while loading %s, aborting'
+      log.info('ERROR: Out of memory while loading %s, aborting'
                    % file.name)
 
     # Raise the error again for now
@@ -1356,12 +1360,12 @@ def mysave(T, file, compression):
     try:
       import zlib
     except ImportError:
-      log.critical()
-      log.critical('*** Could not find zlib ***')
-      log.critical('*** Try to run caching with compression off ***')
-      log.critical("*** caching.set_option('compression', 0) ***")
+      log.info()
+      log.warning('*** Could not find zlib ***')
+      log.info('*** Try to run caching with compression off ***')
+      log.info("*** caching.set_option('compression', 0) ***")
       raise Exception
-      
+
 
     try:
       Ts  = pickler.dumps(T, bin)
@@ -1369,8 +1373,8 @@ def mysave(T, file, compression):
       msg = '****WARNING (caching.py): Could not pickle data for compression.'
       msg += ' Try using compression = False'
       raise MemoryError(msg)
-    else:  
-      # Compressed pickling      
+    else:
+      # Compressed pickling
       TsC = zlib.compress(Ts, comp_level)
       file.write(TsC)
   else:
@@ -1383,7 +1387,7 @@ def mysave(T, file, compression):
       # I think this is an OS problem.
 
       # Excerpt from http://www.ultraseek.com/support/faqs/4173.html
-      
+
 # The error is caused when there is a problem with server disk access (I/0). This happens at the OS level, and there is no controlling these errors through the Ultraseek application.
 #
 #Ultraseek contains an embedded Python interpreter. The exception "exceptions.IOError: [Errno 22] Invalid argument" is generated by the Python interpreter. The exception is thrown when a disk access operation fails due to an I/O-related reason.
@@ -1402,21 +1406,21 @@ def mysave(T, file, compression):
 #You can view several postings on this error message by going to http://www.python.org, and typing the below into the search box:
 #
 #exceptions.IOError invalid argument Errno 22
-        
+
       #try:
       #  pickler.dump(T,file,bin)
       #except IOError, e:
       #  print e
       #  msg = 'Could not store to %s, bin=%s' %(file, bin)
       #  raise Exception(msg)
-      
+
 
 # -----------------------------------------------------------------------------
 
-    
+
 def myhash(T, ids=None):
   """Compute hashed integer from a range of inputs.
-  If T is not hashable being e.g. a tuple T, myhash will recursively 
+  If T is not hashable being e.g. a tuple T, myhash will recursively
   hash the values individually
 
   USAGE:
@@ -1426,21 +1430,21 @@ def myhash(T, ids=None):
     T -- Anything
   """
 
-  
+
   # Replacing Python2: if type(T) in [TupleType, ListType, DictType, InstanceType]:
   if isinstance(T, (tuple, list, dict)) or type(T) is type:
       # Keep track of unique id's to protect against infinite recursion
       if ids is None: ids = []
 
       # Check if T has already been encountered
-      i = id(T) 
+      i = id(T)
 
       if i in ids:
-          return 0 # T has been hashed already      
+          return 0 # T has been hashed already
       else:
           ids.append(i)
-    
-    
+
+
   # Start hashing
 
   # On some architectures None, False and True gets different hash values
@@ -1458,12 +1462,12 @@ def myhash(T, ids=None):
       for t in T:
           h = myhash(t, ids)
           hvals += str(h)
-          
+
       val = hash(hvals)
   elif isinstance(T, dict):
       #print('DICT')
-      
-      I = list(T.items())    
+
+      I = list(T.items())
       if system_tools.major_version == 2:
           # Make dictionary ordering unique
           I.sort()
@@ -1481,12 +1485,12 @@ def myhash(T, ids=None):
   elif callable(T):
       #print('CALLABLE')
 
-      I = myhash(T.__dict__, ids)                
-      val = myhash(I, ids)      
+      I = myhash(T.__dict__, ids)
+      val = myhash(I, ids)
   elif type(T) is type: #isinstance(T, object):  # This is instead of the old InstanceType:
   #elif isinstance(T, object):  # This is instead of the old InstanceType:
-      #print('OBJECT', T, dir(T), type(T)) 
-      # Use the attribute values 
+      #print('OBJECT', T, dir(T), type(T))
+      # Use the attribute values
       val = myhash(T.__dict__, ids)
   else:
       # This must be a simple Python type that should hash without problems
@@ -1513,55 +1517,55 @@ def compare(A, B, ids=None):
     if ids is None: ids = {}
 
     # Check if T has already been encountered
-    iA = id(A) 
-    iB = id(B)     
-    
+    iA = id(A)
+    iB = id(B)
+
     if (iA, iB) in ids:
         # A and B have been compared already
         return ids[(iA, iB)]
     else:
         ids[(iA, iB)] = True
-    
-    
+
+
     # Check if arguments are of same type
     if type(A) != type(B):
         return False
-        
-  
+
+
     # Compare recursively based on argument type
     if isinstance(A, (tuple, list)):
         N = len(A)
-        if len(B) != N: 
+        if len(B) != N:
             identical = False
         else:
             identical = True
             for i in range(N):
-                if not compare(A[i], B[i], ids): 
+                if not compare(A[i], B[i], ids):
                     identical = False; break
-                    
+
     elif isinstance(A, dict):
         if len(A) != len(B):
             identical = False
         else:
             # Dictionaries are now ordered as of Python 3.7
-            # Make dictionary ordering unique 
-            #a = list(A.items()); a.sort()    
+            # Make dictionary ordering unique
+            #a = list(A.items()); a.sort()
             #b = list(B.items()); b.sort()
-            
+
             identical = compare(A, B, ids)
-            
+
     elif isinstance(A, num.ndarray):
         # Use element by element comparison
         identical = num.all(A==B)
 
     #elif type(A) == types.InstanceType:
     elif type(A) is type:
-        # Take care of special case where elements are instances            
+        # Take care of special case where elements are instances
         # Base comparison on attributes
-        identical = compare(A.__dict__, 
-                            B.__dict__, 
+        identical = compare(A.__dict__,
+                            B.__dict__,
                             ids)
-    else:       
+    else:
         # Fall back to general code
         try:
             identical = (A == B)
@@ -1577,12 +1581,12 @@ def compare(A, B, ids=None):
             except Exception:
                 identical = False
 
-    # Record result of comparison and return            
+    # Record result of comparison and return
     ids[(iA, iB)] = identical
-    
+
     return(identical)
 
-    
+
 # -----------------------------------------------------------------------------
 
 def nospace(s):
@@ -1631,15 +1635,15 @@ def get_funcname(my_F):
       tmp = string.translate(repr(my_F), tab)
       tmp = string.split(tmp)
     else:
-      raise Exception('Unsupported version: %' % system_tools.version)
-      
+      raise Exception('Unsupported version: %s' % system_tools.version)
+
     funcname = ' '.join(tmp)
-    
+
     # Truncate memory address as in
     # class __main__.Dummy at 0x00A915D0
     index = funcname.find('at 0x')
     if index >= 0:
-      funcname = funcname[:index+5] # Keep info that there is an address 
+      funcname = funcname[:index+5] # Keep info that there is an address
 
   funcname = nospace(funcname)
   return(funcname)
@@ -1649,7 +1653,7 @@ def get_funcname(my_F):
 def get_bytecode(my_F):
     """ Get bytecode and associated values from function object.
 
-    It is assumed that my_F is callable and there either 
+    It is assumed that my_F is callable and there either
     a function
     a class
     a method
@@ -1666,32 +1670,32 @@ def get_bytecode(my_F):
     elif type(my_F) == types.MethodType:
         # Method
         return get_func_code_details(my_F.__func__)
-    elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:      
-        # Built-in functions are assumed not to change  
+    elif type(my_F) in [types.BuiltinFunctionType, types.BuiltinMethodType]:
+        # Built-in functions are assumed not to change
         return None, 0, 0, 0
     elif inspect.isclass(my_F):
         return get_func_code_details(my_F.__init__)
-    elif hasattr(my_F, '__call__'):
+    elif callable(my_F):
         bytecode = get_func_code_details(my_F.__call__.__func__)
-       
+
         # Add hash value of object to detect attribute changes
-        return bytecode + (myhash(my_F),) 
+        return bytecode + (myhash(my_F),)
     else:
         msg = 'Unknown function type: %s' % type(my_F)
-        raise Exception(msg)          
+        raise Exception(msg)
 
-    
-  
+
+
 def get_func_code_details(my_F):
   """Extract co_code, co_consts, co_argcount, func_defaults
   """
-  
+
   bytecode = my_F.__code__.co_code
   consts = my_F.__code__.co_consts
-  argcount = my_F.__code__.co_argcount    
-  defaults = my_F.__defaults__       
+  argcount = my_F.__code__.co_argcount
+  defaults = my_F.__defaults__
 
-  return bytecode, consts, argcount, defaults  
+  return bytecode, consts, argcount, defaults
 
 # -----------------------------------------------------------------------------
 
@@ -1717,7 +1721,7 @@ def get_depstats(dependencies):
 
       expanded_dependencies += expanded_FN
 
-    
+
     for FN in expanded_dependencies:
       if not isinstance(FN, str):
         errmsg = 'ERROR (caching.py): Dependency must be a string.\n'
@@ -1750,7 +1754,7 @@ def filestat(FN):
      as given in section 8.1.1 Large File Support in the Libray Reference
   """
 
-  import os, time
+  import time
 
   try:
     stats = os.stat(FN)
@@ -1762,7 +1766,7 @@ def filestat(FN):
 
     # Hack to get the results anyway (works only on Unix at the moment)
     #
-    log.critical('Hack to get os.stat when files are too large')
+    log.info('Hack to get os.stat when files are too large')
 
     if unix:
       tmp = '/tmp/cach.tmp.'+repr(time.time())+repr(os.getpid())
@@ -1803,13 +1807,14 @@ def get_lsline(FN):
     get_lsline(file_name)
 
   DESCRIPTION:
-    Read in one line 'ls -la' item from file (generated by filestat) and 
+    Read in one line 'ls -la' item from file (generated by filestat) and
     convert time to seconds since epoch. Return file size and time.
   """
 
-  import string, time
+  import string
+  import time
 
-  f = open(FN,'r')
+  f = open(FN)
   info = f.read()
   info = string.split(info)
 
@@ -1841,10 +1846,9 @@ def checkdir(CD, verbose=None, warn=False):
     If CD does not exist it will be created if possible
   """
 
-  import os
   import os.path
 
-  if CD[-1] != os.sep: 
+  if CD[-1] != os.sep:
     CD = CD + os.sep  # Add separator for directories
 
   CD = os.path.expanduser(CD) # Expand ~ or ~user in pathname
@@ -1858,16 +1862,16 @@ def checkdir(CD, verbose=None, warn=False):
         exitcode=os.system('chmod 777 '+CD)
       else:
         pass  # FIXME: What about acces rights under Windows?
-      if verbose: log.critical('MESSAGE: Directory %s created.' % CD)
+      if verbose: log.info('MESSAGE: Directory %s created.' % CD)
     except OSError:
       if warn is True:
-        log.critical('WARNING: Directory %s could not be created.' % CD)
+        log.info('WARNING: Directory %s could not be created.' % CD)
       if unix:
         CD = '/tmp/'
       else:
-        CD = 'C:'  
+        CD = 'C:'
       if warn is True:
-        log.critical('Using directory %s instead' % CD)
+        log.info('Using directory %s instead' % CD)
 
   return(CD)
 
@@ -1889,7 +1893,7 @@ def addstatsline(CD, funcname, FN, Retrieved, reason, comptime, loadtime,
     and other statistics. The data are used by the function cachestat.
   """
 
-  import os, time
+  import time
 
   try:
     TimeTuple = time.localtime(time.time())
@@ -1906,7 +1910,7 @@ def addstatsline(CD, funcname, FN, Retrieved, reason, comptime, loadtime,
     #  except:
     #    pass
   except OSError:
-    log.critical('Warning: Stat file could not be opened')
+    log.info('Warning: Stat file could not be opened')
 
   try:
     if 'USER' in os.environ:
@@ -1922,19 +1926,19 @@ def addstatsline(CD, funcname, FN, Retrieved, reason, comptime, loadtime,
       hit = '0'
 
     # Get size of result file
-    #    
+    #
     if compression:
       stats = os.stat(CD+FN+'_'+file_types[0]+'.z')
     else:
       stats = os.stat(CD+FN+'_'+file_types[0])
-  
-    if stats: 
+
+    if stats:
       size = stats[6]
     else:
-      size = -1  # Error condition, but don't crash. This is just statistics  
+      size = -1  # Error condition, but don't crash. This is just statistics
 
     # Build entry
-    #  
+    #
     entry = date             + ',' +\
             user             + ',' +\
             FN               + ',' +\
@@ -1945,11 +1949,11 @@ def addstatsline(CD, funcname, FN, Retrieved, reason, comptime, loadtime,
             str(round(comptime,4)) + ',' +\
             str(round(loadtime,4)) +\
             CR
-            
+
     statfile.write(entry)
     statfile.close()
   except OSError:
-    log.critical('Warning: Writing of stat file failed')
+    log.info('Warning: Writing of stat file failed')
 
 # -----------------------------------------------------------------------------
 
@@ -1970,7 +1974,6 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
       OMN 20/8/2000
   """
 
-  import os
   import os.path
   from string import split, rstrip, find
   from time import strptime, localtime, strftime, mktime, ctime
@@ -1981,7 +1984,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             'Cache(s)', 'Saved(s)', 'Gain(%)', 'Size']
   Widths = [25,7,9,9,9,9,13]
   #Types = ['s','d','d','d','d','.2f','d']
-  Types = ['s','d','.2f','.2f','.2f','.2f','d']  
+  Types = ['s','d','.2f','.2f','.2f','.2f','d']
 
   Dictnames = ['Function', 'User']
 
@@ -1992,7 +1995,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
   if period == -1:  # Take all available stats
     SFILENAME = statsfile
-  else:  # Only stats from current month  
+  else:  # Only stats from current month
        # MAKE THIS MORE GENERAL SO period > 0 counts several months backwards!
     TimeTuple = localtime(time())
     extension = strftime('%b%Y',TimeTuple)
@@ -2015,8 +2018,8 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
   FuncDict = {}
   UserDict = {}
   for FN in SF:
-    input = open(SD+FN,'r')
-    log.critical('Reading file %s' % SD+FN)
+    input = open(SD+FN)
+    log.info('Reading file %s' % SD+FN)
 
     while True:
       A = input.readlines(blocksize)
@@ -2027,13 +2030,13 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
         if len(record) == 9:
           timestamp = record[0]
-        
+
           try:
             t = mktime(strptime(timestamp))
           except (ValueError, OverflowError):
-            total_discarded = total_discarded + 1         
-            continue    
-             
+            total_discarded = total_discarded + 1
+            continue
+
           if t > lastday:
             lastday = t
           if t < firstday:
@@ -2042,7 +2045,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
           user     = record[1]
           my_F     = record[2]
 
-          # Strip hash-stamp off 
+          # Strip hash-stamp off
           #
           i = find(my_F,'[')
           my_F = my_F[:i]
@@ -2052,17 +2055,17 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
           # Compression kepword can be Boolean
           if record[4] in ['True', '1']:
             compression = 1
-          elif record[4] in ['False', '0']:  
+          elif record[4] in ['False', '0']:
             compression = 0
           else:
-            log.critical('Unknown value of compression %s' % str(record[4]))
-            log.critical(str(record))
-            total_discarded = total_discarded + 1            
+            log.info('Unknown value of compression %s' % str(record[4]))
+            log.info(str(record))
+            total_discarded = total_discarded + 1
             continue
 
           #compression = int(record[4]) # Can be Boolean
           hit         = int(record[5])
-          reason      = int(record[6])   # Not used here    
+          reason      = int(record[6])   # Not used here
           cputime     = float(record[7])
           loadtime    = float(record[8])
 
@@ -2082,7 +2085,7 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
             UpdateDict(FuncDict,my_F,info)
           else:
             pass #Stats on recomputations and their reasons could go in here
-              
+
         else:
           total_discarded = total_discarded + 1
 
@@ -2093,22 +2096,22 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
   if total_read == 0:
     printline(Widths,'=')
-    log.critical('CACHING STATISTICS: No valid records read')
+    log.info('CACHING STATISTICS: No valid records read')
     printline(Widths,'=')
     return
 
-  log.critical()
+  log.info()
   printline(Widths,'=')
-  log.critical('CACHING STATISTICS: '+ctime(firstday)+' to '+ctime(lastday))
+  log.info('CACHING STATISTICS: '+ctime(firstday)+' to '+ctime(lastday))
   printline(Widths,'=')
-  log.critical('  Total number of valid records %d' % total_read)
-  log.critical('  Total number of discarded records %d' % total_discarded)
-  log.critical('  Total number of hits %d' % total_hits)
-  log.critical()
+  log.info('  Total number of valid records %d' % total_read)
+  log.info('  Total number of discarded records %d' % total_discarded)
+  log.info('  Total number of hits %d' % total_hits)
+  log.info()
 
-  log.critical('  Fields %s are averaged over number of hits' % Fields[2:])
-  log.critical('  Time is measured in seconds and size in bytes')
-  log.critical('  Tables are sorted by %s' % Fields[1:][sortidx])
+  log.info('  Fields %s are averaged over number of hits' % Fields[2:])
+  log.info('  Time is measured in seconds and size in bytes')
+  log.info('  Tables are sorted by %s' % Fields[1:][sortidx])
 
   if showuser:
     Dictionaries = [FuncDict, UserDict]
@@ -2130,20 +2133,20 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
 
     # Write Header
     #
-    log.critical()
+    log.info()
     printline(Widths,'-')
     n = 0
     for s in Fields:
       if s == Fields[0]:  # Left justify
         s = Dictnames[i] + ' ' + s; i=i+1
         #exec "print '%-" + str(Widths[n]) + "s'%s,"; n=n+1
-        log.critical('%-*s' % (Widths[n], s))
+        log.info('%-*s' % (Widths[n], s))
         n += 1
       else:
         #exec "print '%" + str(Widths[n]) + "s'%s,"; n=n+1
-        log.critical('%*s' % (Widths[n], s))
+        log.info('%*s' % (Widths[n], s))
         n += 1
-    log.critical()
+    log.info()
     printline(Widths,'-')
 
     # Output Values
@@ -2153,14 +2156,14 @@ def __cachestat(sortidx=4, period=-1, showuser=None, cachedir=None):
       n = 0
       if len(key) > Widths[n]: key = key[:Widths[n]-3] + '...'
       #exec "print '%-" + str(Widths[n]) + Types[n]+"'%key,";n=n+1
-      log.critical('%-*s' % (Widths[n], str(key)))
+      log.info('%-*s' % (Widths[n], str(key)))
       n += 1
       for val in rec:
         #exec "print '%" + str(Widths[n]) + Types[n]+"'%val,"; n=n+1
-        log.critical('%*s' % (Widths[n], str(key)))
+        log.info('%*s' % (Widths[n], str(key)))
         n += 1
-      log.critical()
-    log.critical()
+      log.info()
+    log.info()
 
 #==============================================================================
 # Auxiliary stats functions
@@ -2230,7 +2233,7 @@ def printline(Widths,char):
     if n > 0:
       s = s+char
 
-  log.critical(s)
+  log.info(s)
 
 #==============================================================================
 # Messages
@@ -2246,12 +2249,12 @@ def msg1(funcname, args, kwargs, reason):
   import string
 
   print_header_box('Evaluating function %s' %funcname)
-  
+
   msg7(args, kwargs)
-  msg8(reason)  
-  
+  msg8(reason)
+
   print_footer()
-  
+
 # -----------------------------------------------------------------------------
 
 def msg2(funcname, args, kwargs, comptime, reason):
@@ -2266,15 +2269,15 @@ def msg2(funcname, args, kwargs, comptime, reason):
   #try:
   #  R = Reason_msg[reason]
   #except:
-  #  R = 'Unknown reason'  
-  
+  #  R = 'Unknown reason'
+
   #print_header_box('Caching statistics (storing) - %s' %R)
-  print_header_box('Caching statistics (storing)')  
-  
+  print_header_box('Caching statistics (storing)')
+
   msg6(funcname,args,kwargs)
   msg8(reason)
 
-  log.critical(str.ljust('| CPU time:', textwidth1) +
+  log.info(str.ljust('| CPU time:', textwidth1) +
                str(round(comptime,2)) + ' seconds')
 
 # -----------------------------------------------------------------------------
@@ -2287,7 +2290,7 @@ def msg3(savetime, CD, FN, deps, compression):
   """
 
   import string
-  log.critical(str.ljust('| Loading time:', textwidth1) + 
+  log.info(str.ljust('| Loading time:', textwidth1) +
                str(round(savetime,2)) + ' seconds (estimated)')
   msg5(CD,FN,deps,compression)
 
@@ -2303,13 +2306,13 @@ def msg4(funcname, args, kwargs, deps, comptime, loadtime, CD, FN, compression):
   import string
 
   print_header_box('Caching statistics (retrieving)')
-  
+
   msg6(funcname,args,kwargs)
-  log.critical(str.ljust('| CPU time:', textwidth1) +
+  log.info(str.ljust('| CPU time:', textwidth1) +
                str(round(comptime,2)) + ' seconds')
-  log.critical(str.ljust('| Loading time:', textwidth1) +
+  log.info(str.ljust('| Loading time:', textwidth1) +
                str(round(loadtime,2)) + ' seconds')
-  log.critical(str.ljust('| Time saved:', textwidth1) +
+  log.info(str.ljust('| Time saved:', textwidth1) +
                str(round(comptime-loadtime,2)) + ' seconds')
   msg5(CD,FN,deps,compression)
 
@@ -2325,10 +2328,11 @@ def msg5(CD, FN, deps, compression):
    Print dependency stats. Used by msg3 and msg4
   """
 
-  import os, time, string
+  import time
+  import string
 
-  log.critical('|')
-  log.critical(str.ljust('| Caching dir: ', textwidth1) + CD)
+  log.info('|')
+  log.info(str.ljust('| Caching dir: ', textwidth1) + CD)
 
   if compression:
     suffix = '.z'
@@ -2340,12 +2344,12 @@ def msg5(CD, FN, deps, compression):
   for file_type in file_types:
     file_name = FN + '_' + file_type + suffix
     stats = os.stat(CD+file_name)
-    log.critical(str.ljust('| ' + file_type + ' file: ', textwidth1) +
+    log.info(str.ljust('| ' + file_type + ' file: ', textwidth1) +
                  file_name + '('+ str(stats[6]) + ' ' + bytetext + ')')
 
-  log.critical('|')
+  log.info('|')
   if len(deps) > 0:
-    log.critical('| Dependencies:  ')
+    log.info('| Dependencies:  ')
     dependencies  = list(deps.keys())
     dlist = []; maxd = 0
     tlist = []; maxt = 0
@@ -2355,7 +2359,7 @@ def msg5(CD, FN, deps, compression):
       t = time.ctime(stats[1])
       s = str(stats[0])
       #if s[-1] == 'L':
-      #  s = s[:-1]  # Strip rightmost 'long integer' L off. 
+      #  s = s[:-1]  # Strip rightmost 'long integer' L off.
       #              # FIXME: Unnecessary in versions later than 1.5.2
 
       if len(d) > maxd: maxd = len(d)
@@ -2370,9 +2374,9 @@ def msg5(CD, FN, deps, compression):
       t = str.ljust(tlist[n], maxt)
       s = str.rjust(slist[n], maxs)
 
-      log.critical('| %s %s %s bytes' % (d, t, s))
+      log.info('| %s %s %s bytes' % (d, t, s))
   else:
-    log.critical('| No dependencies')
+    log.info('| No dependencies')
   print_footer()
 
 # -----------------------------------------------------------------------------
@@ -2385,66 +2389,66 @@ def msg6(funcname, args, kwargs):
   """
 
   import string
-  log.critical(str.ljust('| Function:', textwidth1) + funcname)
+  log.info(str.ljust('| Function:', textwidth1) + funcname)
 
   msg7(args, kwargs)
-  
-# -----------------------------------------------------------------------------    
+
+# -----------------------------------------------------------------------------
 
 def msg7(args, kwargs):
   """Message 7
-  
+
   USAGE:
     msg7(args, kwargs):
   """
-  
+
   import string
-  
-  args_present = 0  
+
+  args_present = 0
   if args:
     if len(args) == 1:
-      log.critical(str.ljust('| Argument:', textwidth1) +
+      log.info(str.ljust('| Argument:', textwidth1) +
                    mkargstr(args[0], textwidth2))
     else:
-      log.critical(str.ljust('| Arguments:', textwidth1) +
+      log.info(str.ljust('| Arguments:', textwidth1) +
                    mkargstr(args, textwidth2))
     args_present = 1
-            
+
   if kwargs:
     if len(kwargs) == 1:
-      log.critical(str.ljust('| Keyword Arg:', textwidth1) +
+      log.info(str.ljust('| Keyword Arg:', textwidth1) +
                    mkargstr(kwargs, textwidth2))
     else:
-      log.critical(str.ljust('| Keyword Args:', textwidth1) +
+      log.info(str.ljust('| Keyword Args:', textwidth1) +
                    mkargstr(kwargs, textwidth2))
     args_present = 1
 
-  if not args_present:                
-    log.critical('| No arguments')    # Default if no args or kwargs present
+  if not args_present:
+    log.info('| No arguments')    # Default if no args or kwargs present
 
 # -----------------------------------------------------------------------------
 
 def msg8(reason):
   """Message 8
-  
+
   USAGE:
     msg8(reason):
   """
-  
+
   import string
-    
+
   try:
     R = Reason_msg[reason]
   except KeyError:
-    R = 'Unknown'  
-  
-  log.critical(str.ljust('| Reason:', textwidth1) + R)
-    
+    R = 'Unknown'
+
+  log.info(str.ljust('| Reason:', textwidth1) + R)
+
 # -----------------------------------------------------------------------------
 
 def print_header_box(line):
   """Print line in a nice box.
-  
+
   USAGE:
     print_header_box(line)
 
@@ -2455,25 +2459,25 @@ def print_header_box(line):
 
   time_stamp = time.ctime(time.time())
   line = time_stamp + '. ' + line
-    
+
   N = len(line) + 1
   s = '+' + '-'*N + CR
 
-  log.critical(s + '| ' + line + CR + s)
+  log.info(s + '| ' + line + CR + s)
 
   textwidth3 = N
 
 # -----------------------------------------------------------------------------
-    
+
 def print_footer():
   """Print line same width as that of print_header_box.
   """
-  
+
   N = textwidth3
-  s = '+' + '-'*N + CR    
-      
-  log.critical(s)
-      
+  s = '+' + '-'*N + CR
+
+  log.info(s)
+
 # -----------------------------------------------------------------------------
 
 def mkargstr(args, textwidth, argstr = '', level=0):
@@ -2490,7 +2494,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
   if level > 10:
       # Protect against circular structures
       return '...'
-  
+
   WasTruncated = 0
 
   if not isinstance(args, (tuple, list, dict)):
@@ -2499,9 +2503,9 @@ def mkargstr(args, textwidth, argstr = '', level=0):
     else:
       # Truncate large numeric arrays before using str()
       if isinstance(args, num.ndarray):
-#        if len(args.flat) > textwidth:  
-#        Changed by Duncan and Nick 21/2/07 .flat has problems with 
-#        non-contigous arrays and ravel is equal to .flat except it 
+#        if len(args.flat) > textwidth:
+#        Changed by Duncan and Nick 21/2/07 .flat has problems with
+#        non-contigous arrays and ravel is equal to .flat except it
 #        can work with non-contiguous  arrays
         if len(num.ravel(args)) > textwidth:
           args = 'Array: ' + str(args.shape)
@@ -2516,7 +2520,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
         if len(argstr) > textwidth:
           WasTruncated = 1
           break
-      argstr = argstr[:-2]  # Strip off trailing comma      
+      argstr = argstr[:-2]  # Strip off trailing comma
       argstr = argstr + "}"
 
     else:
@@ -2536,7 +2540,7 @@ def mkargstr(args, textwidth, argstr = '', level=0):
       # Strip off trailing comma and space unless singleton tuple
       #
       if isinstance(args, tuple) and len(args) == 1:
-        argstr = argstr[:-1]    
+        argstr = argstr[:-1]
       else:
         argstr = argstr[:-2]
       argstr = argstr + rc
@@ -2552,32 +2556,32 @@ def mkargstr(args, textwidth, argstr = '', level=0):
 
 def logtestOK(msg):
   """Print OK msg if test is OK.
-  
+
   USAGE
     logtestOK(message)
   """
 
   import string
-    
-  log.critical(str.ljust(msg, textwidth4) + ' - OK' )
-  
+
+  log.info(str.ljust(msg, textwidth4) + ' - OK' )
+
   #raise StandardError
-  
+
 # -----------------------------------------------------------------------------
 
 def logtesterror(msg):
   """Print error if test fails.
-  
+
   USAGE
     logtesterror(message)
   """
-  
-  log.critical('ERROR (caching.test): %s' % msg)
-  log.critical('Please send this code example and output to ')
-  log.critical('Ole.Nielsen@anu.edu.au')
-  log.critical()
-  log.critical()
-  
+
+  log.info('ERROR (caching.test): %s' % msg)
+  log.info('Please send this code example and output to ')
+  log.info('Ole.Nielsen@anu.edu.au')
+  log.info()
+  log.info()
+
   raise Exception
 
 #-------------------------------------------------------------

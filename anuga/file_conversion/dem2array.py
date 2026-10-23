@@ -9,7 +9,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
 from .asc2dem import asc2dem
-                            
+
 
 def dem2array(filename, variable_name='elevation',
             easting_min=None, easting_max=None,
@@ -42,21 +42,21 @@ def dem2array(filename, variable_name='elevation',
 
     msg = 'Filename must be a text string'
     assert isinstance(filename, str), msg
-    
 
-        
+
+
     msg = 'Extension should be .dem'
     assert os.path.splitext(filename)[1] in ['.dem'], msg
-    
+
     msg = 'Variable name must be a text string'
     assert isinstance(variable_name, str), msg
-     
+
 
 
     # Get NetCDF
-    infile = NetCDFFile(filename, netcdf_mode_r) 
+    infile = NetCDFFile(filename, netcdf_mode_r)
 
-    if verbose: log.critical('Reading DEM from %s' % (filename))
+    if verbose: log.info('Reading DEM from %s' % (filename))
 
     ncols = int(infile.ncols)
     nrows = int(infile.nrows)
@@ -69,12 +69,12 @@ def dem2array(filename, variable_name='elevation',
     zone = int(infile.zone)
     false_easting = float(infile.false_easting)
     false_northing = float(infile.false_northing)
-    
+
     # Text strings
     projection = infile.projection
     datum = infile.datum
     units = infile.units
-    
+
     Z = infile.variables[variable_name][:]
     Z = Z.reshape(nrows,ncols)
     Z = num.where(Z == NODATA_value , num.nan, Z)

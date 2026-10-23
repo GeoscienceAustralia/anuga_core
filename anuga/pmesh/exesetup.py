@@ -2,7 +2,7 @@
 #run with "python exesetup.py py2exe"
 from distutils.core import setup
 import py2exe
-      
+
 setup(console=["pmesh.py"],
       data_files=[("icons",
                    ["icons/addVertex.gif",

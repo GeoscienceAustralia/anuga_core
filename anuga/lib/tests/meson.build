@@ -19,6 +19,7 @@ python_sources = [
   'test3.expected.asc',
   'test3.expected.lic',
   'test3.lic',
+  'test_add_csv_header.py',
   'test_maxasc.py',
   'test_order_boundary.py',
 ]

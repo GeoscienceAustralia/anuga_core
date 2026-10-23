@@ -1,0 +1,106 @@
+# =============================================================================
+# Simplest possible anuga_toml_run scenario: a dam break in a flat box.
+# =============================================================================
+#
+# A 100 m x 100 m flat basin with reflective (wall) boundaries.  A 4 m deep
+# column of water occupies the western 40 m ("the reservoir"); the rest starts
+# dry.  When the run starts the column collapses and sloshes back and forth.
+#
+# Everything it needs is in this directory (two tiny CSV polygons + this file),
+# so it runs out of the box with no external data.
+#
+# Run it (serial):
+#     anuga_toml_run dam_break.toml
+#
+# Run it (parallel, 4 processes):
+#     mpiexec -np 4 anuga_toml_run dam_break.toml
+#
+# Output (SWW + GeoTIFFs + logs) lands in OUTPUT/RUN_<timestamp>_dam_break/.
+
+
+# -----------------------------------------------------------------------------
+[project]
+# -----------------------------------------------------------------------------
+scenario               = "dam_break"      # base name for the .sww output
+output_base_directory  = "OUTPUT/"        # run dirs are created under here
+yieldstep              = 2.0              # write SWW output every 2 s
+finaltime              = 30.0             # stop at 30 s
+projection_information = -56              # UTM zone (just metadata here)
+flow_algorithm         = "DE1"            # 2nd-order; "DE0" is faster/1st-order
+
+
+# -----------------------------------------------------------------------------
+[mesh]
+# -----------------------------------------------------------------------------
+# bounding_polygon is a plain x,y CSV, so we must list boundary_tags below and
+# map each polygon edge (0-based, between consecutive vertices) to a tag name.
+bounding_polygon = "bounding_polygon.csv"
+default_res      = 20.0                   # max triangle area [m^2] (~500 triangles)
+
+# Edge order follows the polygon vertices in bounding_polygon.csv:
+#   0: (0,0)->(100,0)     south
+#   1: (100,0)->(100,100) east
+#   2: (100,100)->(0,100) north
+#   3: (0,100)->(0,0)     west
+[[mesh.boundary_tags]]
+tag   = "south"
+edges = [0]
+[[mesh.boundary_tags]]
+tag   = "east"
+edges = [1]
+[[mesh.boundary_tags]]
+tag   = "north"
+edges = [2]
+[[mesh.boundary_tags]]
+tag   = "west"
+edges = [3]
+
+
+# -----------------------------------------------------------------------------
+[boundary_conditions]
+# -----------------------------------------------------------------------------
+# Every tag above must appear here.  Reflective = solid wall (zero flux).
+[[boundary_conditions.boundaries]]
+tag  = "south"
+type = "Reflective"
+[[boundary_conditions.boundaries]]
+tag  = "east"
+type = "Reflective"
+[[boundary_conditions.boundaries]]
+tag  = "north"
+type = "Reflective"
+[[boundary_conditions.boundaries]]
+tag  = "west"
+type = "Reflective"
+
+
+# -----------------------------------------------------------------------------
+[initial_conditions]
+# -----------------------------------------------------------------------------
+# Flat bed at 0 m everywhere.
+[[initial_conditions.elevation]]
+polygon = "All"
+value   = 0.0
+
+# Constant Manning friction.
+[[initial_conditions.friction]]
+polygon = "All"
+value   = 0.03
+
+# Stage = 4 m inside the reservoir polygon (4 m of water over the flat bed),
+# 0 m everywhere else (dry, since bed is at 0).  Earlier entries win, so the
+# dam polygon is applied first and "All" mops up the rest.
+[[initial_conditions.stage]]
+polygon = "dam.csv"
+value   = 4.0
+[[initial_conditions.stage]]
+polygon = "All"
+value   = 0.0
+
+# Start at rest.
+[[initial_conditions.xmomentum]]
+polygon = "All"
+value   = 0.0
+[[initial_conditions.ymomentum]]
+polygon = "All"
+value   = 0.0

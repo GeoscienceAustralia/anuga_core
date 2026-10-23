@@ -7,6 +7,7 @@ python_sources = [
   'test_dem2dem.py',
   'test_dem2pts.py',
   'test_file_conversion.py',
+  'test_sww2vtu.py',
   'test_grd2array.py',
   'test_llasc2pts.py',
   'test_sww2dem.py',

@@ -18,24 +18,24 @@ class Test_LLAsc2Pts(unittest.TestCase):
         These tests are quite coarse-grained: converting a file
         and checking that its headers and some of its contents
         are correct.
-    """ 
+    """
 
     def tearDown(self):
         for file in ['demtest2.pts']:
             try:
                 os.remove(file)
             except OSError:
-                pass 
-     
+                pass
+
     def test_llasc2pts_bounding_box_v2(self):
         """Test conversion from dem in ascii format to native NetCDF format
         """
 
-        import time, os
+        import time
 
         ncols = 5
         nrows = 4
-    
+
         xllcorner = 114.0
         yllcorner = -20.0
         cellsize = 0.25 # degrees
@@ -61,7 +61,7 @@ NODATA_value  %g
 
         z = -1
         for i in range(nrows):
-            lat = yllcorner + (nrows-1)*cellsize - i*cellsize 
+            lat = yllcorner + (nrows-1)*cellsize - i*cellsize
             for j in range(ncols):
                 lon = xllcorner + j*cellsize
                 z += 1

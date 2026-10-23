@@ -14,7 +14,7 @@ except ImportError:
 
 #from zoneinfo import ZoneInfo
 
-class Test_Timzone(unittest.TestCase):
+class Test_Timezone(unittest.TestCase):
     def setUp(self):
         pass
 
@@ -24,7 +24,7 @@ class Test_Timzone(unittest.TestCase):
                 os.remove(file)
             except OSError:
                 pass
-        
+
 
 
     def test_default_TZ(self):
@@ -61,7 +61,7 @@ class Test_Timzone(unittest.TestCase):
         domain = anuga.rectangular_cross_domain(10,10)
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
-        
+
         AEST = ZoneInfo('Australia/Sydney')
         dt = datetime(2021,3,21,18,30, tzinfo=AEST)
 
@@ -69,16 +69,16 @@ class Test_Timzone(unittest.TestCase):
 
         # The domain timezone is UTC
         assert str(domain.get_datetime()) == '2021-03-21 07:30:00+00:00'
-    
+
         for t in domain.evolve(yieldstep=30, duration=60):
             pass
 
         assert str(domain.get_datetime()) == '2021-03-21 07:31:00+00:00'
-        
+
     def test_starttime_with_naive_datetime(self):
 
         domain = anuga.rectangular_cross_domain(10,10)
-        
+
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
 
@@ -88,7 +88,7 @@ class Test_Timzone(unittest.TestCase):
         domain.set_starttime(dt)
 
         assert str(domain.get_datetime()) == '2021-03-21 07:30:00+00:00'
-    
+
         for t in domain.evolve(yieldstep=30, duration=60):
             pass
 
@@ -99,7 +99,7 @@ class Test_Timzone(unittest.TestCase):
         domain = anuga.rectangular_cross_domain(10,10)
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
-        
+
         AEST = ZoneInfo('Australia/Sydney')
         domain.set_timezone(AEST)
 
@@ -109,16 +109,16 @@ class Test_Timzone(unittest.TestCase):
 
         # The domain timezone is AEST
         assert str(domain.get_datetime()) == '2021-03-21 18:30:00+11:00'
-    
+
         for t in domain.evolve(yieldstep=30, duration=60):
             pass
 
         assert str(domain.get_datetime()) == '2021-03-21 18:31:00+11:00'
-        
+
     def test_domainTZ_starttime_naive_datetime(self):
 
         domain = anuga.rectangular_cross_domain(10,10)
-        
+
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left' :Br , 'right' : Br, 'top' : Br, 'bottom' : Br})
 
@@ -131,12 +131,12 @@ class Test_Timzone(unittest.TestCase):
         domain.set_starttime(dt)
 
         assert str(domain.get_datetime()) == '2021-03-21 18:30:00+11:00'
-    
+
         for t in domain.evolve(yieldstep=30, duration=60):
             pass
 
         assert str(domain.get_datetime()) == '2021-03-21 18:31:00+11:00'
-            
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Timezone)
     runner = unittest.TextTestRunner(verbosity=1)

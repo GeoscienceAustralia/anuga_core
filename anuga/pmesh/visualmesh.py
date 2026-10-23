@@ -9,14 +9,14 @@ from tkinter.simpledialog import Dialog,askfloat, askinteger, askstring
 from tkinter import  FALSE,TRUE, Frame,X, LEFT,YES,BOTH,ALL,Widget,CURRENT, Label,W, Entry, E, ACTIVE, NORMAL, StringVar
 from tkinter.messagebox import showerror
 
-class vAbstract(object):
+class vAbstract:
     """
     Define the visualisation of a mesh object
     """
     def __init__(self, association):
         # The association is the class oncanvas will hold ie mesh.Vertex
-        self.association = association 
-        self.oncanvas = {} 
+        self.association = association
+        self.oncanvas = {}
 
     def visualise(self, meshobject, uniqueID, canvas, scale):
         """
@@ -26,7 +26,7 @@ class vAbstract(object):
 
         meshobject is from mesh.py, eg vertex, hole
         """
-        meshobject.guiID = uniqueID 
+        meshobject.guiID = uniqueID
         meshobject.draw(canvas, uniqueID, scale =scale)
         self.oncanvas[uniqueID] = meshobject
         return meshobject
@@ -47,7 +47,7 @@ class vAbstract(object):
             return True
         else:
             return False
- 
+
     def getMeshObject(self, key):
         """
         returns the mesh object,
@@ -71,11 +71,11 @@ class vAbstract(object):
         pass
 
     def __add__(self, other):
-        return VMesh([self,other])
+        return vMesh([self,other])
 
     def __repr__(self):
         return str(self.__class__)
-    
+
 class vPoints(vAbstract):
     """
     Define the visualisation of a point
@@ -90,11 +90,11 @@ class vPoints(vAbstract):
         point = mesh.addUserPoint(self.association,x/scale,y/scale)
         self.visualise(point, uniqueID, canvas, scale)
         return point
- 
+
 class vRegions(vPoints):
     """
     Define the visualisation of a region
-    """ 
+    """
     def editWindow(self, canvas, selMeshObject,userMeshChanged):
         dialog = EditRegionDialog (canvas,
                                    selMeshObject.getTag(),
@@ -107,7 +107,7 @@ class vRegions(vPoints):
                 selMeshObject.deleteMaxArea()
             userMeshChanged = True
         return userMeshChanged
-            
+
 class EditRegionDialog(Dialog):
     """
     Dialog box for editing region info
@@ -127,13 +127,13 @@ class EditRegionDialog(Dialog):
 
         Dialog.__init__(self, parent)
 
-        
+
     def body(self, master):
         """
         GUI description
         """
         self.title("Edit Region")
-        
+
         Label(master,
               text='tag:').grid(row=0, sticky=W)
         Label(master,
@@ -147,10 +147,10 @@ class EditRegionDialog(Dialog):
                                    textvariable = tagVar,
                                    takefocus=1)
 
-    
+
         maxAreaVar = StringVar()
         if self.maxArea is None:
-          self.maxArea = ""  
+          self.maxArea = ""
         maxAreaVar.set(self.maxArea)
         self.maxAreastr   = Entry(master,
                                    width = 16,
@@ -179,7 +179,7 @@ class EditRegionDialog(Dialog):
                                    ' Values are not numbers.')
 
         if not self.maxAreastr.get() == "":
-            try:    
+            try:
                 self.maxArea = float(self.maxAreastr.get())
                 #MeshGenDialog.lastMaxArea =self.maxArea
             except ValueError:
@@ -189,17 +189,17 @@ class EditRegionDialog(Dialog):
         else:
             self.maxArea = 0.0
 
-        try: 
+        try:
             # value checking
             if self.goodMaxArea == True and self.maxArea < 0.0:
-                raise IOError
-            
-        except IOError:
+                raise OSError
+
+        except OSError:
             self.ValueOk = False
             showerror('Bad mesh generation values',
                                    'Values are out of range.')
 
-       
+
 class vSegments(vAbstract):
     """
     Define the visualisation of a segment
@@ -213,14 +213,14 @@ class vSegments(vAbstract):
         """
         segment = mesh.add_user_segment(v1, v2)
         self.visualise(segment, uniqueID, canvas, scale)
-        return segment    
-  
+        return segment
+
     def editWindow_int(self, canvas, selMeshObject):
         ask_int = askinteger("Edit Segment", "Tag",
                              minvalue=0, initialvalue= selMeshObject.tag)
         if ask_int >= 0:
             selMeshObject.tag = ask_int
-            
+
     def editWindow(self, canvas, selMeshObject, userMeshChanged):
         ask_string = askstring("Edit Segment Tag", "Tag",
                               initialvalue= str(selMeshObject.tag))
@@ -228,13 +228,13 @@ class vSegments(vAbstract):
             selMeshObject.tag = ask_string
             userMeshChanged = True
         return userMeshChanged
-    
+
     def defaultWindow(self, canvas):
         ask_string = askstring("Edit Default Segment Tag", "Tag",
                      initialvalue= str(self.association.get_default_tag()))
         if ask_string != None:
             self.association.set_default_tag(ask_string)
-        
+
 class vTriangles(vAbstract):
     """
     Define the visualisation of a triangle
@@ -270,7 +270,7 @@ class vMesh(vAbstract):
             if isinstance(MeshObject,MeshObjects.association):
                 MeshObjects.unvisualise(MeshObject, canvas)
                 break
-            
+
     def hasKey(self, key):
         """
         returns true if the key is in the canvas list
@@ -300,9 +300,9 @@ class vMesh(vAbstract):
                 userMeshChanged =MeshObjects.editWindow(canvas, selMeshObject,userMeshChanged)
                 break
         return userMeshChanged
-    
+
     def defaultWindow(self, canvas, MeshClass):
         for MeshObjects in self.MeshObjectsList:
             if MeshClass == MeshObjects.association:
                 MeshObjects.defaultWindow(canvas)
-                break 
+                break

@@ -66,9 +66,8 @@ class Advection_Domain(Generic_Domain):
         #Only first is implemented for advection
         self.set_default_order(1)
         self.set_beta(1.0)
-        
+
         self.smooth = True
-        self.max_flux_update_frequency=1
 
     def check_integrity(self):
         Generic_Domain.check_integrity(self)
@@ -154,24 +153,24 @@ class Advection_Domain(Generic_Domain):
         Stage = self.quantities['stage']
 
         """
-        log.critical("======================================")
-        log.critical("BEFORE compute_fluxes")
-        log.critical("stage_update=%s" % str(Stage.explicit_update))
-        log.critical("stage_edge=%s" % str(Stage.edge_values))
-        log.critical("stage_bdry=%s" % str(Stage.boundary_values))
-        log.critical("neighbours=%s" % str(self.neighbours))
-        log.critical("neighbour_edges=%s" % str(self.neighbour_edges))
-        log.critical("normals=%s" % str(self.normals))
-        log.critical("areas=%s" % str(self.areas))
-        log.critical("radii=%s" % str(self.radii))
-        log.critical("edgelengths=%s" % str(self.edgelengths))
-        log.critical("tri_full_flag=%s" % str(self.tri_full_flag))
-        log.critical("huge_timestep=%s" % str(huge_timestep))
-        log.critical("max_timestep=%s" % str(max_timestep))
-        log.critical("velocity=%s" % str(self.velocity))
+        log.info("======================================")
+        log.info("BEFORE compute_fluxes")
+        log.info("stage_update=%s" % str(Stage.explicit_update))
+        log.info("stage_edge=%s" % str(Stage.edge_values))
+        log.info("stage_bdry=%s" % str(Stage.boundary_values))
+        log.info("neighbours=%s" % str(self.neighbours))
+        log.info("neighbour_edges=%s" % str(self.neighbour_edges))
+        log.info("normals=%s" % str(self.normals))
+        log.info("areas=%s" % str(self.areas))
+        log.info("radii=%s" % str(self.radii))
+        log.info("edgelengths=%s" % str(self.edgelengths))
+        log.info("tri_full_flag=%s" % str(self.tri_full_flag))
+        log.info("huge_timestep=%s" % str(huge_timestep))
+        log.info("max_timestep=%s" % str(max_timestep))
+        log.info("velocity=%s" % str(self.velocity))
         """
 
-        from . import advection_ext		
+        from . import advection_ext
         self.flux_timestep = advection_ext.compute_fluxes(self, Stage, huge_timestep, max_timestep)
 
 

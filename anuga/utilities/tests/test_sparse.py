@@ -203,6 +203,79 @@ class Test_Sparse(unittest.TestCase):
         A_dense = A_CSR.todense()
         assert num.allclose(A, A_dense)
 
+class Test_Sparse_extra(unittest.TestCase):
+    """Cover previously uncovered lines in sparse.py."""
+
+    def test_sparse_from_bad_input_raises(self):
+        """Sparse from non-convertable raises (lines 25-26)."""
+        with self.assertRaises(Exception):
+            Sparse('not_a_matrix')
+
+    def test_sparse_no_args_raises(self):
+        """Sparse() with wrong arg count raises (line 40)."""
+        with self.assertRaises(Exception):
+            Sparse(1, 2, 3)  # three args is invalid
+
+    def test_sparse_repr(self):
+        """Sparse.__repr__ covers line 45."""
+        A = Sparse(2, 2)
+        A[0, 1] = 3.0
+        s = repr(A)
+        self.assertIn('sparse matrix', s)
+
+    def test_sparse_nonzeros(self):
+        """Sparse.nonzeros covers line 55."""
+        A = Sparse(3, 3)
+        A[0, 1] = 1.0
+        A[2, 2] = 2.0
+        self.assertEqual(A.nonzeros(), 2)
+
+    def test_sparse_mul_high_dim_raises(self):
+        """Sparse.__mul__ with 3D array raises (line 146)."""
+        A = Sparse(2, 2)
+        A[0, 0] = 1.0
+        with self.assertRaises(ValueError):
+            A * num.zeros((2, 2, 2))
+
+    def test_sparse_trans_mult_2d_raises(self):
+        """trans_mult with 2D array raises (line 206)."""
+        A = Sparse(2, 3)
+        A[0, 1] = 1.0
+        with self.assertRaises(Exception):
+            A.trans_mult(num.zeros((2, 2)))
+
+    def test_sparse_csr_bad_args_raises(self):
+        """Sparse_CSR with non-Sparse A raises ValueError (line 284)."""
+        # A is not None, not Sparse, and data/colind/rowptr don't match
+        with self.assertRaises(ValueError):
+            Sparse_CSR(A=42)  # A is not Sparse, no data arrays → else branch
+
+    def test_sparse_csr_repr(self):
+        """Sparse_CSR.__repr__ covers line 288."""
+        data = num.array([1.0, 2.0])
+        colind = num.array([0, 1])
+        rowptr = num.array([0, 1, 2])
+        csr = Sparse_CSR(None, data, colind, rowptr, 2, 2)
+        s = repr(csr)
+        self.assertIn('sparse matrix', s)
+
+    def test_sparse_csr_len(self):
+        """Sparse_CSR.__len__ covers line 294."""
+        data = num.array([1.0, 2.0])
+        colind = num.array([0, 1])
+        rowptr = num.array([0, 1, 2])
+        csr = Sparse_CSR(None, data, colind, rowptr, 2, 2)
+        self.assertEqual(len(csr), 2)
+
+    def test_sparse_csr_nonzeros(self):
+        """Sparse_CSR.nonzeros covers line 299."""
+        data = num.array([1.0])
+        colind = num.array([0])
+        rowptr = num.array([0, 1])
+        csr = Sparse_CSR(None, data, colind, rowptr, 1, 2)
+        self.assertEqual(csr.nonzeros(), 1)
+
+
 ################################################################################
 
 

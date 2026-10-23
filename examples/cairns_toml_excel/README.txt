@@ -20,12 +20,13 @@ while the run_model.py script is the main driver routine.
 
 ## How to run ##
 
-To run it, you will first need to copy the files 'cairns.asc' and 'cairns.prj'
-from '../cairns' to a folder named 'cairns_initialcond' in the current
-directory. Note that 'cairns.asc' might be in the .zip file in '../cairns' and
-require extraction first. We do not automate this step because the scripts are
-generic (and we don't provide the data directly here, in order to reduce the
-repository size).
+The DEM raster for this example now lives in the shared data directory
+'../data/cairns/' (cairns.asc and friends), so a single copy is reused by both
+this legacy Excel example and the TOML example in '../run_toml/cairns/'. The
+cairns_example.toml here already points at '../data/cairns/cairns.asc'. The
+Excel workbook (cairns_excel.xlsx) still refers to 'cairns_initialcond/' for the
+elevation; to run the Excel path, copy (or symlink) '../data/cairns/cairns.asc'
+and 'cairns.prj' into a 'cairns_initialcond/' folder here first.
 
 Then, it should be able to be run with:
 > python run_model.py cairns_excel.xls

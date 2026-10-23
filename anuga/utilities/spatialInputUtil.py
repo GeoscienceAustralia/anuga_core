@@ -9,10 +9,10 @@ Key routines:
     readShpPointsAndAttributes -- read a multi-point shapefile with its attributes into ANUGA
 
     ListPts2Wkb -- (Probably for internal use) Convert a list of points to a
-                    Wkb geometry, allowing us to use GDALs geometry tools
+                    Wkb geometry, allowing us to use Shapely geometry tools
     Wbk2ListPts -- reverse of ListPts2Wkb
 
-    addIntersectionPtsToLines -- (Probably for internal use, see add_intersections_to_domain_features) 
+    addIntersectionPtsToLines -- (Probably for internal use, see add_intersections_to_domain_features)
                                  Given 2 intersecting lines, add their intersection points to them, or
                                  move existing points if they are within a given distance of the intersection.
 
@@ -22,7 +22,7 @@ Key routines:
                                             with the intersection point if desired
 
     rasterValuesAtPoints -- (Probably for internal use, see quantityRasterFun in quantity_setting_functions)
-                            Quite efficiently get raster cell values at points in any gdal-compatible raster
+                            Quite efficiently get raster cell values at points in any rasterio-compatible raster
                             [gridPointsInPolygon could in future be linked with this to get raster values in a region,
                              if we develop a version of ANUGA with sub-grid topography]
 
@@ -31,8 +31,8 @@ Key routines:
                          the mesh generation stage.
 
     readListOfBreakLines -- takes a list of shapefile names, each containing a single line geometry, and reads
-                            it in as a dictionary of breaklines. 
-    
+                            it in as a dictionary of breaklines.
+
     readListOfRiverWalls -- takes a list of csv names, each containing a xyz polylines defining riverwalls, with
                             an optional first line defining the non-default riverwall par, and returns a dictionary
                             of the riverwalls and the riverwall_Par
@@ -41,7 +41,7 @@ Key routines:
                                         convert them to a single polygon. This is useful to e.g. make
                                         a polygon defining the extent of a channel that is defined from 2 breaklines
 
-    
+
 """
 
 import sys
@@ -59,13 +59,27 @@ try:
     import rasterio
     from shapely.geometry import (MultiPoint, LineString, Polygon, Point,
                                    mapping, shape)
-    gdal_available = True
-except ImportError:
-    gdal_available = False
+    spatial_available = True
+    spatial_import_error = None
+except ImportError as _e:
+    # Geodata features degrade to a clear ImportError (see the stubs below),
+    # but do NOT swallow the cause silently: record it and warn. A broken
+    # geodata install (e.g. a fiona/rasterio/GDAL ABI mismatch, as seen in CI
+    # during a conda-forge GDAL migration) then shows the real error instead of
+    # only the generic "not installed" message.
+    spatial_available = False
+    spatial_import_error = _e
+    import warnings as _warnings
+    _warnings.warn(
+        'anuga.utilities.spatialInputUtil: geodata interface unavailable -- '
+        '%s: %s. fiona/rasterio/shapely could not be imported; geodata '
+        'features (shapefiles, rasters, polygon CSVs) will raise ImportError.'
+        % (type(_e).__name__, _e),
+        stacklevel=2)
 
 
-#####################################  
-if gdal_available:
+#####################################
+if spatial_available:
 
 
     def readShp_1PolyGeo(shapefile, dropLast=True):
@@ -102,9 +116,9 @@ if gdal_available:
             return boundary_poly[:-1]
         else:
             return boundary_poly
-    
+
     ####################
-    
+
     def readShp_1LineGeo(shapefile):
         """
             Read a "single-line" shapefile into a list of lists (each containing a point),
@@ -135,17 +149,17 @@ if gdal_available:
 
     ###########################################################################
     def read_csv_optional_header(filename):
-        """Read a csv file of numbers, which optionally has a single header 
-            row containing alphabetical characters (which is ignored if it 
+        """Read a csv file of numbers, which optionally has a single header
+            row containing alphabetical characters (which is ignored if it
             exists)
-           
+
             INPUT:
             @param filename -- name of appropriate file with ',' delimiter
-            
+
             OUTPUT:
             A numpy array with the numeric data
         """
-           
+
         f=open(filename)
         firstLine=f.readline()
         f.close()
@@ -154,7 +168,7 @@ if gdal_available:
             filename, delimiter=',',skip_header=int(hasLetters))
 
         return outPol
-           
+
     ###########################################################################
     def read_polygon(filename, close_polygon_shapefiles=False):
         """
@@ -166,10 +180,10 @@ if gdal_available:
 
         Try to automatically do the correct thing based on the filename
 
-        """ 
+        """
         # Check the file exists
         msg= 'Could not read '+ filename
-        assert os.path.isfile(filename), msg 
+        assert os.path.isfile(filename), msg
 
         # Get the file extension type
         fileNameNoExtension , fileExtension = os.path.splitext(filename)
@@ -197,9 +211,9 @@ if gdal_available:
                       ' with anuga.utilities.spatialInputUtils.read_polygon'
                 raise Exception(msg)
 
-        return outPol 
+        return outPol
 
-    #################### 
+    ####################
 
     def readShpPtsAndAttributes(shapefile):
         """
@@ -244,7 +258,7 @@ if gdal_available:
         """
         # Check the file exists
         msg= 'Could not read '+ filename
-        assert os.path.isfile(filename), msg 
+        assert os.path.isfile(filename), msg
 
         # Get the file extension type
         fileNameNoExtension , fileExtension = os.path.splitext(filename)
@@ -267,7 +281,7 @@ if gdal_available:
                       'with comma separator, and the first 2 columns are x,y'
                 raise Exception(msg)
         return points
-    
+
     ########################################
     def ListPts2Wkb( ptsIn, geometry_type='line', appendFirstOnEnd=None):
         """
@@ -308,7 +322,7 @@ if gdal_available:
         else:
             msg = "Type must be either 'point' or 'line' or 'polygon'"
             raise Exception(msg)
-    
+
     ############################################################################
     def Wkb2ListPts(wkb_geo, removeLast=False, drop_third_dimension=False):
         """
@@ -329,17 +343,17 @@ if gdal_available:
         if drop_third_dimension:
             new = [new[i][0:2] for i in range(len(new))]
         return new
-    
+
     ############################################################################
     def compute_squared_distance_to_segment(pt, line):
         """
             Compute the squared distance between a point and a [finite] line segment
-    
+
             INPUT: pt -- [x,y]
                    line -- [[x0,y0],[x1,y1]] -- 2 points defining a line segment
-    
+
             OUTPUT: The distance^2 of pt to the line segment
-    
+
         """
         p0 = line[0]
         p1 = line[1]
@@ -354,7 +368,7 @@ if gdal_available:
         seg_unitVec_x = seg_unitVec_x/segLen
         seg_unitVec_y = seg_unitVec_y/segLen
 
-        # Get vector from pt to p0 
+        # Get vector from pt to p0
         pt_p0_vec_x = float(pt[0]-p0[0])
         pt_p0_vec_y = float(pt[1]-p0[1])
         pt_p0_vec_len_squared = (pt_p0_vec_x**2 + pt_p0_vec_y**2)
@@ -367,7 +381,7 @@ if gdal_available:
             # Get distance^2
             output = pt_p0_vec_len_squared - pt_dot_segUnitVec**2.
         else:
-            # Distance is the min distance from p0 and p1. 
+            # Distance is the min distance from p0 and p1.
             output = min( pt_p0_vec_len_squared,  (float(pt[0]-p1[0])**2+float(pt[1]-p1[1])**2))
 
         if(output < -1.0e-06):
@@ -382,55 +396,55 @@ if gdal_available:
         if(output < 0.):
             output=0.
         return output
-    
+
     ############################################################################
-    
+
     def find_nearest_segment(pt, segments):
         """
             Given a point and a line, find the line segment nearest to the line
-    
+
             NOTE: The answer can be ambiguous if one of the segment endpoints is
                 the nearest point. In that case, the behaviour is determined by the behaviour
                 of numpy.argmin. Won't be a problem for this application
-    
+
             INPUT: pt -- [x,y]
                    segments -- [[x0,y0], [x1,y1], ...]
                              A list of points, consecutive points are interpreted
                              as joined and so defining line segments
-            
+
             OUTPUT: The squared distance, and the index i of the segment
                     [x_i,y_i],[x_i+1,y_i+1] in segments which is closest to pt
         """
         ll=len(segments)
         if(ll<=1):
             raise Exception('Segments must have length > 1 in find_nearest_segment')
-       
+
         ptDist_sq=numpy.zeros(ll-1) # Hold the squared distance from the point to the line segment
         for i in range(len(segments)-1):
             # Compute distance from segment
             ptDist_sq[i]=compute_squared_distance_to_segment(pt, [segments[i],segments[i+1]])
-        
+
         return [ptDist_sq.min(), ptDist_sq.argmin()]
-    
+
     ######################################################
-    
+
     def shift_point_on_line(pt, lineIn, nearest_segment_index):
         """
             Support pt is a point, which is near to the 'nearest_segment_index'
                 segment of the line 'lineIn'
-    
+
             This routine moves the nearest end point of that segment on line to pt.
-    
+
             INPUTS: pt -- [x,y] point
-                    lineIn -- [ [x0, y0], [x1, y1], ..., [xN,yN]] 
+                    lineIn -- [ [x0, y0], [x1, y1], ..., [xN,yN]]
                     nearest_segment_index = index where the distance of pt to
                         the line from [x_i,y_i] to [x_i+1,y_i+1] is minimum
-    
+
             OUTPUT: The new line
         """
         # Avoid Changing line
         line=copy.copy(lineIn)
-    
+
         # Replace the nearest point on L1 with the intersection point
         p0 = line[nearest_segment_index]
         p1 = line[nearest_segment_index+1]
@@ -439,34 +453,34 @@ if gdal_available:
         changeP1=(d_p1<d_p0)
         line[nearest_segment_index+changeP1][0] = pt[0]
         line[nearest_segment_index+changeP1][1] = pt[1]
-    
+
         return line
-    
+
     #################################################################################
     def insert_intersection_point(intersectionPt, line_pts, point_movement_threshold, verbose=False):
         """
             Add intersectionPt to line_pts, either by inserting it, or if a point on line_pts is
             closer than point_movement_threshold, then by moving that point to the intersection point
-    
+
             INPUTS:
                     intersectionPt -- the intersection point [known to lie on line_pts]
-                    line_pts -- ordered list of [x,y] points making a line. 
+                    line_pts -- ordered list of [x,y] points making a line.
                     point_movement_threshold -- used to decide to move or add intersectionPt
-    
+
             OUTPUT:
                 new version of lint_pts with the point added
         """
         # Avoid pointer/copy issues
         L1_pts = copy.copy(line_pts)
         iP=copy.copy(intersectionPt)
-    
+
         # Adjust L1
         tmp = find_nearest_segment(intersectionPt, L1_pts)
         # Compute the distance from the end points of the segment to the
         # intersection point. Based on this we decide to add or move the point
         p0 = L1_pts[tmp[1]]
         p1 = L1_pts[tmp[1]+1]
-        endPt_Dist_Sq=min( ( (p0[0]-iP[0])**2 + (p0[1]-iP[1])**2), 
+        endPt_Dist_Sq=min( ( (p0[0]-iP[0])**2 + (p0[1]-iP[1])**2),
                            ( (p1[0]-iP[0])**2 + (p1[1]-iP[1])**2))
         #
         if(endPt_Dist_Sq>point_movement_threshold**2):
@@ -476,27 +490,27 @@ if gdal_available:
             if verbose:
                 print('      Inserting new point')
             dummyPt=copy.copy(L1_pts[tmp[1]])
-            L1_pts.insert(tmp[1]+1,dummyPt) 
+            L1_pts.insert(tmp[1]+1,dummyPt)
             L1_pts[tmp[1]+1][0]=iP[0]
             L1_pts[tmp[1]+1][1]=iP[1]
             if(len(L1_pts[tmp[1]+1])==3):
                 # Treat 3rd coordinate
-                # Find distance of inserted point from neighbours, and 
+                # Find distance of inserted point from neighbours, and
                 # Set 3rd coordinate as distance-weighted average of the others
                 d0=((L1_pts[tmp[1]][0]-L1_pts[tmp[1]+1][0])**2.+\
                    (L1_pts[tmp[1]][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
                 d1=((L1_pts[tmp[1]+2][0]-L1_pts[tmp[1]+1][0])**2.+\
                    (L1_pts[tmp[1]+2][1]-L1_pts[tmp[1]+1][1])**2.)**0.5
                 L1_pts[tmp[1]+1][2] = (d0*L1_pts[tmp[1]+2][2] + d1*L1_pts[tmp[1]][2])/(d0+d1)
-    
+
         else:
             if verbose:
                 print('      Shifting existing point')
             # Move a point already on L1
             L1_pts=shift_point_on_line(iP, L1_pts, tmp[1])
-    
+
         return L1_pts
-    
+
     #######################################################################################################
     def check_polygon_is_small(intersection, buf, tol2=100.):
         """
@@ -521,38 +535,38 @@ if gdal_available:
         if x_extent > buf * tol2 or y_extent > buf * tol2:
             return False
         return True
-    
+
     #######################################################################################################
-    
+
     def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, buf=1.0e-05, tol2 = 100,
                                   verbose=True, nameFlag=''):
         """
             Add intersection points to lines L1 and L2 if they intersect each other
-    
+
             This is useful e.g. so that intersections can be exact (important for
                  mesh generation in ANUGA)
-    
+
             It currently only supports point intersection of 2 lines.
                 Line intersections should fail gracefully
-            
+
             INPUTS:  L1, L2 = Wkb LineString geometries
-    
+
                      point_movement_threshold -- if the distance from the nearest
                         point on L1 or L2 to the intersection is < point_movement_threshold, then the
                         nearest point has its coordinates replaced with the intersection point. This is
                         to prevent points being too close to each other
-        
+
                      buf = tolerence that is used to buffer lines to find
                             intersections. Probably doesn't need modification
-    
+
                      tol2 = [see check_polygon_is_small] Probably doesn't need to change
-    
+
                      nameFlag = This will be printed if intersection occurs.
                             Convenient way to display intersecting filenames
-            
+
             OUTPUTS: L1,L2 with intersection points added in the right places
         """
-    
+
         if L1.intersects(L2):
             # Get points on the lines
             L1_pts = Wkb2ListPts(L1)
@@ -583,35 +597,35 @@ if gdal_available:
             else:
                 # Point or other degenerate intersection
                 intersectionPts = [L1_L2_intersect.centroid.coords[0]]
-    
+
             if(verbose):
                 print(nameFlag)
                 print('    Treating intersections in ', len(intersectionPts) , ' locations')
                 print(intersectionPts)
-    
+
             # Insert the points into the line segments
             for i in range(len(intersectionPts)):
-                L1_pts = insert_intersection_point(intersectionPts[i], L1_pts, 
+                L1_pts = insert_intersection_point(intersectionPts[i], L1_pts,
                             point_movement_threshold, verbose=verbose)
-                L2_pts = insert_intersection_point(intersectionPts[i], L2_pts, 
+                L2_pts = insert_intersection_point(intersectionPts[i], L2_pts,
                             point_movement_threshold, verbose=verbose)
-                
+
             # Convert to the input format
             L1_pts=ListPts2Wkb(L1_pts,geometry_type='line')
             L2_pts=ListPts2Wkb(L2_pts,geometry_type='line')
-    
+
             return [L1_pts, L2_pts]
         else:
             return [L1, L2]
-   
+
     ###########################################################
     def getRasterExtent(rasterFile, asPolygon=False):
         """
             Sometimes we need to know the extent of a raster
             i.e. the minimum x, maximum x, minimum y, and maximum y values
-            
+
             INPUT:
-                rasterFile -- a gdal compatible rasterfile
+                rasterFile -- a rasterio-compatible raster file
                 asPolygon -- if False, return [xmin,xmax,ymin,ymax].
                              If True, return [ [xmin,ymin],[xmax,ymin],[xmax,ymax],[xmin,ymax]]
             OUTPUT
@@ -628,8 +642,8 @@ if gdal_available:
             #         y2 = yOrigin + xPixels*d + yPixels*e
             x2 = xOrigin + xPixels * t.a + yPixels * t.b
             y2 = yOrigin + xPixels * t.d + yPixels * t.e
-        
-        xmin=min(xOrigin,x2) 
+
+        xmin=min(xOrigin,x2)
         xmax=max(xOrigin,x2)
 
         ymin=min(yOrigin,y2)
@@ -640,22 +654,22 @@ if gdal_available:
         else:
             return [xmin,xmax,ymin,ymax]
 
- 
+
     ###########################################################
     def rasterValuesAtPoints(
-        xy, 
-        rasterFile, 
-        band=1, 
+        xy,
+        rasterFile,
+        band=1,
         nodata_rel_tol = 1.0e-08,
         interpolation = 'pixel'):
         """
             Get raster values at point locations.
             Can be used to e.g. set quantity values
-       
-            INPUT: 
+
+            INPUT:
             @param xy = numpy array with point locations
 
-            @param rasterFile = Filename of the gdal-compatible raster
+            @param rasterFile = Filename of the rasterio-compatible raster
 
             @param band = band of the raster to get
 
@@ -666,10 +680,10 @@ if gdal_available:
 
             @param interpolation 'pixel' or 'bilinear' determines how the
                     raster cell values are used to set the point value
-    
+
             OUTPUT:
             1d numpy array with raster values at xy
-    
+
         """
         # Raster info — read the full band once (more efficient than per-pixel reads)
         with rasterio.open(rasterFile) as raster:
@@ -751,7 +765,7 @@ if gdal_available:
                         if len(missing) > 0:
                             elev[i] = numpy.nan
             else:
-                raise Exception('Unknown value of "interpolation"')            
+                raise Exception('Unknown value of "interpolation"')
 
         # Deal with nodata for pixel based interpolation [efficient treatment
         # outside of loop]
@@ -768,44 +782,44 @@ if gdal_available:
 
     def gridPointsInPolygon(polygon, approx_grid_spacing=[1.,1.], eps=1.0e-06):
         """
-            Get a 'grid' of points inside a polygon. Could be used with rasterValuesAtPoints to 
+            Get a 'grid' of points inside a polygon. Could be used with rasterValuesAtPoints to
                get a range of raster values inside a polygon
-    
+
             Approach: A 'trial-grid' of points is created which is 'almost'
-                      covering the range of the polygon (xmin-xmax,ymin-ymax). 
-    
+                      covering the range of the polygon (xmin-xmax,ymin-ymax).
+
                       (Actually it is just inside this region, to avoid polygon-boundary issues, see below)
-    
+
                       Then we find those points which are actually inside the polygon.
-    
+
                       The x/y point spacing on the trial-grid will be close to
                       approx_grid_spacing, but we ensure there are at least 4x4 points on the trial grid.
                       Also, we reduce the spacing so that the min_x+R and max_x-R
                         are both similarly close to the polygon extents [see definition of R below]
-    
+
             INPUTS:
                 polygon -- the polygon in ANUGA format (list of lists of ordered xy points)
-    
+
                 approx_grid_spacing -- the approximate x,y grid spacing
-    
+
                 eps -- 'trial-grid' of points has x range from min_polygon_x+R to
                         max_polygon_x - R, where R = (max_polygon_x-min_polygon_x)*eps
                         ( and similarly for y).
-    
+
                        This makes it more likely that points are inside the
                         polygon, not on the boundaries. Points on the boundaries can confuse the
                         point-in-polygon routine
-    
+
             OUTPUTS: A n x 2 numpy array of points in the polygon
         """
-    
+
         # Get polygon extent
         polygonArr = numpy.array(polygon)
         poly_xmin = polygonArr[:,0].min()
         poly_xmax = polygonArr[:,0].max()
         poly_ymin = polygonArr[:,1].min()
         poly_ymax = polygonArr[:,1].max()
-    
+
         # Make a 'grid' of points which covers the polygon
         xGridCount = max( numpy.ceil( (poly_xmax-poly_xmin)/approx_grid_spacing[0]+1. ).astype(int), 4)
         R = (poly_xmax-poly_xmin)*eps
@@ -813,17 +827,17 @@ if gdal_available:
         yGridCount = max( numpy.ceil( (poly_ymax-poly_ymin)/approx_grid_spacing[1]+1. ).astype(int), 4)
         R = (poly_ymax-poly_ymin)*eps
         Yvals = numpy.linspace(poly_ymin+R,poly_ymax-R, yGridCount)
-    
+
         xGrid, yGrid = numpy.meshgrid(Xvals,Yvals)
         Grid = numpy.vstack([xGrid.flatten(),yGrid.flatten()]).transpose()
-    
+
         keepers = inside_polygon(Grid, polygon)
         if(len(keepers) == 0):
             raise Exception('No points extracted from polygon')
         xyInside = Grid[keepers,:]
-    
+
         return(xyInside)
-    
+
     #########################################################################
     # Function to search for pattern matches in a string (turns out to be useful)
     def matchInds(pattern, stringList):
@@ -836,33 +850,33 @@ if gdal_available:
             if pattern in stringList[i]:
                 matches.append(i)
         return matches
-    
-    
+
+
     ###########################################################################
     #
     # Less generic utilities below
-    # 
+    #
     # These are more 'anuga-specific' than above, aiming to make nice interfaces
     # in ANUGA scripts
     #
     ############################################################################
-    
-    
+
+
     def add_intersections_to_domain_features(
         bounding_polygonIn,
-        breakLinesIn={ }, 
-        riverWallsIn={ }, 
+        breakLinesIn={ },
+        riverWallsIn={ },
         point_movement_threshold=0.,
         verbose=True):
         """
-            If bounding polygon / breaklines /riverwalls intersect with each 
+            If bounding polygon / breaklines /riverwalls intersect with each
             other, then add intersection points.
 
             INPUTS:
                 bounding_polygonIn -- the bounding polygon in ANUGA format
                 breakLinesIn -- the breaklines dictionary
                 riverWallsIn -- the riverWalls dictionary
-                point_movement_threshold -- if points on lines 
+                point_movement_threshold -- if points on lines
                     are < this distance from intersection points, then they are
                     replaced with the intersection point. This can prevent
                     overly close points from breaking the mesh generation
@@ -875,12 +889,12 @@ if gdal_available:
         breakLines = copy.copy(breakLinesIn)
         riverWalls = copy.copy(riverWallsIn)
 
-        # Quick exit 
-        if (breakLines == {}) and (riverWalls == {}): 
+        # Quick exit
+        if (breakLines == {}) and (riverWalls == {}):
             return [bounding_polygon, breakLines, riverWalls]
 
         # Clean intersections of breakLines with itself
-        if(verbose): 
+        if(verbose):
             print('Cleaning breakline intersections')
         if(len(breakLines)>0):
             kbl = list(breakLines.keys())
@@ -903,7 +917,7 @@ if gdal_available:
 
 
         # Clean intersections of riverWalls with itself
-        if(verbose): 
+        if(verbose):
             print('Cleaning riverWall intersections')
         if(len(riverWalls)>0):
             krw=list(riverWalls.keys())
@@ -911,7 +925,7 @@ if gdal_available:
                 n1=krw[i]
                 for j in range(len(krw)):
                     if(i>=j):
-                        continue 
+                        continue
                     n2 = krw[j]
                     # Convert breaklines to wkb format
                     rw1 = ListPts2Wkb(riverWalls[n1],geometry_type='line')
@@ -922,9 +936,9 @@ if gdal_available:
                                     verbose=verbose, nameFlag=n1+' intersects '+ n2)
                     riverWalls[n1] = Wkb2ListPts(rw1)
                     riverWalls[n2] = Wkb2ListPts(rw2)
-    
+
         # Clean intersections of breaklines with riverwalls
-        if(verbose): 
+        if(verbose):
             print('Cleaning breakLine-riverWall intersections')
         if( (len(riverWalls)>0) and (len(breakLines)>0)):
             krw = list(riverWalls.keys())
@@ -942,12 +956,12 @@ if gdal_available:
                                     verbose=verbose, nameFlag=n1+' intersects '+ n2)
                     riverWalls[n1] = Wkb2ListPts(rw1)
                     breakLines[n2] = Wkb2ListPts(bw2)
-                    
-    
+
+
         # Clean intersections of bounding polygon and riverwalls
-        if(verbose): 
+        if(verbose):
             print('Cleaning bounding_poly-riverWall intersections')
-        if( (len(riverWalls)>0)):
+        if( len(riverWalls)>0):
             krw = list(riverWalls.keys())
             for i in range(len(krw)):
                 n1 = krw[i]
@@ -967,11 +981,11 @@ if gdal_available:
                     bounding_polygon[0] = bounding_polygon[-1]
                 # Drop the last point
                 bounding_polygon = bounding_polygon[:-1]
-    
+
         # Clean intersections of bounding polygon and breaklines
         if(verbose):
             print('Cleaning bounding_poly-breaklines intersections')
-        if( (len(breakLines)>0)):
+        if( len(breakLines)>0):
             kbl = list(breakLines.keys())
             for i in range(len(kbl)):
                 n1 = kbl[i]
@@ -992,7 +1006,7 @@ if gdal_available:
                 # Drop the last point
                 bounding_polygon = bounding_polygon[:-1]
 
-        # Remove the extra 0.0 from bounding polygon [this cannot have 3 coordinates] 
+        # Remove the extra 0.0 from bounding polygon [this cannot have 3 coordinates]
         bounding_polygon = [ bounding_polygon[i][0:2] for i in range(len(bounding_polygon))]
         # Same for breaklines [although might not matter]
         for n1 in list(breakLines.keys()):
@@ -1024,7 +1038,7 @@ if gdal_available:
 
     def readRegionPtAreas(shapefile, convert_length_to_area=False):
         """
-            Read a point shapefile to define the ANUGA mesh resoutions. 
+            Read a point shapefile to define the ANUGA mesh resoutions.
 
             MUST HAVE A SINGLE ATTRIBUTE REPRESENTING THE LENGTHS OF TRIANGLES IN
              REGIONS
@@ -1084,7 +1098,7 @@ if gdal_available:
 
             Read them in
 
-            INPUT: fileList -- a list of shapefile and/or anuga_polygon csv filenames 
+            INPUT: fileList -- a list of shapefile and/or anuga_polygon csv filenames
                                [e.g. from glob.glob('GIS/Breaklines/*.shp')]
 
             OUTPUT: dictionary with breaklines [filenames are keys]
@@ -1092,7 +1106,7 @@ if gdal_available:
 
         allBreakLines = {}
         for shapefile in fileList:
-            allBreakLines[shapefile] = read_polygon(shapefile, 
+            allBreakLines[shapefile] = read_polygon(shapefile,
                 close_polygon_shapefiles=True)
 
         return allBreakLines
@@ -1100,23 +1114,23 @@ if gdal_available:
     #########################################
     def readListOfRiverWalls(rwfileList):
         """
-            Take a list with the names of riverwall input files 
+            Take a list with the names of riverwall input files
             [should be comma-separated x,y,elevation files]
 
             The input file can OPTIONALLY have a first line defining some
             hydraulic parameters. A valid example is
 
-            Qfactor: 1.5, s1: 0.94 
+            Qfactor: 1.5, s1: 0.94
             200., 300., 0.5
             300., 400., 0.7
             ....and so on..
 
             Read their coordinates into a dict with their names, read for use by ANUGA
 
-            INPUT: rwfileList -- a list of riverwall filenames 
+            INPUT: rwfileList -- a list of riverwall filenames
                         [e.g. from glob.glob('GIS/RiverWalls/*.csv')]
 
-            OUTPUT: 
+            OUTPUT:
                 dictionary with riverwalls [filenames are keys] AND
                 dictionary with hydraulic parameters [filenames are keys]
         """
@@ -1147,7 +1161,7 @@ if gdal_available:
                     keyNameValue = wp.split(':')
                     allRiverWallPar[rwfile][keyNameValue[0]] = \
                         float(keyNameValue[1])
-        
+
         return allRiverWalls, allRiverWallPar
 
     ############################################################################
@@ -1162,7 +1176,7 @@ if gdal_available:
             mesh_breakLines[i] =\
              [mesh_breakLines[i][j][0:2] for j in range(len(mesh_breakLines[i]))]
         return mesh_breakLines
-    
+
     ############################################################################
     def polygon_from_matching_breaklines(pattern,breakLinesIn, reverse2nd=None):
         """ We sometimes have breaklines defining 2 edges of a channel,
@@ -1170,12 +1184,12 @@ if gdal_available:
 
             Can do this with the current function
 
-            INPUTS: pattern == character string containing pattern which 
+            INPUTS: pattern == character string containing pattern which
                         is inside exactly 2 keys in breaklines
 
                     breakLinesIn = the breakLines dictionary
 
-                    reverse2nd = True/False or None. Reverse the order of the 
+                    reverse2nd = True/False or None. Reverse the order of the
                        2nd set of edges before making the polygon.
                        If None, then we compute the distance between the
                        first point on breakline1 and the first/last
@@ -1229,89 +1243,92 @@ if gdal_available:
         return polyOut
     ###################
 
-else: # gdal_available == False
-    msg='Failed to import gdal/ogr modules --'\
-        + 'perhaps gdal python interface is not installed.'
+else: # spatial_available == False
+    msg='Failed to import fiona rasterio or shapely --'\
+        + 'perhaps geodata python interface is not installed.'
+    if spatial_import_error is not None:
+        msg += ' (root cause: %s: %s)' % (
+            type(spatial_import_error).__name__, spatial_import_error)
 
 
 
     def readShp_1PolyGeo(shapefile, dropLast=True):
         raise ImportError(msg)
-    
+
     def readShp_1LineGeo(shapefile):
         raise ImportError(msg)
 
     def read_csv_optional_header(filename):
         raise ImportError(msg)
-    
+
     def read_polygon(filename):
         raise ImportError(msg)
-    
+
     def readShpPtsAndAttributes(shapefile):
         raise ImportError(msg)
-    
+
     def read_points(filename):
         raise ImportError(msg)
-    
+
     def ListPts2Wkb( ptsIn, geometry_type='line', appendFirstOnEnd=None):
         raise ImportError(msg)
-    
+
     def Wkb2ListPts(wkb_geo, removeLast=False, drop_third_dimension=False):
         raise ImportError(msg)
-    
+
     def compute_squared_distance_to_segment(pt, line):
         raise ImportError(msg)
-    
+
     def find_nearest_segment(pt, segments):
         raise ImportError(msg)
-    
+
     def shift_point_on_line(pt, lineIn, nearest_segment_index):
         raise ImportError(msg)
-    
-    def insert_intersection_point(intersectionPt, line_pts, 
+
+    def insert_intersection_point(intersectionPt, line_pts,
                                   point_movement_threshold,verbose=False):
         raise ImportError(msg)
 
     def check_polygon_is_small(intersection, buf, tol2=100.):
         raise ImportError(msg)
-    
-    def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0, 
+
+    def addIntersectionPtsToLines(L1,L2, point_movement_threshold=0.0,
                                   buf=1.0e-06, tol2 = 100,
                                   verbose=True, nameFlag=''):
         raise ImportError(msg)
-   
-    def getRasterExtent(rasterFile, asPolygon=False): 
+
+    def getRasterExtent(rasterFile, asPolygon=False):
         raise ImportError(msg)
 
     def rasterValuesAtPoints(xy, rasterFile, band=1):
         raise ImportError(msg)
-    
-    
+
+
     def gridPointsInPolygon(polygon, approx_grid_spacing=[1.,1.], eps=1.0e-06):
         raise ImportError(msg)
-    
+
 
     def matchInds(pattern, stringList):
         raise ImportError(msg)
-    
-    
+
+
     def add_intersections_to_domain_features(bounding_polygonIn,
                 breakLinesIn={ }, riverWallsIn={ }, point_movement_threshold=0.,
                 verbose=True):
         raise ImportError(msg)
-    
-    
+
+
     def readRegionPtAreas(shapefile, convert_length_to_area=False):
         raise ImportError(msg)
-    
+
     def readListOfBreakLines(shapefileList):
         raise ImportError(msg)
 
     def combine_breakLines_and_riverwalls_for_mesh(breakLines, riverWalls):
         raise ImportError(msg)
-    
+
     def polygon_from_matching_breaklines(pattern,breakLinesIn, reverse2nd=None):
         raise ImportError(msg)
-    ###################    
+    ###################
 
 

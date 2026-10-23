@@ -13,7 +13,8 @@ __copyright__ += 'Disaster Reduction'
 import unittest
 import numpy
 
-from anuga.fit_interpolate.interpolate2d import interpolate2d
+from anuga.fit_interpolate.interpolate2d import interpolate2d, interpolate_raster, check_inputs
+from anuga.anuga_exceptions import ANUGAError, BoundsError
 
 
 # Auxiliary functions for testing
@@ -249,14 +250,14 @@ class Test_interpolate(unittest.TestCase):
         # Then test that interpolated points can contain NaN
         xis = numpy.linspace(x[0], x[-1], 10)
         etas = numpy.linspace(y[0], y[-1], 10)
-        
+
         xis[6:7] = numpy.nan
         etas[3] = numpy.nan
         points = axes2points(xis, etas)
-        
+
         vals = interpolate2d(x, y, A, points, mode='linear')
         refs = linear_function(points[:, 0], points[:, 1])
-        
+
         assert nanallclose(vals, refs, rtol=1e-12, atol=1e-12)
 
     def test_linear_interpolation_nan_array(self):
@@ -304,8 +305,8 @@ class Test_interpolate(unittest.TestCase):
         A = numpy.zeros((len(x), len(y)))
 
         # Define arbitrary values for each x, y pair
-        numpy.random.seed(17)
-        A = numpy.random.random((len(x), len(y))) * 10
+        rng = numpy.random.default_rng(17)
+        A = rng.random((len(x), len(y))) * 10
 
         # Create islands of NaN
         A[5, 13] = numpy.nan
@@ -461,6 +462,160 @@ class Test_interpolate(unittest.TestCase):
                                 assert numpy.allclose(vals[i], refs[i],
                                                       rtol=1.0e-12,
                                                       atol=1.0e-12), msg
+
+
+class Test_interpolate2d_coverage(unittest.TestCase):
+    """Tests for previously uncovered branches in interpolate2d.py."""
+
+    def _make_grid(self):
+        x = numpy.array([1.0, 2.0, 4.0])
+        y = numpy.array([5.0, 9.0])
+        A = numpy.zeros((len(x), len(y)))
+        for i in range(len(x)):
+            for j in range(len(y)):
+                A[i, j] = linear_function(x[i], y[j])
+        return x, y, A
+
+    # ------------------------------------------------------------------
+    # interpolate_raster
+    # ------------------------------------------------------------------
+    def test_interpolate_raster_basic(self):
+        """interpolate_raster flips/transposes then returns correct values."""
+        # Build a grid where z[lat_idx, lon_idx] with lats bottom-up
+        x = numpy.array([1.0, 2.0, 3.0])   # longitudes
+        y = numpy.array([10.0, 20.0, 30.0]) # latitudes (bottom to top)
+
+        # For raster convention: z[lat_row, lon_col], lats from bottom up
+        # z value = x + y/10
+        z = numpy.zeros((len(y), len(x)))
+        for i, lat in enumerate(y):
+            for j, lon in enumerate(x):
+                z[i, j] = lon + lat / 10.0
+
+        # Query at the grid nodes — should recover exact values
+        points = numpy.array([[2.0, 20.0]])
+        result = interpolate_raster(x, y, z, points, mode='linear')
+        expected = 2.0 + 20.0 / 10.0
+        assert numpy.allclose(result, expected), \
+            'interpolate_raster: got %s expected %s' % (result, expected)
+
+    def test_interpolate_raster_constant_mode(self):
+        """interpolate_raster works with mode='constant'."""
+        x = numpy.array([0.0, 1.0, 2.0])
+        y = numpy.array([0.0, 1.0, 2.0])
+        z = numpy.arange(9, dtype=float).reshape(3, 3)
+        points = numpy.array([[0.6, 0.6]])
+        result = interpolate_raster(x, y, z, points, mode='constant')
+        assert numpy.isfinite(result[0])
+
+    # ------------------------------------------------------------------
+    # check_inputs — invalid mode
+    # ------------------------------------------------------------------
+    def test_check_inputs_invalid_mode(self):
+        """check_inputs raises ANUGAError for unsupported mode."""
+        x, y, A = self._make_grid()
+        points = numpy.array([[1.5, 7.0]])
+        with self.assertRaises(ANUGAError):
+            check_inputs(x, y, A, points, mode='cubic', bounds_error=False)
+
+    # ------------------------------------------------------------------
+    # check_inputs — non-monotonic x / y
+    # ------------------------------------------------------------------
+    def test_check_inputs_x_not_monotonic_start(self):
+        """check_inputs raises ANUGAError when x[0] != min(x)."""
+        x = numpy.array([2.0, 1.0, 3.0])
+        y = numpy.array([1.0, 2.0])
+        A = numpy.zeros((3, 2))
+        points = numpy.array([[1.5, 1.5]])
+        with self.assertRaises(ANUGAError):
+            check_inputs(x, y, A, points, mode='linear', bounds_error=False)
+
+    def test_check_inputs_x_not_monotonic_end(self):
+        """check_inputs raises ANUGAError when x[-1] != max(x)."""
+        x = numpy.array([1.0, 3.0, 2.0])
+        y = numpy.array([1.0, 2.0])
+        A = numpy.zeros((3, 2))
+        points = numpy.array([[1.5, 1.5]])
+        with self.assertRaises(ANUGAError):
+            check_inputs(x, y, A, points, mode='linear', bounds_error=False)
+
+    def test_check_inputs_y_not_monotonic_start(self):
+        """check_inputs raises ANUGAError when y[0] != min(y)."""
+        x = numpy.array([1.0, 2.0, 3.0])
+        y = numpy.array([5.0, 3.0, 9.0])
+        A = numpy.zeros((3, 3))
+        points = numpy.array([[1.5, 5.0]])
+        with self.assertRaises(ANUGAError):
+            check_inputs(x, y, A, points, mode='linear', bounds_error=False)
+
+    def test_check_inputs_y_not_monotonic_end(self):
+        """check_inputs raises ANUGAError when y[-1] != max(y)."""
+        x = numpy.array([1.0, 2.0, 3.0])
+        y = numpy.array([3.0, 9.0, 5.0])
+        A = numpy.zeros((3, 3))
+        points = numpy.array([[1.5, 5.0]])
+        with self.assertRaises(ANUGAError):
+            check_inputs(x, y, A, points, mode='linear', bounds_error=False)
+
+    # ------------------------------------------------------------------
+    # check_inputs — Z shape/dimension errors
+    # ------------------------------------------------------------------
+    def test_check_inputs_z_not_2d(self):
+        """check_inputs raises Exception when Z cannot be made into a 2D array."""
+        x = numpy.array([1.0, 2.0])
+        y = numpy.array([1.0, 2.0])
+        # Ragged list cannot form a uniform 2D array
+        bad_z = [[1.0, 2.0], [3.0]]
+        points = numpy.array([[1.5, 1.5]])
+        with self.assertRaises(Exception):
+            check_inputs(x, y, bad_z, points, mode='linear', bounds_error=False)
+
+    def test_check_inputs_z_dimension_mismatch(self):
+        """check_inputs raises ANUGAError when Z shape doesn't match x/y lengths."""
+        x = numpy.array([1.0, 2.0, 3.0])
+        y = numpy.array([1.0, 2.0])
+        A = numpy.zeros((2, 2))  # wrong: should be (3, 2)
+        points = numpy.array([[1.5, 1.5]])
+        with self.assertRaises(ANUGAError):
+            check_inputs(x, y, A, points, mode='linear', bounds_error=False)
+
+    # ------------------------------------------------------------------
+    # bounds_error=True paths
+    # ------------------------------------------------------------------
+    def test_bounds_error_xi_too_low(self):
+        """BoundsError raised when xi < x[0] and bounds_error=True."""
+        x, y, A = self._make_grid()
+        points = numpy.array([[0.5, 7.0]])  # 0.5 < x[0]=1.0
+        with self.assertRaises(BoundsError):
+            interpolate2d(x, y, A, points, bounds_error=True)
+
+    def test_bounds_error_xi_too_high(self):
+        """BoundsError raised when xi > x[-1] and bounds_error=True."""
+        x, y, A = self._make_grid()
+        points = numpy.array([[5.0, 7.0]])  # 5.0 > x[-1]=4.0
+        with self.assertRaises(BoundsError):
+            interpolate2d(x, y, A, points, bounds_error=True)
+
+    def test_bounds_error_eta_too_low(self):
+        """BoundsError raised when eta < y[0] and bounds_error=True."""
+        x, y, A = self._make_grid()
+        points = numpy.array([[2.0, 4.0]])  # 4.0 < y[0]=5.0
+        with self.assertRaises(BoundsError):
+            interpolate2d(x, y, A, points, bounds_error=True)
+
+    def test_bounds_error_eta_too_high(self):
+        """BoundsError raised when eta > y[-1] and bounds_error=True."""
+        x, y, A = self._make_grid()
+        points = numpy.array([[2.0, 10.0]])  # 10.0 > y[-1]=9.0
+        with self.assertRaises(BoundsError):
+            interpolate2d(x, y, A, points, bounds_error=True)
+
+    def test_bounds_error_false_returns_nan(self):
+        """bounds_error=False returns NaN for out-of-domain points."""
+        x, y, A = self._make_grid()
+        points = numpy.array([[0.5, 7.0]])  # out of domain
+        result = interpolate2d(x, y, A, points, bounds_error=False)
+        assert numpy.isnan(result[0])
 
 
 if __name__ == '__main__':

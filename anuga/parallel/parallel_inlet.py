@@ -134,7 +134,10 @@ class Parallel_Inlet(Inlet):
     def get_average_stage(self):
         # LOCAL
 
-        return num.sum(self.get_stages()*self.get_areas())/self.area
+        if self.area > 0:
+            return num.sum(self.get_stages()*self.get_areas())/self.area
+        else:
+            return 0.0
 
     def get_global_average_stage(self):
         # GLOBAL: Master processor gathers stages from all child processors, and returns average
@@ -252,7 +255,10 @@ class Parallel_Inlet(Inlet):
 
     def get_average_ymom(self):
         # LOCAL
-        return num.sum(self.get_ymoms()*self.get_areas())/self.area
+        if self.area > 0:
+            return num.sum(self.get_ymoms()*self.get_areas())/self.area
+        else:
+            return 0.0
 
     def get_global_average_ymom(self):
         # GLOBAL: master proc gathers all ymom values and returns average
@@ -354,6 +360,8 @@ class Parallel_Inlet(Inlet):
 
     def get_average_speed(self):
         #LOCAL
+        if self.area <= 0:
+            return 0.0
         u, v = self.get_velocities()
 
         average_u = num.sum(u*self.get_areas())/self.area
@@ -515,6 +523,26 @@ class Parallel_Inlet(Inlet):
 
         stages = self.get_stages()
         stages_order = stages.argsort()
+
+    def set_average_depth(self, new_average_depth, old_average_depth=None):
+        """Level this rank's share of the inlet (see Inlet.set_average_depth).
+
+        `old_average_depth` must be the GLOBAL average over the whole inlet: the
+        caller derived `new_average_depth` from it, and the difference is the
+        per-area volume change every rank must apply. Each rank then applies
+        that change to its own cells (its local average moves by the same
+        amount), leveling locally. Volume is exact; the level found on one rank
+        can differ from its neighbour's where an inlet straddles a partition,
+        which is the same order of seam the old uniform-depth write had on a
+        sloping bed.
+        """
+
+        if old_average_depth is None:
+            old_average_depth = self.get_global_average_depth()
+
+        delta = new_average_depth - old_average_depth
+        local_average = self.get_average_depth()
+        Inlet.set_average_depth(self, local_average + delta, local_average)
 
     def set_depths_evenly(self,volume):
         """ Distribute volume over all exchange

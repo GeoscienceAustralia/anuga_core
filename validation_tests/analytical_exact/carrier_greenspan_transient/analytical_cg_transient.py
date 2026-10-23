@@ -3,7 +3,7 @@ Transient water flows using ANUGA,
 where water driven up a linear sloping beach and time varying boundary.
 Ref: Carrier and Greenspan, Journal of Fluid Mechanics, 1958
 """
-from scipy import linspace, zeros, array, dot
+from numpy import linspace, zeros, array, dot
 from math import log, ceil, sqrt
 from scipy.optimize import fsolve
 
@@ -15,7 +15,7 @@ def shoreline(t):
         numer = 5.0*(2.0/a_const*(u+t))**3.0 - (2.0/a_const*(u+t))**5.0
         denom = (1.0 + 4.0/a_const**2.0 * (u+t)**2.0)**4.0
         return u - 8.0*eps/a_const*numer/denom    
-    u = fsolve(f,0.0)  # t must be involved here.
+    u = fsolve(f,0.0)[0]  # t must be involved here.
     lam = 2.0/a_const*(u+t)
     x = -0.5*u**2.0 + eps - eps*(1.0 + 3*lam**2.0 - 2.0*lam**4.0)/(1.0+lam**2.0)**3.0
     return x, u
@@ -57,8 +57,7 @@ X = linspace(-0.5, 0.3, 201)
 for i in range(len(T)):
     t=T[i]
     w, z, u = analytical_sol(X,t)
-    from pylab import clf,plot,title,xlabel,ylabel,legend,savefig,show,hold,subplot
-    hold(False)
+    from pylab import clf,plot,title,xlabel,ylabel,legend,savefig,show,subplot
     clf()
     plot1 = subplot(211)
     plot(X,w, X,z)

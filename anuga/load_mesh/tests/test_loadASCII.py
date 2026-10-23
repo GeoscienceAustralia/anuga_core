@@ -188,7 +188,8 @@ class loadASCIITestCase(unittest.TestCase):
   ############### .TSH ##########
     def test_export_mesh_file(self):
         meshDict = self.dict
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, meshDict)
         loadedDict = import_mesh_file(fileName)
 
@@ -226,7 +227,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_export_mesh_1_file(self):
         meshDict = self.dict_1
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, meshDict)
         loadedDict = import_mesh_file(fileName)
 
@@ -265,7 +267,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_read_write_tsh_file(self):
         dict = self.dict.copy()
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = import_mesh_file(fileName)
         os.remove(fileName)
@@ -274,7 +277,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_read_write_tsh_fileII(self):
         dict = self.sparse_dict.copy()
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = import_mesh_file(fileName)
         dict = self.sparse_dict
@@ -283,7 +287,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_read_write_tsh_fileIII(self):
         dict = self.blank_dict.copy()
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = import_mesh_file(fileName)
         os.remove(fileName)
@@ -292,7 +297,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_read_write_tsh_file4(self):
         dict = self.seg_dict.copy()
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = import_mesh_file(fileName)
         os.remove(fileName)
@@ -301,7 +307,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_read_write_tsh_file5(self):
         dict = self.triangle_tags_dict.copy()
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = import_mesh_file(fileName)
         dict = self.triangle_tags_dict
@@ -310,7 +317,8 @@ class loadASCIITestCase(unittest.TestCase):
 
     def test_read_write_tsh_file6(self):
         dict = self.tri_dict.copy()
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = import_mesh_file(fileName)
         dict = self.tri_dict
@@ -320,27 +328,30 @@ class loadASCIITestCase(unittest.TestCase):
 ########################## BAD .TSH ##########################
 
     def test_load_bad_no_file_tsh(self):
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         # use self.faileUnlessRaises(IOError, import_mesh_file(fileName))
         try:
             dict = import_mesh_file(fileName)
-        except IOError:
+        except OSError:
             pass
         else:
             self.assertTrue(0 == 1, 'imaginary file did not raise error!')
 
     def test_read_write_tsh_file_bad(self):
         dict = self.tri_dict.copy()
-        fileName = tempfile.mktemp('.xxx')
+        fd, fileName = tempfile.mkstemp('.xxx')
+        os.close(fd)
         try:
             export_mesh_file(fileName, dict)
-        except IOError:
+        except OSError:
             pass
         else:
             self.assertTrue(0 == 1, 'bad tsh file did not raise error!')
 
     def test_import_tsh_bad(self):
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         file = open(fileName, 'w')
         #   this is  a bad tsh file
         file.write('elevn\n\
@@ -350,7 +361,7 @@ class loadASCIITestCase(unittest.TestCase):
         file.close()
         try:
             dict = import_mesh_file(fileName)
-        except IOError:
+        except OSError:
             pass
         else:
             self.fail('bad tsh file did not raise error!')
@@ -360,7 +371,8 @@ class loadASCIITestCase(unittest.TestCase):
             pass
 
     def test_import_tsh3(self):
-        fileName = tempfile.mktemp('.tsh')
+        fd, fileName = tempfile.mkstemp('.tsh')
+        os.close(fd)
         file = open(fileName, 'w')
         file.write('1.0 \n\
 showme1.0 0.0 10.0 \n\
@@ -369,7 +381,7 @@ showme1.0 0.0 10.0 \n\
         file.close()
         try:
             dict = import_mesh_file(fileName)
-        except IOError:
+        except OSError:
             pass
         else:
             self.fail('bad tsh file did not raise error!')
@@ -382,7 +394,8 @@ showme1.0 0.0 10.0 \n\
 
     def test_read_write_msh_file1(self):
         dict = self.dict.copy()
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
@@ -396,7 +409,8 @@ showme1.0 0.0 10.0 \n\
 
     def test_read_write_msh_fileII(self):
         dict = self.sparse_dict.copy()
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
@@ -405,7 +419,8 @@ showme1.0 0.0 10.0 \n\
 
     def test_read_write_msh_fileIII(self):
         dict = self.blank_dict.copy()
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
@@ -414,7 +429,8 @@ showme1.0 0.0 10.0 \n\
 
     def test_read_write_msh_file4(self):
         dict = self.seg_dict.copy()
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
@@ -423,7 +439,8 @@ showme1.0 0.0 10.0 \n\
 
     def test_read_write_msh_file5(self):
         dict = self.triangle_tags_dict.copy()
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
@@ -432,7 +449,8 @@ showme1.0 0.0 10.0 \n\
 
     def test_read_write_msh_file6(self):
         dict = self.tri_dict.copy()
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         export_mesh_file(fileName, dict)
         loaded_dict = loadASCII._read_msh_file(fileName)
         os.remove(fileName)
@@ -520,16 +538,18 @@ showme1.0 0.0 10.0 \n\
 ########################## BAD .MSH ##########################
 
     def test_load_bad_no_file_msh(self):
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         try:
             dict = import_mesh_file(fileName)
-        except IOError:
+        except OSError:
             pass
         else:
             self.fail('imaginary file did not raise error!')
 
     def throws_error_2_screen_import_mesh_bad(self):
-        fileName = tempfile.mktemp('.msh')
+        fd, fileName = tempfile.mkstemp('.msh')
+        os.close(fd)
         file = open(fileName, 'w')
         # this is  a bad tsh file
         file.write('elevn\n\
@@ -539,11 +559,21 @@ showme1.0 0.0 10.0 \n\
         file.close()
         try:
             dict = import_mesh_file(fileName)
-        except IOError:
+        except OSError:
             pass
         else:
             self.fail('bad msh file did not raise error!')
         os.remove(fileName)
+
+class TestLoadASCII_extra(unittest.TestCase):
+    """Tests for uncovered loadASCII branches."""
+
+    def test_import_mesh_file_unknown_extension(self):
+        """Unknown file extension should raise OSError."""
+        from anuga.load_mesh.loadASCII import import_mesh_file
+        with self.assertRaises(OSError):
+            import_mesh_file('something.xyz')
+
 
 ################################################################################
 

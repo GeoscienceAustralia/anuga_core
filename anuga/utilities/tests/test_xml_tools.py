@@ -2,7 +2,7 @@
 
 
 import unittest
-from tempfile import mkstemp, mktemp 
+from tempfile import mkstemp, mktemp
 
 import os
 
@@ -262,6 +262,112 @@ class Test_xml_tools(unittest.TestCase):
         # print xmlobject['all']['datafile']
 
         os.remove(tmp_name)
+
+class Test_xml_tools_extra(unittest.TestCase):
+    """Cover previously uncovered lines in xml_tools.py."""
+
+    def _make_simple_xml_file(self):
+        """Helper: write a simple XML file and return its path."""
+        import tempfile
+        content = '<root><item>hello</item><item>world</item></root>'
+        fd, path = tempfile.mkstemp(suffix='.xml')
+        with os.fdopen(fd, 'w') as f:
+            f.write(content)
+        return path
+
+    def test_print_tree(self):
+        """print_tree covers lines 8-15."""
+        from io import StringIO
+        path = self._make_simple_xml_file()
+        try:
+            with open(path) as f:
+                doc = parse(f)
+            import sys
+            # Just call it — output goes to stdout
+            print_tree(doc.childNodes[0])
+        finally:
+            os.unlink(path)
+
+    def test_pretty_print_tree(self):
+        """pretty_print_tree covers line 19."""
+        path = self._make_simple_xml_file()
+        try:
+            with open(path) as f:
+                doc = parse(f)
+            pretty_print_tree(doc)
+        finally:
+            os.unlink(path)
+
+    def test_get_elements(self):
+        """get_elements covers lines 39-44."""
+        path = self._make_simple_xml_file()
+        try:
+            with open(path) as f:
+                doc = parse(f)
+            elems = get_elements(doc.childNodes)
+            self.assertGreater(len(elems), 0)
+        finally:
+            os.unlink(path)
+
+    def test_get_text(self):
+        """get_text covers lines 51-58."""
+        path = self._make_simple_xml_file()
+        try:
+            with open(path) as f:
+                doc = parse(f)
+            root = doc.childNodes[0]
+            text = get_text(root.childNodes)
+            # text is concatenation of text nodes
+            self.assertIsInstance(text, str)
+        finally:
+            os.unlink(path)
+
+    def test_xml_element_add_radd_repr(self):
+        """__add__, __radd__, __repr__ cover lines 105, 108, 111."""
+        e = XML_element(tag='x', value='42')
+        s1 = e + ' suffix'
+        self.assertIn('42', s1)
+        s2 = 'prefix ' + e
+        self.assertIn('42', s2)
+        self.assertIn('42', repr(e))
+
+    def test_getitem_none(self):
+        """__getitem__ returns None when key not found (line 158)."""
+        e = XML_element(tag='root',
+                        value=[XML_element(tag='a', value='1')])
+        result = e['missing']
+        self.assertIsNone(result)
+
+    def test_getitem_multiple(self):
+        """__getitem__ returns list when multiple matches (lines 161→exit)."""
+        e = XML_element(tag='root',
+                        value=[XML_element(tag='item', value='1'),
+                               XML_element(tag='item', value='2')])
+        result = e['item']
+        self.assertIsInstance(result, list)
+        self.assertEqual(len(result), 2)
+
+    def test_pretty_print_method(self):
+        """XML_element.pretty_print covers lines 179-189."""
+        e = XML_element(tag='root',
+                        value=[XML_element(tag='child', value='hello')])
+        s = e.pretty_print()
+        self.assertIn('root', s)
+        self.assertIn('child', s)
+
+    def test_xml2object_parse_error(self):
+        """xml2object with bad XML raises (lines 219-224)."""
+        import tempfile
+        fd, path = tempfile.mkstemp(suffix='.xml')
+        with os.fdopen(fd, 'w') as f:
+            f.write('not valid xml <<<')
+        try:
+            with self.assertRaises(Exception) as cm:
+                xml2object(path)
+            self.assertIn('could not be parsed', str(cm.exception))
+        finally:
+            os.unlink(path)
+
 
 ################################################################################
 

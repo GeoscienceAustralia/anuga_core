@@ -1,5 +1,6 @@
 import csv
-import unittest, os
+import unittest
+import os
 import tempfile
 import numpy as num
 import sys
@@ -12,7 +13,8 @@ from anuga.anuga_exceptions import TitleValueError, \
 
 class Test_Exposure(unittest.TestCase):
     def test_exposure_csv_loading(self):
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -32,7 +34,8 @@ class Test_Exposure(unittest.TestCase):
     def test_exposure_csv_loadingII(self):
 
 
-        file_name = tempfile.mktemp(".txt")
+        fd, file_name = tempfile.mkstemp(".txt")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -57,7 +60,8 @@ class Test_Exposure(unittest.TestCase):
             file_name = tempfile.gettempdir() + \
                     "test_exposure_csv_loading_title_check_list.csv"
         else:
-            file_name = tempfile.mktemp(".csv")
+            fd, file_name = tempfile.mkstemp(".csv")
+            os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -66,7 +70,7 @@ class Test_Exposure(unittest.TestCase):
         file.close()
         try:
             exposure = Exposure(file_name, title_check_list = ['SOUND'])
-        except IOError:
+        except OSError:
             pass
         else:
             self.assertTrue(0 ==1,  'Assertion not thrown error!')
@@ -75,7 +79,8 @@ class Test_Exposure(unittest.TestCase):
             os.remove(file_name)
 
     def test_exposure_csv_cmp(self):
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -96,7 +101,8 @@ class Test_Exposure(unittest.TestCase):
         #self.assertTrue(cmp(e1,"hey")==1,
         #                'FAILED!')
 
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         # Note, this has less spaces in the title,
         # the instances will be the same.
@@ -112,7 +118,8 @@ class Test_Exposure(unittest.TestCase):
         #self.assertTrue(cmp(e3,e2)==0,
         #                'FAILED!')
 
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         # Note, 40 changed to 44 .
         file.write("LATITUDE,LONGITUDE ,sound, speed \n\
@@ -129,7 +136,8 @@ class Test_Exposure(unittest.TestCase):
         #self.assertTrue(cmp(e4,e2)!=0,
         #                'FAILED!')
 
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         # Note, the first two columns are swapped.
         file.write("LONGITUDE,LATITUDE ,sound, speed \n\
@@ -150,7 +158,8 @@ class Test_Exposure(unittest.TestCase):
     def test_exposure_csv_saving(self):
 
 
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LATITUDE, LONGITUDE ,sound  , speed \n\
 115.0, -21.0, splat, 0.0\n\
@@ -159,7 +168,8 @@ class Test_Exposure(unittest.TestCase):
         file.close()
         e1 = Exposure(file_name)
 
-        file_name2 = tempfile.mktemp(".csv")
+        fd, file_name2 = tempfile.mkstemp(".csv")
+        os.close(fd)
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
 
@@ -170,7 +180,8 @@ class Test_Exposure(unittest.TestCase):
         os.remove(file_name2)
 
     def test_exposure_csv_get_location(self):
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LONGITUDE , LATITUDE, sound  , speed \n\
 150.916666667, -34.5, splat, 0.0\n\
@@ -192,7 +203,8 @@ class Test_Exposure(unittest.TestCase):
         os.remove(file_name)
 
     def test_exposure_csv_set_column_get_column(self):
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LONGITUDE , LATITUDE, sound  , speed \n\
 150.916666667, -34.5, splat, 0.0\n\
@@ -208,7 +220,8 @@ class Test_Exposure(unittest.TestCase):
         self.assertTrue(returned_values == new_values,
                         ' Error!')
 
-        file_name2 = tempfile.mktemp(".csv")
+        fd, file_name2 = tempfile.mkstemp(".csv")
+        os.close(fd)
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
         returned_values = e2.get_column(new_title)
@@ -217,7 +230,8 @@ class Test_Exposure(unittest.TestCase):
         os.remove(file_name2)
 
     def test_exposure_csv_set_column_get_column_error_checking(self):
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("LONGITUDE , LATITUDE, sound  , speed \n\
 150.916666667, -34.5, splat, 0.0\n\
@@ -257,7 +271,8 @@ class Test_Exposure(unittest.TestCase):
             pass
         else:
             self.assertTrue(0 ==1,  'Error not thrown error!')
-        file_name2 = tempfile.mktemp(".csv")
+        fd, file_name2 = tempfile.mkstemp(".csv")
+        os.close(fd)
         e1.save(file_name = file_name2)
         e2 = Exposure(file_name2)
         returned_values = e2.get_column(new_title)
@@ -276,7 +291,8 @@ class Test_Exposure(unittest.TestCase):
     def test_exposure_csv_loading_x_y(self):
 
 
-        file_name = tempfile.mktemp(".csv")
+        fd, file_name = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(file_name,"w",newline="")
         file.write("x, y ,sound  , speed \n\
 115.0, 7, splat, 0.0\n\
@@ -302,7 +318,8 @@ class Test_Exposure(unittest.TestCase):
 
     def test_exposure_csv_loading_x_y2(self):
 
-        csv_file = tempfile.mktemp('.csv')
+        fd, csv_file = tempfile.mkstemp('.csv')
+        os.close(fd)
         fd = open(csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x','y','STR_VALUE','C_VALUE','ROOF_TYPE','WALLS','SHORE_DIST'])

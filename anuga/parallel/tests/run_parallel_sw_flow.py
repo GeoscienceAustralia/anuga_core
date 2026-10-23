@@ -1,4 +1,4 @@
-"""Run sw_flow simulation (sequentially or in parallel) to support 
+"""Run sw_flow simulation (sequentially or in parallel) to support
    test_parallel_sw_flow.py
 """
 
@@ -21,15 +21,15 @@ verbose = True
 #-------------------------------------
 # Setup function for initial condition
 #-------------------------------------
-def topography(x, y): 
-    return -x / 2    
+def topography(x, y):
+    return -x / 2
 
 #------------------------------------------
 # Setup computational domain and quantities
 #------------------------------------------
 domain = rectangular_cross_domain(29, 29)
 domain.set_quantity('elevation', topography) # Use function for elevation
-domain.set_quantity('friction', 0.0)         # Constant friction 
+domain.set_quantity('friction', 0.0)         # Constant friction
 domain.set_quantity('stage', expression='elevation') # Dry initial stage
 
 #------------------------
@@ -57,7 +57,7 @@ Bd = Dirichlet_boundary([-0.2, 0., 0.])  # Constant boundary values
 
 # Associate boundary tags with boundary objects
 domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
-        
+
 #---------------------------
 # Evolve system through time
 #---------------------------

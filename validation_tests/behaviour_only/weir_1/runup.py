@@ -13,6 +13,7 @@ from math import exp
 args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
+debug = args.debug
 
 scale_me=1.0
 
@@ -58,7 +59,7 @@ if myid == 0:
     #==================================================================
     # Create Sequential Domain
     #==================================================================
-    anuga.create_mesh_from_regions(boundaryPolygon, 
+    anuga.create_pmesh_from_regions(boundaryPolygon, 
                              boundary_tags={'left': [0],
                                             'top': [1],
                                             'right': [2],
@@ -70,7 +71,7 @@ if myid == 0:
                                                     [midResPolygon, 3.0*3.0*0.5]],
                                breaklines=riverWall.values(),
                                use_cache=False,
-                               verbose=True,
+                               verbose=debug,
                                regionPtArea=regionPtAreas)
     
     domain=anuga.create_domain_from_file('runup.msh')
@@ -107,7 +108,7 @@ else:
 #======================================================================    
 domain = distribute(domain)
 
-domain.riverwallData.create_riverwalls(riverWall)
+domain.riverwallData.create_riverwalls(riverWall, verbose=verbose)
 
 #--------------------------
 # Setup boundary conditions
@@ -145,14 +146,9 @@ if myid == 0:
 
 for t in domain.evolve(yieldstep=10.0,finaltime=4000.0):
     if myid == 0 and verbose: print(domain.timestepping_statistics())
-    # Print velocity as we go
-#     uh=domain.quantities['xmomentum'].centroid_values
-#     vh=domain.quantities['ymomentum'].centroid_values
-#     depth=domain.quantities['height'].centroid_values
-#     depth=depth*(depth>1.0e-06) + 1.0e-06
-#     vel=((uh/depth)**2 + (vh/depth)**2)**0.5
-#     print('peak speed is', vel.max())
 
+    if verbose:
+       vol = domain.report_water_volume_statistics()
 
 domain.sww_merge(delete_old=True)
 

@@ -1,0 +1,51 @@
+# Convenience wrapper for building/running the ANUGA images locally.
+#
+#   docker compose -f docker/docker-compose.yml build anuga-cpu
+#   docker compose -f docker/docker-compose.yml build anuga-gpu
+#   docker compose -f docker/docker-compose.yml run --rm anuga-gpu \
+#       python /work/my_run.py -alg DE0
+#
+# Put input in ./docker/data (mounted at /work); results land there too.
+#
+# Run as your host user so output files are owned by you, not root:
+#   UID=$(id -u) GID=$(id -g) docker compose -f docker/docker-compose.yml run --rm anuga-gpu ...
+services:
+  anuga-cpu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+    image: anuga:cpu
+    # Owns output as the host user (avoids root-owned files on the bind mount).
+    user: "${UID:-0}:${GID:-0}"
+    volumes:
+      - ./data:/work
+
+  anuga-gpu:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+      args:
+        # Multi-arch fat binary (AWS p3/g4dn/p4d/g5/p5 + local Blackwell laptop).
+        # Must match Dockerfile.gpu's default: cuda12.9 leads so cc70 (V100) is
+        # available -- the bundled CUDA 13 dropped Volta.
+        # For a faster laptop-only build, override with e.g. GPU_ARCH=cc120.
+        GPU_ARCH: cuda12.9,cc70,cc75,cc80,cc86,cc89,cc90,cc120
+        # Must be a real nvcr.io/nvidia/nvhpc devel tag whose nvc supports the
+        # arches above (cc120/Blackwell needs NVHPC >= 25.1).
+        NVHPC_TAG: 25.9-devel-cuda_multi-ubuntu24.04
+    image: anuga:gpu
+    # Owns output as the host user (avoids root-owned files on the bind mount).
+    user: "${UID:-0}:${GID:-0}"
+    environment:
+      # Opt into GPU offload for unified (mode-2) domains.
+      ANUGA_DEFAULT_COMPUTE_MODE: unified
+    volumes:
+      - ./data:/work
+    # Expose all NVIDIA GPUs to the container (needs NVIDIA Container Toolkit).
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]

@@ -1,21 +1,27 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from anuga.utilities.system_tools import log_to_file
 
+if TYPE_CHECKING:
+    from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 
-class Operator(object):
+
+class Operator:
     """Operator - generic structure for a fractional operator
-    
+
     This is the base class for all fractional step operators
-    """ 
+    """
 
     counter = 0
 
     def __init__(self,
-                 domain,
-                 description = None,
-                 label = None,
-                 logging = False,
-                 verbose = False):
-        
+                 domain: Generic_Domain,
+                 description: str | None = None,
+                 label: str | None = None,
+                 logging: bool = False,
+                 verbose: bool = False) -> None:
+
         self.domain = domain
         self.domain.set_fractional_step_operator(self)
 
@@ -51,52 +57,52 @@ class Operator(object):
         self.set_logging(logging)
 
 
-    def __call__(self):
+    def __call__(self) -> None:
 
         #timestep = self.domain.get_timestep()
         raise Exception('Need to implement __call__ for your operator')
-                    
-    def get_timestep(self):
+
+    def get_timestep(self) -> float:
 
         return self.domain.get_timestep()
 
 
-    def get_time(self):
+    def get_time(self) -> float:
 
         return self.domain.get_time()
 
-    def parallel_safe(self):
+    def parallel_safe(self) -> bool:
         """By default an operator is not parallel safe
         """
         return False
 
-    def statistics(self):
+    def statistics(self) -> str:
 
         message = 'You need to implement operator statistics for your operator'
         return message
-    
-    def timestepping_statistics(self):
+
+    def timestepping_statistics(self) -> str:
 
         message  = 'You need to implement timestepping statistics for your operator'
         return message
 
 
-    def print_statistics(self):
+    def print_statistics(self) -> None:
 
         print(self.statistics())
 
-    def print_timestepping_statistics(self):
+    def print_timestepping_statistics(self) -> None:
 
         print(self.timestepping_statistics())
 
 
-    def log_timestepping_statistics(self):
+    def log_timestepping_statistics(self) -> None:
 
         from anuga.utilities.system_tools import log_to_file
         if self.logging:
             log_to_file(self.log_filename, self.timestepping_statistics())
 
-    def set_label(self, label=None):
+    def set_label(self, label: str | None = None) -> None:
 
         if label is None:
             self.label = "operator_%g" % Operator.counter
@@ -104,13 +110,13 @@ class Operator(object):
             self.label = label + '_%g' % Operator.counter
 
 
-    def set_logging(self, flag=True):
+    def set_logging(self, flag: bool = True) -> None:
 
         self.logging = flag
-        
 
 
-    def activate_logging(self):
+
+    def activate_logging(self) -> None:
 
         # If flag is true open file with mode = "w" to form a clean file for logging
         if self.logging:

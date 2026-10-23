@@ -41,7 +41,7 @@ _WGS84_UTM_SOUTH_BASE = 32700
 
 TITLE = '#geo reference' + "\n" # this title is referred to in the test format
 
-class Geo_reference(object):
+class Geo_reference:
     """Coordinate reference system for an ANUGA domain.
 
     Attributes
@@ -149,13 +149,13 @@ class Geo_reference(object):
         # Set flag for absolute points (used by get_absolute)
         # FIXME (Ole): It would be more robust to always use get_absolute()
         self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
-        
+
     def __eq__(self, other):
 
         # FIXME (Ole): Can this be automatically done for all attributes?
         # Anyway, it is arranged like this so one can step through and find out
         # why two objects might not be equal
-        
+
         equal = True
         if self.false_easting != other.false_easting: equal = False
         if self.false_northing != other.false_northing: equal = False
@@ -180,9 +180,22 @@ class Geo_reference(object):
         return self.yllcorner
 
     def set_zone(self, zone):
-        """set zone as an integer in [1,60] or -1."""
+        """Set zone as an integer in [1,60] or -1 (DEFAULT_ZONE = unlocated).
 
+        A negative zone in [-60, -2] is interpreted as a southern hemisphere
+        shorthand: the zone number is taken as abs(zone) and hemisphere is set
+        to 'southern' when it is currently 'undefined'.
+
+        Note: zone=-1 is reserved for DEFAULT_ZONE (unlocated simulation) and
+        is NOT interpreted as zone 1 southern hemisphere.  For zone 1 south,
+        pass zone=1 with hemisphere='southern' explicitly.
+        """
         zone = int(zone)
+
+        if -60 <= zone <= -2:
+            if self.hemisphere == 'undefined':
+                self.hemisphere = 'southern'
+            zone = abs(zone)
 
         assert (zone == -1 or (zone >= 1 and zone <= 60)), f'zone {zone} not valid.'
 
@@ -200,7 +213,7 @@ class Geo_reference(object):
 
     def set_hemisphere(self, hemisphere):
 
-        msg = f"'{hemisphere}' not corresponding to allowed hemisphere values 'southern', 'northern' or 'undefined'" 
+        msg = f"'{hemisphere}' not corresponding to allowed hemisphere values 'southern', 'northern' or 'undefined'"
         assert hemisphere in ['southern', 'northern', 'undefined'], msg
 
         self.hemisphere=str(hemisphere)
@@ -239,6 +252,7 @@ class Geo_reference(object):
             EPSG code to store.
         """
         self._epsg = epsg
+        used_pyproj = False
 
         if _WGS84_UTM_NORTH_BASE < epsg <= _WGS84_UTM_NORTH_BASE + 60:
             inferred_zone = epsg - _WGS84_UTM_NORTH_BASE
@@ -247,11 +261,17 @@ class Geo_reference(object):
             inferred_zone = epsg - _WGS84_UTM_SOUTH_BASE
             inferred_hemisphere = 'southern'
         else:
-            # Non-UTM EPSG (e.g. EPSG:28992 Netherlands RD New,
-            # EPSG:27700 British National Grid).  No zone or hemisphere to infer.
-            # Populate datum and projection from pyproj if available so that
-            # the SWW file metadata accurately describes the CRS.
+            # Not a WGS84 UTM code. Populate datum/projection/false easting-
+            # northing from pyproj, and — for any UTM-based CRS on another datum
+            # (e.g. GDA2020/GDA94 MGA EPSG 78xx/283xx, or NAD83 UTM) — infer the
+            # UTM zone and hemisphere too. Genuinely non-UTM grids (British
+            # National Grid 27700, RD New 28992, Albers 3577, geographic 4326)
+            # yield (None, None) and keep zone/hemisphere unset.
             self._populate_from_pyproj(epsg)
+            used_pyproj = True
+            inferred_zone, inferred_hemisphere = self._utm_from_pyproj(epsg)
+
+        if inferred_zone is None:
             return
 
         if self.zone == DEFAULT_ZONE:
@@ -262,10 +282,48 @@ class Geo_reference(object):
 
         if self.hemisphere == DEFAULT_HEMISPHERE:
             self.set_hemisphere(inferred_hemisphere)
-            self.set_false_easting_northing()
+            # The pyproj path already set false easting/northing precisely from
+            # the CRS; only synthesise them for the WGS84 fast path.
+            if not used_pyproj:
+                self.set_false_easting_northing()
         elif self.hemisphere != inferred_hemisphere:
             log.warning(f'EPSG {epsg} implies {inferred_hemisphere} hemisphere but '
                         f'{self.hemisphere} is already set; hemisphere unchanged.')
+
+    def _utm_from_pyproj(self, epsg):
+        """Infer ``(zone, hemisphere)`` from a UTM-based EPSG code via pyproj.
+
+        Recognises any UTM projection regardless of datum — WGS84 UTM, GDA2020/
+        GDA94 MGA (EPSG 78xx / 283xx), NAD83 UTM, etc. — which the WGS84-only
+        32601–32760 fast path in :meth:`_set_epsg` does not cover. PROJ reports
+        these all as ``proj=utm`` with a ``zone``; the hemisphere is taken from
+        the false northing (southern UTM uses 10 000 000 m), since the PROJ
+        ``south`` flag is unreliable across the round-trip.
+
+        Returns ``(None, None)`` for non-UTM CRS or when pyproj is unavailable.
+        """
+        try:
+            from pyproj import CRS
+            crs = CRS.from_epsg(epsg)
+            d = crs.to_dict()
+        except Exception:
+            return None, None
+
+        if d.get('proj') != 'utm' or d.get('zone') is None:
+            return None, None
+        try:
+            zone = int(d['zone'])
+        except (TypeError, ValueError):
+            return None, None
+
+        south = d.get('south')
+        if south is None:
+            try:
+                fn = crs.to_cf().get('false_northing')
+                south = fn is not None and float(fn) > 0
+            except Exception:
+                south = False
+        return zone, ('southern' if south else 'northern')
 
     def _populate_from_pyproj(self, epsg):
         """Use pyproj to set CRS metadata from an EPSG code.
@@ -342,13 +400,17 @@ class Geo_reference(object):
         """
         if self._epsg is not None:
             return self._epsg
-        if self.zone == DEFAULT_ZONE:
+        zone = self.zone
+        if zone == DEFAULT_ZONE:
             return None
+        # Negative zone implies southern hemisphere (legacy convention).
+        if zone < 0:
+            return _WGS84_UTM_SOUTH_BASE + abs(zone)
         if self.datum.lower() == 'wgs84' and self.projection.upper() == 'UTM':
             if self.hemisphere == 'southern':
-                return _WGS84_UTM_SOUTH_BASE + self.zone
+                return _WGS84_UTM_SOUTH_BASE + zone
             if self.hemisphere == 'northern':
-                return _WGS84_UTM_NORTH_BASE + self.zone
+                return _WGS84_UTM_NORTH_BASE + zone
         return None
 
     @epsg.setter
@@ -449,34 +511,34 @@ class Geo_reference(object):
 
         if self.hemisphere == 'southern':
             if self.false_easting != DEFAULT_SOUTHERN_FALSE_EASTING:
-                log.critical("WARNING: False easting of %f specified."
+                log.warning("WARNING: False easting of %f specified."
                              % self.false_easting)
-                log.critical("Default false easting is %f." % DEFAULT_SOUTHERN_FALSE_EASTING)
-                log.critical("ANUGA does not correct for differences in "
+                log.info("Default false easting is %f." % DEFAULT_SOUTHERN_FALSE_EASTING)
+                log.info("ANUGA does not correct for differences in "
                              "False Eastings.")
 
             if self.false_northing != DEFAULT_SOUTHERN_FALSE_NORTHING:
-                log.critical("WARNING: False northing of %f specified."
+                log.warning("WARNING: False northing of %f specified."
                              % self.false_northing)
-                log.critical("Default false northing is %f."
+                log.info("Default false northing is %f."
                              % DEFAULT_SOUTHERN_FALSE_NORTHING)
-                log.critical("ANUGA does not correct for differences in "
+                log.info("ANUGA does not correct for differences in "
                              "False Northings.")
 
         if self.hemisphere == 'northern':
             if self.false_easting != DEFAULT_NORTHERN_FALSE_EASTING:
-                log.critical("WARNING: False easting of %f specified."
+                log.warning("WARNING: False easting of %f specified."
                              % self.false_easting)
-                log.critical("Default false easting is %f." % DEFAULT_NORTHERN_FALSE_EASTING)
-                log.critical("ANUGA does not correct for differences in "
+                log.info("Default false easting is %f." % DEFAULT_NORTHERN_FALSE_EASTING)
+                log.info("ANUGA does not correct for differences in "
                              "False Eastings.")
 
             if self.false_northing != DEFAULT_NORTHERN_FALSE_NORTHING:
-                log.critical("WARNING: False northing of %f specified."
+                log.warning("WARNING: False northing of %f specified."
                              % self.false_northing)
-                log.critical("Default false northing is %f."
+                log.info("Default false northing is %f."
                              % DEFAULT_NORTHERN_FALSE_NORTHING)
-                log.critical("ANUGA does not correct for differences in "
+                log.info("ANUGA does not correct for differences in "
                              "False Northings.")
 
 
@@ -490,21 +552,21 @@ class Geo_reference(object):
 
         if not non_utm_epsg:
             if self.datum.upper() != DEFAULT_DATUM.upper():
-                log.critical("WARNING: Datum of %s specified." % self.datum)
-                log.critical("Default Datum is %s." % DEFAULT_DATUM)
-                log.critical("ANUGA does not correct for differences in datums.")
+                log.warning("WARNING: Datum of %s specified." % self.datum)
+                log.info("Default Datum is %s." % DEFAULT_DATUM)
+                log.info("ANUGA does not correct for differences in datums.")
 
             if self.projection.upper() != DEFAULT_PROJECTION.upper():
-                log.critical("WARNING: Projection of %s specified."
+                log.warning("WARNING: Projection of %s specified."
                              % self.projection)
-                log.critical("Default Projection is %s." % DEFAULT_PROJECTION)
-                log.critical("ANUGA does not correct for differences in "
+                log.info("Default Projection is %s." % DEFAULT_PROJECTION)
+                log.info("ANUGA does not correct for differences in "
                              "Projection.")
 
         if self.units.upper() != DEFAULT_UNITS.upper():
-            log.critical("WARNING: Units of %s specified." % self.units)
-            log.critical("Default units is %s." % DEFAULT_UNITS)
-            log.critical("ANUGA does not correct for differences in units.")
+            log.warning("WARNING: Units of %s specified." % self.units)
+            log.info("Default units is %s." % DEFAULT_UNITS)
+            log.info("ANUGA does not correct for differences in units.")
 
 
 
@@ -570,13 +632,13 @@ class Geo_reference(object):
         """
 
         import copy
-       
+
         # remember if we got a list
         is_list = isinstance(points, list)
 
         points = ensure_numeric(points, float)
 
-        # sanity checks	
+        # sanity checks
         if len(points.shape) == 1:
             #One point has been passed
             msg = 'Single point must have two elements'
@@ -588,26 +650,26 @@ class Geo_reference(object):
         assert len(points.shape) == 2, msg
 
         msg = 'Input must be an N x 2 array or list of (x,y) values. '
-        msg += 'I got an %d x %d array' %points.shape    
-        assert points.shape[1] == 2, msg                
+        msg += 'I got an %d x %d array' %points.shape
+        assert points.shape[1] == 2, msg
 
-        # FIXME (Ole): Could also check if zone, xllcorner, yllcorner 
-        # are identical in the two geo refs.    
+        # FIXME (Ole): Could also check if zone, xllcorner, yllcorner
+        # are identical in the two geo refs.
         if points_geo_ref is not self:
             # If georeferences are different
-            points = copy.copy(points) # Don't destroy input                    
-            if not points_geo_ref is None:
+            points = copy.copy(points) # Don't destroy input
+            if points_geo_ref is not None:
                 # Convert points to absolute coordinates
-                points[:,0] += points_geo_ref.xllcorner 
-                points[:,1] += points_geo_ref.yllcorner 
-        
+                points[:,0] += points_geo_ref.xllcorner
+                points[:,1] += points_geo_ref.yllcorner
+
             # Make points relative to primary geo reference
-            points[:,0] -= self.xllcorner 
+            points[:,0] -= self.xllcorner
             points[:,1] -= self.yllcorner
 
         if is_list:
             points = points.tolist()
-            
+
         return points
 
     def is_absolute(self):
@@ -616,7 +678,7 @@ class Geo_reference(object):
         Return True if xllcorner==yllcorner==0 indicating that points in
         question are absolute.
         """
-        
+
         # FIXME(Ole): It is unfortunate that decision about whether points
         # are absolute or not lies with the georeference object. Ross pointed this out.
         # Moreover, this little function is responsible for a large fraction of the time
@@ -624,12 +686,12 @@ class Geo_reference(object):
         # This was due to the repeated calls to allclose.
         # With the flag method fitting is much faster (18 Mar 2009).
 
-        # FIXME(Ole): HACK to be able to reuse data already cached (18 Mar 2009). 
+        # FIXME(Ole): HACK to be able to reuse data already cached (18 Mar 2009).
         # Remove at some point
         if not hasattr(self, 'absolute'):
             self.absolute = num.allclose([self.xllcorner, self.yllcorner], 0)
-            
-        # Return absolute flag    
+
+        # Return absolute flag
         return self.absolute
 
     def get_absolute(self, points):
@@ -645,25 +707,25 @@ class Geo_reference(object):
             # One point has been passed
             msg = 'Single point must have two elements'
             if not len(points) == 2:
-                raise ShapeError(msg)    
+                raise ShapeError(msg)
 
 
         msg = 'Input must be an N x 2 array or list of (x,y) values. '
-        msg += 'I got an %d x %d array' %points.shape    
+        msg += 'I got an %d x %d array' %points.shape
         if not points.shape[1] == 2:
-            raise ShapeError(msg)    
-            
-        
+            raise ShapeError(msg)
+
+
         # Add geo ref to points
         if not self.is_absolute():
-            points = copy.copy(points) # Don't destroy input                    
-            points[:,0] += self.xllcorner 
+            points = copy.copy(points) # Don't destroy input
+            points[:,0] += self.xllcorner
             points[:,1] += self.yllcorner
 
-        
+
         if is_list:
             points = points.tolist()
-             
+
         return points
 
     def get_relative(self, points):
@@ -684,22 +746,22 @@ class Geo_reference(object):
             #One point has been passed
             msg = 'Single point must have two elements'
             if not len(points) == 2:
-                raise ShapeError(msg)    
+                raise ShapeError(msg)
 
         if not points.shape[1] == 2:
             msg = ('Input must be an N x 2 array or list of (x,y) values. '
                    'I got an %d x %d array' % points.shape)
-            raise ShapeError(msg)    
+            raise ShapeError(msg)
 
         # Subtract geo ref from points
         if not self.is_absolute():
-            points = copy.copy(points) # Don't destroy input                            
-            points[:,0] -= self.xllcorner 
+            points = copy.copy(points) # Don't destroy input
+            points[:,0] -= self.xllcorner
             points[:,1] -= self.yllcorner
 
         if is_list:
             points = points.tolist()
-             
+
         return points
 
     def reconcile_zones(self, other):
@@ -708,9 +770,9 @@ class Geo_reference(object):
             # FIXME(Ole): Why would we do this?
             other = Geo_reference()
             #raise Exception('Expected georeference object, got None')
-        
+
         if (self.zone == other.zone):
-            pass        
+            pass
         elif self.zone == DEFAULT_ZONE:
             self.zone = other.zone
         elif other.zone == DEFAULT_ZONE:
@@ -723,7 +785,7 @@ class Geo_reference(object):
 
         # Should also reconcile hemisphere
         if (self.hemisphere == other.hemisphere):
-            pass        
+            pass
         elif self.hemisphere == DEFAULT_HEMISPHERE:
             self.hemisphere = other.hemisphere
         elif other.hemisphere == DEFAULT_HEMISPHERE:
@@ -732,9 +794,9 @@ class Geo_reference(object):
             msg = ('Geospatial data must be in the same '
                    'HEMISPHERE to allow reconciliation. I got hemisphere %d and %d'
                    % (self.hemisphere, other.hemisphere))
-            raise ANUGAError(msg)        
+            raise ANUGAError(msg)
 
-    # FIXME (Ole): Do we need this back?    
+    # FIXME (Ole): Do we need this back?
     #def easting_northing2geo_reffed_point(self, x, y):
     #    return [x-self.xllcorner, y - self.xllcorner]
 
@@ -743,7 +805,7 @@ class Geo_reference(object):
 
     def get_origin(self):
         """Get origin of this geo_reference."""
-      
+
         return (self.zone, self.xllcorner, self.yllcorner)
 
     def __repr__(self):
@@ -767,7 +829,7 @@ class Geo_reference(object):
     #    self   this geo_reference instance
     #    other  another geo_reference instance to compare against#
     #
-    #    Returns 0 if instances have the same attributes, else returns 1. 
+    #    Returns 0 if instances have the same attributes, else returns 1.
     #
     #    Note: attributes are: zone, xllcorner, yllcorner.
     #    """

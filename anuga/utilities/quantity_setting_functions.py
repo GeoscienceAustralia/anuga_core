@@ -182,7 +182,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
              or a constant,
              or a '.txt' or '.csv' file with comma separated xyz data
                 and an optional header row which contains letters,
-             or the name of a gdal-compatible rasterFile
+             or the name of a rasterio-compatible rasterFile
                 (not ending in .txt or .csv),
              or a numpy array with 3 columns
 
@@ -293,7 +293,6 @@ def composite_quantity_setting_function(poly_fun_pairs,
                 domain.set_quantity('elevation', F)
 
     """
-    import os
     import numpy
     from anuga.geometry.polygon import inside_polygon
 
@@ -359,7 +358,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
             else:
                 if pi == 'Extent':
-                    # Here fi MUST be a gdal-compatible raster
+                    # Here fi MUST be a rasterio-compatible raster
                     if not isinstance(fi, str):
                         msg = ' pi = "Extent" can only be used when fi is a' +\
                               ' raster file name'
@@ -400,7 +399,7 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
             # We use various tricks to infer whether fi is a function,
             # a constant, a file (raster or csv), or an array
-            if hasattr(fi, '__call__'):
+            if callable(fi):
                 # fi is a function or a callable object
                 quantityVal[fInds] = fi(x[fInds], y[fInds])
 
@@ -410,9 +409,14 @@ def composite_quantity_setting_function(poly_fun_pairs,
 
             elif type(fi) is str and os.path.exists(fi):
                 # fi is a file which is assumed to be
-                # a gdal-compatible raster OR an x,y,z elevation file
-                if os.path.splitext(fi)[1] in ['.txt', '.csv']:
-                    fi_array = su.read_csv_optional_header(fi)
+                # a rasterio-compatible raster OR an x,y,z elevation file
+                # (comma-separated .txt/.csv, or a saved numpy array .npy).
+                _ext = os.path.splitext(fi)[1].lower()
+                if _ext in ['.txt', '.csv', '.npy']:
+                    if _ext == '.npy':
+                        fi_array = numpy.load(fi)
+                    else:
+                        fi_array = su.read_csv_optional_header(fi)
                     # Check the results
                     if fi_array.shape[1] != 3:
                         print('Treated input file ' + fi +
@@ -658,7 +662,7 @@ def quantity_from_Pt_Pol_Data_and_Raster(Pt_Pol_Data, quantity_raster, domain):
                                              ]
                     Here Polygon_i is a polygon in ANUGA format,
                     and Pt_XYZ_i is a 3 column array of x,y,Value points
-            @param quantity_raster = A GDAL-compatible quantity raster
+            @param quantity_raster = A rasterio-compatible quantity raster
             @param domain = ANUGA domain
     """
 

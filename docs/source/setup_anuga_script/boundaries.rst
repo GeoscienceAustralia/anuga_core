@@ -70,7 +70,20 @@ Standard Boundary Types
        a ``mean_stage`` offset to the stage read from the SWW file.  Useful
        when you want to re-use one boundary SWW file across multiple tide
        scenarios without regenerating the file.
-
+   * - :class:`Absorbing_wave_boundary`
+     - Active-absorption open boundary that simultaneously prescribes an
+       incoming wave and absorbs outgoing (reflected) waves.  The ghost-cell
+       stage is set to ``2 × wave(t) − stage_interior`` so that the boundary
+       face always sees exactly ``wave(t)`` regardless of what is propagating
+       back from the interior.  Suitable for tsunami or storm-wave inflow on
+       open-ocean boundaries where reflections must not re-enter the domain.
+   * - :class:`Characteristic_wave_boundary`
+     - Nonlinear characteristic open boundary that prescribes the incoming
+       Riemann invariant from a stage *perturbation* above a specified
+       ``background_stage`` and extrapolates the outgoing Riemann invariant
+       from the interior without linearisation.  Preferred over
+       :class:`Absorbing_wave_boundary` when wave amplitudes are comparable
+       to the water depth (η ~ h) and linearisation error would be significant.
 
 Usage examples
 --------------
@@ -143,22 +156,44 @@ Usage examples
     Bfl = anuga.Flather_external_stage_zero_velocity_boundary(domain, waveform)
     domain.set_boundary({'ocean': Bfl, 'land': anuga.Reflective_boundary(domain)})
 
+**Absorbing wave boundary (active-absorption open boundary)**
+
+.. code-block:: python
+
+    import anuga
+
+    # Prescribe a Gaussian wave pulse arriving at t = 25 s
+    def wave(t):
+        return 0.5 / math.cosh(t - 25.0) ** 2
+
+    Ba = anuga.Absorbing_wave_boundary(domain, function=wave)
+    domain.set_boundary({'ocean': Ba, 'land': anuga.Reflective_boundary(domain)})
+
+**Characteristic wave boundary (nonlinear characteristic open boundary)**
+
+.. code-block:: python
+
+    import anuga
+
+    # Stage perturbation (above background_stage) arriving at t = 25 s
+    def perturbation(t):
+        return 0.5 / math.cosh(t - 25.0) ** 2
+
+    Bc = anuga.Characteristic_wave_boundary(
+        domain,
+        function=perturbation,
+        background_stage=0.0,   # still-water level
+    )
+    domain.set_boundary({'ocean': Bc, 'land': anuga.Reflective_boundary(domain)})
+
 
 .. seealso::
+
+   :ref:`api_boundaries`
+      Full API of every boundary class in the API Reference.
 
    `ANUGA User Manual — Chapter 9: Boundary Conditions and set_boundary
    <https://github.com/anuga-community/anuga_user_manual>`_
    gives extended examples of each boundary type, discusses time-varying
    stage specifications in detail, and explains how to diagnose common
    boundary-tag errors.
-
-Reference
----------
-
-.. autoclass:: Reflective_boundary
-.. autoclass:: Dirichlet_boundary
-.. autoclass:: Time_boundary
-.. autoclass:: Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
-.. autoclass:: Flather_external_stage_zero_velocity_boundary
-.. autoclass:: File_boundary
-.. autoclass:: Field_boundary

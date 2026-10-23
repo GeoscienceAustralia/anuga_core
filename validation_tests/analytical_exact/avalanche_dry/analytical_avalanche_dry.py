@@ -70,8 +70,7 @@ X = points
 t = 2.0
 #The following is for plotting the result.
 Uv,Hv,Wv,Zv,Mv = analytical_sol(X,t)
-from pylab import clf,plot,title,xlabel,ylabel,legend,savefig,show,hold,subplot
-hold(False)
+from pylab import clf,plot,title,xlabel,ylabel,legend,savefig,show,subplot
 clf()
 
 plot1 = subplot(211)

@@ -4,12 +4,12 @@
 
    ________________________
    General comments
-   
+
    The max_points_per_cell does effect the time spent solving a
    problem.  The best value to use is probably dependent on the number
    of triangles.  Maybe develop a simple imperical algorithm, based on
    test results.
-   
+
    Duncan Gray
    Geoscience Australia, 2004.
 """
@@ -19,7 +19,8 @@ import sys
 import time
 from random import seed, random
 import tempfile
-import profile , pstats
+import profile
+import pstats
 from math import sqrt
 
 from anuga.fit_interpolate.interpolate import Interpolate
@@ -92,7 +93,7 @@ def mem_usage():
   RSS  The total amount of physical memory used by  the  task,  in  kilo-
             bytes,  is  shown  here.  For ELF processes used library pages are
             counted here, for a.out processes not.
-            
+
     Only works on nix systems.
     '''
 
@@ -103,15 +104,15 @@ def mem_usage():
 
     #gc.collect()
     #print('Ran a garbage collection')
-    p=os.popen('ps uwp %s'%os.getpid()) 
+    p=os.popen('ps uwp %s'%os.getpid())
     lines=p.readlines()
-    status=p.close() 
-    if status or len(lines)!=2 or sys.platform == 'win32': 
-        return None 
-    return int(string.split(lines[1])[4]) 
+    status=p.close()
+    if status or len(lines)!=2 or sys.platform == 'win32':
+        return None
+    return int(string.split(lines[1])[4])
 
 
-class BenchmarkLeastSquares(object):
+class BenchmarkLeastSquares:
     r"""
 
     Note(DSG-DSG): If you are interested in benchmarking fitting, before
@@ -136,7 +137,7 @@ class BenchmarkLeastSquares(object):
               gridded=True,
               geo_ref=True):
         '''
-        num_of_points 
+        num_of_points
         '''
         if geo_ref is True:
             geo = Geo_reference(xllcorner = 2.0, yllcorner = 2.0)
@@ -158,10 +159,10 @@ class BenchmarkLeastSquares(object):
                        "T" + str(len(mesh_dict['triangles'])) + \
                        "PPC" + str(max_points_per_cell) + \
                        ".txt"
-                    
+
         # Apply the geo_ref to the points, so they are relative
         # Pass in the geo_ref
-        
+
         domain = Domain(mesh_dict['vertices'], mesh_dict['triangles'],
                         use_cache=False, verbose=verbose,
                                      geo_reference=geo)
@@ -169,7 +170,7 @@ class BenchmarkLeastSquares(object):
         t0 = time.time()
         #m0 = None on windows
         m0 = mem_usage()
-        
+
         # Apply the geo_ref to the points, so they are relative
         # Pass in the geo_ref
         geospatial = Geospatial_data(points_dict['points'],
@@ -188,7 +189,7 @@ class BenchmarkLeastSquares(object):
                 points = None
                 filename = fileName
             if run_profile is True:
-                    
+
                 s = """domain.set_quantity('elevation',points,filename=filename,use_cache=False)"""
                 pobject = profile.Profile()
                 presult = pobject.runctx(s,
@@ -199,26 +200,26 @@ class BenchmarkLeastSquares(object):
                 #
                 # Let process these results
                 S = pstats.Stats(prof_file)
-                saveout = sys.stdout 
+                saveout = sys.stdout
                 pfile = open(profile_file, "w")
                 sys.stdout = pfile
                 s = S.sort_stats('cumulative').print_stats(60)
-                sys.stdout = saveout 
+                sys.stdout = saveout
                 pfile.close()
                 os.remove(prof_file)
             else:
                 domain.set_quantity('elevation',points,filename=filename,
                                     use_cache=False, verbose=verbose)
-            if not use_file_type is None:
+            if use_file_type is not None:
                 os.remove(fileName)
-                    
+
         else:
             # run an interploate problem.
-            
+
             if run_profile:
                 # pass in the geospatial points
                 # and the mesh origin
-                 
+
                 s="""benchmark_interpolate(mesh_dict['vertices'],mesh_dict['vertex_attributes'],mesh_dict['triangles'],geospatial,max_points_per_cell=max_points_per_cell,mesh_origin=geo)"""
                 pobject = profile.Profile()
                 presult = pobject.runctx(s,
@@ -229,14 +230,14 @@ class BenchmarkLeastSquares(object):
                 #
                 # Let process these results
                 S = pstats.Stats(prof_file)
-                saveout = sys.stdout 
+                saveout = sys.stdout
                 pfile = open(profile_file, "w")
                 sys.stdout = pfile
                 s = S.sort_stats('cumulative').print_stats(60)
-                sys.stdout = saveout 
+                sys.stdout = saveout
                 pfile.close()
                 os.remove(prof_file)
-                    
+
             else:
                 # pass in the geospatial points
                  benchmark_interpolate(mesh_dict['vertices'],
@@ -256,13 +257,13 @@ class BenchmarkLeastSquares(object):
 
         # return the times spent in first cell searching and
         # backing up.
-        
+
         #search_one_cell_time, search_more_cells_time = search_times()
         #reset_search_times()
         #print "bench - build_quadtree_time", get_build_quadtree_time()
         return time_taken_sec, memory_used, len(mesh_dict['triangles']), \
                get_build_quadtree_time()
-    
+
 
     def _build_regular_mesh_dict(self,
                                  maxArea=1000,
@@ -322,14 +323,14 @@ class BenchmarkLeastSquares(object):
 
     def _build_points_dict(self, num_of_points=20000
                            , gridded=True, verbose=False):
-        
+
         points_dict = {}
         points = []
         point_atts = []
 
         if gridded is True:
             grid = int(sqrt(num_of_points))
-        
+
         for point in range(num_of_points):
             if gridded is True:
 
@@ -344,23 +345,24 @@ class BenchmarkLeastSquares(object):
 
         points_dict['points'] = points
         points_dict['point_attributes'] = point_atts
-        
+
         for point in points:
             assert point[0] < 1.0
             assert point[1] < 1.0
             assert point[0] > 0.0
             assert point[1] > 0.0
-            
+
         if verbose is True:
             pass
             #print "points", points
-            #import sys; sys.exit() 
-            
-                                    
-            
+            #import sys; sys.exit()
+
+
+
         return points_dict
 
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-        b._build_points_dict()
+    b = BenchmarkLeastSquares()
+    b._build_points_dict()

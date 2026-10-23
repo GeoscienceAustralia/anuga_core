@@ -5,10 +5,11 @@
 import numpy as num
 
 from anuga.pmesh.mesh import *
-from anuga.pmesh.mesh_interface import create_mesh_from_regions
+from anuga.pmesh.mesh_interface import create_pmesh_from_regions
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geospatial_data import Geospatial_data
 from anuga.config import netcdf_float
+from anuga import create_domain_from_regions
 
 import project
 
@@ -159,21 +160,17 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
     # Prepare time boundary
     prepare_timeboundary(project.boundary_filename, verbose)
 
-    
-
-    
 
     meshname = project.mesh_filename + '.msh'
-    m = create_mesh_from_regions(bounding_polygon,
+    m = create_pmesh_from_regions(bounding_polygon,
                                  boundary_tags={'wall': [0, 1, 3],
                                                 'wave': [2]},     
                                  maximum_triangle_area=0.01*base_resolution,
                                  interior_regions=interior_regions,
-                                 filename=project.mesh_filename,
                                  use_cache=False,
                                  verbose=verbose)
 
-
+    m.export_mesh_file(project.mesh_filename)
     
     if elevation_in_mesh is True:
         from anuga.fit_interpolate.fit import fit_to_mesh_file
@@ -190,6 +187,39 @@ def create_mesh(elevation_in_mesh=False, verbose=False):
         
         fit_to_mesh_file(project.mesh_filename, project.bathymetry_filename,
                          project.mesh_filename, verbose = verbose)
+
+def create_domain(elevation_in_domain=False, verbose=False):
+    # Prepare time boundary
+    prepare_timeboundary(project.boundary_filename, verbose)
+
+
+    meshname = project.mesh_filename + '.msh'
+    domain = create_domain_from_regions(bounding_polygon,
+                                 boundary_tags={'wall': [0, 1, 3],
+                                                'wave': [2]},     
+                                 maximum_triangle_area=0.01*base_resolution,
+                                 interior_regions=interior_regions,
+                                 use_cache=False,
+                                 verbose=verbose)
+
+ 
+    if elevation_in_domain is True:
+
+        
+
+        if verbose: print('Reading xya from zip')
+        import zipfile as zf
+        zf.ZipFile(project.bathymetry_filename_stem+'.zip').\
+          extract(project.bathymetry_filename_stem+'.xya')
+
+        if verbose: print('Reading pts from xya')
+        anuga.xya2pts(project.bathymetry_filename_stem+'.xya',\
+                      verbose = verbose)
+
+        domain.set_quantity('elevation', filename=project.bathymetry_filename, location='vertices', verbose=verbose)
+
+    return domain
+
 
 
 #-------------------------------------------------------------

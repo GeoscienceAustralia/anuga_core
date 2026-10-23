@@ -69,7 +69,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
     root = name_in[:-4]
 
     # Read Meta data
-    if verbose: log.critical('Reading METADATA from %s' % (root + '.prj'))
+    if verbose: log.info('Reading METADATA from %s' % (root + '.prj'))
 
     metadatafile = open(root + '.prj')
     metalines = metadatafile.readlines()
@@ -108,17 +108,17 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
     false_northing = float(L[1].strip())
 
     if name_in[-4:] != '.asc':
-        raise IOError('Input file %s should be of type .asc.' % name_in)
+        raise OSError('Input file %s should be of type .asc.' % name_in)
 
     #Read DEM data
     datafile = open(name_in)
 
-    if verbose: log.critical('Reading DEM from %s' % (name_in))
+    if verbose: log.info('Reading DEM from %s' % (name_in))
 
     lines = datafile.readlines()
     datafile.close()
 
-    if verbose: log.critical('Got %d lines' % len(lines))
+    if verbose: log.info('Got %d lines' % len(lines))
 
     ncols = int(lines[0].split()[1].strip())
     nrows = int(lines[1].split()[1].strip())
@@ -156,7 +156,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
     else:
         netcdfname = name_out + '.dem'
 
-    if verbose: log.critical('Store to NetCDF file %s' % netcdfname)
+    if verbose: log.info('Store to NetCDF file %s' % netcdfname)
 
     # NetCDF file definition
     fid = NetCDFFile(netcdfname, netcdf_mode_w)
@@ -202,7 +202,7 @@ def _convert_dem_from_ascii2netcdf(name_in, name_out = None,
 #    for i, line in enumerate(lines[6:]):
 #        fields = line.split()
 #        if verbose and i % ((n+10)/10) == 0:
-#            log.critical('Processing row %d of %d' % (i, nrows))
+#            log.info('Processing row %d of %d' % (i, nrows))
 #
 #        if len(fields) != ncols:
 #            msg = 'Wrong number of columns in file "%s" line %d\n' % (name_in, i)

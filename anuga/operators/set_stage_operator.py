@@ -128,7 +128,7 @@ class Polygonal_set_stage_operator(Set_stage_operator):
 
 
 
-        
+
 
 
 

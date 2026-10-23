@@ -10,3 +10,5 @@ py3.install_sources(
   subdir: 'anuga/simulation'
 )
 
+subdir('tests')
+

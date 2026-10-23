@@ -1,5 +1,6 @@
 
 
+import tempfile
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.file_conversion.ferret2sww import ferret2sww
 from anuga.utilities.numerical_tools import ensure_numeric, mean
@@ -25,6 +26,7 @@ import unittest
 import numpy as num
 import copy
 import os
+import shutil
 
 def axes2points(x, y):
     """Generate all combinations of grid point coordinates from x and y axes
@@ -94,6 +96,20 @@ class Test_File_Conversion(unittest.TestCase):
 
     def setUp(self):
         import time
+
+        # Run each test in its own temporary working directory.
+        #
+        # This setUp and several tests create NetCDF/ASCII files using bare
+        # relative names (e.g. most_small_ha.nc, test_ha.nc, test.sww), i.e. in
+        # the current working directory, and clean them up *inline* at the end
+        # of the test body.  A test that fails or is interrupted therefore
+        # leaves stale files behind, and the next run fails when it tries to
+        # overwrite them with NetCDFFile(..., 'w').  Isolating each test in a
+        # fresh temp dir (removed wholesale in tearDown) makes the tests
+        # order-independent and immune to leftovers from an earlier run.
+        self._orig_cwd = os.getcwd()
+        self._temp_cwd = tempfile.mkdtemp(prefix='anuga_test_file_conversion_')
+        os.chdir(self._temp_cwd)
 
         self.verbose = Test_File_Conversion.verbose
         # Create basic mesh
@@ -215,22 +231,19 @@ class Test_File_Conversion(unittest.TestCase):
 
 
     def tearDown(self):
-        import os
-        for ext in ['_ha.nc', '_ua.nc', '_va.nc', '_e.nc']:
-            #print 'Trying to remove', self.test_MOST_file + ext
-            os.remove(self.test_MOST_file + ext)
-
-        for file in ['timefile2netcdf_seconds.tms', 'timefile2netcdf.tms']:
-            try:
-                os.remove(file)
-            except OSError:
-                pass
+        # Restore the working directory and drop the whole temp dir.  This
+        # removes every file any test created, even if the test failed part-way
+        # through -- previously each test deleted its own files inline at the end
+        # of the test body, so a failure left stale .nc files behind that broke
+        # the *next* run.
+        os.chdir(self._orig_cwd)
+        shutil.rmtree(self._temp_cwd, ignore_errors=True)
 
     def test_ferret2sww1(self):
         """Test that georeferencing etc works when converting from
         ferret format (lat/lon) to sww format (UTM)
         """
-        import os, sys
+        import sys
 
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
@@ -287,7 +300,6 @@ class Test_File_Conversion(unittest.TestCase):
         fid.close()
 
         #Cleanup
-        import os
         os.remove(self.test_MOST_file + '.sww')
 
 
@@ -295,7 +307,7 @@ class Test_File_Conversion(unittest.TestCase):
     def test_ferret2sww_zscale(self):
         """Test that zscale workse
         """
-        import os, sys
+        import sys
 
         #The test file has
         # LON = 150.66667, 150.83334, 151, 151.16667
@@ -375,7 +387,6 @@ class Test_File_Conversion(unittest.TestCase):
 
 
         #Cleanup
-        import os
         os.remove(self.test_MOST_file + '.sww')
 
 
@@ -438,7 +449,6 @@ class Test_File_Conversion(unittest.TestCase):
         fid.close()
 
         #Cleanup
-        import os
         os.remove(self.test_MOST_file + '.sww')
 
 
@@ -479,7 +489,6 @@ class Test_File_Conversion(unittest.TestCase):
         fid.close()
 
         #Cleanup
-        import os
         os.remove(self.test_MOST_file + '.sww')
 
 
@@ -520,7 +529,6 @@ class Test_File_Conversion(unittest.TestCase):
         fid.close()
 
         #Cleanup
-        import os
         os.remove(self.test_MOST_file + '.sww')
 
     def test_ferret2sww3(self):
@@ -541,7 +549,6 @@ class Test_File_Conversion(unittest.TestCase):
         # Fourth value (index==3) is -6.50198 cm
 
         from anuga.coordinate_transforms.redfearn import redfearn
-        import os
         fid1 = NetCDFFile('test_ha.nc',netcdf_mode_w)
         fid2 = NetCDFFile('test_ua.nc',netcdf_mode_w)
         fid3 = NetCDFFile('test_va.nc',netcdf_mode_w)
@@ -700,7 +707,6 @@ class Test_File_Conversion(unittest.TestCase):
         # Fourth value (index==3) is -6.50198 cm
 
         from anuga.coordinate_transforms.redfearn import redfearn
-        import os
         fid1 = NetCDFFile('test_ha.nc',netcdf_mode_w)
         fid2 = NetCDFFile('test_ua.nc',netcdf_mode_w)
         fid3 = NetCDFFile('test_va.nc',netcdf_mode_w)
@@ -903,14 +909,14 @@ class Test_File_Conversion(unittest.TestCase):
         """Not a test, rather a look at the sww format
         """
 
-        import time, os
+        import time
 
 
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.reduction = mean
-        self.domain.set_datadir('.')
+        self.domain.set_datadir(tempfile.mkdtemp())
         #self.domain.tight_slope_limiters = 1
 
 
@@ -925,7 +931,7 @@ class Test_File_Conversion(unittest.TestCase):
 
         sww.store_timestep()
 
-        file_and_extension_name = self.domain.get_name() + ".sww"
+        file_and_extension_name = os.path.join(self.domain.get_datadir(), self.domain.get_name() + ".sww")
         #print "file_and_extension_name",file_and_extension_name
         [xmin, xmax, ymin, ymax, stagemin, stagemax] = \
                extent_sww(file_and_extension_name )

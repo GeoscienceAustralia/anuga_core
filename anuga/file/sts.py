@@ -12,7 +12,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      ensure_geo_reference
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
 
-class Write_sts(object):
+class Write_sts:
     """ A class to write STS files.
     """
     sts_quantities = ['stage', 'xmomentum', 'ymomentum']
@@ -152,17 +152,17 @@ class Write_sts(object):
         z = outfile.variables['elevation'][:]
 
         if verbose:
-            log.critical('------------------------------------------------')
-            log.critical('More Statistics:')
-            log.critical('  Extent (/lon):')
-            log.critical('    x in [%f, %f], len(lat) == %d'
+            log.info('------------------------------------------------')
+            log.info('More Statistics:')
+            log.info('  Extent (/lon):')
+            log.info('    x in [%f, %f], len(lat) == %d'
                          % (min(x), max(x), len(x)))
-            log.critical('    y in [%f, %f], len(lon) == %d'
+            log.info('    y in [%f, %f], len(lon) == %d'
                          % (min(y), max(y), len(y)))
-            log.critical('    z in [%f, %f], len(z) == %d'
+            log.info('    z in [%f, %f], len(z) == %d'
                          % (min(elevation), max(elevation), len(elevation)))
-            log.critical('geo_ref: %s' % str(geo_ref))
-            log.critical('------------------------------------------------')
+            log.info('geo_ref: %s' % str(geo_ref))
+            log.info('------------------------------------------------')
 
         #z = resize(bath_grid,outfile.variables['elevation'][:].shape)
         outfile.variables['x'][:] = points[:,0] #- geo_ref.get_xllcorner()
@@ -225,7 +225,7 @@ class Write_sts(object):
 
 
     def write_dynamic_quantities(self, outfile, quantities,
-                    times, precis = netcdf_float, verbose = False):   
+                    times, precis = netcdf_float, verbose = False):
         """
             Write out given quantities to file.
         """
@@ -247,9 +247,9 @@ class Write_sts(object):
             outfile.variables['time'][:] = times    # Store time relative
 
         if verbose:
-            log.critical('------------------------------------------------')
-            log.critical('Statistics:')
-            log.critical('    t in [%f, %f], len(t) == %d'
+            log.info('------------------------------------------------')
+            log.info('Statistics:')
+            log.info('    t in [%f, %f], len(t) == %d'
                          % (num.min(times), num.max(times), len(times.flat)))
 
 
@@ -273,18 +273,21 @@ def create_sts_boundary(sts_filename):
 
     try:
         fid = NetCDFFile(stsname_postfixed, netcdf_mode_r)
-    except IOError:
+    except OSError:
         msg = 'Cannot open %s' % stsname_postfixed
-        raise IOError(msg)
+        raise OSError(msg)
 
-    xllcorner = fid.xllcorner
-    yllcorner = fid.yllcorner
+    try:
+        xllcorner = fid.xllcorner
+        yllcorner = fid.yllcorner
 
-    #Points stored in sts file are normalised to [xllcorner,yllcorner] but
-    #we cannot assume that boundary polygon will be. At least the
-    #additional points specified by the user after this function is called
-    x = fid.variables['x'][:] + xllcorner
-    y = fid.variables['y'][:] + yllcorner
+        #Points stored in sts file are normalised to [xllcorner,yllcorner] but
+        #we cannot assume that boundary polygon will be. At least the
+        #additional points specified by the user after this function is called
+        x = fid.variables['x'][:] + xllcorner
+        y = fid.variables['y'][:] + yllcorner
+    finally:
+        fid.close()
 
     x = num.reshape(x, (len(x), 1))
     y = num.reshape(y, (len(y), 1))

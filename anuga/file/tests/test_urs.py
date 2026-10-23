@@ -18,9 +18,9 @@ class Test_Urs(unittest.TestCase):
                 os.remove(filename)
             except OSError:
                 pass
-        
+
     def test_URS_points_needed(self):
-        
+
         ll_lat = -21.5
         ll_long = 114.5
         grid_spacing = 1./60.
@@ -30,8 +30,8 @@ class Test_Urs(unittest.TestCase):
 
         boundary_polygon = [[250000,7660000],[280000,7660000],
                              [280000,7630000],[250000,7630000]]
-        geo=calculate_boundary_points(boundary_polygon, zone, 
-                              ll_lat, ll_long, grid_spacing, 
+        geo=calculate_boundary_points(boundary_polygon, zone,
+                              ll_lat, ll_long, grid_spacing,
                               lat_amount, long_amount,
                               verbose=self.verbose)
         # to test this geo, can info from it be transfered onto the boundary
@@ -46,15 +46,15 @@ class Test_Urs(unittest.TestCase):
         points = []
         for i in range(18):
             lat = -21.0 - 8./60 - grid_spacing * i
-            points.append((lat,degminsec2decimal_degrees(114,35,0))) 
-            points.append((lat,degminsec2decimal_degrees(114,36,0))) 
-            points.append((lat,degminsec2decimal_degrees(114,52,0))) 
+            points.append((lat,degminsec2decimal_degrees(114,35,0)))
+            points.append((lat,degminsec2decimal_degrees(114,36,0)))
+            points.append((lat,degminsec2decimal_degrees(114,52,0)))
             points.append((lat,degminsec2decimal_degrees(114,53,0)))
         geo_answer = Geospatial_data(data_points=points,
-                                     points_are_lats_longs=True) 
-        #geo_answer.export_points_file("answer.txt", as_lat_long=True)  
+                                     points_are_lats_longs=True)
+        #geo_answer.export_points_file("answer.txt", as_lat_long=True)
         answer = frozenset(points)
-        
+
         outs = answer.difference(results)
         #print "outs", outs
         # This doesn't work.  Though visualising the results shows that
@@ -63,7 +63,7 @@ class Test_Urs(unittest.TestCase):
         # this is why;
         #point (-21.133333333333333, 114.58333333333333)
         #result (-21.133333332232368, 114.58333333300342)
-        
+
         for point in points:
             found = False
             for result in results:
@@ -71,9 +71,9 @@ class Test_Urs(unittest.TestCase):
                     found = True
                     break
             if not found:
-                assert False
-        
-    
+                raise AssertionError('Point not found in results')
+
+
     def in_development_URS_points_needed(self):
         ll_lat = -21.51667
         ll_long = 114.51667
@@ -81,15 +81,15 @@ class Test_Urs(unittest.TestCase):
         lat_amount = 15
         long_amount = 15
 
-       
+
         boundary_polygon = [[250000,7660000],[280000,7660000],
                              [280000,7630000],[250000,7630000]]
         calculate_boundary_points('a_test_example',boundary_polygon,
-                                  ll_lat, ll_long, grid_spacing, 
+                                  ll_lat, ll_long, grid_spacing,
                                   lat_amount, long_amount,
                                   verbose=self.verbose)
-        
-        
+
+
     def test_URS_points_northern_hemisphere(self):
 
         LL_LAT = 8.0
@@ -99,7 +99,7 @@ class Test_Urs(unittest.TestCase):
         LONG_AMOUNT = 2
         ZONE = 47
 
-        # 
+        #
         points = []
         for i in range(2):
             for j in range(2):
@@ -111,7 +111,7 @@ class Test_Urs(unittest.TestCase):
         poly_lat_long = geo_poly.get_data_points(as_lat_long=False,
                                        isSouthHemisphere=False)
         #print "seg_lat_long",  poly_lat_long
-        
+
       #   geo=URS_points_needed_to_file('test_example_poly3', poly_lat_long,
 #                                   ZONE,
 #                                   LL_LAT, LL_LONG,
@@ -135,14 +135,14 @@ class Test_Urs(unittest.TestCase):
         #print 'results',results
 
         # These are a set of points that have to be in results
-        points = [] 
+        points = []
         for i in range(2):
             for j in range(2):
                 points.append((degminsec2decimal_degrees(8,i*2,0),
                                degminsec2decimal_degrees(97,i*2,0)))
         #print "answer points", points
         answer = frozenset(points)
-        
+
         for point in points:
             found = False
             for result in results:
@@ -150,18 +150,18 @@ class Test_Urs(unittest.TestCase):
                     found = True
                     break
             if not found:
-                assert False
+                raise AssertionError('Point not found in results')
 
     def in_development_URS_points_needed_poly1(self):
         # Values used for FESA 2007 results
-        # domain in southern hemisphere zone 51        
+        # domain in southern hemisphere zone 51
         LL_LAT = -50.0
         LL_LONG = 80.0
         GRID_SPACING = 2.0/60.0
         LAT_AMOUNT = 4800
         LONG_AMOUNT = 3600
         ZONE = 51
-        
+
         poly1 = [[296361.89, 8091928.62],
                  [429495.07,8028278.82],
                  [447230.56,8000674.05],
@@ -176,19 +176,19 @@ class Test_Urs(unittest.TestCase):
                                   GRID_SPACING,
                                   LAT_AMOUNT, LONG_AMOUNT,
                                   verbose=self.verbose)
-        
+
 
 
     def in_development_URS_points_needed_poly2(self):
         # Values used for 2004 validation work
-        # domain in northern hemisphere zone 47        
+        # domain in northern hemisphere zone 47
         LL_LAT = 0.0
         LL_LONG = 90.0
         GRID_SPACING = 2.0/60.0
         LAT_AMOUNT = (15-LL_LAT)/GRID_SPACING
         LONG_AMOUNT = (100-LL_LONG)/GRID_SPACING
         ZONE = 47
-        
+
         poly2 = [[419336.424,810100.845],
                  [342405.0281,711455.8026],
                  [274649.9152,723352.9603],
@@ -198,18 +198,18 @@ class Test_Urs(unittest.TestCase):
                  [427659.0993,875721.9386],
                  [429259.6138,861317.3083],
                  [436301.8775,840830.723]]
-        
+
         save_boundary_as_urs('test_example_poly2', poly2,
                                   ZONE,
                                   LL_LAT, LL_LONG,
                                   GRID_SPACING,
                                   LAT_AMOUNT, LONG_AMOUNT,
                                   isSouthernHemisphere=False,
-                                  verbose=self.verbose) 
-        
+                                  verbose=self.verbose)
 
 
-        
+
+
 ################################################################################
 
 if __name__ == "__main__":

@@ -51,7 +51,7 @@ verbose = False
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
-class Set_Stage(object):
+class Set_Stage:
     """Set an initial condition with constant water height, for x < x0
     """
 
@@ -102,7 +102,7 @@ if numprocs > 1:
     if myid == 0 and verbose: print('PARALLEL EVOLVE')
 else:
     if verbose: print('SEQUENTIAL EVOLVE')
-    
+
 for t in domain.evolve(yieldstep=1, finaltime=20):
     edges = domain.quantities['stage'].edge_values.take(num.flatnonzero(domain.tri_full_flag),axis=0)
     l1norm[0] = l1_norm(edges[:,0])
@@ -121,7 +121,7 @@ for t in domain.evolve(yieldstep=1, finaltime=20):
         if myid == 0:
             #domain.write_time()
 
-            #print edges[:,1]            
+            #print edges[:,1]
             for p in range(1, numprocs):
                 recv_norm = pypar.receive(p)
                 l1norm += recv_norm
@@ -136,16 +136,16 @@ for t in domain.evolve(yieldstep=1, finaltime=20):
             l2norm[1] = pow(l2norm[1], 0.5)
             l2norm[2] = pow(l2norm[2], 0.5)
 
-            l1list.append(l1norm)                
+            l1list.append(l1norm)
             l2list.append(l2norm)
-            linflist.append(linfnorm)                
+            linflist.append(linfnorm)
         else:
             pypar.send(l1norm, 0)
             pypar.send(l2norm, 0)
             pypar.send(linfnorm, 0)
     else:
         #domain.write_time()
-        l1list.append(l1norm)                
+        l1list.append(l1norm)
         l2list.append(l2norm)
         linflist.append(linfnorm)
 
@@ -156,7 +156,7 @@ if numprocs > 1:
             for i in range(len(l1list)):
                 fid.write('%f %f %f %f %f %f %f %f %f\n' % (l1list[i][0], l1list[i][1], l1list[i][2],
                                                             l2list[i][0], l2list[i][1], l2list[i][2],
-                                                            linflist[i][0], linflist[i][1], linflist[i][2]))    
+                                                            linflist[i][0], linflist[i][1], linflist[i][2]))
 else:
     with open('distribute_domain_sequential.txt', 'w') as fid:
         for i in range(len(l1list)):

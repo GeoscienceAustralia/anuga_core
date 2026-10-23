@@ -3,25 +3,16 @@
 
 import sys
 import os
-from six.moves import urllib
-#import urllib.request, urllib.parse, urllib.error
-import getpass
-import tarfile
-import warnings
 import platform
-import pdb
-from functools import reduce
+import warnings
 
 # Record Python version
 major_version = int(platform.python_version_tuple()[0])
 version = platform.python_version()
 
-try:
-    import hashlib
-except ImportError:
-    import md5 as hashlib
+import hashlib
 
-   
+
 def log_to_file(filename, s, verbose=False, mode='a'):
     """Log string to file name
     """
@@ -37,8 +28,8 @@ def get_user_name():
 
     import getpass
     user = getpass.getuser()
-    
-    return user    
+
+    return user
 
 def get_host_name():
     """Get host name provide by operating system
@@ -50,9 +41,9 @@ def get_host_name():
         host = os.uname()[1]
 
 
-    return host    
+    return host
 
-    
+
 def get_version():
     """Get anuga version number as stored in anuga.__version__
     """
@@ -60,83 +51,20 @@ def get_version():
     import anuga
     return anuga.__version__
 
-    
+
 def get_revision_number():
     """Get the (git) sha of this repository copy.
     """
     from anuga import __git_sha__ as revision
     return revision
-    
+
 
 def get_revision_date():
     """Get the (git) revision date of this repository copy.
     """
 
     from anuga import __git_committed_datetime__ as revision_date
-    return revision_date 
-  
-   
-# FIXME (Ole): We should rewrite this to use GIT revision information
-# And then update get_revision_number and date to use this if it can't 
-# be obtained directly from GIT.
-def store_svn_revision_info(destination_path='.', verbose=False):
-    """Obtain current revision from Subversion and store it.
-    
-    Title: store_version_info()
-
-    Author: Ole Nielsen (Ole.Nielsen@ga.gov.au)
-
-    CreationDate: January 2006
-
-    Description:
-        This function obtains current version from Subversion and stores it
-        is a Python file named 'stored_version_info.py' for use with
-        get_version_info()
-
-        If svn is not available on the system PATH, an Exception is thrown
-    """
-
-    # Note (Ole): This function should not be unit tested as it will only
-    # work when running out of the sandpit. End users downloading the
-    # ANUGA distribution would see a failure.
-    #
-    # FIXME: This function should really only be used by developers (
-    # (e.g. for creating new ANUGA releases), so maybe it should move
-    # to somewhere else.
-    
-    import anuga.config as config
-    import subprocess
-
-    #txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE).communicate()[0]
-    try:
-        # FIXME (Ole): Use git module here via get_revision_number/date
-        txt = subprocess.Popen('svn info', shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()[0]
-    except OSError:
-        txt = 'Revision: 0'
-    else:    
-        if verbose: print('response ',txt)
-
-        # Determine absolute filename
-        if destination_path[-1] != os.sep:
-            destination_path += os.sep
-            
-        filename = destination_path + config.revision_filename
-
-        fid = open(filename, 'w')
-
-        docstring = 'Stored revision info.\n\n'
-        docstring += 'This file provides the version for distributions '
-        docstring += 'that are not accessing Subversion directly.\n'
-        docstring += 'The file is automatically generated and should not '
-        docstring += 'be modified manually.\n'
-        fid.write('"""%s"""\n\n' %docstring)
-        
-        fid.write('revision_info = """\n%s"""' %txt)
-        fid.close()
-
-
-        if verbose is True:
-            print('Revision info stored to %s' % filename)
+    return revision_date
 
 
 
@@ -145,7 +73,7 @@ def safe_crc(string):
 
     See http://docs.python.org/library/zlib.html#zlib.crc32:
 
-        To generate the same numeric value across all Python versions 
+        To generate the same numeric value across all Python versions
         and platforms use crc32(data) & 0xffffffff.
     """
 
@@ -170,19 +98,18 @@ def compute_checksum(filename, max_length=2**20):
 
 
 def get_anuga_pathname():
-    """Get pathname of anuga install location 
+    """Get pathname of anuga install location
 
     Typically, this is required in unit tests depending
     on external files.
 
     """
-    
+
     import anuga
-    import os
-    
+
     return os.path.dirname(anuga.__file__)
 
-    
+
 def get_pathname_from_package(package):
     """Get pathname of given package (provided as string)
 
@@ -198,29 +125,12 @@ def get_pathname_from_package(package):
 
     """
 
-    # Execute import command
-    # See https://stackoverflow.com/questions/1463306/how-does-exec-work-with-locals
-    exec('import %s as x' % package, globals())
+    import importlib
 
-    # # Get and return path
-    # return x.__path__[0]
-    import os
-    return os.path.dirname(x.__file__)
+    module = importlib.import_module(package)
+    return os.path.dirname(module.__file__)
 
 
-
-    # Alternative approach that has been used at times
-    #try:
-    #    # When unit test is run from current dir
-    #    p1 = read_polygon('mainland_only.csv')
-    #except: 
-    #    # When unit test is run from ANUGA root dir
-    #    from os.path import join, split
-    #    dir, tail = split(__file__)
-    #    path = join(dir, 'mainland_only.csv')
-    #    p1 = read_polygon(path)
-        
-    
 def clean_line(str, delimiter):
     """Split a string into 'clean' fields.
 
@@ -250,7 +160,7 @@ def clean_line(str, delimiter):
 # And writing *strings* to a NetCDF file is problematic.
 #
 # The solution is to use these two routines to convert a 1-D list of strings
-# to the 2-D list of chars form and back.  The 2-D form can be written to a 
+# to the 2-D list of chars form and back.  The 2-D form can be written to a
 # NetCDF file as before.
 #
 # The other option, of inverting a list of tag strings into a dictionary with
@@ -271,7 +181,7 @@ def string_to_char(l):
         l = [' ']
 
 
-    maxlen = reduce(max, list(map(len, l)))
+    maxlen = max(len(x) for x in l)
     ll = [x.ljust(maxlen) for x in l]
     result = []
     for s in ll:
@@ -300,10 +210,10 @@ def char_to_string(ll):
             if type(c) == str:
                 string += c
             else:
-                string += c.decode()            
+                string += c.decode()
 
         result.append(string.strip())
-        
+
     return result
 
 
@@ -313,166 +223,20 @@ def get_vars_in_expression(source):
     """Get list of variable names in a python expression."""
 
     # https://stackoverflow.com/questions/37993137/how-do-i-detect-variables-in-a-python-eval-expression
-    
+
     import ast
-        
+
     variables = {}
     syntax_tree = ast.parse(source)
     for node in ast.walk(syntax_tree):
         if type(node) is ast.Name:
             variables[node.id] = 0  # Keep first one, but not duplicates
-                
+
     # Only return keys
     result = list(variables.keys()) # Only return keys i.e. the variable names
     result.sort() # Sort for uniqueness
     return result
 
-
-def get_web_file(file_url, file_name, auth=None, blocksize=1024*1024):
-    """Get a file from the web (HTTP).
-
-    file_url:  The URL of the file to get
-    file_name: Local path to save loaded file in
-    auth:      A tuple (httpproxy, proxyuser, proxypass)
-    blocksize: Block size of file reads
-    
-    Will try simple load through urllib first.  Drop down to urllib2
-    if there is a proxy and it requires authentication.
-
-    Environment variable HTTP_PROXY can be used to supply proxy information.
-    PROXY_USERNAME is used to supply the authentication username.
-    PROXY_PASSWORD supplies the password, if you dare!
-    """
-
-    # Simple fetch, if fails, check for proxy error
-    try:
-        urllib.request.urlretrieve(file_url, file_name)
-        return (True, auth)     # no proxy, no auth required
-    except IOError as e:
-        if e[1] == 407:     # proxy error
-            pass
-        elif e[1][0] == 113:  # no route to host
-            print('No route to host for %s' % file_url)
-            return (False, auth)    # return False
-        else:
-            print('Unknown connection error to %s' % file_url)
-            return (False, auth)
-
-    # We get here if there was a proxy error, get file through the proxy
-    # unpack auth info
-    try:
-        (httpproxy, proxyuser, proxypass) = auth
-    except (TypeError, ValueError):
-        (httpproxy, proxyuser, proxypass) = (None, None, None)
-
-    # fill in any gaps from the environment
-    if httpproxy is None:
-        httpproxy = os.getenv('HTTP_PROXY')
-    if proxyuser is None:
-        proxyuser = os.getenv('PROXY_USERNAME')
-    if proxypass is None:
-        proxypass = os.getenv('PROXY_PASSWORD')
-
-    # Get auth info from user if still not supplied
-    if httpproxy is None or proxyuser is None or proxypass is None:
-        print('-'*72)
-        print ('You need to supply proxy authentication information.')
-        if httpproxy is None:
-            httpproxy = input('                    proxy server: ')
-        else:
-            print('         HTTP proxy was supplied: %s' % httpproxy)
-        if proxyuser is None:
-            proxyuser = input('                  proxy username: ') 
-        else:
-            print('HTTP proxy username was supplied: %s' % proxyuser)
-        if proxypass is None:
-            proxypass = getpass.getpass('                  proxy password: ')
-        else:
-            print('HTTP proxy password was supplied: %s' % '*'*len(proxyuser))
-        print('-'*72)
-
-    # the proxy URL cannot start with 'http://', we add that later
-    httpproxy = httpproxy.lower()
-    if httpproxy.startswith('http://'):
-        httpproxy = httpproxy.replace('http://', '', 1)
-
-    # open remote file
-    proxy = urllib.request.ProxyHandler({'http': 'http://' + proxyuser
-                                              + ':' + proxypass
-                                              + '@' + httpproxy})
-    authinfo = urllib.request.HTTPBasicAuthHandler()
-    opener = urllib.request.build_opener(proxy, authinfo, urllib.request.HTTPHandler)
-    urllib.request.install_opener(opener)
-    try:
-        webget = urllib.request.urlopen(file_url)
-    except urllib.error.HTTPError as e:
-        print('Error received from proxy:\n%s' % str(e))
-        print('Possibly the user/password is wrong.')
-        return (False, (httpproxy, proxyuser, proxypass))
-
-    # transfer file to local filesystem
-    fd = open(file_name, 'wb')
-    while True:
-        data = webget.read(blocksize)
-        if len(data) == 0:
-            break
-        fd.write(data)
-    fd.close
-    webget.close()
-
-    # return successful auth info
-    return (True, (httpproxy, proxyuser, proxypass))
-
-
-def tar_file(files, tarname):
-    """Compress a file or directory into a tar file."""
-
-    if isinstance(files, str):
-        files = [files]
-
-    o = tarfile.open(tarname, 'w:gz')
-    for file in files:
-        o.add(file)
-    o.close()
-
-
-def untar_file(tarname, target_dir='.'):
-    """Uncompress a tar file."""
-    
-
-    o = tarfile.open(tarname, 'r:gz')
-    members = o.getmembers()
-    for member in members:
-        o.extract(member, target_dir, filter='data')
-    o.close()
-
-
-def get_file_hexdigest(filename, blocksize=1024*1024*10):
-    """Get a hex digest of a file."""
-
-    if hashlib.__name__ == 'hashlib':
-        m = hashlib.md5()       # new - 'hashlib' module
-    else:
-        m = hashlib.new()       # old - 'md5' module - remove once py2.4 gone
-    fd = open(filename, 'r')
-            
-    while True:
-        data = fd.read(blocksize)
-        if len(data) == 0:
-            break
-        m.update(data.encode())
-                                                                
-    fd.close()
-    return m.hexdigest()
-
-
-def make_digest_file(data_file, digest_file):
-    """Create a file containing the hex digest string of a data file."""
-    
-    hexdigest = get_file_hexdigest(data_file)
-    fd = open(digest_file, 'w')
-    fd.write(hexdigest)
-    fd.close()
 
 
 def file_length(in_file):
@@ -488,8 +252,6 @@ def file_length(in_file):
 _proc_status = '/proc/%d/status' % os.getpid()
 _scale = {'kB': 1024.0, 'mB': 1024.0*1024.0,
           'KB': 1024.0, 'MB': 1024.0*1024.0}
-_total_memory = 0.0
-_last_memory = 0.0
 
 def _VmB(VmKey):
     """private method"""
@@ -509,18 +271,6 @@ def _VmB(VmKey):
      # convert Vm value to MB
     return (float(v[1]) * _scale[v[2]]) // (1024.0 * 1024.0)
 
-
-def MemoryUpdate(print_msg=None,str_return=False):
-    """print memory usage stats in MB.
-    """
-    global _total_memory, _last_memory
-
-    _last_memory = _total_memory
-    _total_memory = _VmB('VmSize:')
-
-    #if print_msg is not None:
-    mem_diff = _total_memory - _last_memory
-    return (mem_diff,_total_memory)
 
 
 def _get_rss_mb():
@@ -573,5 +323,448 @@ def print_memory_stats():
     mem=342MB
     """
     print(memory_stats())
-    
+
+
+def quantity_memory_stats(domain):
+    """Return a detailed breakdown of memory used by all quantities on *domain*.
+
+    For each registered quantity the function reports which backing arrays are
+    allocated and their individual sizes, then prints a per-quantity subtotal
+    and a grand total.  Arrays that have been kept lazy (``None``) are shown
+    as ``--`` with zero cost.
+
+    Parameters
+    ----------
+    domain : anuga.Domain
+        The simulation domain whose quantities are to be inspected.
+
+    Returns
+    -------
+    str
+        A multi-line table suitable for printing or logging.
+
+    Examples
+    --------
+    >>> import anuga
+    >>> domain = anuga.rectangular_cross_domain(10, 10)
+    >>> print(anuga.quantity_memory_stats(domain))
+    Quantity memory breakdown  (N=400 triangles, L=80 boundary edges)
+    ...
+    """
+    # Abbreviated column headers (attr name on the Quantity object).
+    _ARRAYS = [
+        ('cntrd',  'centroid_values'),
+        ('edge',   'edge_values'),
+        ('vert',   '_vertex_values'),
+        ('bndry',  'boundary_values'),
+        ('ex_up',  'explicit_update'),
+        ('si_up',  'semi_implicit_update'),
+        ('ct_bk',  'centroid_backup_values'),
+        ('x_grd',  '_x_gradient'),
+        ('y_grd',  '_y_gradient'),
+        ('phi',    '_phi'),
+    ]
+
+    # Abbreviated quantity type names.
+    _TYPE_ABBREV = {
+        'evolved':          'evol',
+        'edge_diagnostic':  'e_diag',
+        'centroid_only':    'c_only',
+        'coordinate':       'coord',
+    }
+
+    N = domain.number_of_elements
+    try:
+        L = domain.boundary_length
+    except AttributeError:
+        L = 0
+
+    col_w  = max(len(label) for label, _ in _ARRAYS) + 2   # 7
+    name_w = max(len(n) for n in domain.quantities) + 1
+    type_w = max(len(_TYPE_ABBREV.get(getattr(q, '_qty_type', '?'), '?'))
+                 for q in domain.quantities.values()) + 1
+
+    headers = [label for label, _ in _ARRAYS]
+    header_row = (f"{'Quantity':<{name_w}} {'type':<{type_w}} " +
+                  ''.join(f"{h:>{col_w}}" for h in headers) +
+                  f"{'TOTAL':>{col_w}}")
+    sep = '-' * len(header_row)
+
+    lines = [
+        f"Quantity memory (N={N:,} tri, L={L:,} bndry) — kB, '--'=lazy",
+        "  type: evol=evolved  e_diag=edge_diagnostic  c_only=centroid_only  coord=coordinate",
+        "  cols: cntrd=centroid  edge=edge  vert=vertex  bndry=boundary  ex_up=explicit_update",
+        "        si_up=semi_implicit_update  ct_bk=centroid_backup  x/y_grd=gradients",
+        sep,
+        header_row,
+        sep,
+    ]
+
+    grand_total_bytes = 0
+
+    for qty_name, qty in sorted(domain.quantities.items()):
+        raw_type = getattr(qty, '_qty_type', '?')
+        qty_type = _TYPE_ABBREV.get(raw_type, raw_type)
+        row_bytes = 0
+        cells = []
+
+        for _label, attr in _ARRAYS:
+            arr = getattr(qty, attr, None)
+            if arr is None:
+                cells.append('--')
+            else:
+                b = arr.nbytes
+                row_bytes += b
+                cells.append(f'{b / 1024:.1f}')
+
+        grand_total_bytes += row_bytes
+        total_str = f'{row_bytes / 1024:.1f}'
+        line = (f"{qty_name:<{name_w}} {qty_type:<{type_w}} " +
+                ''.join(f"{c:>{col_w}}" for c in cells) +
+                f"{total_str:>{col_w}}")
+        lines.append(line)
+
+    lines.append(sep)
+    grand_kb = grand_total_bytes / 1024
+    grand_mb = grand_total_bytes / 1024**2
+    lines.append(f"{'GRAND TOTAL':<{name_w + type_w + 1}}"
+                 f"{grand_kb:>{col_w * (len(_ARRAYS) + 1)},.1f} kB = {grand_mb:.2f} MB")
+    lines.append(sep)
+
+    return '\n'.join(lines)
+
+
+def print_quantity_memory_stats(domain):
+    """Print a detailed breakdown of memory used by all quantities on *domain*.
+
+    Convenience wrapper around :func:`quantity_memory_stats`.
+
+    Parameters
+    ----------
+    domain : anuga.Domain
+        The simulation domain whose quantities are to be inspected.
+
+    Examples
+    --------
+    >>> import anuga
+    >>> domain = anuga.rectangular_cross_domain(10, 10)
+    >>> anuga.print_quantity_memory_stats(domain)
+    Quantity memory breakdown  (N=400 triangles, L=80 boundary edges)
+    ...
+    """
+    print(quantity_memory_stats(domain))
+
+
+def domain_memory_stats(domain):
+    """Return a breakdown of memory used by the domain and all its quantities.
+
+    Reports numpy array memory grouped by category (geometry, connectivity,
+    work arrays, quantities, river-wall, flags/parallel), the process RSS, and
+    the unaccounted gap (C structs, Python interpreter, imported libraries).
+
+    Parameters
+    ----------
+    domain : anuga.Domain
+        The simulation domain to inspect.
+
+    Returns
+    -------
+    str
+        A multi-line table suitable for printing or logging.
+
+    Examples
+    --------
+    >>> import anuga
+    >>> domain = anuga.rectangular_cross_domain(10, 10)
+    >>> print(anuga.domain_memory_stats(domain))
+    Domain memory (N=400 tri) — MB
+    ...
+    """
+    import numpy as np
+
+    # ------------------------------------------------------------------ #
+    # 1.  Categorise domain-level numpy arrays by name                    #
+    # ------------------------------------------------------------------ #
+    _CATEGORIES = {
+        'geometry': [
+            'vertex_coordinates', 'edge_coordinates', 'centroid_coordinates',
+            'nodes', 'normals', 'areas', 'radii', 'edgelengths',
+        ],
+        'connectivity': [
+            'triangles', 'neighbours', 'surrogate_neighbours',
+            'neighbour_edges', 'vertex_value_indices', 'number_of_boundaries',
+            'node_index', 'number_of_triangles_per_node',
+        ],
+        'work arrays': [
+            'edge_flux_work', 'neigh_work', 'pressuregrad_work',
+            'already_computed_flux', 'work_centroid_values',
+            'x_centroid_work', 'y_centroid_work',
+            '_grad_workspace_x', '_grad_workspace_y', '_phi_workspace',
+            'max_speed',
+        ],
+        'river wall': [
+            'edge_flux_type', 'edge_river_wall_counter',
+        ],
+        'flags/parallel': [
+            'tri_full_flag', 'node_full_flag',
+            'boundary_flux_sum',
+            'boundary_cells', 'boundary_edges',
+        ],
+    }
+
+    # Collect actual arrays from domain
+    cat_bytes = {}
+    cat_detail = {}
+    accounted_attrs = set()
+
+    for cat, attrs in _CATEGORIES.items():
+        total = 0
+        details = []
+        for attr in attrs:
+            arr = getattr(domain, attr, None)
+            if isinstance(arr, np.ndarray):
+                b = arr.nbytes
+                total += b
+                details.append((attr, arr.shape, arr.dtype, b))
+                accounted_attrs.add(attr)
+        cat_bytes[cat] = total
+        cat_detail[cat] = details
+
+    # Catch any numpy arrays not yet in our category list
+    other = []
+    other_bytes = 0
+    for attr in sorted(dir(domain)):
+        if attr.startswith('__') or attr in accounted_attrs:
+            continue
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter('ignore', DeprecationWarning)
+                val = getattr(domain, attr)
+        except Exception:
+            continue
+        if isinstance(val, np.ndarray) and val.nbytes > 0:
+            other_bytes += val.nbytes
+            other.append((attr, val.shape, val.dtype, val.nbytes))
+
+    # ------------------------------------------------------------------ #
+    # 2.  Quantity totals (re-use quantity_memory_stats logic)            #
+    # ------------------------------------------------------------------ #
+    _QTY_ARRAYS = [
+        'centroid_values', 'edge_values', '_vertex_values',
+        'boundary_values', 'explicit_update', 'semi_implicit_update',
+        'centroid_backup_values', '_x_gradient', '_y_gradient', '_phi',
+    ]
+    qty_bytes = 0
+    for qty in domain.quantities.values():
+        for attr in _QTY_ARRAYS:
+            arr = getattr(qty, attr, None)
+            if isinstance(arr, np.ndarray):
+                qty_bytes += arr.nbytes
+
+    # ------------------------------------------------------------------ #
+    # 3.  Totals and RSS                                                  #
+    # ------------------------------------------------------------------ #
+    domain_numpy_bytes = sum(cat_bytes.values()) + other_bytes
+    total_python_bytes = domain_numpy_bytes + qty_bytes
+    rss_mb = _get_rss_mb()
+    rss_bytes = rss_mb * 1024**2
+
+    # ------------------------------------------------------------------ #
+    # 4.  Format output                                                   #
+    # ------------------------------------------------------------------ #
+    N = domain.number_of_elements
+    w = 10   # column width for MB values
+
+    def _fmt(b):
+        return f'{b / 1024**2:.2f}'
+
+    sep = '-' * 55
+    lines = [
+        f'Domain memory (N={N:,} tri) — MB',
+        sep,
+        f'  {"Category":<22} {"MB":>{w}}',
+        sep,
+    ]
+
+    for cat in _CATEGORIES:
+        lines.append(f'  {cat:<22} {_fmt(cat_bytes[cat]):>{w}}')
+
+    if other:
+        lines.append(f'  {"other domain arrays":<22} {_fmt(other_bytes):>{w}}')
+
+    gap_bytes = rss_bytes - total_python_bytes
+    if gap_bytes >= 0:
+        gap_label = 'unaccounted (C/libs)'
+        gap_str   = _fmt(gap_bytes)
+    else:
+        # Allocated numpy bytes exceed RSS: the difference is virtual (cold)
+        # memory — zero-initialised arrays whose pages have not yet been
+        # paged into RAM (OS lazy commit; common before the first evolve call
+        # for work arrays such as edge_flux_work, neigh_work, update arrays).
+        gap_label = 'cold/virtual (untouch)'
+        gap_str   = f'-{_fmt(-gap_bytes)}'
+
+    lines += [
+        f'  {"quantities":<22} {_fmt(qty_bytes):>{w}}',
+        sep,
+        f'  {"total Python numpy":<22} {_fmt(total_python_bytes):>{w}}',
+        f'  {"process RSS":<22} {_fmt(rss_bytes):>{w}}',
+        f'  {gap_label:<22} {gap_str:>{w}}',
+        sep,
+    ]
+
+    if other:
+        lines.append('  Uncategorised domain arrays:')
+        for attr, shape, dtype, b in sorted(other, key=lambda x: -x[3]):
+            lines.append(f'    {_fmt(b):>6} MB  shape={str(shape):<20} dtype={dtype}  {attr}')
+        lines.append(sep)
+
+    return '\n'.join(lines)
+
+
+def print_domain_memory_stats(domain):
+    """Print a breakdown of memory used by the domain and all its quantities.
+
+    Convenience wrapper around :func:`domain_memory_stats`.
+
+    Parameters
+    ----------
+    domain : anuga.Domain
+        The simulation domain to inspect.
+
+    Examples
+    --------
+    >>> import anuga
+    >>> domain = anuga.rectangular_cross_domain(10, 10)
+    >>> anuga.print_domain_memory_stats(domain)
+    Domain memory (N=400 tri) — MB
+    ...
+    """
+    print(domain_memory_stats(domain))
+
+
+def domain_struct_stats(domain):
+    """Return a breakdown of the C domain struct and GPU domain struct memory.
+
+    The C domain struct (``_Domain_C_struct``) is a fixed-size block of
+    scalars and raw C pointers that mirror the Python domain.  It adds only
+    ~1 kB of overhead and holds **no additional array data** — all pointers
+    point back into the numpy arrays already counted by
+    :func:`domain_memory_stats`.
+
+    The GPU domain struct (``gpu_dom``) extends the C struct with MPI/GPU
+    state and boundary sub-structs.  For OpenMP GPU offloading the mapped
+    numpy arrays live on the GPU device; ``estimate_required_memory`` gives
+    the estimated device-side footprint.
+
+    Parameters
+    ----------
+    domain : anuga.Domain
+        The simulation domain to inspect.
+
+    Returns
+    -------
+    str
+        A multi-line diagnostic string.
+
+    Examples
+    --------
+    >>> import anuga
+    >>> domain = anuga.rectangular_cross_domain(10, 10)
+    >>> print(anuga.domain_struct_stats(domain))
+    C / GPU struct diagnostics (N=400 tri)
+    ...
+    """
+    N = domain.number_of_elements
+    try:
+        nb = domain.boundary_length
+    except AttributeError:
+        nb = 0
+
+    sep = '-' * 55
+    lines = [f'C / GPU struct diagnostics (N={N:,} tri)', sep]
+
+    # ------------------------------------------------------------------ #
+    # 1.  C domain struct                                                  #
+    # ------------------------------------------------------------------ #
+    # sizeof(struct domain):
+    #   10 int64 scalars + 13 double scalars + ~64 void* pointers
+    #   10×8 + 13×8 + 64×8 = 696 bytes (+ alignment padding ≈ 720 B)
+    _C_STRUCT_SCALARS_BYTES = (10 + 13) * 8
+    _C_STRUCT_PTRS = 64     # pointer fields in struct domain
+    _C_STRUCT_SIZE = _C_STRUCT_SCALARS_BYTES + _C_STRUCT_PTRS * 8  # ~696 B
+
+    c_struct = getattr(domain, '_Domain_C_struct', None)
+    c_status = 'allocated' if c_struct is not None else 'not allocated'
+    lines += [
+        '  C domain struct (struct domain)',
+        f'    status          : {c_status}',
+        f'    sizeof estimate : {_C_STRUCT_SIZE} B  '
+        f'({10} int64 scalars, {13} double scalars, {_C_STRUCT_PTRS} pointers)',
+        '    note            : pointers reference Python numpy arrays — no extra data',
+    ]
+
+    # ------------------------------------------------------------------ #
+    # 2.  GPU domain struct                                                #
+    # ------------------------------------------------------------------ #
+    # sizeof(struct gpu_domain):
+    #   struct domain (embedded) + MPI state + ~10 sub-structs + flop counters
+    #   Rough estimate: 696 + ~800 ≈ 1.5 kB (struct overhead, not device data)
+    _GPU_STRUCT_SIZE_EST = _C_STRUCT_SIZE + 800
+
+    gpu_iface = getattr(domain, 'gpu_interface', None)
+    lines.append('')
+    lines.append('  GPU domain struct (struct gpu_domain)')
+
+    if gpu_iface is None:
+        lines.append('    status          : not initialised (GPU mode not active)')
+    else:
+        initialized = getattr(gpu_iface, 'initialized', False)
+        gpu_dom = getattr(gpu_iface, 'gpu_dom', None)
+        lines += [
+            f'    status          : {"mapped to device" if initialized else "struct created, not yet mapped"}',
+            f'    sizeof estimate : {_GPU_STRUCT_SIZE_EST} B  '
+            f'(struct domain + MPI state + boundary sub-structs + flop counters)',
+        ]
+
+        # Estimated device memory (arrays mapped to GPU)
+        try:
+            from anuga.shallow_water.sw_domain_gpu_ext import (
+                estimate_required_memory, gpu_available,
+            )
+            est_bytes = estimate_required_memory(N, nb)
+            est_mb = est_bytes / 1024**2
+            gpu_avail = gpu_available()
+            lines += [
+                f'    gpu available   : {gpu_avail}',
+                f'    device memory   : {est_mb:.1f} MB  (estimate for N={N:,}, nb={nb:,})',
+                '    note            : device arrays are OpenMP-mapped copies of numpy arrays',
+            ]
+        except ImportError:
+            lines.append('    device memory   : (sw_domain_gpu_ext not importable)')
+
+    lines.append(sep)
+    return '\n'.join(lines)
+
+
+def print_domain_struct_stats(domain):
+    """Print a breakdown of the C domain struct and GPU domain struct memory.
+
+    Convenience wrapper around :func:`domain_struct_stats`.
+
+    Parameters
+    ----------
+    domain : anuga.Domain
+        The simulation domain to inspect.
+
+    Examples
+    --------
+    >>> import anuga
+    >>> domain = anuga.rectangular_cross_domain(10, 10)
+    >>> anuga.print_domain_struct_stats(domain)
+    C / GPU struct diagnostics (N=400 tri)
+    ...
+    """
+    print(domain_struct_stats(domain))
+
 

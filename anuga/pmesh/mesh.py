@@ -7,7 +7,7 @@
    should not be used as persistant information.  It is not the 'index' of
    an element in a list.
 
-   
+
    Copyright 2003/2004
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
    Geoscience Australia
@@ -27,6 +27,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
 from anuga.load_mesh.loadASCII import NOMAXAREA, export_mesh_file, \
     import_mesh_file
 import anuga.alpha_shape.alpha_shape
+import anuga.utilities.log as log
 from anuga.geospatial_data.geospatial_data import Geospatial_data, \
     ensure_geospatial, ensure_absolute, ensure_numeric
 from anuga.mesh_engine.mesh_engine import generate_mesh
@@ -40,7 +41,7 @@ except ImportError:
     # Hand-built mockup of the things we need from the kinds package, since it
     # was recently removed from the standard numeric distro.  Some users may
     # not have it by default.
-    class _bunch(object):
+    class _bunch:
         pass
 
     class _kinds(_bunch):
@@ -57,7 +58,7 @@ initialconversions = ['', 'exterior', '']
 SEG_COLOUR = 'blue'
 
 
-class MeshObject(object):
+class MeshObject:
     """
     An abstract superclass for the basic mesh objects, eg vertex, segment,
     triangle.
@@ -148,7 +149,7 @@ class Vertex(Point):
         self.y = float(Y)
 
         self.attributes = []
-        if not attributes is None:
+        if attributes is not None:
             self.attributes = attributes
 
     def set_attributes(self, attributes):
@@ -403,8 +404,8 @@ class Segment(MeshObject):
 Segment.set_default_tag("")
 
 
-class Rigid_triangulation(object):
-    """ 
+class Rigid_triangulation:
+    """
     This is a triangulation that can't have triangles added or taken away.
 
     It just represents the triangulation, not the mesh outline needed to
@@ -413,7 +414,7 @@ class Rigid_triangulation(object):
       This is the guts of the data structure;
         generated vertex list: [(x1,y1),(x2,y2),...] (Tuples of doubles)
         generated segment list: [(point1,point2),(p3,p4),...]
-            (Tuples of integers) 
+            (Tuples of integers)
         generated segment tag list: [tag,tag,...] list of strings
 
         generated triangle list: [(p1,p2,p3), (p4,p5,p6),....] tuple of points
@@ -508,7 +509,7 @@ class Rigid_triangulation(object):
         return area
 
 
-class Pmesh(object):
+class Pmesh:
     """
     Representation of a 2D triangular mesh.
     User attributes describe the mesh region/segments/vertices/attributes
@@ -554,6 +555,10 @@ class Pmesh(object):
         # Rigid
         self.tri_mesh = None
 
+        # Defaults for generate_mesh, see there
+        self.size_field = None
+        self.relax_passes = 0
+
         self.visualise_graph = True
 
         if userSegments is None:
@@ -590,8 +595,8 @@ class Pmesh(object):
         # FIXME(Ole): This should be refactored to use Mesh2MeshDic(self):
         # Like this:
         # self_dict = self.Mesh2MeshDic()
-        # other_dict = other.Mesh2MeshDic()        
-        
+        # other_dict = other.Mesh2MeshDic()
+
         # A dic for the initial m
         dic = self.mesh2triang_list()
         dic_mesh = self.mesh2mesh_list()
@@ -624,12 +629,12 @@ class Pmesh(object):
     def __eq__(self, other):
 
         self_dict = self.mesh2mesh_dic()
-        other_dict = other.mesh2mesh_dic()        
-        
+        other_dict = other.mesh2mesh_dic()
+
         return (self_dict == other_dict and
                 self.geo_reference == other.geo_reference)
-    
-        
+
+
     def add_user_point(self, pointType, x, y):
         if pointType == Vertex:
             point = self.add_user_vertex(x, y)
@@ -743,7 +748,7 @@ class Pmesh(object):
         tags (e.g.{'wall':[0,1,3],'ocean':[2]})
 
         This returns the region instance, so if the user whats to modify
-        it they can.       
+        it they can.
         """
         return self._add_area_from_polygon(polygon,
                                            segment_tags=segment_tags,
@@ -770,7 +775,7 @@ class Pmesh(object):
         region_tags  - add a tag to all of the triangles in the region.
 
         This returns the region instance (if a max_triangle_area is given),
-        so if the user whats to modify it they can.     
+        so if the user whats to modify it they can.
         """
         if max_triangle_area is None and region_tag is None:
             create_region = False
@@ -1210,15 +1215,79 @@ class Pmesh(object):
     def generate_mesh(self,
                       maximum_triangle_area="",
                       minimum_triangle_angle=28.0,
-                      verbose=False):
+                      verbose=False,
+                      size_field=None,
+                      relax_passes=None):
+        """Triangulate the mesh outline.
+
+        Parameters
+        ----------
+        maximum_triangle_area : float, optional
+            Maximum area of any triangle. Regions with their own maximum
+            area are refined to that as well.
+        minimum_triangle_angle : float, optional
+            Minimum angle of any triangle, in degrees (default 28.0).
+        verbose : bool, optional
+        size_field : Size_field or callable, optional
+            Target triangle area as a function of position: a triangle is
+            refined if its area exceeds the field at its centroid. Either
+            an :class:`anuga.Size_field` or a callable ``f(x, y)`` taking
+            absolute coordinates. Applied as well as the area constraints
+            above. Defaults to ``self.size_field``. Needs meshpy.
+        relax_passes : int, optional
+            If positive, follow the triangulation with up to this many
+            passes of :meth:`relax_worst_cells`. Defaults to
+            ``self.relax_passes``.
+        """
+        if size_field is None:
+            size_field = getattr(self, 'size_field', None)
+        if relax_passes is None:
+            relax_passes = getattr(self, 'relax_passes', 0)
+
         if verbose is True:
             silent = ''
         else:
             silent = 'Q'
         self._generateMesh_impl(mode=silent + "pzq"+str(minimum_triangle_angle)
                                 + "a"+str(maximum_triangle_area)
-                                + "a", verbose=verbose)
+                                + "a", verbose=verbose,
+                                size_field=size_field)
         # The last a is so areas for regions will be used
+
+        if relax_passes:
+            self.relax_worst_cells(passes=relax_passes, verbose=verbose)
+
+    def relax_worst_cells(self, passes=30, fraction=0.5, verbose=False):
+        """Move the vertices of the smallest cells so the smallest cell grows.
+
+        ANUGA steps at the global minimum of radii / wave speed, so the
+        smallest cell of the mesh sets the timestep of the whole run. This
+        nudges the vertices of the worst ``fraction`` percent of cells, for
+        up to ``passes`` passes, to enlarge them. Vertices on a segment (the
+        boundary, breaklines, region outlines) do not move and the triangles
+        are not reconnected. See
+        :func:`anuga.pmesh.mesh_relax.relax_worst_cells`.
+
+        The mesh must have been triangulated. Vertex attributes are left as
+        they are, although the vertices they belong to may have moved.
+
+        Returns
+        -------
+        before, after : float
+            Quality, min(radii, inradius), of the worst cell before and after.
+        """
+        from anuga.pmesh.mesh_relax import relax_worst_cells
+
+        if self.tri_mesh is None:
+            raise Exception('Generate the mesh before relaxing it')
+
+        tri_mesh = self.tri_mesh
+        fixed = num.unique(num.asarray(tri_mesh.segments, dtype=num.int64))
+        vertices, before, after = relax_worst_cells(
+            tri_mesh.vertices, tri_mesh.triangles, fixed,
+            passes=passes, fraction=fraction, verbose=verbose)
+        tri_mesh.vertices = vertices
+        return before, after
 
     def generateMesh(self, mode=None, maxArea=None, minAngle=None,
                      isRegionalMaxAreas=True, verbose=False):
@@ -1232,7 +1301,8 @@ class Pmesh(object):
                                        verbose=verbose)
 
     def _generateMesh_impl(self, mode=None, maxArea=None, minAngle=None,
-                           isRegionalMaxAreas=True, verbose=False):
+                           isRegionalMaxAreas=True, verbose=False,
+                           size_field=None):
         """
         Generate a new mesh based on current user values, holes, and regions.
 
@@ -1254,6 +1324,8 @@ class Pmesh(object):
         verbose : bool, optional
             If True, output information about mesh generation progress.
             Default is False.
+        size_field : Size_field or callable, optional
+            Target triangle area by position, see generate_mesh.
 
         Preconditions
         --------------
@@ -1321,6 +1393,15 @@ class Pmesh(object):
         # print "%%%%%%%%%%%%%%%%%%%%%%%%%%%regionlist",meshDict['regionlist']
         # print "meshDict['segmenttaglist']", meshDict['segmenttaglist'
         # print "self.mode", self.mode
+        refinement_func = None
+        if size_field is not None:
+            # Triangle sees coordinates relative to the mesh geo reference
+            from anuga.pmesh.size_field import make_refinement_func
+            refinement_func = make_refinement_func(
+                size_field,
+                self.geo_reference.get_xllcorner(),
+                self.geo_reference.get_yllcorner())
+
         generatedMesh = generate_mesh(
             meshDict['pointlist'],
             meshDict['segmentlist'],
@@ -1330,7 +1411,8 @@ class Pmesh(object):
             meshDict['segmenttaglist'],
             self.mode,
             meshDict['pointlist'],
-            verbose)
+            verbose,
+            refinement_func=refinement_func)
         # print "%%%%%%%%%%%%%%%%%%%%%%%%%%%generated",generatedMesh
         generatedMesh['qaa'] = 1
         if generatedMesh['generatedsegmentmarkerlist'] is not None:
@@ -1571,7 +1653,7 @@ class Pmesh(object):
         for vertex in userVertices:
             vertex.index = index
             pointlist.append((vertex.x, vertex.y))
-            pointattributelist.append((vertex.attributes))
+            pointattributelist.append(vertex.attributes)
 
             index += 1
         meshDict['pointlist'] = pointlist
@@ -1629,7 +1711,7 @@ class Pmesh(object):
         generated point attribute title list:[A1Title, A2Title ...]
             (list of strings)
         generated segment list: [(point1,point2),(p3,p4),...]
-            (Tuples of integers) 
+            (Tuples of integers)
         generated segment tag list: [tag,tag,...] list of strings
 
         generated triangle list: [(p1,p2,p3), (p4,p5,p6),....] tuple of points
@@ -2077,7 +2159,7 @@ class Pmesh(object):
         """
         Returns a list denoting a box that contains the entire
         structure of vertices
-        Structure: [xmin, ymin, xmax, ymax] 
+        Structure: [xmin, ymin, xmax, ymax]
         """
 
         large = kinds.default_float_kind.MAX
@@ -2131,8 +2213,8 @@ class Pmesh(object):
     def scaleoffset(self, WIDTH, HEIGHT):
         """
         Returns a list denoting the scale and offset terms that need to be
-        applied when converting  mesh co-ordinates onto grid co-ordinates 
-        Structure: [scale, xoffset, yoffset] 
+        applied when converting  mesh co-ordinates onto grid co-ordinates
+        Structure: [scale, xoffset, yoffset]
         """
         OFFSET = 0.05*min([WIDTH, HEIGHT])
         [xmin, ymin, xmax, ymax] = self.boxsize()
@@ -2266,7 +2348,7 @@ class Pmesh(object):
         region_tag is the tag applied to the polygon regions.
         if it is a string the one value will be assigned to all regions
         if it is a list the first value in the list will be applied to the first polygon etc.
-        WARNING: size of list and number of polygons isn't checked 
+        WARNING: size of list and number of polygons isn't checked
 
         WARNING values are assumed to be absolute.
         geo-refs are not taken into account..
@@ -2299,23 +2381,23 @@ class Pmesh(object):
         vertices: [[x1,y1],[x2,y2],...] (lists of doubles)
         vertex_attributes: [[a11,a12,...],[a21,a22],...] (lists of doubles)
         vertex_attribute_titles:[A1Title, A2Title ...] (A list of strings)
-        segments: [[v1,v2],[v3,v4],...] (lists of integers) 
+        segments: [[v1,v2],[v3,v4],...] (lists of integers)
         segment_tags : [tag,tag,...] list of strings
         triangles : [(v1,v2,v3), (v4,v5,v6),....] lists of points
         triangle tags: [s1,s2,...] A list of strings
         triangle neighbors: [[t1,t2,t3], [t4,t5,t6],..] lists of triangles
-        
-        (the outline)   
+
+        (the outline)
         points: [[x1,y1],[x2,y2],...] (lists of doubles)
         point_attributes: [[a11,a12,...],[a21,a22],...] (lists of doubles)
-        outline_segments: [[point1,point2],[p3,p4],...] (lists of integers) 
+        outline_segments: [[point1,point2],[p3,p4],...] (lists of integers)
         outline_segment_tags : [tag1,tag2,...] list of strings
         holes : [[x1,y1],...](List of doubles, one inside each hole region)
         regions : [ [x1,y1],...] (List of 4 doubles)
         region_tags : [tag1,tag2,...] (list of strings)
         region_max_areas: [ma1,ma2,...] (A list of doubles)
         {Convension: A -ve max area means no max area}
-        
+
         """
 
     def mesh2io_dict(self):
@@ -2570,7 +2652,7 @@ def import_mesh_from_file(ofile):
         newmesh.IOOutline2Mesh(dict)
         counter = newmesh.remove_duplicated_user_vertices()
         if (counter > 0):
-            log.critical(
+            log.info(
                 "%i duplicate vertices removed from dataset" % counter)
     elif (ofile[-4:] == ".tsh" or ofile[-4:] == ".msh"):
         dict = import_mesh_file(ofile)
@@ -2584,7 +2666,7 @@ def import_mesh_from_file(ofile):
     else:
         raise RuntimeError
 
-    if 'geo_reference' in dict and not dict['geo_reference'] is None:
+    if 'geo_reference' in dict and dict['geo_reference'] is not None:
         newmesh.geo_reference = dict['geo_reference']
 
     return newmesh
@@ -2652,7 +2734,7 @@ def square_outline(side_length=1, up="top", left="left", right="right",
 def region_strings2ints(region_list):
     """Given a list of (x_int,y_int,tag_string) lists it returns a list of
     (x_int,y_int,tag_int) and a list to convert the tag_int's back to
-    the tag_strings  
+    the tag_strings
     """
     # Make sure "" has an index of 0
     region_list.reverse()
@@ -2667,7 +2749,7 @@ def region_strings2ints(region_list):
         elif len(region_list[i]) == 3:  # no area value
             region_list[i] = (region_list[i][0], region_list[i][1], i)
         else:
-            log.critical("The region list has a bad size")
+            log.info("The region list has a bad size")
             # raise an error ..
             raise Exception
 
@@ -2708,7 +2790,7 @@ def segment_strings2ints(stringlist, preset):
     Also, input an initial converting list of the strings
     Note, the converting list starts off with
     ["internal boundary", "external boundary", "internal boundary"]
-    example input and output 
+    example input and output
     input ["a","b","a","c"], ["c"]
     output [[2, 1, 2, 0], ['c', 'b', 'a']]
 

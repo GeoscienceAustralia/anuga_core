@@ -23,7 +23,9 @@ affine
 pytest
 matplotlib
 
+ipython   # provides the ipython3 Pygments lexer for notebook code cells
 nbsphinx
 sphinx_rtd_theme
 sphinx-copybutton
 sphinx
+myst-parser   # renders appendices/physics_spec.md

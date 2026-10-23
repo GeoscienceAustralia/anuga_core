@@ -2,7 +2,7 @@
 
     Here you will find modules to load, save, and extract information in a
     variety of different file formats.
-    
+
 This module takes care of reading and writing datafiles such as topograhies,
 model output, etc
 
@@ -45,12 +45,7 @@ PTS + TSH -> TSH with elevation: Least squares fit
 
 TSH -> SWW:  Conversion of TSH to sww viewable using Swollen
 
-TSH + Boundary SWW -> SWW: Simluation using abstract_2d_finite_volumes    
+TSH + Boundary SWW -> SWW: Simluation using abstract_2d_finite_volumes
 """
 
-from numpy._pytesttester import PytestTester
-test = PytestTester(__name__)
-del PytestTester
-
-__all__ = ['test']
 

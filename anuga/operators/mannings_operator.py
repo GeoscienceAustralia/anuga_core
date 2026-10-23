@@ -21,7 +21,7 @@ class Mannings_operator(Operator):
     """
 
     def __init__(self, domain, verbose=False):
-        if verbose: log.critical('Mannings Operator: Beginning Initialisation')
+        if verbose: log.info('Mannings Operator: Beginning Initialisation')
 
 
         Operator.__init__(self,domain)
@@ -34,8 +34,8 @@ class Mannings_operator(Operator):
 
         self.exp_gamma_max = 0.0
         self.exp_gamma_min = 1.0
-        
-        if verbose: log.critical('Mannings Operator: Initialisation Done')
+
+        if verbose: log.info('Mannings Operator: Initialisation Done')
 
 
     def __call__(self):
@@ -45,7 +45,8 @@ class Mannings_operator(Operator):
         self.height_c[:] = self.stage_c - self.elev_c
 
         self.gamma_c[:] = -self.g * self.friction_c**2 * num.sqrt( self.xmom_c**2 + self.ymom_c**2 )
-        self.gamma_c[:] = num.where(self.height_c > 0.0, self.gamma_c/num.power(self.height_c,7.0/3.0),-100.0)
+        safe_h = num.maximum(self.height_c, 1.0e-15)
+        self.gamma_c[:] = num.where(self.height_c > 0.0, self.gamma_c / num.power(safe_h, 7.0/3.0), -100.0)
 
         exp_gamma = num.exp(self.gamma_c*timestep)
 

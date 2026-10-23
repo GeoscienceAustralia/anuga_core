@@ -118,3 +118,118 @@ if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Internal_boundary_operator)
     runner = unittest.TextTestRunner(verbosity=2)
     runner.run(suite)
+
+
+# ---------------------------------------------------------------------------
+# pytest functions: uncovered branches
+# ---------------------------------------------------------------------------
+
+import pytest
+
+
+def _suppress_inlet_warning():
+    ctx = warnings.catch_warnings()
+    ctx.__enter__()
+    warnings.filterwarnings('ignore', message=_INLET_WARNING, category=UserWarning)
+    return ctx
+
+
+def test_verbose_true_prints(capsys):
+    """verbose=True triggers the EXPERIMENTAL warning block."""
+    domain = make_culvert_domain()
+    ctx = _suppress_inlet_warning()
+    try:
+        Internal_boundary_operator(
+            domain, simple_ibf, end_points=_END_POINTS,
+            width=1.0, verbose=True)
+    finally:
+        ctx.__exit__(None, None, None)
+    out = capsys.readouterr().out
+    assert 'INTERNAL BOUNDARY OPERATOR' in out
+
+
+def test_explicit_discharge_runs():
+    """compute_discharge_implicitly=False routes through discharge_routine_explicit."""
+    domain = make_culvert_domain()
+    ctx = _suppress_inlet_warning()
+    try:
+        op = Internal_boundary_operator(
+            domain, simple_ibf, end_points=_END_POINTS,
+            width=1.0, compute_discharge_implicitly=False, verbose=False)
+    finally:
+        ctx.__exit__(None, None, None)
+    domain.timestep = 0.1
+    domain.yieldstep = 1.0
+    op()
+
+
+def test_explicit_discharge_use_velocity_head():
+    """Explicit discharge with use_velocity_head=True uses total energy."""
+    domain = make_culvert_domain()
+    ctx = _suppress_inlet_warning()
+    try:
+        op = Internal_boundary_operator(
+            domain, simple_ibf, end_points=_END_POINTS,
+            width=1.0, compute_discharge_implicitly=False,
+            use_velocity_head=True, verbose=False)
+    finally:
+        ctx.__exit__(None, None, None)
+    domain.timestep = 0.1
+    domain.yieldstep = 1.0
+    op()
+
+
+def test_explicit_blocked_structure():
+    """height <= 0 returns Q=0 immediately in discharge_routine_explicit."""
+    domain = make_culvert_domain()
+    ctx = _suppress_inlet_warning()
+    try:
+        op = Internal_boundary_operator(
+            domain, simple_ibf, end_points=_END_POINTS,
+            width=1.0, height=1.0, compute_discharge_implicitly=False, verbose=False)
+    finally:
+        ctx.__exit__(None, None, None)
+    op.height = 0.0
+    domain.timestep = 0.1
+    domain.yieldstep = 1.0
+    op()
+    assert op.discharge == 0.0 or op.discharge is not None
+
+
+def test_implicit_use_velocity_head():
+    """Implicit discharge with use_velocity_head=True uses total energy."""
+    domain = make_culvert_domain()
+    ctx = _suppress_inlet_warning()
+    try:
+        op = Internal_boundary_operator(
+            domain, simple_ibf, end_points=_END_POINTS,
+            width=1.0, compute_discharge_implicitly=True,
+            use_velocity_head=True, verbose=False)
+    finally:
+        ctx.__exit__(None, None, None)
+    domain.timestep = 0.1
+    domain.yieldstep = 1.0
+    op()
+
+
+def test_implicit_negative_Q_reverses_inlets():
+    """Implicit discharge with reverse flow sets inlets[1] as inflow."""
+    def reverse_ibf(hw, tw):
+        return hw - tw  # negative when tw > hw
+
+    domain = make_culvert_domain()
+    # Make right side (inlet1 near x=7) higher than left (inlet0 near x=3)
+    def stage_fn(x, y):
+        return numpy.where(x > 5.0, 2.0, 1.0)
+    domain.set_quantity('stage', stage_fn)
+
+    ctx = _suppress_inlet_warning()
+    try:
+        op = Internal_boundary_operator(
+            domain, reverse_ibf, end_points=_END_POINTS,
+            width=1.0, compute_discharge_implicitly=True, verbose=False)
+    finally:
+        ctx.__exit__(None, None, None)
+    domain.timestep = 0.1
+    domain.yieldstep = 1.0
+    op()

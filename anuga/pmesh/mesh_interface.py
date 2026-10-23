@@ -39,7 +39,9 @@ def create_pmesh_from_regions(bounding_polygon,
                               minimum_triangle_angle=28.0,
                               fail_if_polygons_outside=True,
                               use_cache=False,
-                              verbose=True):
+                              verbose=True,
+                              size_field=None,
+                              relax_passes=0):
     """Create a Pmesh from bounding polygons and resolutions.
 
     Parameters
@@ -85,6 +87,18 @@ def create_pmesh_from_regions(bounding_polygon,
         Whether to use caching (default: False).
     verbose : bool, optional
         Verbosity flag (default: True).
+    size_field : Size_field or callable, optional
+        Target triangle area as a function of position, applied as well as
+        the maximum areas above: a triangle is refined if its area exceeds
+        the field at its centroid. Either an :class:`anuga.Size_field`
+        (see :func:`anuga.size_field_from_regions`) or a callable
+        ``f(x, y) -> maximum area`` taking absolute coordinates. Unlike
+        interior regions it adds no segments to the mesh. Needs meshpy.
+    relax_passes : int, optional
+        If positive, follow the triangulation with up to this many passes of
+        worst-cell relaxation, which moves the vertices of the smallest
+        cells to enlarge them and so lengthen the timestep (default: 0).
+        See :meth:`anuga.pmesh.mesh.Pmesh.relax_worst_cells`.
 
     Returns
     -------
@@ -130,7 +144,9 @@ def create_pmesh_from_regions(bounding_polygon,
               'fail_if_polygons_outside': fail_if_polygons_outside,
               'breaklines': breaklines,
               'verbose': verbose,
-              'regionPtArea': regionPtArea}   # FIXME (Ole): Should be bypassed one day. See ticket:14
+              'regionPtArea': regionPtArea,   # FIXME (Ole): Should be bypassed one day. See ticket:14
+              'size_field': size_field,
+              'relax_passes': relax_passes}
 
     # Call underlying engine with or without caching
     if use_cache is True:
@@ -165,7 +181,9 @@ def create_mesh_from_regions(bounding_polygon,
                              minimum_triangle_angle=28.0,
                              fail_if_polygons_outside=True,
                              use_cache=False,
-                             verbose=True):
+                             verbose=True,
+                             size_field=None,
+                             relax_passes=0):
     """Deprecated: use create_pmesh_from_regions instead."""
     import warnings
     warnings.warn(
@@ -186,7 +204,9 @@ def create_mesh_from_regions(bounding_polygon,
         minimum_triangle_angle=minimum_triangle_angle,
         fail_if_polygons_outside=fail_if_polygons_outside,
         use_cache=use_cache,
-        verbose=verbose)
+        verbose=verbose,
+        size_field=size_field,
+        relax_passes=relax_passes)
 
 
 def _create_pmesh_from_regions(bounding_polygon,
@@ -202,7 +222,9 @@ def _create_pmesh_from_regions(bounding_polygon,
                                fail_if_polygons_outside=True,
                                breaklines=None,
                                verbose=True,
-                               regionPtArea=None):
+                               regionPtArea=None,
+                               size_field=None,
+                               relax_passes=0):
     """Internal implementation — see create_pmesh_from_regions."""
 
     # check the segment indexes - throw an error if they are out of bounds
@@ -225,8 +247,8 @@ def _create_pmesh_from_regions(bounding_polygon,
                 msg += 'Default tag "exterior" will be assigned to missing segment'
                 warnings.warn(msg, UserWarning)
                 if verbose:
-                    log.critical('WARNING: %s' % msg)
-                
+                    log.warning('WARNING: %s' % msg)
+
 
     # In addition I reckon the polygons could be of class Geospatial_data
     # (DSG) If polygons were classes caching would break in places.
@@ -259,7 +281,7 @@ def _create_pmesh_from_regions(bounding_polygon,
                     raise PolygonError(msg)
                 else:
                     msg += ' I will ignore it.'
-                    log.critical(msg)
+                    log.info(msg)
 
             else:
                 polygons_inside_boundary.append([interior_polygon, res])
@@ -305,6 +327,11 @@ def _create_pmesh_from_regions(bounding_polygon,
                                            zone=zone)
 
     m = Pmesh(geo_reference=mesh_geo_reference)
+
+    # Kept on the Pmesh so they apply whenever it is triangulated, which
+    # may be later (pmesh_to_mesh) rather than below
+    m.size_field = size_field
+    m.relax_passes = relax_passes
 
     # build a list of discrete segments from the breakline polygons
     if breaklines is not None:
@@ -372,7 +399,7 @@ def _create_pmesh_from_regions(bounding_polygon,
         return m
     else:
         if verbose:
-            log.critical("Generating mesh to file '%s'" % filename)
+            log.info("Generating mesh to file '%s'" % filename)
 
         m.generate_mesh(minimum_triangle_angle=minimum_triangle_angle,
                         verbose=verbose)

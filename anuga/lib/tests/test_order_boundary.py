@@ -81,7 +81,7 @@ class Test_order_boundary(unittest.TestCase):
         ob.order_boundary(Test_input_file_path, Test_output_file_path)
 
         # get sorted data into memory
-        fd = open(Test_output_file_path, 'r')
+        fd = open(Test_output_file_path)
         data_list = []
         for data in csv.reader(fd):
             try:
@@ -360,7 +360,7 @@ class Test_order_boundary(unittest.TestCase):
         ob.order_boundary(infile, outfile)
 
         # get sorted data into memory
-        fd = open(outfile, 'r')
+        fd = open(outfile)
         data_list = []
         for data in csv.reader(fd):
             try:

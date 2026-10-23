@@ -8,6 +8,8 @@ Mathematical Background
 This page outlines the mathematics underpinning ANUGA.  It is a
 web-searchable version of Chapter 16 of the
 `ANUGA User Manual <https://github.com/anuga-community/anuga_user_manual>`_.
+ANUGA has been applied to hydrodynamic modelling of coastal inundation
+[Nielsen2005]_ and many other shallow water problems.
 
 .. contents:: Contents
    :local:
@@ -63,6 +65,71 @@ where :math:`S_f` is the bed friction modelled by Manning's resistance law:
 with :math:`\eta` the Manning resistance coefficient.  The model does not
 include kinematic viscosity or dispersion (though :class:`Kinematic_viscosity_operator`
 can be added as an explicit operator).
+
+
+.. _tracer_transport_equation:
+
+Passive Tracer Transport
+------------------------
+
+A **passive tracer** is a depth-averaged concentration :math:`c` carried by the
+flow: a salinity, a dye, a pollutant. It is passive in the sense that it is
+transported by the water but does not act back on it, so the equations above are
+unchanged by its presence.
+
+What is conserved is not the concentration but the **mass per unit area**
+
+.. math::
+
+   m = h\,c
+
+which obeys a conservation law with the same structure as the mass equation, and
+with the same water flux:
+
+.. math::
+
+   \frac{\partial m}{\partial t}
+   + \frac{\partial (u m)}{\partial x}
+   + \frac{\partial (v m)}{\partial y}
+   = 0
+
+For :math:`N_s` tracers this is one such equation per tracer, so the state vector
+carried by the solver is
+
+.. math::
+
+   \mathbf{U} = \begin{bmatrix} h & uh & vh & m_1 & \dots & m_{N_s}\end{bmatrix}^{T}
+
+Two consequences follow from conserving :math:`m` rather than :math:`c`, and both
+are visible in the interface.
+
+*Concentration is derived, not stored.* :math:`c = m/h` is recomputed from the
+conserved variable each substep, exactly as height is derived from stage. Where
+the cell is dry the concentration is taken to be zero rather than the last wet
+value, since :math:`m/h` is meaningless there.
+
+*The tracer flux uses the same edge flux as the water.* Writing
+:math:`F` for the water mass flux already computed across an edge, the tracer
+flux across that edge is :math:`F\,c^{\ast}`, where :math:`c^{\ast}` is the
+concentration on the upwind side:
+
+.. math::
+
+   c^{\ast} =
+   \begin{cases}
+     c_{\text{interior}}, & F \le 0 \quad \text{(outflow)} \\
+     c_{\text{boundary}}, & F > 0 \quad \text{(inflow)}
+   \end{cases}
+
+Using the one water flux for both cells sharing an edge is what makes tracer mass
+conservation structural: whatever leaves one cell enters the other, independently
+of the two cells' sizes. It is also why a boundary concentration is only
+meaningful on inflow -- on outflow the interior value is carried out, and
+prescribing anything there would over-determine the advection.
+
+A source term may be added on the right-hand side; suspended sediment is exactly
+that case, with erosion and deposition supplying it. See
+:ref:`sediment_governing_equations`.
 
 
 Finite Volume Method

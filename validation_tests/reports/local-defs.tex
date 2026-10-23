@@ -1,6 +1,19 @@
-
 \newcommand{\anuga}{\textsc{ANUGA}}
 
+% The directory of the case currently being input. It is '.' when a case
+% typesets its own report.pdf, and the case's path when the combined report
+% pulls the case in.
+\newcommand{\casedir}{.}
 
-\newcommand{\inputresults}[1]{\graphicspath{{../}{#1/}}\input{#1/results}}
-%\newcommand{\inputresults}[1]{\graphicspath{{../}}\input{#1/results}}
+\newcommand{\inputresults}[1]{%
+  \graphicspath{{../}{#1/}}%
+  \renewcommand{\casedir}{#1}%
+  \input{#1/results}%
+  \renewcommand{\casedir}{.}%
+}
+
+% Include an optional figure only when it is there. \IfFileExists does not
+% consult \graphicspath, so a bare test inside a case's results.tex is always
+% false in the combined report, where pdflatex runs in reports/ and the figure
+% sits in the case directory. Same three arguments as \IfFileExists.
+\newcommand{\figifexists}[3]{\IfFileExists{\casedir/#1}{#2}{#3}}

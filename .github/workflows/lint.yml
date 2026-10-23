@@ -1,0 +1,91 @@
+name: Lint
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+  # develop is deliberately NOT here: work reaches it through a pull request,
+  # and the pull_request check above already runs against the merge result, so
+  # a push run on merge is the same commit tested twice. main stays, being both
+  # rare and what releases are cut from. See also the nightly watchdog in
+  # scheduled-build.yml, which covers develop daily.
+  push:
+    branches:
+      - main
+
+# One run per ref: updating a branch supersedes the run already going for it,
+# rather than leaving both to finish for a result nobody will read. Applies to
+# an open PR getting a fixup and to a directly-worked branch getting a second
+# push alike.
+#
+# Two things are never cancelled, because there is no later run coming to
+# replace them: a push to main, and a release publish (whose ref is the tag,
+# not main, so it needs saying separately).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: >-
+    ${{ github.event_name != 'release' && github.ref != 'refs/heads/main' }}
+
+jobs:
+  ruff:
+    name: ruff check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff check
+        run: ruff check anuga
+
+  c-analyzer:
+    # gcc -fanalyzer over the hand-written C sources (audit issue #342): it
+    # catches the unchecked malloc, the leak on an error path and the NULL
+    # dereference that code review tends to miss. Findings in third-party
+    # headers are filtered; anything else fails the job. See
+    # scripts/c_static_analysis.sh, which is what this runs and what you can
+    # run locally before pushing.
+    name: gcc -fanalyzer (C sources)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install numpy (for its C headers)
+        run: pip install numpy
+
+      - name: Show the compiler
+        run: gcc --version | head -1
+
+      - name: Run the analyser
+        run: bash scripts/c_static_analysis.sh
+
+  citation:
+    # Zenodo archives each published release as software, taking its metadata
+    # from CITATION.cff. An invalid file (the licence once failed: it must be an
+    # SPDX identifier) is caught here, when the file changes, rather than when
+    # a release fails to archive.
+    name: CITATION.cff valid
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install cffconvert
+        run: pip install cffconvert
+
+      - name: Validate CITATION.cff
+        run: cffconvert --validate -i CITATION.cff

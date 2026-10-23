@@ -20,25 +20,15 @@ from anuga.shallow_water.sww_interrogate import get_maximum_inundation_data
 import matplotlib
 matplotlib.use('Agg')
 
-##if sys.platform == 'win32':
-##    # Windows has a problem when this module is run through
-##    # os.system as done by validate_okushiri.
-##    # See https://datamining.anu.edu.au/anuga/ticket/235
-##
-##    # If you want to see the plots from this validation,
-##    # run this module by itself with this if clause removed.
-##    plotting = False
-##    
-##else:
+
 
 args = anuga.get_args()
 verbose = args.verbose
 
 try:
     import matplotlib
-    from matplotlib.pyplot import ion, hold, plot, title, legend
+    from matplotlib.pyplot import ion, plot, title, legend, clf
     from matplotlib.pyplot import xlabel, ylabel, savefig
-    hold(False)  # Check if this command can be issued
 except:
     print('Could not import pylab')
     plotting = False
@@ -55,7 +45,7 @@ testing = False
 finaltime = 22.5
 timestep = 0.05
 
-gauge_locations = [[0.000, 1.696]] # Boundary gauge
+gauge_locations = [[0.0001, 2.5]] # Boundary gauge
 gauge_locations += [[4.521, 1.196],  [4.521, 1.696],  [4.521, 2.196]] #Ch 5-7-9
 gauge_names = ['Boundary', 'ch5', 'ch7', 'ch9']
 
@@ -237,8 +227,7 @@ for k, name in enumerate(gauge_names):
 
     if plotting is True:
         #ion() # No plotting on screen
-        hold(False)
-    
+        clf()
         plot(reference_time, validation_data[name], 'r-',
              reference_time, model, 'k-')
         title('Gauge %s' %name)

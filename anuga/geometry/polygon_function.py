@@ -1,6 +1,6 @@
 """
     Callable function to determine if points lie inside or outside a polygon.
-    
+
     As of June 2010 this module has a pylint quality rating of 8.85/10.
 """
 
@@ -8,7 +8,7 @@ import anuga.utilities.log as log
 import numpy as num
 from .polygon import inside_polygon
 
-class Polygon_function(object):
+class Polygon_function:
     """Create callable object f: x,y -> z, where a,y,z are vectors and
     where f will return different values depending on whether x,y belongs
     to specified polygons.
@@ -128,6 +128,6 @@ class Polygon_function(object):
             msg = ('Warning: points provided to Polygon function did not fall '
                    'within its regions in [%.2f, %.2f], y in [%.2f, %.2f]'
                    % (min(pts_x), max(pts_x), min(pts_y), max(pts_y)))
-            log.critical(msg)
+            log.info(msg)
 
         return result

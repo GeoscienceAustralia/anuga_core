@@ -16,7 +16,8 @@ from anuga.geometry.polygon import _poly_xy, separate_points_by_polygon, \
     intersection, is_complex, polygon_overlap, not_polygon_overlap,\
     line_intersect, not_line_intersect,\
     is_inside_triangle, interpolate_polyline, inside_polygon, \
-    in_and_outside_polygon
+    in_and_outside_polygon, line_length, write_polygon, \
+    number_mesh_triangles, decimate_polygon, polylist2points_verts
 
 from anuga.geometry.polygon_function import Polygon_function
 from anuga.coordinate_transforms.geo_reference import Geo_reference
@@ -1776,7 +1777,6 @@ class Test_Polygon(unittest.TestCase):
         assert y[4] == 6
 
     def test_plot_polygons(self):
-        import os
 
         # Simplest case: Polygon is the unit square
         polygon1 = [[0, 0], [1, 0], [1, 1], [0, 1]]
@@ -1977,6 +1977,278 @@ class Test_Polygon(unittest.TestCase):
 
         assert not is_complex(concave_poly)
         assert is_complex(complex_poly)
+
+class Test_polygon_function_extra(unittest.TestCase):
+    """Additional tests for uncovered Polygon_function branches."""
+
+    def test_non_iterable_regions_raises(self):
+        """Passing a non-iterable raises (lines 55-56, 58)."""
+        with self.assertRaises(Exception):
+            Polygon_function(5)
+
+    def test_string_first_region_raises(self):
+        """Passing a list of strings raises (lines 63, 66)."""
+        with self.assertRaises(Exception):
+            Polygon_function(['just_a_string'])
+
+    def test_non_iterable_first_region_raises(self):
+        """First region that is not a pair (non-iterable) raises (lines 70-73)."""
+        with self.assertRaises(Exception):
+            Polygon_function([5])
+
+    def test_all_points_outside_polygon_logs(self):
+        """When all points are outside all polygons, logs warning (lines 128, 131)."""
+        import numpy as np
+        polygon = [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]
+        f = Polygon_function([(polygon, 1.0)])
+        # Points far outside the polygon
+        x = np.array([10.0, 11.0])
+        y = np.array([10.0, 11.0])
+        result = f(x, y)
+        # Default should be 0.0 everywhere
+        self.assertTrue(np.allclose(result, 0.0))
+
+
+class Test_polygon_coverage(unittest.TestCase):
+    """Cover previously uncovered lines in polygon.py."""
+
+    # ---- verbose paths ----
+
+    def test_polygon_overlap_verbose(self):
+        """polygon_overlap with verbose=True covers line 209."""
+        # triangles format: list of (x,y) pairs, 3 rows per triangle
+        triangles = [[0., 0.], [1., 0.], [0., 1.],   # inside polygon
+                     [5., 5.], [6., 5.], [5., 6.]]   # outside polygon
+        polygon = [[0., 0.], [2., 0.], [2., 2.], [0., 2.]]
+        result = polygon_overlap(triangles, polygon, verbose=True)
+        self.assertIsNotNone(result)
+
+    def test_not_polygon_overlap_verbose(self):
+        """not_polygon_overlap with verbose=True covers line 229."""
+        triangles = [[0., 0.], [1., 0.], [0., 1.],
+                     [5., 5.], [6., 5.], [5., 6.]]
+        polygon = [[0., 0.], [2., 0.], [2., 2.], [0., 2.]]
+        result = not_polygon_overlap(triangles, polygon, verbose=True)
+        self.assertIsNotNone(result)
+
+    def test_line_intersect_verbose(self):
+        """line_intersect with verbose=True covers line 251."""
+        triangles = [[0., 0.], [2., 0.], [1., 2.],
+                     [5., 5.], [6., 5.], [5., 6.]]
+        line = [[0.5, -1.], [0.5, 3.]]
+        result = line_intersect(triangles, line, verbose=True)
+        self.assertIsNotNone(result)
+
+    def test_line_length(self):
+        """line_length covers lines 261-263."""
+        line = num.array([[0., 0.], [3., 4.]])
+        self.assertAlmostEqual(line_length(line), 5.0)
+
+    def test_not_line_intersect_verbose(self):
+        """not_line_intersect with verbose=True covers line 280."""
+        triangles = [[0., 0.], [2., 0.], [1., 2.],
+                     [5., 5.], [6., 5.], [5., 6.]]
+        line = [[0.5, -1.], [0.5, 3.]]
+        result = not_line_intersect(triangles, line, verbose=True)
+        self.assertIsNotNone(result)
+
+    def test_is_complex_verbose(self):
+        """is_complex verbose=True covers lines 394-396."""
+        complex_poly = [[0, 0], [10, 0], [5, 5], [4, 15], [5, 7], [10, 10],
+                        [0, 10]]
+        result = is_complex(complex_poly, verbose=True)
+        self.assertTrue(result)
+
+    # ---- is_inside_polygon / is_outside_polygon multi-point errors ----
+
+    def test_is_inside_polygon_multi_points_raises(self):
+        """is_inside_polygon with multiple points raises (lines 416-417)."""
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with self.assertRaises(Exception):
+            is_inside_polygon([[0.5, 0.5], [0.2, 0.2]], polygon)
+
+    def test_is_outside_polygon_multi_points_raises(self):
+        """is_outside_polygon with multiple points raises (lines 480-481)."""
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with self.assertRaises(Exception):
+            is_outside_polygon([[5.0, 5.0], [6.0, 6.0]], polygon)
+
+    # ---- inside_polygon / outside_polygon / in_and_outside_polygon except paths ----
+
+    def test_inside_polygon_bad_points_raises(self):
+        """inside_polygon with unconvertible points raises (lines 437-441)."""
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with self.assertRaises(Exception):
+            inside_polygon('not_a_polygon', polygon)
+
+    def test_inside_polygon_bad_polygon_raises(self):
+        """inside_polygon with unconvertible polygon raises (lines 445-452)."""
+        with self.assertRaises(Exception):
+            inside_polygon([[0.5, 0.5]], 'bad_polygon')
+
+    def test_outside_polygon_bad_points_raises(self):
+        """outside_polygon with bad points raises (lines 496-500)."""
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with self.assertRaises(Exception):
+            outside_polygon('not_valid', polygon)
+
+    def test_outside_polygon_bad_polygon_raises(self):
+        """outside_polygon with bad polygon raises (lines 504-508)."""
+        with self.assertRaises(Exception):
+            outside_polygon([[0.5, 0.5]], 'bad')
+
+    def test_in_and_outside_polygon_bad_points_raises(self):
+        """in_and_outside_polygon with bad points raises (lines 536-540)."""
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with self.assertRaises(Exception):
+            in_and_outside_polygon('bad', polygon)
+
+    def test_in_and_outside_polygon_bad_polygon_raises(self):
+        """in_and_outside_polygon with bad polygon raises (lines 544-548)."""
+        with self.assertRaises(Exception):
+            in_and_outside_polygon([[0.5, 0.5]], 'bad')
+
+    # ---- separate_points_by_polygon verbose + check_input paths ----
+
+    def test_separate_points_by_polygon_verbose(self):
+        """separate_points_by_polygon verbose covers line 668."""
+        polygon = num.array([[0., 0.], [1., 0.], [1., 1.], [0., 1.]])
+        points = num.array([[0.5, 0.5], [2.0, 2.0]])
+        indices, count = separate_points_by_polygon(points, polygon,
+                                                    verbose=True)
+        self.assertEqual(count, 1)
+
+    def test_separate_points_by_polygon_1d_point_check_input(self):
+        """separate_points_by_polygon with 1D point covers lines 644-657."""
+        polygon = num.array([[0., 0.], [1., 0.], [1., 1.], [0., 1.]])
+        point = num.array([0.5, 0.5])  # 1D: single point
+        indices, count = separate_points_by_polygon(point, polygon,
+                                                    check_input=True)
+        self.assertEqual(count, 1)
+
+    # ---- write_polygon ----
+
+    def test_write_polygon(self):
+        """write_polygon covers lines 869-872."""
+        import tempfile
+        # write_polygon uses '%f, %f\n' % point, needs tuples not lists
+        polygon = [(0.0, 0.0), (1.0, 0.0), (1.0, 1.0), (0.0, 1.0)]
+        with tempfile.NamedTemporaryFile(suffix='.csv', delete=False,
+                                        mode='w') as f:
+            fname = f.name
+        try:
+            write_polygon(polygon, filename=fname)
+            with open(fname) as f:
+                content = f.read()
+            self.assertIn('0.000000', content)
+        finally:
+            os.unlink(fname)
+
+    # ---- number_mesh_triangles ----
+
+    def test_number_mesh_triangles(self):
+        """number_mesh_triangles covers lines 972-1005."""
+        bounding_poly = [[0, 0], [1000, 0], [1000, 1000], [0, 1000]]
+        interior = [[[100, 100], [200, 100], [200, 200], [100, 200]], 10.0]
+        n = number_mesh_triangles([interior], bounding_poly, 100.0)
+        self.assertIsInstance(n, int)
+        self.assertGreater(n, 0)
+
+    # ---- polylist2points_verts ----
+
+    def test_polylist2points_verts(self):
+        """polylist2points_verts covers lines 1113-1121."""
+        polylist = [[[0, 0], [1, 0], [1, 1]],
+                    [[2, 0], [3, 0], [3, 1], [2, 1]]]
+        points, vertices = polylist2points_verts(polylist)
+        self.assertEqual(len(points), 7)
+        self.assertGreater(len(vertices), 0)
+
+    # ---- interpolate_polyline: single-node error ----
+
+    def test_interpolate_polyline_single_node_raises(self):
+        """interpolate_polyline with one node raises (lines 1093-1096)."""
+        f = num.array([1.0])
+        nodes = num.array([[0.0, 0.0]])
+        gauge_ids = num.array([-1])
+        pts = num.array([[0.0, 0.0]])
+        with self.assertRaises(Exception):
+            interpolate_polyline(f, nodes, gauge_ids, pts)
+
+    # ---- plot_polygons with style list ----
+
+    def test_plot_polygons_with_style(self):
+        """plot_polygons with explicit style list covers lines 768-776, 782, 790."""
+        import tempfile
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        points = [[0.5, 0.5]]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            figname = os.path.join(tmpdir, 'test.png')
+            try:
+                plot_polygons([polygon, points],
+                              style=['line', 'point'],
+                              figname=figname,
+                              label='test',
+                              alpha=0.5)
+            except ImportError:
+                pass  # matplotlib may not be available
+
+    def test_plot_polygons_with_outside_style(self):
+        """plot_polygons with 'outside' style covers line 771."""
+        import tempfile
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            figname = os.path.join(tmpdir, 'test_out.png')
+            try:
+                plot_polygons([polygon], style=['outside'], figname=figname)
+            except ImportError:
+                pass
+
+    def test_plot_polygons_with_custom_style(self):
+        """plot_polygons with non-standard style name covers line 776."""
+        import tempfile
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            figname = os.path.join(tmpdir, 'test_cust.png')
+            try:
+                plot_polygons([polygon], style=['k-'], figname=figname)
+            except ImportError:
+                pass
+
+    def test_plot_polygons_no_figname(self):
+        """plot_polygons without figname saves to 'test_image' (line 790)."""
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        try:
+            import os as _os
+            plot_polygons([polygon])
+            # clean up default output file if created
+            if _os.path.exists('test_image.png'):
+                _os.unlink('test_image.png')
+        except ImportError:
+            pass
+
+    def test_plot_polygons_with_alpha(self):
+        """plot_polygons alpha path covers lines 751-757, 782."""
+        import tempfile
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            figname = os.path.join(tmpdir, 'test_alpha.png')
+            try:
+                plot_polygons([polygon], alpha=0.3, figname=figname)
+            except ImportError:
+                pass
+
+    def test_plot_polygons_bad_alpha(self):
+        """plot_polygons with non-float alpha covers lines 754-755."""
+        import tempfile
+        polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            figname = os.path.join(tmpdir, 'test_bad_alpha.png')
+            try:
+                plot_polygons([polygon], alpha='bad', figname=figname)
+            except ImportError:
+                pass
+
 
 ################################################################################
 

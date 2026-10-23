@@ -9,7 +9,7 @@ FN = 'small___.txt'
 class Test_most2nc(unittest.TestCase):
     def setUp(self):
         fid = open(FN, 'w')
-        fid.write("""4 4 
+        fid.write("""4 4
 150.66667
 150.83334
 151.
@@ -24,7 +24,7 @@ class Test_most2nc(unittest.TestCase):
 -13. -14. -15. -16.
 """)
         fid.close()
-                  
+
     def tearDown(self):
         os.remove(FN)
 
@@ -43,9 +43,8 @@ class Test_most2nc(unittest.TestCase):
         z = num.asarray(z)
 
         assert num.allclose(z,elevation)
-        import os
         os.remove('test.nc')
-        
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_most2nc)
     runner = unittest.TextTestRunner()

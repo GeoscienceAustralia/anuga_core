@@ -5,7 +5,8 @@ We first check
 
 """
 
-import unittest, os
+import unittest
+import os
 import warnings
 from os import sep
 
@@ -17,7 +18,7 @@ from anuga.utilities.system_tools import get_pathname_from_package
 class Test_okada_tsunami(unittest.TestCase):
     def setUp(self):
         pass
-   
+
     def tearDown(self):
         pass
 
@@ -34,7 +35,7 @@ class Test_okada_tsunami(unittest.TestCase):
                 ##-------
                 okada_x_origin=0.
                 okada_y_origin=0
-                # NOTE: In Okada's system, x = 2, y=3. However, 
+                # NOTE: In Okada's system, x = 2, y=3. However,
                 # this must be rotated backwards by 90 degrees
                 # to convert to physical coordinates as used by
                 # the routine. These physical coordinates correspond
@@ -68,9 +69,9 @@ class Test_okada_tsunami(unittest.TestCase):
 
                 # uz for [strike, normal] faults
                 okada_values = [0., 0.]
-           
+
             #import pdb
-            #pdb.set_trace() 
+            #pdb.set_trace()
             #Compute slip surface centroid
             x_cent, y_cent, d_cent = okada_tsunami.okada_origin_2_slip_centroid([okada_x_origin*1000., okada_y_origin*1000.],\
                                                     d, L, W, strike, dip)
@@ -79,7 +80,7 @@ class Test_okada_tsunami(unittest.TestCase):
             #d_cent = d - (W/2.)*numpy.sin(dip/180.*numpy.pi)
 
             #print 'x_cent, y_cent, d_cent = ', x_cent, y_cent, d_cent
-            
+
             x_wanted=x*1000. # Desired values of x, y in m
             y_wanted=y*1000.
 
@@ -89,13 +90,13 @@ class Test_okada_tsunami(unittest.TestCase):
                 dis2=slip*numpy.sin(rake/180.*numpy.pi)
                 dis3=0.
                 #print 'dis1, dis2, dis3 = ', dis1, dis2, dis3
-                
+
                 my_source=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                 my_source=my_source.reshape((1,10))
-                
+
                 tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
                 uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
-              
+
                 # Compute both relative and absolute versions of the error
                 reltol = abs((uz - okada_values[i])/uz)
                 abstol = abs(uz-okada_values[i])
@@ -104,7 +105,7 @@ class Test_okada_tsunami(unittest.TestCase):
     def test_reproduce_okadas_table_rotated(self):
         # This test is like 'reproduce_okadas_table' except we rotate the
         # earthquake first -- thus checking that rotation is done correctly in
-        # the code   
+        # the code
 
         # Loop over a range of rotations
         for rotation in [0., 30., 90., 150., 210., 325.]:
@@ -146,26 +147,26 @@ class Test_okada_tsunami(unittest.TestCase):
 
                     # uz for [strike, normal] faults
                     okada_values = [0., 0.]
-                 
+
                 #Convert to the notation in tsunami_okada
                 x_cent, y_cent, d_cent = okada_tsunami.okada_origin_2_slip_centroid([okada_x_origin*1000., okada_y_origin*1000.],\
                                                     d, L, W, strike, dip)
-                
+
                 x_wanted, y_wanted =[x*1000., y*1000.]
-                
+
 
                 # Set up earthquakes, and check that the vertical deformation is the same as in okada
                 for i, rake in enumerate([0., 90.]):
                     dis1=slip*numpy.cos(rake/180.*numpy.pi)
                     dis2=slip*numpy.sin(rake/180.*numpy.pi)
                     dis3=0.
-                    
+
                     my_source=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                     my_source=my_source.reshape((1,10))
-                    
+
                     tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
                     uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
-                  
+
                     # Compute both relative and absolute versions of the error
                     reltol = abs((uz - okada_values[i])/uz)
                     abstol = abs(uz-okada_values[i])
@@ -176,7 +177,7 @@ class Test_okada_tsunami(unittest.TestCase):
         # over a range of earthquake origins and strikes. Hence, we check that
         # the translation/rotation is done correctly
         #
-        # Actually this test subsumes the first two. However, it is useful to 
+        # Actually this test subsumes the first two. However, it is useful to
         # have separately, since separate tests will help isolate any problems
 
         # Define sets of origins for okada function (in physical space)
@@ -223,13 +224,13 @@ class Test_okada_tsunami(unittest.TestCase):
                         L = 3.
                         W = 2.
                         slip=1.0
-                        
+
                         x = 0. + okada_x_origin
                         y = 0. + okada_y_origin
 
                         # uz for [strike, normal] faults
                         okada_values = [0., 0.]
-                     
+
                     # Compute new centroid coordinates
                     x_cent, y_cent, d_cent = okada_tsunami.okada_origin_2_slip_centroid([okada_x_origin*1000., okada_y_origin*1000.],\
                                                     d, L, W, strike, dip)
@@ -237,20 +238,20 @@ class Test_okada_tsunami(unittest.TestCase):
                     #assert 0==1
 
                     x_wanted, y_wanted =[x*1000., y*1000.]
-                    
+
 
                     # Set up earthquakes, and check that the vertical deformation is the same as in okada
                     for i, rake in enumerate([0., 90.]):
                         dis1=slip*numpy.cos(rake/180.*numpy.pi)
                         dis2=slip*numpy.sin(rake/180.*numpy.pi)
                         dis3=0.
-                        
+
                         my_source=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                         my_source=my_source.reshape((1,10))
-                        
+
                         tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
                         uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
-                      
+
                         # Compute both relative and absolute versions of the error
                         reltol = abs((uz - okada_values[i])/uz)
                         abstol = abs(uz-okada_values[i])
@@ -303,14 +304,14 @@ class Test_okada_tsunami(unittest.TestCase):
 
                 # uz for [strike, normal] faults
                 #okada_values = [0., 0.] # at x,y
-            
+
             #Convert to the notation in tsunami_okada
             #d_cent = d - (W/2.)*numpy.sin(dip/180.*numpy.pi) # Centroid depth of fault plain
             #x_cent=(okada_x_origin+ L/2.)*1000. # Centroid x in m
             #y_cent=(okada_y_origin + (W/2.)*numpy.cos(dip/180.*numpy.pi))*1000. # Centroid y in m
             x_cent, y_cent, d_cent = okada_tsunami.okada_origin_2_slip_centroid([okada_x_origin*1000., okada_y_origin*1000.],\
                                                     d, L, W, strike, dip)
-            
+
             x_wanted=x*1000. # Desired values of x, y in m
             y_wanted=y*1000.
 
@@ -323,17 +324,17 @@ class Test_okada_tsunami(unittest.TestCase):
                 my_source=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                 my_source=my_source.reshape((1,10))
             elif(j==3):
-                my_source2=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3]) 
+                my_source2=numpy.array([x_cent, y_cent, d_cent,strike, dip, L, W, dis1, dis2, dis3])
                 my_source2=my_source2.reshape((1,10))
 
                 mysource=numpy.concatenate((my_source, my_source2))
             else:
                 raise Exception('j is ' + str(j) + ', it should not take this value')
-            
-        # Tsunami function with     
+
+        # Tsunami function with
         tsu_funct = okada_tsunami.earthquake_source(my_source, verbose=False)
         uz = tsu_funct(numpy.array([x_wanted]), numpy.array([y_wanted]))
-      
+
         # Compute both relative and absolute versions of the error
         reltol = abs((uz - okada_values[0])/uz)
         abstol = abs(uz-okada_values[0])
@@ -341,10 +342,10 @@ class Test_okada_tsunami(unittest.TestCase):
         #print 'PASS'
 
     def test_against_octave_code(self):
-        # This test runs a test case from 
-        # DENYS DUTYKH , DIMITRIOS MITSOTAKIS, XAVIER GARDEIL, AND FREDERIC DIAS 
+        # This test runs a test case from
+        # DENYS DUTYKH , DIMITRIOS MITSOTAKIS, XAVIER GARDEIL, AND FREDERIC DIAS
         # ON THE USE OF THE FINITE FAULT SOLUTION FOR TSUNAMI
-        # GENERATION PROBLEMS 
+        # GENERATION PROBLEMS
         # The copy I have seems to be a pre-print, not sure of the journal
         # We compare the results of our code with another code written purely in matlab
         # This code is by 'Francois Beauducel', and was obtained from matlab central (July 2012)
@@ -359,7 +360,7 @@ class Test_okada_tsunami(unittest.TestCase):
         width=40.0
         focal_depth=20.
         depth=focal_depth + width/2.0*numpy.sin(dip/180.*numpy.pi) # T
-        
+
         source=numpy.array([0., 0., depth, strike,dip , length, width, dis1, dis2,0.0])
 
         tsunami_fun=okada_tsunami.earthquake_source(source=source, verbose=False)
@@ -369,13 +370,13 @@ class Test_okada_tsunami(unittest.TestCase):
         grid_width=400000
         n=101
         grid2=mygrid[0:grid_width:(n*1j), 0:grid_width:(n*1j)]
-        
+
         # Centre grid
-        x=(grid2[0,:,:].reshape((n*n)) -grid_width/2.)
-        y=(grid2[1,:,:].reshape((n*n)) -grid_width/2.)
-        
+        x=(grid2[0,:,:].reshape(n*n) -grid_width/2.)
+        y=(grid2[1,:,:].reshape(n*n) -grid_width/2.)
+
         eq_source=tsunami_fun(x,y)
-        
+
         ## Now read the same event from an octave code, which is completely
         ## independent of this one (i.e. they don't call okada's fortran)
         path=get_pathname_from_package('anuga.tsunami_source')
@@ -384,18 +385,18 @@ class Test_okada_tsunami(unittest.TestCase):
 
         # Estimate the differences between the 2 codes
         assert (abs(octave_asvec-eq_source)).max() < 1.0e-04
-        
+
         ## Code used to run the scenario in octave inserted below for reference
-        ## 
         ##
-        ## % Here we implement the scenario described in 
-        ## % DENYS DUTYKH , DIMITRIOS MITSOTAKIS, XAVIER GARDEIL, AND FREDERIC DIAS 
+        ##
+        ## % Here we implement the scenario described in
+        ## % DENYS DUTYKH , DIMITRIOS MITSOTAKIS, XAVIER GARDEIL, AND FREDERIC DIAS
         ## % ON THE USE OF THE FINITE FAULT SOLUTION FOR TSUNAMI
-        ## % GENERATION PROBLEMS 
+        ## % GENERATION PROBLEMS
         ## % The copy I have seems to be a pre-print, not sure of the journal
         ## % However, we get exactly the same answers
-        ## 
-        ## 
+        ##
+        ##
         ## strike=289.
         ## dip=10.
         ## length=80.9
@@ -404,24 +405,24 @@ class Test_okada_tsunami(unittest.TestCase):
         ## rakes=[95.] %[0., 30., 90.]
         ## slip=2.5
         ## open=0.
-        ## 
+        ##
         ## n_pts=101
-        ## 
+        ##
         ## %Points to output
         ## x=2.
         ## y=3.
-        ## 
-        ## 
+        ##
+        ##
         ## % Compute depth as used in this code -- which are smaller than in Okada
         ## depth=depth_base-(width/2.0)*sin(dip/180.*pi)
-        ## 
+        ##
         ## % Compute x,y relative to coordinate system used in this code (which is centroid based)
         ## local_x=x-(length/2.0)
         ## local_y=y-(width/2.0)*cos(dip/180.*pi)
-        ## 
+        ##
         ## % 43-44, 49-50
         ## [u1,u2,u3] = okada85(local_x,local_y,depth,strike,dip,length,width,rakes(1),slip,open);
-        ## 
+        ##
         ## % Compute surface
         ## [E,N] = meshgrid(linspace(-200,200,n_pts), linspace(-200,200,n_pts));
         ## %	[uE,uN,uZ,uZE,uZN,uNN,uNE,uEN,uEE] = OKADA85(E,N,...
@@ -435,5 +436,5 @@ class Test_okada_tsunami(unittest.TestCase):
         ## end
 
 if __name__ == '__main__':
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test_results)
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_okada_tsunami)
     unittest.TextTestRunner(verbosity=2).run(suite)

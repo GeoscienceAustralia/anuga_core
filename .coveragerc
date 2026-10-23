@@ -1,12 +1,57 @@
-
-
 [run]
-omit = */tests/* 
-     *__init__*
-     */setup.py
-     *test_all*
-     */Pmw*
+branch = true
+source = anuga
+omit =
+    # test files
+    */anuga/*/tests/*
+    */anuga/parallel/tests/*
+    */anuga/_version.py
+    *_ext.py
+    # GUI / display code — requires wx, VTK, or a display
+    */anuga/visualiser/*
+    */anuga/pmesh/AppShell.py
+    */anuga/pmesh/ProgressBar.py
+    */anuga/pmesh/cursornames.py
+    */anuga/pmesh/exesetup.py
+    */anuga/pmesh/timing.py
+    */anuga/pmesh/toolbarbutton.py
+    */anuga/pmesh/visualmesh.py
+    # validation report generation (LaTeX/shell scripts)
+    */anuga/validation_utilities/produce_report.py
+    */anuga/validation_utilities/typeset_report.py
+    */anuga/validation_utilities/run_validation.py
+    # benchmark / profiling run scripts
+    */anuga/fit_interpolate/ticket178_benchmark.py
+    */anuga/fit_interpolate/profile_long_benchmark.py
+    */anuga/fit_interpolate/run_long_benchmark.py
+    # rain data runner scripts (not library code)
+    */anuga/rain/run_calibrated_radar_rain.py
+    */anuga/rain/run_raster_time_slice_data.py
+    # visualisation utilities requiring matplotlib / display
+    */anuga/utilities/quickPlots.py
+    */anuga/utilities/terminal_width.py
+    # MPI + matplotlib visualisation helper (not unit-testable)
+    */anuga/error_api.py
+    # dead file — duplicate of erosion_operators.py, never imported
+    */anuga/operators/change_friction_operator.py
+    # scenario wrappers with no unit tests (require MPI/full project objects)
+    */anuga/scenario/setup_inlets.py
+    */anuga/scenario/setup_bridges.py
+    */anuga/scenario/setup_pumping_stations.py
+    */anuga/scenario/setup_mesh.py
+    */anuga/scenario/prepare_data.py
+    # scenario weirs — no tests yet
+    */anuga/scenario/setup_weirs.py
 
+[report]
+fail_under = 58
+show_missing = true
+skip_covered = false
+exclude_lines =
+    pragma: no cover
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    if TYPE_CHECKING:
 
-
-
+[html]
+directory = htmlcov

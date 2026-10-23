@@ -30,35 +30,35 @@ def create_benchmark_csvfile(pstat_basename, openmp_threads, verbose=True):
 
     table_contents = []
 
-    # FIXME SR: Need to update script to cover cases with evolve_one_euler_step, 
+    # FIXME SR: Need to update script to cover cases with evolve_one_euler_step,
     # evolve_one_rk2_step, etc.
-    myfuncs = ['OMP_NUM_THREADS', 
-    'total_time', 
-    'evolve', 
+    myfuncs = ['OMP_NUM_THREADS',
+    'total_time',
+    'evolve',
     'evolve_one_euler_step',
-    'evolve_one_rk2_step', 
-    'compute_fluxes', 
-    'distribute_to_vertices_and_edges', 
-    'update_conserved_quantities', 
-    'compute_forcing_terms', 
+    'evolve_one_rk2_step',
+    'compute_fluxes',
+    'distribute_to_vertices_and_edges',
+    'update_conserved_quantities',
+    'compute_forcing_terms',
     'update_boundary',
     'backup_conserved_quantities',
     'saxpy_conserved_quantities',
     'apply_fractional_steps'
     ]
 
-    column_header = ['THREADS', 
-    'total_time', 
+    column_header = ['THREADS',
+    'total_time',
     'evolve',
-    'rk1_step', 
-    'rk2_step', 
-    'fluxes', 
-    'dist', 
-    'update', 
+    'rk1_step',
+    'rk2_step',
+    'fluxes',
+    'dist',
+    'update',
     'force',
     'bound',
     'backup',
-    'saxpy', 
+    'saxpy',
     'operators'
     ]
 

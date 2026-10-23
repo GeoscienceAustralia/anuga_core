@@ -25,7 +25,7 @@
 # - See import statements throughout for non-"built-in" packages and
 #   modules required.
 #
-# Copyright (c) 2004 by Johnny Lin.  For licensing, distribution 
+# Copyright (c) 2004 by Johnny Lin.  For licensing, distribution
 # conditions, contact information, and additional documentation see
 # the URL http://www.johnny-lin.com/py_pkgs/gemath/doc/;
 
@@ -67,8 +67,8 @@ def interp(y, x, xinterp, missing=1e+20):
 
 
     Vectors x and y are the data describing a piecewise linear function.
-    Function returns the interpolated values of the ordinate function 
-    at abscissa values in xinterp.  Values of xinterp outside the range 
+    Function returns the interpolated values of the ordinate function
+    at abscissa values in xinterp.  Values of xinterp outside the range
     of x are returned as missing.  Any elements in the output that uses
     missing values in y for the interpolation are set to missing.
 
@@ -78,25 +78,25 @@ def interp(y, x, xinterp, missing=1e+20):
       Can have missing values.  Floating or integer type.
 
     * x:  Abscissa values of data.  Rank 1 numeric vector.  Required.
-      Can have no missing values.  Must be monotonically ascending.  
+      Can have no missing values.  Must be monotonically ascending.
       Floating or integer type.
 
-    * xinterp:  Abscissa values to calculate interpolated ordinate 
-      values at.  Rank 1 numeric vector or numeric scalar.  Required.  
-      Can have no missing values.  Can be in any order.  Floating or 
+    * xinterp:  Abscissa values to calculate interpolated ordinate
+      values at.  Rank 1 numeric vector or numeric scalar.  Required.
+      Can have no missing values.  Can be in any order.  Floating or
       integer type.
 
 
     Keyword Input Arguments:
-    * missing:  If input has missing values, this is the missing value 
+    * missing:  If input has missing values, this is the missing value
       value.  Scalar.  Floating or integer type.  Default is 1e+20.
 
 
     Output Result:
-    * Interpolated ordinate values at xinterp.  Rank 1 numeric vector 
-      of same length as xinterp (if xinterp is a numeric scalar, 
-      output is also a numeric scalar).  Missing values are set to the 
-      value of argument missing.  Type is Float, even if argument 
+    * Interpolated ordinate values at xinterp.  Rank 1 numeric vector
+      of same length as xinterp (if xinterp is a numeric scalar,
+      output is also a numeric scalar).  Missing values are set to the
+      value of argument missing.  Type is Float, even if argument
       missing and inputs are all integer.
 
 
@@ -171,10 +171,10 @@ def interp(y, x, xinterp, missing=1e+20):
 
 
     #- Mask of elements with missing values in y, if there are any
-    #  missing values in y.  If xint equals a value in x, missing 
-    #  values mask for that xint is the same as the corresponding 
-    #  value in x; and mask elements in xint which fall in an interval 
-    #  (whose upper bound index is top_idx) where one of the endpoints 
+    #  missing values in y.  If xint equals a value in x, missing
+    #  values mask for that xint is the same as the corresponding
+    #  value in x; and mask elements in xint which fall in an interval
+    #  (whose upper bound index is top_idx) where one of the endpoints
     #  is missing:
 
     y_miss_mask    = where_close(y, missing)
@@ -193,7 +193,7 @@ def interp(y, x, xinterp, missing=1e+20):
                                         y_miss_mask[top_idx-1]
 
 
-    #- Return interpolated values, set to missing values as 
+    #- Return interpolated values, set to missing values as
     #  appropriate, and making a scalar if xinterp is a scalar:
 
     yint = arrayfns.interp(y, x, xint)
@@ -307,7 +307,9 @@ if __name__ == "__main__":
     Note:  To help ensure that module testing of this file works, the
     parent directory to the current directory is added to sys.path.
     """
-    import doctest, sys, os
+    import doctest
+    import sys
+    import os
     sys.path.append(os.pardir)
     doctest.testmod(sys.modules[__name__])
 

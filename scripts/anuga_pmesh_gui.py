@@ -68,8 +68,20 @@ class Draw(AppShell.AppShell):
     frameWidth     = 840
     frameHeight    = 600
 
-
-
+    def appInit(self):
+        # Called by AppShell after the root exists but before widgets are built.
+        # Scale the UI up on HiDPI displays (Xft.dpi); no-op at normal 96 DPI.
+        # ui_scale is read by ToolBarButton to size its icons to match the fonts.
+        self.ui_scale = 1.0
+        try:
+            from anuga.utilities.tk_scaling import apply_hidpi_scaling
+            self.ui_scale = apply_hidpi_scaling(self.root)
+        except Exception:
+            pass
+        # AppShell sized the window at the (unscaled) frameWidth/Height; grow it.
+        if self.ui_scale > 1.0:
+            self.root.geometry('%dx%d' % (int(self.frameWidth * self.ui_scale),
+                                          int(self.frameHeight * self.ui_scale)))
 
     def createButtons(self):
         """
@@ -332,6 +344,7 @@ class Draw(AppShell.AppShell):
         for cut in range(num_of_cuts):
              cuts.append(cut*factor)
 
+        v_old = v_first = None      # seeded by the radius == 0.0 branch on the first pass
         for radius in cuts:
             x = x_origin + r * math.cos(radius)
             y = y_origin + r * math.sin(radius)
@@ -1280,7 +1293,7 @@ class Draw(AppShell.AppShell):
 
         fd.close()
         log.critical('returning m')
-        return oadtestmesh(ofile)
+        return m
 
 class  AddVertexDialog(Dialog):
     """

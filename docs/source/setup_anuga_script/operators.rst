@@ -7,7 +7,11 @@ Operators are objects that modify domain quantities each timestep.  They are
 attached to a :class:`Domain` and called automatically during the evolve loop.
 All operators accept a *region* (polygon, centre+radius, or explicit triangle
 indices) so that their effect can be restricted to a spatial subset of the
-mesh.
+mesh. A ready-made :class:`~anuga.Region` object can be passed as
+``region=`` instead, and the same object can restrict
+``domain.set_quantity(..., region=...)`` and
+``domain.get_water_volume(region=...)``, so one region definition serves
+every place it is needed.
 
 .. contents:: Contents
    :local:
@@ -108,7 +112,6 @@ Time-varying rate:
     rain = anuga.Rate_operator(domain, rate=storm, polygon=rain_polygon)
 
 .. autosummary::
-   :toctree: generated
 
    Rate_operator
 
@@ -135,8 +138,15 @@ rather than the areal rate.
         Q=lambda t: max(0.0, 2.0 * math.sin(math.pi * t / 3600.0)),
     )
 
+Water the operator adds can carry tracers, and water it removes takes its
+tracer with it; see :ref:`tracers at inlets <tracers_at_inlets>`:
+
+.. code-block:: python
+
+    anuga.Inlet_operator(domain, river_line, Q=Q_river,
+                         tracer_concentrations={'mud': 4.8e-5})
+
 .. autosummary::
-   :toctree: generated
 
    Inlet_operator
 
@@ -167,7 +177,6 @@ fixed level, or a moving bed).
     )
 
 .. autosummary::
-   :toctree: generated
 
    Set_quantity_operator
    Set_stage_operator
@@ -218,7 +227,6 @@ hydraulic structure.  They are specified by two ``end_points`` (or
     )
 
 .. autosummary::
-   :toctree: generated
 
    Boyd_box_operator
    Boyd_pipe_operator
@@ -226,11 +234,133 @@ hydraulic structure.  They are specified by two ``end_points`` (or
    Internal_boundary_operator
 
 
+Collecting Maximum Quantities
+------------------------------
+
+.. method:: Domain.set_collect_max_quantities(update_frequency=1, collection_start_time=0., velocity_zero_height=None, store_to_sww=True)
+   :noindex:
+
+During a simulation it is often useful to record the highest water depth, speed,
+momentum, and stage that each cell ever reached — for flood mapping, hazard
+assessment, or post-processing without replaying every timestep.
+
+:meth:`Domain.set_collect_max_quantities` attaches a
+:class:`Collect_max_quantities_operator` to the domain that accumulates these
+running maxima as the simulation evolves.  Call it **once before the evolve
+loop**; it returns the operator so you can query or export results afterwards.
+
+**Minimal usage**
+
+.. code-block:: python
+
+    import anuga
+
+    domain = anuga.rectangular_cross_domain(20, 10)
+    domain.set_quantity('elevation', lambda x, y: x / 50.0)
+    domain.set_quantity('stage', expression='elevation + 0.5')
+    domain.set_boundary({'exterior': anuga.Reflective_boundary(domain)})
+
+    op = domain.set_collect_max_quantities()   # store_to_sww=True by default
+
+    for t in domain.evolve(yieldstep=10.0, finaltime=120.0):
+        pass
+
+    # After the run, per-centroid numpy arrays are available on the operator:
+    print(op.max_stage.max())   # highest stage anywhere in the domain
+    print(op.max_depth.max())   # maximum inundation depth
+    print(op.max_speed.max())   # maximum flow speed
+    print(op.max_uh.max())      # maximum momentum magnitude ||(uh, vh)||
+
+    op.export_max_quantities_to_csv()   # writes Max_Quantities_P0_X_Y_Stage_Depth_Speed_UH_MAX.csv
+
+**Parameters**
+
+``update_frequency`` : int, default 1
+    Update the running maxima every this many inner timesteps.  Increasing this
+    value trades accuracy for speed in very long simulations; ``1`` (default)
+    updates every timestep and is recommended for most uses.
+
+``collection_start_time`` : float, default 0.0
+    Only start collecting after this simulation time (seconds).  Useful for
+    skipping an initial spin-up period that should not contribute to the maxima.
+
+``velocity_zero_height`` : float or None, default None
+    Treat cells shallower than this depth (metres) as dry and assign them zero
+    speed.  Defaults to ``domain.minimum_allowed_height``.
+
+``store_to_sww`` : bool, default True
+    Write the running maxima to the SWW output file as centroid-only quantities
+    (``max_stage_c``, ``max_depth_c``, ``max_speed_c``, ``max_uh_c``) at every
+    yield step.  This means the final SWW file holds the end-of-simulation
+    maxima, which can be visualised directly in ANUGA Viewer without a full
+    timestep scan.  Set to ``False`` if the SWW file size is a concern.
+
+**Accessing results**
+
+After (or during) the evolve loop the operator exposes four NumPy arrays, one
+value per mesh triangle centroid:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Attribute
+     - Description
+   * - ``op.max_stage``
+     - Maximum absolute water surface elevation (m)
+   * - ``op.max_depth``
+     - Maximum water depth above bed (m); never negative
+   * - ``op.max_speed``
+     - Maximum flow speed = \|momentum\| / depth (m s⁻¹), wet cells only
+   * - ``op.max_uh``
+     - Maximum momentum magnitude \|\|(uh, vh)\|\| (m² s⁻¹)
+
+``op.export_max_quantities_to_csv()`` writes these arrays (plus XY
+coordinates) to a CSV file named
+``Max_Quantities_P<rank>_X_Y_Stage_Depth_Speed_UH_MAX.csv``.
+
+**Skipping a spin-up period**
+
+.. code-block:: python
+
+    # Collect maxima only after the first hour of simulation
+    op = domain.set_collect_max_quantities(collection_start_time=3600.0)
+
+**Reducing overhead on long runs**
+
+.. code-block:: python
+
+    # Update every 5 timesteps instead of every timestep
+    op = domain.set_collect_max_quantities(update_frequency=5)
+
+**SWW output and ANUGA Viewer**
+
+When ``store_to_sww=True`` (the default), ANUGA Viewer reads the pre-computed
+``max_stage_c`` / ``max_depth_c`` / ``max_speed_c`` / ``max_uh_c`` variables
+directly from the SWW file, bypassing the full timestep scan it would otherwise
+need.  The four ``Max …`` display modes (accessed with the :kbd:`v` key) all
+work without any extra steps.
+
+**Parallel runs and** ``sww_merge_parallel``
+
+When running with MPI, each rank independently tracks maxima for its own
+triangles.  The four centroid quantities are written to each rank's SWW file
+with the correct ``tri_l2g`` indexing and are automatically assembled into the
+correct global positions by :func:`sww_merge_parallel`:
+
+.. code-block:: python
+
+    # After an MPI run that produced domain_P4_0.sww … domain_P4_3.sww:
+    import anuga
+    anuga.sww_merge(domain_global_name='domain', np=4)
+    # The merged domain.sww contains max_stage_c, max_depth_c,
+    # max_speed_c, and max_uh_c for the complete global mesh.
+
+
 Other Operators
 ---------------
 
 .. autosummary::
-   :toctree: generated
 
    Kinematic_viscosity_operator
 

@@ -6,16 +6,20 @@ dependencies:
   - pip
   - affine
   - cartopy
+  - contextily
   - cython
   - dill
   - rasterio
   - fiona
   - shapely
+  # Pin libjxl to the soname libgdal-core is built against (0.11): a fresh
+  # conda-forge solve otherwise omits libjxl on Linux/macOS and GDAL fails
+  # at import with 'libjxl.so.0.11: cannot open shared object file'.
+  - libjxl <0.12
   - matplotlib
   - meshpy
   - meson
   - meson-python=0.17
-  - mpi4py
   - netcdf4
   - ninja
   - numpy
@@ -26,7 +30,9 @@ dependencies:
   - pymetis
   - pyproj
   - pytest
+  - pytest-regressions
   - scipy
+  - sympy
   - utm
   - wheel
   - xarray

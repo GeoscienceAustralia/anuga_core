@@ -118,14 +118,14 @@ def pmesh_to_domain_instance(source, DomainClass, use_cache=False,
     When caching is enabled, the function uses the anuga.caching module
     to cache the computed domain based on the source file and DomainClass.
     """
-    
+
     if use_cache is True:
         from anuga.caching import cache
         result = cache(_pmesh_to_domain_instance, (source, DomainClass),
                        dependencies=[source], verbose=verbose)
     else:
-        result = _pmesh_to_domain_instance(*(source, DomainClass))        
-        
+        result = _pmesh_to_domain_instance(*(source, DomainClass))
+
     return result
 
 
@@ -135,7 +135,7 @@ def _pmesh_to_domain_instance(source, DomainClass):
     Internal function. See public interface pmesh_to_domain_instance for details
     """
 
-    from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain 
+    from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
 
     # ensure the required class is a subclass of Domain
     msg = ('The class %s is not a subclass of the generic domain class %s'
@@ -145,11 +145,11 @@ def _pmesh_to_domain_instance(source, DomainClass):
     if type(source).__name__ == 'str':
         parm = {'file_name': source}
     else:
-        parm = {'mesh_instance': source}  
+        parm = {'mesh_instance': source}
 
     (vertex_coordinates, vertices, tag_dict, vertex_quantity_dict,
      tagged_elements_dict, geo_reference) = pmesh_to_domain(**parm)
-     
+
 
     domain = DomainClass(coordinates = vertex_coordinates,
                          vertices = vertices,
@@ -183,20 +183,20 @@ def pmesh_to_domain(file_name=None, mesh_instance=None, use_cache=False,
     """Convert a pmesh file or a pmesh mesh instance to a bunch of lists
     that can be used to instanciate a domain object.
 
-    use_cache: True means that caching is attempted for the computed domain.    
+    use_cache: True means that caching is attempted for the computed domain.
     """
 
-    if verbose: log.critical('Pmesh_to_Domain: Initialising')
-    
+    if verbose: log.info('Pmesh_to_Domain: Initialising')
+
     if use_cache is True:
         from anuga.caching import cache
         result = cache(_pmesh_to_domain, (file_name, mesh_instance),
                        dependencies=[file_name], verbose=verbose)
 
     else:
-        result = _pmesh_to_domain(*(file_name, mesh_instance))        
+        result = _pmesh_to_domain(*(file_name, mesh_instance))
 
-    if verbose: log.critical('Pmesh_to_Domain: Done')
+    if verbose: log.info('Pmesh_to_Domain: Done')
 
     return result
 
@@ -310,7 +310,7 @@ def pmesh_dict_to_tag_dict(mesh_dict):
 
     segment_tags = [seg.encode() for seg in segment_tags]  # Convert to binary form
     tag_dict = build_boundary_dictionary(triangles, segments, segment_tags, tag_dict)
-    
+
 
     for key in tag_dict.keys():
         x = tag_dict[key]

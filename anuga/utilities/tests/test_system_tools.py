@@ -64,7 +64,7 @@ class Test_system_tools(unittest.TestCase):
         tmp_fd, tmp_name = mkstemp(suffix='.tmp', dir='.')
         fid = os.fdopen(tmp_fd, 'w+b')
 
-        binary_object = 'My temp file with binary content. AAAABBBBCCCC1234'.encode()
+        binary_object = b'My temp file with binary content. AAAABBBBCCCC1234'
         fid.write(binary_object)
         fid.close()
 
@@ -116,11 +116,11 @@ class Test_system_tools(unittest.TestCase):
 
         Check that correct pathname can be derived from package
         """
-        
+
         path = get_pathname_from_package('anuga')
         assert path.endswith('anuga')
 
-            
+
     def test_compute_checksum_real(self):
         """test_compute_checksum(self):
 
@@ -209,7 +209,7 @@ class Test_system_tools(unittest.TestCase):
 
         x = string_to_char(str_list)
         new_str_list = char_to_string(x)
-        self.assertEqual(new_str_list, str_list)        
+        self.assertEqual(new_str_list, str_list)
 
 
     # special test - input list is ['']
@@ -228,10 +228,10 @@ class Test_system_tools(unittest.TestCase):
 # string_to_char() and char_to_string().
 ################################################################################
 
-# Note that the command num.array(string_to_char(l), num.character) gives 
+# Note that the command num.array(string_to_char(l), num.character) gives
 # rise to the following warning:
-# DeprecationWarning: Converting `np.character` to a dtype is deprecated. 
-# The current result is `np.dtype(np.str_)` which is not strictly correct. 
+# DeprecationWarning: Converting `np.character` to a dtype is deprecated.
+# The current result is `np.dtype(np.str_)` which is not strictly correct.
 # Note that `np.character` is generally deprecated and 'S1' should be used.
 # I was not able to find out why why searching, but using 'S1' is working.
 
@@ -280,7 +280,7 @@ class Test_system_tools(unittest.TestCase):
         FILENAME = 'test.msh'
 
         # generate some random strings in a list, with guaranteed lengths
-        str_list = [u'x' * MAX_CHARS]        # make first maximum length
+        str_list = ['x' * MAX_CHARS]        # make first maximum length
         for entry in range(MAX_ENTRIES):
             length = random.randint(1, MAX_CHARS)
             s = ''
@@ -339,92 +339,6 @@ class Test_system_tools(unittest.TestCase):
         test_it(source, expected)
 
         warnings.simplefilter('default', DeprecationWarning)
-
-    def test_tar_untar_files(self):
-        '''Test that tarring & untarring files is OK.'''
-
-        num_lines = 100
-        line_size = 100
-
-        # these test files must exist in the current directory
-        # create them with random data
-        files = ('alpha', 'beta', 'gamma')
-        for file in files:
-            fd = open(file, 'w')
-            line = ''
-            for i in range(num_lines):
-                for j in range(line_size):
-                    line += chr(random.randint(ord('A'), ord('Z')))
-                line += '\n'
-                fd.write(line)
-            fd.close()
-
-        # name of tar file and test (temp) directory
-        tar_filename = 'test.tgz'
-        tmp_dir = tempfile.mkdtemp()
-
-        # tar and untar the test files into a temporary directory
-        tar_file(files, tar_filename)
-        untar_file(tar_filename, tmp_dir)
-
-        # see if original files and untarred ones are the same
-        for file in files:
-            fd = open(file, 'r')
-            orig = fd.readlines()
-            fd.close()
-
-            fd = open(os.path.join(tmp_dir, file), 'r')
-            copy = fd.readlines()
-            fd.close()
-
-            msg = "Original file %s isn't the same as untarred copy?" % file
-            self.assertTrue(orig == copy, msg)
-
-        # clean up
-        for file in files:
-            os.remove(file)
-        os.remove(tar_filename)
-
-    def test_file_digest(self):
-        '''Test that file digest functions give 'correct' answer.
-
-        Not a good test as we get 'expected_digest' from a digest file,
-        but *does* alert us if the digest algorithm ever changes.
-        '''
-
-        # we expect this digest string from the data file
-        expected_digest = '831a1dde6edd365ec4163a47871fa21b'
-
-        # prepare test directory and filenames
-        tmp_dir = tempfile.mkdtemp()
-        data_file = os.path.join(tmp_dir, 'test.data')
-        digest_file = os.path.join(tmp_dir, 'test.digest')
-
-        # create the data file
-        data_line = 'The quick brown fox jumps over the lazy dog. 0123456789\n'
-        fd = open(data_file, 'w')
-        for line in range(100):
-            fd.write(data_line)
-        fd.close()
-
-        # create the digest file
-        make_digest_file(data_file, digest_file)
-
-        # get digest string for the data file
-        digest = get_file_hexdigest(data_file)
-
-        # check that digest is as expected, string
-        msg = ("Digest string wrong, got '%s', expected '%s'"
-               % (digest, expected_digest))
-        self.assertTrue(expected_digest == digest, msg)
-
-        # check that digest is as expected, file
-        msg = ("Digest file wrong, got '%s', expected '%s'"
-               % (digest, expected_digest))
-        fd = open(digest_file, 'r')
-        digest = fd.readline()
-        fd.close()
-        self.assertTrue(expected_digest == digest, msg)
 
     def test_file_length_function(self):
         '''Test that file_length() give 'correct' answer.'''
@@ -489,7 +403,123 @@ class Test_system_tools(unittest.TestCase):
 
 ################################################################################
 
+class Test_argparsing(unittest.TestCase):
+    """Tests for anuga.utilities.argparsing.create_standard_parser (lines 16-54)."""
+
+    def test_create_standard_parser(self):
+        """create_standard_parser returns an ArgumentParser."""
+        from anuga.utilities.argparsing import create_standard_parser
+        parser = create_standard_parser()
+        self.assertIsNotNone(parser)
+
+    def test_parser_defaults(self):
+        """Parser should have 'alg' default from parameters (line 30)."""
+        from anuga.utilities.argparsing import create_standard_parser
+        parser = create_standard_parser()
+        args = parser.parse_args([])
+        self.assertIsNotNone(args.alg)
+
+
+class Test_data_audit_wrapper(unittest.TestCase):
+    """Tests for anuga.utilities.data_audit_wrapper (lines 14-52)."""
+
+    def test_module_import(self):
+        """Importing the module covers module-level assignments (lines 14-41)."""
+        import anuga.utilities.data_audit_wrapper as daw
+        self.assertIsInstance(daw.extensions_to_ignore, list)
+
+    def test_ip_verified_callable(self):
+        """IP_verified function can be called on a directory (lines 45-52)."""
+        import tempfile
+        from anuga.utilities.data_audit_wrapper import IP_verified
+        with tempfile.TemporaryDirectory() as d:
+            result = IP_verified(d)
+            # Just verify it returns without error; result may be True or False
+            self.assertIsNotNone(result)
+
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_system_tools)
     runner = unittest.TextTestRunner()
     runner.run(suite)
+
+
+# ---------------------------------------------------------------------------
+# pytest functions: memory stats helpers
+# ---------------------------------------------------------------------------
+
+import pytest
+
+
+@pytest.fixture(scope='module')
+def simple_domain():
+    import anuga
+    return anuga.rectangular_cross_domain(4, 4)
+
+
+def test_memory_stats_returns_mb_string():
+    from anuga.utilities.system_tools import memory_stats
+    result = memory_stats()
+    assert isinstance(result, str)
+    assert result.startswith('mem=')
+
+
+def test_memory_stats_gb_branch():
+    from anuga.utilities.system_tools import memory_stats
+    from unittest.mock import patch
+    with patch('anuga.utilities.system_tools._get_rss_mb', return_value=2048.0):
+        result = memory_stats()
+    assert 'GB' in result
+
+
+def test_print_memory_stats(capsys):
+    from anuga.utilities.system_tools import print_memory_stats
+    print_memory_stats()
+    out = capsys.readouterr().out
+    assert 'mem=' in out
+
+
+def test_quantity_memory_stats_returns_table(simple_domain):
+    from anuga.utilities.system_tools import quantity_memory_stats
+    result = quantity_memory_stats(simple_domain)
+    assert isinstance(result, str)
+    assert 'GRAND TOTAL' in result
+    assert 'Quantity memory' in result
+
+
+def test_print_quantity_memory_stats(simple_domain, capsys):
+    from anuga.utilities.system_tools import print_quantity_memory_stats
+    print_quantity_memory_stats(simple_domain)
+    out = capsys.readouterr().out
+    assert 'GRAND TOTAL' in out
+
+
+def test_domain_memory_stats_returns_table(simple_domain):
+    from anuga.utilities.system_tools import domain_memory_stats
+    result = domain_memory_stats(simple_domain)
+    assert isinstance(result, str)
+    assert 'Domain memory' in result
+    assert 'geometry' in result
+    assert 'quantities' in result
+
+
+def test_print_domain_memory_stats(simple_domain, capsys):
+    from anuga.utilities.system_tools import print_domain_memory_stats
+    print_domain_memory_stats(simple_domain)
+    out = capsys.readouterr().out
+    assert 'Domain memory' in out
+
+
+def test_domain_struct_stats_no_gpu(simple_domain):
+    from anuga.utilities.system_tools import domain_struct_stats
+    result = domain_struct_stats(simple_domain)
+    assert isinstance(result, str)
+    assert 'C / GPU struct diagnostics' in result
+    assert 'not initialised' in result
+
+
+def test_print_domain_struct_stats(simple_domain, capsys):
+    from anuga.utilities.system_tools import print_domain_struct_stats
+    print_domain_struct_stats(simple_domain)
+    out = capsys.readouterr().out
+    assert 'C / GPU struct diagnostics' in out

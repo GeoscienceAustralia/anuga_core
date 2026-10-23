@@ -31,9 +31,9 @@ class Test_inlet_operator(unittest.TestCase):
             os.remove('Test_Outlet_Inlet.sww')
         except OSError:
             pass
-        
-    
-    
+
+
+
     def _create_domain(self,d_length,
                             d_width,
                             dx,
@@ -42,10 +42,10 @@ class Test_inlet_operator(unittest.TestCase):
                             elevation_1,
                             stage_0,
                             stage_1):
-        
+
         points, vertices, boundary = rectangular_cross(int(d_length/dx), int(d_width/dy),
                                                         len1=d_length, len2=d_width)
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('Test_Outlet_Inlet')                 # Output name
         domain.set_store()
         domain.set_default_order(2)
@@ -61,36 +61,36 @@ class Test_inlet_operator(unittest.TestCase):
         def elevation(x, y):
             """Set up a elevation
             """
-            
+
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = elevation_0
-            
+
             numpy.putmask(z, x > d_length/2, elevation_1)
-    
+
             return z
-            
+
         def stage(x,y):
             """Set up stage
             """
             z = numpy.zeros(x.shape,dtype='d')
             z[:] = stage_0
-            
+
             numpy.putmask(z, x > d_length/2, stage_1)
 
             return z
-            
+
         #print 'Setting Quantities....'
         domain.set_quantity('elevation', elevation)  # Use function for elevation
         domain.set_quantity('stage',  stage)   # Use function for elevation
 
         Br = anuga.Reflective_boundary(domain)
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
-        
+
         return domain
 
     def test_inlet_constant_Q(self):
         """test_inlet_Q
-        
+
         This tests that the inlet operator adds the correct amount of water
         """
 
@@ -101,7 +101,7 @@ class Test_inlet_operator(unittest.TestCase):
 
         domain_length = 200.0
         domain_width = 200.0
-        
+
 
         domain = self._create_domain(d_length=domain_length,
                                      d_width=domain_width,
@@ -117,10 +117,10 @@ class Test_inlet_operator(unittest.TestCase):
         finaltime = 3.0
         line1 = [[95.0, 10.0], [105.0, 10.0]]
         Q1 = 5.00
-        
+
         line2 = [[10.0, 90.0], [20.0, 90.0]]
         Q2 = 10.0
-        
+
         Inlet_operator(domain, line1, Q1, logging=False)
         Inlet_operator(domain, line2, Q2)
 
@@ -128,16 +128,16 @@ class Test_inlet_operator(unittest.TestCase):
             #domain.write_time()
             #print domain.volumetric_balance_statistics()
             pass
- 
+
 
         vol1 = domain.compute_total_volume()
 
-        assert numpy.allclose((Q1+Q2)*finaltime, vol1-vol0, rtol=1.0e-8) 
-        assert numpy.allclose((Q1+Q2)*finaltime, domain.fractional_step_volume_integral, rtol=1.0e-8) 
+        assert numpy.allclose((Q1+Q2)*finaltime, vol1-vol0, rtol=1.0e-8)
+        assert numpy.allclose((Q1+Q2)*finaltime, domain.fractional_step_volume_integral, rtol=1.0e-8)
 
     def test_inlet_negative_Q(self):
         """test_inlet_Q
-        
+
         This tests that the inlet operator adds the correct amount of water
         """
 
@@ -148,7 +148,7 @@ class Test_inlet_operator(unittest.TestCase):
 
         domain_length = 200.0
         domain_width = 200.0
-        
+
 
         domain = self._create_domain(d_length=domain_length,
                                      d_width=domain_width,
@@ -164,10 +164,10 @@ class Test_inlet_operator(unittest.TestCase):
         finaltime = 3.0
         line1 = [[95.0, 10.0], [105.0, 10.0]]
         Q1 = 10.0
-        
+
         line2 = [[10.0, 90.0], [20.0, 90.0]]
         Q2 = -1000.0
-        
+
         inlet0 = Inlet_operator(domain, line1, Q1, logging=False)
         inlet1 = Inlet_operator(domain, line2, Q2)
 
@@ -189,10 +189,10 @@ class Test_inlet_operator(unittest.TestCase):
         # print(requested1)
         # print(actual1)
 
-        # print(vol0+actual0+actual1)        
+        # print(vol0+actual0+actual1)
 
-        assert numpy.allclose(actual0+actual1, vol1-vol0, rtol=1.0e-8) 
-        assert numpy.allclose(actual0+actual1, domain.fractional_step_volume_integral, rtol=1.0e-8) 
+        assert numpy.allclose(actual0+actual1, vol1-vol0, rtol=1.0e-8)
+        assert numpy.allclose(actual0+actual1, domain.fractional_step_volume_integral, rtol=1.0e-8)
 
 
     def test_inlet_constant_Q_polygon(self):
@@ -238,13 +238,13 @@ class Test_inlet_operator(unittest.TestCase):
         vol1 = domain.compute_total_volume()
 
         assert numpy.allclose((Q1)*finaltime, vol1-vol0, rtol=1.0e-8)
-        assert numpy.allclose((Q1)*finaltime, domain.fractional_step_volume_integral, rtol=1.0e-8) 
+        assert numpy.allclose((Q1)*finaltime, domain.fractional_step_volume_integral, rtol=1.0e-8)
 
 
 
     def test_inlet_variable_Q(self):
         """test_inlet_Q
-        
+
         This tests that the inlet operator adds the correct amount of water
         """
 
@@ -255,7 +255,7 @@ class Test_inlet_operator(unittest.TestCase):
 
         domain_length = 200.0
         domain_width = 200.0
-        
+
 
         domain = self._create_domain(d_length=domain_length,
                                      d_width=domain_width,
@@ -273,18 +273,18 @@ class Test_inlet_operator(unittest.TestCase):
         #Make sure we are inthe right directory to find the
         #time series data for the inlets
         import os
-        
+
         path = get_pathname_from_package('anuga.structures')
         filename1 = os.path.join(path, 'tests', 'data', 'inlet_operator_test1.tms')
         filename2 = os.path.join(path, 'tests', 'data', 'inlet_operator_test2.tms')
 
         line1 = [[95.0, 10.0], [105.0, 10.0]]
         Q1 = file_function(filename=filename1, quantities=['hydrograph'])
-        
+
         line2 = [[10.0, 90.0], [20.0, 90.0]]
         Q2 = file_function(filename=filename2, quantities=['hydrograph'])
 
-        
+
         Inlet_operator(domain, line1, Q1)
         Inlet_operator(domain, line2, Q2)
 
@@ -292,15 +292,15 @@ class Test_inlet_operator(unittest.TestCase):
             #domain.write_time()
             #print domain.volumetric_balance_statistics()
             pass
- 
+
 
         vol1 = domain.compute_total_volume()
 
         #print vol1-vol0
-        
-        assert numpy.allclose(13.5, vol1-vol0, rtol=1.0e-8) 
-        assert numpy.allclose(vol1-vol0, domain.fractional_step_volume_integral, rtol=1.0e-8) 
-                
+
+        assert numpy.allclose(13.5, vol1-vol0, rtol=1.0e-8)
+        assert numpy.allclose(vol1-vol0, domain.fractional_step_volume_integral, rtol=1.0e-8)
+
     def test_inlet_variable_Q_default(self):
         """test_inlet_Q
 
@@ -348,8 +348,8 @@ class Test_inlet_operator(unittest.TestCase):
 
         import warnings
         warnings.simplefilter("ignore")
-        
-        
+
+
         Inlet_operator(domain, line1, Q1, default=6)
         Inlet_operator(domain, line2, Q2, default=3)
 
@@ -365,7 +365,121 @@ class Test_inlet_operator(unittest.TestCase):
         #print vol1-vol0
 
         assert numpy.allclose(31.5, vol1-vol0, rtol=1.0e-8)
-        assert numpy.allclose(vol1-vol0, domain.fractional_step_volume_integral, rtol=1.0e-8) 
+        assert numpy.allclose(vol1-vol0, domain.fractional_step_volume_integral, rtol=1.0e-8)
+
+    def _simple_domain(self):
+        """Small 20×20 m domain for fast unit-level tests."""
+        domain = self._create_domain(d_length=20.0, d_width=20.0,
+                                     dx=5.0, dy=5.0,
+                                     elevation_0=0.0, elevation_1=0.0,
+                                     stage_0=1.0, stage_1=1.0)
+        return domain
+
+    def test_inlet_with_velocity(self):
+        """Inlet operator with explicit velocity sets momentum correctly."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        op = Inlet_operator(domain, line, Q=2.0, velocity=[1.0, 0.0])
+
+        for t in domain.evolve(yieldstep=0.5, finaltime=0.5):
+            pass
+
+        # xmomentum should be non-zero in the inlet region
+        xmom = domain.quantities['xmomentum'].centroid_values
+        self.assertTrue(numpy.any(xmom != 0.0))
+
+    def test_inlet_zero_velocity(self):
+        """zero_velocity=True zeroes momentum in the inlet after each step."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        op = Inlet_operator(domain, line, Q=2.0, zero_velocity=True)
+
+        for t in domain.evolve(yieldstep=0.5, finaltime=0.5):
+            pass
+
+        # Momentum inside the inlet triangles should be zero
+        idx = op.inlet.triangle_indices
+        xmom = domain.quantities['xmomentum'].centroid_values[idx]
+        ymom = domain.quantities['ymomentum'].centroid_values[idx]
+        self.assertTrue(numpy.allclose(xmom, 0.0, atol=1e-10))
+        self.assertTrue(numpy.allclose(ymom, 0.0, atol=1e-10))
+
+    def test_inlet_over_extraction(self):
+        """Extracting more water than available doesn't produce negative depth."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        # Large negative Q to drain the inlet
+        op = Inlet_operator(domain, line, Q=-1000.0)
+
+        for t in domain.evolve(yieldstep=0.1, finaltime=0.1):
+            pass
+
+        depths = domain.quantities['stage'].centroid_values - \
+                 domain.quantities['elevation'].centroid_values
+        self.assertTrue(numpy.all(depths >= -1e-6))
+
+    def test_statistics_returns_string(self):
+        """statistics() returns a non-empty string."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        op = Inlet_operator(domain, line, Q=1.0, label='test_inlet')
+        msg = op.statistics()
+        self.assertIsInstance(msg, str)
+        self.assertIn('test_inlet', msg)
+
+    def test_timestepping_statistics(self):
+        """timestepping_statistics() returns a string with Q and volume."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        op = Inlet_operator(domain, line, Q=3.0)
+        for t in domain.evolve(yieldstep=0.5, finaltime=0.5):
+            pass
+        msg = op.timestepping_statistics()
+        self.assertIsInstance(msg, str)
+        self.assertIn('Q', msg)
+
+    def test_getters_and_setters(self):
+        """set_Q / get_Q / get_inlet / get_applied_Q work correctly."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        op = Inlet_operator(domain, line, Q=1.0)
+
+        op.set_Q(5.0)
+        self.assertEqual(op.get_Q(), 5.0)
+
+        inlet = op.get_inlet()
+        self.assertIsNotNone(inlet)
+
+        for t in domain.evolve(yieldstep=0.5, finaltime=0.5):
+            pass
+        applied = op.get_applied_Q()
+        self.assertAlmostEqual(applied, 5.0, places=5)
+
+    def test_set_default_callable(self):
+        """set_default accepts a callable and get_default returns its value."""
+        import warnings
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        op = Inlet_operator(domain, line, Q=1.0, default=lambda t: 99.0)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            val = op.get_default(0.0)
+        self.assertAlmostEqual(val, 99.0)
+
+    def test_set_default_bad_callable_raises(self):
+        """set_default raises if the callable doesn't accept one argument."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        with self.assertRaises(Exception):
+            Inlet_operator(domain, line, Q=1.0, default=lambda: 0.0)
+
+    def test_velocity_assertion(self):
+        """velocity must be length-2; wrong length raises AssertionError."""
+        domain = self._simple_domain()
+        line = [[8.0, 5.0], [12.0, 5.0]]
+        with self.assertRaises(AssertionError):
+            Inlet_operator(domain, line, Q=1.0, velocity=[1.0, 0.0, 0.0])
+
 
 # =========================================================================
 if __name__ == "__main__":

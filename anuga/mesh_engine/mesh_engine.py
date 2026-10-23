@@ -2,15 +2,36 @@
 import sys
 
 class NoTrianglesError(Exception): pass
-#import anuga.mesh_engine.mesh_engine_c_layer as triang
-#import anuga.mesh_engine.list_dic as triang
 
-try:
-    import meshpy.triangle as triang
-    TRILIB = 'meshpy'
-except ImportError:
-    import triangle as triang
-    TRILIB = 'triangle'
+# The triangulation backend (meshpy, or the `triangle` package, both wrapping
+# Shewchuk's Triangle) is imported on first use rather than here, so that
+# `import anuga` works without one. Only CREATING a mesh needs it: loading an
+# existing .msh/.tsh, reading SWW output, post-processing and running a domain
+# built elsewhere do not. TRILIB is None until the backend has been loaded.
+_triang = None
+TRILIB = None
+
+
+def _get_triangulator():
+    """Import the triangulation backend on first use and return it."""
+    global _triang, TRILIB
+    if _triang is None:
+        try:
+            import meshpy.triangle as _t
+            TRILIB = 'meshpy'
+        except ImportError:
+            try:
+                import triangle as _t
+                TRILIB = 'triangle'
+            except ImportError as exc:
+                raise ImportError(
+                    "Generating a mesh needs a triangulation backend, but "
+                    "neither meshpy nor triangle is installed:\n"
+                    "    pip install meshpy\n"
+                    "ANUGA can be imported and used without one; it is only "
+                    "required to create meshes.") from exc
+        _triang = _t
+    return _triang
 
 
 
@@ -22,16 +43,26 @@ from anuga.anuga_exceptions import ANUGAError
 def generate_mesh(points=None,
                   segments=None,holes=None,regions=None,
                   pointatts=None,segatts=None,
-                  mode=None, dummy_test=None, verbose=False):
+                  mode=None, dummy_test=None, verbose=False,
+                  refinement_func=None):
     """
     pointatts can be a list of lists.
 
     generatedtriangleattributelist is used to represent tagged regions.
+
+    refinement_func, if given, is Triangle's user test (its -u switch): a
+    callable ``f(vertices, area) -> bool`` that Triangle calls for each
+    triangle it considers, where ``vertices`` holds the three corner points
+    and ``area`` is the triangle's area. The triangle is refined if it
+    returns True. It is applied as well as, not instead of, any area
+    constraints in ``mode``. It needs the meshpy backend.
     #FIXME (DSG-DSG): add comments
     """
     #FIXME (DSG-DSG): Catch parameters that are lists,
     #instead of lists of lists
     # check shape[1] is 2 etc
+
+    triang = _get_triangulator()
 
     if points is None:
         points = []
@@ -153,6 +184,29 @@ def generate_mesh(points=None,
 
     #print(points,segments,holes,regions, pointatts,segatts)
 
+    if refinement_func is not None:
+        if TRILIB != 'meshpy':
+            msg = ('A refinement function (size field) needs the meshpy '
+                   'triangulation backend, but the %s backend is in use. '
+                   'Install meshpy: pip install meshpy' % TRILIB)
+            raise ANUGAError(msg)
+        if 'u' not in mode:
+            mode = mode + 'u'   # u - apply the user test to each triangle
+
+        # An exception that escapes into Triangle aborts the interpreter.
+        # Hold on to the first one, stop refining, and raise it afterwards.
+        user_test = refinement_func
+        user_test_errors = []
+
+        def refinement_func(vertices, area):
+            if user_test_errors:
+                return False
+            try:
+                return user_test(vertices, area)
+            except Exception as exc:
+                user_test_errors.append(exc)
+                return False
+
     if TRILIB == 'triangle':
         in_tri = ({'vertices':points})
         if segments.size != 0:
@@ -259,9 +313,9 @@ def generate_mesh(points=None,
             print(70*'=')
             in_tri.dump()
 
-    
-        # Triangle is a C library driven via string options; 
-        # numeric parameters (e.g. a0.01) are parsed using C’s locale‑aware routines, 
+
+        # Triangle is a C library driven via string options;
+        # numeric parameters (e.g. a0.01) are parsed using C’s locale‑aware routines,
         # which expect a . decimal separator under the "C" locale.
         try:
             import locale
@@ -275,11 +329,15 @@ def generate_mesh(points=None,
         try:
             out_tri = triang.MeshInfo()
             import meshpy._internals as internals
-            internals.triangulate(mode, in_tri, out_tri, triang.MeshInfo(), None)
+            internals.triangulate(mode, in_tri, out_tri, triang.MeshInfo(),
+                                  refinement_func)
         finally:
             # restore previous locale if we've changed it
             if have_locale:
                 locale.setlocale(locale.LC_NUMERIC, prev_num_locale)
+
+        if refinement_func is not None and user_test_errors:
+            raise user_test_errors[0]
 
         if verbose:
             print(70*'=')
@@ -327,7 +385,7 @@ def generate_mesh(points=None,
         try:
             neighborlist = num.ascontiguousarray(out_tri.neighbors).reshape(-1,3)
         except (AttributeError, RuntimeError):
-            neighborlist = num.zeros((trianglelist.shape[0],3),dtype=num.int32)        
+            neighborlist = num.zeros((trianglelist.shape[0],3),dtype=num.int32)
 
     if verbose:
         print('  Output sizes')

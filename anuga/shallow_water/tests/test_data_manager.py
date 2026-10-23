@@ -11,7 +11,7 @@ import unittest
 import copy
 import numpy as num
 import sys
-                
+
 import tempfile
 import os
 import shutil
@@ -23,7 +23,7 @@ from anuga.file.netcdf import NetCDFFile
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.anuga_exceptions import ANUGAError
 from anuga.file.sww import SWW_file
-from anuga.coordinate_transforms.geo_reference import Geo_reference                        
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.coordinate_transforms.redfearn import degminsec2decimal_degrees
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.utilities.system_tools import get_pathname_from_package, \
@@ -70,11 +70,11 @@ class Test_Data_Manager(Test_Mux):
 
     def set_verbose(self):
         Test_Data_Manager.verbose = True
-        
+
     def setUp(self):
         import time
         #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-        
+
         self.verbose = Test_Data_Manager.verbose
         # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
@@ -108,10 +108,10 @@ class Test_Data_Manager(Test_Mux):
                 stage[i,:] = bed[i,:]
 
         domain.set_quantity('stage', stage)
-        domain.set_quantity('height', h)        
+        domain.set_quantity('height', h)
 
 
-        domain.distribute_to_vertices_and_edges()               
+        domain.distribute_to_vertices_and_edges()
         self.initial_stage = copy.copy(domain.quantities['stage'].vertex_values)
 
 
@@ -197,14 +197,13 @@ class Test_Data_Manager(Test_Mux):
 
 
     def tearDown(self):
-        import os
         for ext in ['_ha.nc', '_ua.nc', '_va.nc', '_e.nc']:
             #print 'Trying to remove', self.test_MOST_file + ext
             try:
                 os.remove(self.test_MOST_file + ext)
             except OSError:
                 pass
-            
+
         for file in ['domain.sww', 'outline_meshed.tsh', 'outline.tsh']:
             try:
                 os.remove(file)
@@ -218,7 +217,7 @@ class Test_Data_Manager(Test_Mux):
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww' #Remove??
         self.domain.smooth = False
-        
+
         sww = SWW_file(self.domain)
         sww.store_connectivity()
 
@@ -264,7 +263,7 @@ class Test_Data_Manager(Test_Mux):
             revision_number = get_revision_number()
         except Exception:
             revision_number = None
-            
+
         assert str(revision_number) == sww_revision
         fid.close()
 
@@ -279,32 +278,32 @@ class Test_Data_Manager(Test_Mux):
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
         self.domain.set_store_vertices_uniquely(True)
-        
-        sww = SWW_file(self.domain)        
+
+        sww = SWW_file(self.domain)
 
         dqs = self.domain.get_quantity('stage')
         dqx = self.domain.get_quantity('xmomentum')
-        dqy = self.domain.get_quantity('ymomentum')        
-        xmom_min = ymom_min = stage_min = sys.maxsize 
-        xmom_max = ymom_max = stage_max = -stage_min        
+        dqy = self.domain.get_quantity('ymomentum')
+        xmom_min = ymom_min = stage_min = sys.maxsize
+        xmom_max = ymom_max = stage_max = -stage_min
         for t in self.domain.evolve(yieldstep = 1, finaltime = 1):
             wmax = max(dqs.get_values().flatten())
             if wmax > stage_max: stage_max = wmax
             wmin = min(dqs.get_values().flatten())
-            if wmin < stage_min: stage_min = wmin            
-            
+            if wmin < stage_min: stage_min = wmin
+
             uhmax = max(dqx.get_values().flatten())
             if uhmax > xmom_max: xmom_max = uhmax
             uhmin = min(dqx.get_values().flatten())
-            if uhmin < xmom_min: xmom_min = uhmin                        
-            
+            if uhmin < xmom_min: xmom_min = uhmin
+
             vhmax = max(dqy.get_values().flatten())
             if vhmax > ymom_max: ymom_max = vhmax
             vhmin = min(dqy.get_values().flatten())
-            if vhmin < ymom_min: ymom_min = vhmin                                    
-            
-            
-            
+            if vhmin < ymom_min: ymom_min = vhmin
+
+
+
         # Get NetCDF
         fid = NetCDFFile(sww.filename, netcdf_mode_r) # Open existing file for append
 
@@ -315,13 +314,13 @@ class Test_Data_Manager(Test_Mux):
         range = fid.variables['xmomentum_range'][:]
         #print range
         assert num.allclose(range, [xmom_min, xmom_max])
-        
+
         range = fid.variables['ymomentum_range'][:]
         #print range
-        assert num.allclose(range, [ymom_min, ymom_max])        
+        assert num.allclose(range, [ymom_min, ymom_max])
 
 
-        
+
         fid.close()
         os.remove(sww.filename)
 
@@ -331,15 +330,20 @@ class Test_Data_Manager(Test_Mux):
         """
 
         domain = self.domain
-        
+        # Mode-2 ('unified') runs the step in C and updates monitored extrema
+        # (xmomentum/ymomentum) from on-device values, diverging from the host
+        # quantity_statistics path this test checks. Pin legacy to exercise the
+        # in-Python monitoring machinery it is written for.
+        domain.set_compute_mode('legacy')
+
         domain.set_name('extrema_test' + str(id(self)))
         domain.format = 'sww'
         domain.smooth = True
 
         assert domain.quantities_to_be_monitored is None
         assert domain.monitor_polygon is None
-        assert domain.monitor_time_interval is None        
-        
+        assert domain.monitor_time_interval is None
+
         domain.set_quantities_to_be_monitored(['xmomentum',
                                                'ymomentum',
                                                'stage-elevation'])
@@ -353,20 +357,20 @@ class Test_Data_Manager(Test_Mux):
                                                'stage-elevation'],
                                               polygon=domain.get_boundary_polygon(),
                                               time_interval=[0,1])
-        
-        
+
+
         assert len(domain.quantities_to_be_monitored) == 3
         assert 'stage-elevation' in domain.quantities_to_be_monitored
-        assert 'xmomentum' in domain.quantities_to_be_monitored                
-        assert 'ymomentum' in domain.quantities_to_be_monitored        
+        assert 'xmomentum' in domain.quantities_to_be_monitored
+        assert 'ymomentum' in domain.quantities_to_be_monitored
 
-        
+
         #domain.protect_against_isolated_degenerate_timesteps = True
         #domain.tight_slope_limiters = 1
         domain.tight_slope_limiters = 0 # Backwards compatibility
         domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
-        
-        
+
+
         sww = SWW_file(domain)
 
         for t in domain.evolve(yieldstep = 1, finaltime = 1):
@@ -374,7 +378,7 @@ class Test_Data_Manager(Test_Mux):
             #print domain.timestepping_statistics()
             domain.quantity_statistics(precision = '%.8f') # Silent
 
-            
+
         # Get NetCDF
         fid = NetCDFFile(sww.filename, netcdf_mode_r) # Open existing file for append
 
@@ -386,31 +390,31 @@ class Test_Data_Manager(Test_Mux):
         loc = fid.variables['stage-elevation.min_location'][:]
         assert num.allclose(loc, [0.16666667, 0.33333333])
 
-        loc = fid.variables['stage-elevation.max_location'][:]        
-        assert num.allclose(loc, [0.8333333, 0.16666667])        
+        loc = fid.variables['stage-elevation.max_location'][:]
+        assert num.allclose(loc, [0.8333333, 0.16666667])
 
         time = fid.variables['stage-elevation.max_time'][:]
         assert num.allclose(time, 0.0) or \
-            num.allclose(time, 0.39956954)              
+            num.allclose(time, 0.39956954)
 
         extrema = fid.variables['xmomentum.extrema'][:]
         assert num.allclose(extrema, [-0.01077721, 0.1856276])
-        
+
         extrema = fid.variables['ymomentum.extrema'][:]
         assert num.allclose(extrema, [-0.00033392, 0.04227795])
 
         time_interval = fid.variables['extrema.time_interval'][:]
         assert num.allclose(time_interval, [0, 1])
-        
-        polygon = fid.variables['extrema.polygon'][:]        
+
+        polygon = fid.variables['extrema.polygon'][:]
         assert num.allclose(polygon, domain.get_boundary_polygon())
-        
+
         fid.close()
         #print "sww.filename", sww.filename
         os.remove(sww.filename)
 
-        
-        
+
+
     def test_sww_constant_smooth(self):
         """Test that constant sww information can be written correctly
         (non smooth)
@@ -449,7 +453,7 @@ class Test_Data_Manager(Test_Mux):
 
         fid.close()
         os.remove(sww.filename)
-        
+
 
     def test_sww_variable(self):
         """Test that sww information can be written correctly
@@ -478,14 +482,14 @@ class Test_Data_Manager(Test_Mux):
         Q2 = Q.vertex_values[:,2]
 
         A = stage[0,:]
-        
+
 #         print stage[0,:]
 #         print A[0], (Q2[0] + Q1[1])/2
 #         print A[1], (Q0[1] + Q1[3] + Q2[2])/3
 #         print A[2], Q0[3]
 #         print A[3], (Q0[0] + Q1[5] + Q2[4])/3
         assert num.allclose(A[0], (Q2[0] + Q1[1])/2, rtol=1.0e-5, atol=1.0e-5)
-        
+
         assert num.allclose(A[1], (Q0[1] + Q1[3] + Q2[2])/3, rtol=1.0e-5, atol=1.0e-5)
         assert num.allclose(A[2], Q0[3])
         assert num.allclose(A[3], (Q0[0] + Q1[5] + Q2[4])/3, rtol=1.0e-5, atol=1.0e-5)
@@ -493,7 +497,7 @@ class Test_Data_Manager(Test_Mux):
         #Center point
         assert num.allclose(A[4], (Q1[0] + Q2[1] + Q0[2] + Q0[5] + Q2[6] + Q1[7])/6,
                             rtol=1.0e-5, atol=1.0e-5)
-        
+
         fid.close()
         os.remove(sww.filename)
 
@@ -503,7 +507,7 @@ class Test_Data_Manager(Test_Mux):
         multiple timesteps. Use average as reduction operator
         """
 
-        import time, os
+        import time
 
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
@@ -556,7 +560,7 @@ class Test_Data_Manager(Test_Mux):
         """test_sync - Test info stored at each timestep is as expected (incl initial condition)
         """
 
-        import time, os
+        import time
 
         self.domain.set_name('synctest')
         self.domain.format = 'sww'
@@ -564,8 +568,8 @@ class Test_Data_Manager(Test_Mux):
         self.domain.store = True
 
         self.domain.tight_slope_limiters = True
-        self.domain.use_centroid_velocities = True        
-        
+        self.domain.use_centroid_velocities = True
+
         # In this case tight_slope_limiters as default
         # in conjunction with protection
         # against isolated degenerate timesteps works.
@@ -573,18 +577,18 @@ class Test_Data_Manager(Test_Mux):
         #self.domain.protect_against_isolated_degenerate_timesteps = True
 
         #print 'tight_sl', self.domain.tight_slope_limiters
-        
+
 
         #Evolution
         for t in self.domain.evolve(yieldstep = 1.0, finaltime = 4.0):
-            
+
             #########self.domain.write_time(track_speeds=True)
             stage = self.domain.quantities['stage'].vertex_values
 
             #Get NetCDF
             fid = NetCDFFile(self.domain.writer.filename, netcdf_mode_r)
             stage_file = fid.variables['stage']
-            
+
             if t == 0.0:
                 assert num.allclose(stage, self.initial_stage, rtol=1.0e-5, atol=1.0e-5)
                 assert num.allclose(stage_file[:], stage.flatten(),rtol=1.0e-5, atol=1.0e-5)
@@ -602,7 +606,7 @@ class Test_Data_Manager(Test_Mux):
         multiple timesteps using a different reduction operator (min)
         """
 
-        import time, os
+        import time
 
         self.domain.set_name('datatest' + str(id(self)))
         self.domain.format = 'sww'
@@ -629,7 +633,7 @@ class Test_Data_Manager(Test_Mux):
         time = fid.variables['time']
         stage = fid.variables['stage']
         xmomentum = fid.variables['xmomentum']
-        ymomentum = fid.variables['ymomentum']        
+        ymomentum = fid.variables['ymomentum']
 
         #Check values
         Q = self.domain.quantities['stage']
@@ -642,8 +646,8 @@ class Test_Data_Manager(Test_Mux):
 
 
         assert num.allclose(xmomentum, 0.0)
-        assert num.allclose(ymomentum, 0.0)        
-        
+        assert num.allclose(ymomentum, 0.0)
+
         fid.close()
 
         #Cleanup
@@ -663,20 +667,20 @@ class Test_Data_Manager(Test_Mux):
         time_step_count = 50
         time_step = 0.1
         times_ref = num.arange(0, time_step_count*time_step, time_step)
-        
+
         n=len(lat_long_points)
         first_tstep=num.ones(n,int)
         last_tstep=(time_step_count)*num.ones(n,int)
-        
+
         gauge_depth=20*num.ones(n,float)
-        
+
         ha1=num.ones((n,time_step_count),float)
         ua1=3.*num.ones((n,time_step_count),float)
         va1=2.*num.ones((n,time_step_count),float)
         for i in range(n):
             ha1[i]=num.sin(times_ref)
-        
-        
+
+
         base_name, files = self.write_mux2(lat_long_points,
                                            time_step_count, time_step,
                                            first_tstep, last_tstep,
@@ -692,7 +696,7 @@ class Test_Data_Manager(Test_Mux):
         d=","
         order_file=order_base_name+'order.txt'
         fid=open(order_file,'w')
-        
+
         # Write Header
         header='index, longitude, latitude\n'
         fid.write(header)
@@ -709,26 +713,26 @@ class Test_Data_Manager(Test_Mux):
                 mean_stage=tide,
                 verbose=False)
         self.delete_mux(files)
-        
-        
-        
+
+
+
         # Now read the sts file and check that values have been stored correctly.
         fid = NetCDFFile(sts_file + '.sts')
 
         # Check the time vector
         times = fid.variables['time'][:]
-        
+
         #print times
 
         # Check sts quantities
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
         ymomentum = fid.variables['ymomentum'][:]
-        elevation = fid.variables['elevation'][:]       
+        elevation = fid.variables['elevation'][:]
 
         # Create beginnings of boundary polygon based on sts_boundary
         boundary_polygon = create_sts_boundary(base_name)
-        
+
         os.remove(order_file)
 
         # Append the remaining part of the boundary polygon to be defined by
@@ -742,7 +746,7 @@ class Test_Data_Manager(Test_Mux):
         boundary_polygon.append(bounding_polygon_utm[4])
 
         #print 'boundary_polygon', boundary_polygon
-        
+
         plot=False
         if plot:
             from pylab import plot,show,axis
@@ -760,7 +764,7 @@ class Test_Data_Manager(Test_Mux):
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
         boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
-        
+
         # have to change boundary tags from last example because now bounding
         # polygon starts in different place.
         create_pmesh_from_regions(boundary_polygon,
@@ -769,11 +773,11 @@ class Test_Data_Manager(Test_Mux):
                                  filename=meshname,
                                  interior_regions=interior_regions,
                                  verbose=False)
-        
+
         domain_fbound = Domain(meshname)
         domain_fbound.set_quantity('stage', tide)
-        Bf = File_boundary(sts_file+'.sts', 
-                           domain_fbound, 
+        Bf = File_boundary(sts_file+'.sts',
+                           domain_fbound,
                            boundary_polygon=boundary_polygon)
         Br = Reflective_boundary(domain_fbound)
 
@@ -781,80 +785,81 @@ class Test_Data_Manager(Test_Mux):
         finaltime=time_step*(time_step_count-1)
         yieldstep=time_step
         temp_fbound=num.zeros(int(finaltime/yieldstep)+1,float)
-    
+
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
-                                                   finaltime=finaltime, 
+                                                   finaltime=finaltime,
                                                    skip_initial_step=False)):
             temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
-    
-        
+
+
         domain_time = Domain(meshname)
         domain_time.set_quantity('stage', tide)
         Br = Reflective_boundary(domain_time)
         Bw = Time_boundary(domain=domain_time,
                          function=lambda t: [num.sin(t)+tide,3.*(20.+num.sin(t)+tide),2.*(20.+num.sin(t)+tide)])
         domain_time.set_boundary({'ocean': Bw,'otherocean': Br})
-        
+
         temp_time=num.zeros(int(finaltime/yieldstep)+1,float)
-        
+
         domain_time.set_starttime(domain_fbound.get_starttime())
-        
+
         for i, t in enumerate(domain_time.evolve(yieldstep=yieldstep,
-                                                   finaltime=finaltime, 
+                                                   finaltime=finaltime,
                                                    skip_initial_step=False)):
             temp_time[i]=domain_time.quantities['stage'].centroid_values[2]
-        
-        assert num.allclose(temp_fbound, temp_time)                
+
+        assert num.allclose(temp_fbound, temp_time)
         assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
                             domain_time.quantities['stage'].vertex_values)
-                        
+
         assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                            domain_time.quantities['xmomentum'].vertex_values)                        
-                        
+                            domain_time.quantities['xmomentum'].vertex_values)
+
         assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
-                            domain_time.quantities['ymomentum'].vertex_values)                                                
-        
+                            domain_time.quantities['ymomentum'].vertex_values)
+
 
         try:
             os.remove(sts_file+'.sts')
         except OSError:
-            # Windoze can't remove this file for some reason 
+            # Windoze can't remove this file for some reason
             pass
-        
+
         os.remove(meshname)
-        
- 
-    def test_points2polygon(self):  
+
+
+    def test_points2polygon(self):
         att_dict = {}
         pointlist = num.array([[1.0, 0.0],[0.0, 1.0],[0.0, 0.0]])
         att_dict['elevation'] = num.array([10.1, 0.0, 10.4])
         att_dict['brightness'] = num.array([10.0, 1.0, 10.4])
-        
-        fileName = tempfile.mktemp(".csv")
-        
+
+        fd, fileName = tempfile.mkstemp(".csv")
+        os.close(fd)
+
         G = Geospatial_data(pointlist, att_dict)
-        
+
         G.export_points_file(fileName)
-        
+
         polygon = load_pts_as_polygon(fileName)
-        
+
         # This test may fail if the order changes
         assert (polygon == [[0.0, 0.0],[1.0, 0.0],[0.0, 1.0]])
-        
+
 
 
 #-------------------------------------------------------------
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Data_Manager)
-    
-    
-    
-    # FIXME(Ole): When Ross has implemented logging, we can 
+
+
+
+    # FIXME(Ole): When Ross has implemented logging, we can
     # probably get rid of all this:
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
         Test_Data_Manager.verbose=True
-        saveout = sys.stdout   
+        saveout = sys.stdout
         filename = ".temp_verbose"
         fid = open(filename, 'w')
         sys.stdout = fid
@@ -865,8 +870,8 @@ if __name__ == "__main__":
 
     # Cleaning up
     if len(sys.argv) > 1 and sys.argv[1][0].upper() == 'V':
-        sys.stdout = saveout 
-        fid.close() 
+        sys.stdout = saveout
+        fid.close()
         os.remove(filename)
 
 

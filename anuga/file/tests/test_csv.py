@@ -20,48 +20,47 @@ class Test_csv(unittest.TestCase):
         """
             Create a dummy csv file.
             Return its filename.
-        """      
-        filename = tempfile.mktemp(".txt")
-        file = open(filename,"w")
-        file.write("elevation, stage\n\
+        """
+        fd, filename = tempfile.mkstemp(".txt")
+        os.close(fd)
+        with open(filename, "w") as file:
+            file.write("elevation, stage\n\
 1.0, 3  \n\
 0.0, 4 \n\
 4.0, 3 \n\
 1.0, 6 \n")
-        file.close()
         return filename
-        
+
     def test_get_data_from_file1(self):
         filename = self._create_csv_file()
 
-        x = load_csv_as_array(filename)  
-        
+        x = load_csv_as_array(filename)
+
         os.remove(filename)
 
         assert num.allclose(x['elevation'], [1.0, 0.0, 4.0, 1.0])
-        assert num.allclose(x['stage'], [3.0, 4.0, 3.0, 6.0])        
+        assert num.allclose(x['stage'], [3.0, 4.0, 3.0, 6.0])
 
 
     def test_get_data_from_file2(self):
         filename = self._create_csv_file()
-        
+
         header,x = load_csv_as_matrix(filename)
         os.remove(filename)
-        
+
         assert num.allclose(x[:,0], [1.0, 0.0,4.0, 1.0])
 
-        
+
     def test_store_parameters(self):
         """tests store temporary file
         """
-        
+
         from os import sep, getenv
-        
+
         output_dir=''
         file_name='details.csv'
-        
-        kwargs = {'file_name':'new2.txt',
-                  'output_dir':output_dir,
+
+        kwargs = {'output_dir':output_dir,
                   'file_name':file_name,
                   'who':'me',
                   'what':'detail',
@@ -72,12 +71,11 @@ class Test_csv(unittest.TestCase):
         store_parameters(verbose=False,**kwargs)
 
         temp='detail_temp.csv'
-        fid = open(temp)
-        file_header = fid.readline()
-        file_line = fid.readline()
-        fid.close()
-        
-        
+        with open(temp) as fid:
+            file_header = fid.readline()
+            file_line = fid.readline()
+
+
         keys = list(kwargs.keys())
         keys.sort()
         line=''
@@ -85,7 +83,7 @@ class Test_csv(unittest.TestCase):
         count=0
         #used the sorted keys to create the header and line data
         for k in keys:
-#            print "%s = %s" %(k, kwargs[k]) 
+#            print "%s = %s" %(k, kwargs[k])
             header = header+str(k)
             line = line+str(kwargs[k])
             count+=1
@@ -94,26 +92,25 @@ class Test_csv(unittest.TestCase):
                 line = line+','
         header+='\n'
         line+='\n'
-        
-        
+
+
         #file exists
         assert os.access(temp, os.F_OK)
         assert header == file_header
         assert line == file_line
-        
+
         os.remove(temp)
-        
+
     def test_store_parameters1(self):
-        """tests store in temporary file and other file 
+        """tests store in temporary file and other file
         """
-        
+
         from os import sep, getenv
-        
+
         output_dir=''
         file_name='details.csv'
-        
-        kwargs = {'file_name':'new2.txt',
-                  'output_dir':output_dir,
+
+        kwargs = {'output_dir':output_dir,
                   'file_name':file_name,
                   'who':'me',
                   'what':'detail',
@@ -122,7 +119,7 @@ class Test_csv(unittest.TestCase):
 #                  'completed':345
                   }
         store_parameters(verbose=False,**kwargs)
-        
+
         kwargs['how']=55
         kwargs['completed']=345
 
@@ -133,7 +130,7 @@ class Test_csv(unittest.TestCase):
         count=0
         #used the sorted keys to create the header and line data
         for k in keys:
-#            print "%s = %s" %(k, kwargs[k]) 
+#            print "%s = %s" %(k, kwargs[k])
             header = header+str(k)
             line = line+str(kwargs[k])
             count+=1
@@ -142,42 +139,40 @@ class Test_csv(unittest.TestCase):
                 line = line+','
         header+='\n'
         line+='\n'
-        
+
         kwargs['how']=55
         kwargs['completed']=345
-        
+
         store_parameters(verbose=False,**kwargs)
-        
+
 #        temp='detail_temp.csv'
-        fid = open(file_name)
-        file_header = fid.readline()
-        file_line1 = fid.readline()
-        file_line2 = fid.readline()
-        fid.close()
-        
-        
+        with open(file_name) as fid:
+            file_header = fid.readline()
+            file_line1 = fid.readline()
+            file_line2 = fid.readline()
+
+
         #file exists
 #        print 'header',header,'line',line
 #        print 'file_header',file_header,'file_line1',file_line1,'file_line2',file_line2
         assert os.access(file_name, os.F_OK)
         assert header == file_header
         assert line == file_line1
-        
+
         temp='detail_temp.csv'
         os.remove(temp)
-        os.remove(file_name)        
-        
+        os.remove(file_name)
+
     def test_store_parameters2(self):
         """tests appending the data to the end of an existing file
         """
-        
+
         from os import sep, getenv
-        
+
         output_dir=''
         file_name='details.csv'
-        
-        kwargs = {'file_name':'new2.txt',
-                  'output_dir':output_dir,
+
+        kwargs = {'output_dir':output_dir,
                   'file_name':file_name,
                   'who':'me',
                   'what':'detail',
@@ -186,12 +181,12 @@ class Test_csv(unittest.TestCase):
                   'completed':345
                   }
         store_parameters(verbose=False,**kwargs)
-        
+
         kwargs['how']=55
         kwargs['completed']=23.54532
-        
+
         store_parameters(verbose=False,**kwargs)
-        
+
         keys = list(kwargs.keys())
         keys.sort()
         line=''
@@ -199,7 +194,7 @@ class Test_csv(unittest.TestCase):
         count=0
         #used the sorted keys to create the header and line data
         for k in keys:
-#            print "%s = %s" %(k, kwargs[k]) 
+#            print "%s = %s" %(k, kwargs[k])
             header = header+str(k)
             line = line+str(kwargs[k])
             count+=1
@@ -208,37 +203,36 @@ class Test_csv(unittest.TestCase):
                 line = line+','
         header+='\n'
         line+='\n'
-        
-        fid = open(file_name)
-        file_header = fid.readline()
-        file_line1 = fid.readline()
-        file_line2 = fid.readline()
-        fid.close()
-        
+
+        with open(file_name) as fid:
+            file_header = fid.readline()
+            file_line1 = fid.readline()
+            file_line2 = fid.readline()
+
         assert os.access(file_name, os.F_OK)
         assert header == file_header
         assert line == file_line2
-        
-        os.remove(file_name)        
-        
 
-    
+        os.remove(file_name)
+
+
+
     def test_csv2polygons(self):
         """test loading of a csv polygon file.
         """
-        
-        path = get_pathname_from_package('anuga.shallow_water')                
-        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')                
 
-        polygons, values = load_csv_as_polygons(testfile, 
+        path = get_pathname_from_package('anuga.shallow_water')
+        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')
+
+        polygons, values = load_csv_as_polygons(testfile,
                                         value_name='floors')
 
         assert len(polygons) == 7, 'Must have seven polygons'
         assert len(values) == 7, 'Must have seven values'
-            
+
         # Known floor values
         floors = {'1': 2, '2': 0, '3': 1, '4': 2, '5': 0, '8': 1, '9': 1}
-        
+
         # Known polygon values
         known_polys = {'1': [[422681.61,871117.55],
                              [422691.02,871117.60],
@@ -285,14 +279,14 @@ class Test_csv(unittest.TestCase):
                              [422655.42,871208.85],
                              [422654.36,871211.68],
                              [422659.85,871213.80]]
-                       }        
-        
+                       }
 
-        
-                
+
+
+
         for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
             assert id in list(polygons.keys())
-            assert id in list(values.keys())            
+            assert id in list(values.keys())
 
             assert int(values[id]) == int(floors[id])
             assert len(polygons[id]) == len(known_polys[id])
@@ -303,20 +297,20 @@ class Test_csv(unittest.TestCase):
         """test_csv2polygons with optional clipping
         """
         #FIXME(Ole): Not Done!!
-        
-        path = get_pathname_from_package('anuga.shallow_water')                
-        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')                
 
-        polygons, values = load_csv_as_polygons(testfile, 
+        path = get_pathname_from_package('anuga.shallow_water')
+        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')
+
+        polygons, values = load_csv_as_polygons(testfile,
                                         value_name='floors',
                                         clipping_polygons=None)
 
         assert len(polygons) == 7, 'Must have seven polygons'
         assert len(values) == 7, 'Must have seven values'
-            
+
         # Known floor values
         floors = {'1': 2, '2': 0, '3': 1, '4': 2, '5': 0, '8': 1, '9': 1}
-        
+
         # Known polygon values
         known_polys = {'1': [[422681.61,871117.55],
                              [422691.02,871117.60],
@@ -363,40 +357,40 @@ class Test_csv(unittest.TestCase):
                              [422655.42,871208.85],
                              [422654.36,871211.68],
                              [422659.85,871213.80]]
-                       }        
-        
+                       }
 
-        
-                
+
+
+
         for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
             assert id in list(polygons.keys())
-            assert id in list(values.keys())            
+            assert id in list(values.keys())
 
             assert int(values[id]) == int(floors[id])
             assert len(polygons[id]) == len(known_polys[id])
             assert num.allclose(polygons[id], known_polys[id])
 
-            
+
     def test_csv2building_polygons(self):
         """test_csv2building_polygons
         """
-        
-        path = get_pathname_from_package('anuga.shallow_water')                
-        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')                
 
-        polygons, values = load_csv_as_building_polygons(testfile, 
+        path = get_pathname_from_package('anuga.shallow_water')
+        testfile = os.path.join(path, 'tests', 'data', 'polygon_values_example.csv')
+
+        polygons, values = load_csv_as_building_polygons(testfile,
                                                  floor_height=3)
 
         assert len(polygons) == 7, 'Must have seven polygons'
         assert len(values) == 7, 'Must have seven values'
-            
+
         # Known floor values
         floors = {'1': 6, '2': 0, '3': 3, '4': 6, '5': 0, '8': 3, '9': 3}
-        
-                
+
+
         for id in ['1', '2', '3', '4', '5' ,'8' ,'9']:
             assert id in list(polygons.keys())
-            assert id in list(values.keys())            
+            assert id in list(values.keys())
 
             assert float(values[id]) == float(floors[id])
 

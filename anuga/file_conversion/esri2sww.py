@@ -54,10 +54,10 @@ def esri2sww(bath_dir,
     from anuga.coordinate_transforms.redfearn import redfearn
 
     if sww_file[-4:] != '.sww':
-        raise IOError('Output file %s should be of type .sww.' % sww_file)
+        raise OSError('Output file %s should be of type .sww.' % sww_file)
 
     # So if we want to change the precision it's done here
-    precision = netcdf_float 
+    precision = netcdf_float
 
     # go in to the bath dir and load the only file,
     bath_files = os.listdir(bath_dir)
@@ -117,14 +117,14 @@ def esri2sww(bath_dir,
         times = [0.0]
 
     if verbose:
-        log.critical('------------------------------------------------')
-        log.critical('Statistics:')
-        log.critical('  Extent (lat/lon):')
-        log.critical('    lat in [%f, %f], len(lat) == %d'
+        log.info('------------------------------------------------')
+        log.info('Statistics:')
+        log.info('  Extent (lat/lon):')
+        log.info('    lat in [%f, %f], len(lat) == %d'
                      % (min(latitudes), max(latitudes), len(latitudes)))
-        log.critical('    lon in [%f, %f], len(lon) == %d'
+        log.info('    lon in [%f, %f], len(lon) == %d'
                      % (min(longitudes), max(longitudes), len(longitudes)))
-        log.critical('    t in [%f, %f], len(t) == %d'
+        log.info('    t in [%f, %f], len(t) == %d'
                      % (min(times), max(times), len(times)))
 
     ######### WRITE THE SWW FILE #############
@@ -178,7 +178,7 @@ def esri2sww(bath_dir,
     x = num.zeros(number_of_points, float)  #Easting
     y = num.zeros(number_of_points, float)  #Northing
 
-    if verbose: log.critical('Making triangular grid')
+    if verbose: log.info('Making triangular grid')
 
     #Get zone of 1st point.
     refzone, _, _ = redfearn(latitudes[0], longitudes[0])
@@ -221,14 +221,14 @@ def esri2sww(bath_dir,
     #geo_ref = Geo_reference(refzone, (max(x)+min(x))/2., (max(x)+min(y))/2.)
 
     if verbose:
-        log.critical('------------------------------------------------')
-        log.critical('More Statistics:')
-        log.critical('  Extent (/lon):')
-        log.critical('    x in [%f, %f], len(lat) == %d'
+        log.info('------------------------------------------------')
+        log.info('More Statistics:')
+        log.info('  Extent (/lon):')
+        log.info('    x in [%f, %f], len(lat) == %d'
                      % (min(x), max(x), len(x)))
-        log.critical('    y in [%f, %f], len(lon) == %d'
+        log.info('    y in [%f, %f], len(lon) == %d'
                      % (min(y), max(y), len(y)))
-        log.critical('geo_ref: ', geo_ref)
+        log.info('geo_ref: ', geo_ref)
 
     z = num.resize(bath_grid,outfile.variables['elevation'][:].shape)
     outfile.variables['x'][:] = x - geo_ref.get_xllcorner()
@@ -245,7 +245,7 @@ def esri2sww(bath_dir,
 
     outfile.variables['time'][:] = times   #Store time relative
 
-    if verbose: log.critical('Converting quantities')
+    if verbose: log.info('Converting quantities')
 
     n = number_of_times
     for j in range(number_of_times):
@@ -272,7 +272,7 @@ def esri2sww(bath_dir,
                 elevation_grid = elevation_grid*(missing==0) \
                                  + missing*elevation_NaN_filler
 
-        if verbose and j % ((n+10)//10) == 0: log.critical('  Doing %d of %d'
+        if verbose and j % ((n+10)//10) == 0: log.info('  Doing %d of %d'
                                                           % (j, n))
 
         i = 0
@@ -308,12 +308,12 @@ def _read_asc(filename, verbose=False):
 
     datafile = open(filename)
 
-    if verbose: log.critical('Reading DEM from %s' % filename)
+    if verbose: log.info('Reading DEM from %s' % filename)
 
     lines = datafile.readlines()
     datafile.close()
 
-    if verbose: log.critical('Got %d lines' % len(lines))
+    if verbose: log.info('Got %d lines' % len(lines))
 
     ncols = int(lines.pop(0).split()[1].strip())
     nrows = int(lines.pop(0).split()[1].strip())

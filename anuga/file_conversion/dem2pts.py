@@ -8,7 +8,7 @@ from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
 from .asc2dem import asc2dem
-                            
+
 
 def dem2pts(name_in, name_out=None,
             easting_min=None, easting_max=None,
@@ -71,20 +71,20 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     if name_in[-4:] == '.asc':
         intermediate = root + '.dem'
         if verbose:
-            log.critical('Preconvert %s from asc to %s' % \
+            log.info('Preconvert %s from asc to %s' % \
                                     (name_in, intermediate))
         asc2dem(name_in)
         name_in = intermediate
     elif name_in[-4:] != '.dem':
-        raise IOError('Input file %s should be of type .asc or .dem.' % name_in)
+        raise OSError('Input file %s should be of type .asc or .dem.' % name_in)
 
     if name_out != None and name_out[-4:] != '.pts':
-        raise IOError('Input file %s should be of type .pts.' % name_out)
+        raise OSError('Input file %s should be of type .pts.' % name_out)
 
     # Get NetCDF
-    infile = NetCDFFile(name_in, netcdf_mode_r) 
+    infile = NetCDFFile(name_in, netcdf_mode_r)
 
-    if verbose: log.critical('Reading DEM from %s' % (name_in))
+    if verbose: log.info('Reading DEM from %s' % (name_in))
 
     ncols = int(infile.ncols)
     nrows = int(infile.nrows)
@@ -115,7 +115,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     else:
         ptsname = name_out
 
-    if verbose: log.critical('Store to NetCDF file %s' % ptsname)
+    if verbose: log.info('Store to NetCDF file %s' % ptsname)
 
     # NetCDF file definition
     outfile = NetCDFFile(ptsname, netcdf_mode_w)
@@ -167,11 +167,11 @@ def _dem2pts(name_in, name_out=None, verbose=False,
     xx = xx.flatten()
     yy = yy.flatten()
 
-    
+
     flag = num.logical_and(num.logical_and((xx <= easting_max),(xx >= easting_min)),
                            num.logical_and((yy <= northing_max),(yy >= northing_min)))
 
-    
+
     dem = dem_elevation[:].flatten()
 
 
@@ -184,7 +184,7 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 
     clippednopoints = len(dem)
     #print clippedpoints
-    
+
     #print xx
     #print yy
     #print dem
@@ -203,10 +203,10 @@ def _dem2pts(name_in, name_out=None, verbose=False,
 
 
     if verbose:
-        log.critical('There are %d values in the elevation' % totalnopoints)
-        log.critical('There are %d values in the clipped elevation'
+        log.info('There are %d values in the elevation' % totalnopoints)
+        log.info('There are %d values in the clipped elevation'
                      % clippednopoints)
-        log.critical('There are %d NODATA_values in the clipped elevation' % nn)
+        log.info('There are %d NODATA_values in the clipped elevation' % nn)
 
     outfile.createDimension('number_of_points', nopoints)
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data

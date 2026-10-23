@@ -41,12 +41,12 @@ if myid == 0 and verbose:
     print(finalTime)
     print(yieldStep)
 
-if verbose: print('create mesh')
-elevation_in_mesh = False
-if myid == 0:
-    create_okushiri.create_mesh(elevation_in_mesh=elevation_in_mesh, verbose=verbose)
+# if verbose: print('create mesh')
+# elevation_in_mesh = False
+# if myid == 0:
+#     create_okushiri.create_mesh(elevation_in_mesh=elevation_in_mesh, verbose=verbose)
 
-barrier()
+# barrier()
 
 
 
@@ -61,11 +61,14 @@ log.log_filename = './run_okushiri.log'
 # Create Domain from mesh
 #-------------------------
 if myid == 0:
-    try:
-        domain = anuga.Domain(mesh_filename, use_cache=False, verbose=verbose)
-    except:
-        msg = 'ERROR reading in mesh file. Have you run create_okushiri.py?'
-        raise Exception(msg)
+
+    domain = create_okushiri.create_domain(elevation_in_domain=False, verbose=verbose)
+
+    # try:
+    #     domain = create_okushiri.create_domain(elevation_in_domain=True, verbose=verbose)
+    # except:
+    #     msg = 'ERROR reading in mesh file. Have you run create_okushiri.py?'
+    #     raise Exception(msg)
      
     if verbose: print(domain.statistics())
 
@@ -76,13 +79,13 @@ if myid == 0:
     domain.set_quantity('friction', 0.0025)
     domain.set_quantity('stage', 0.0)
     if verbose: print('set stage')
-    if elevation_in_mesh is False:
+#   if elevation_in_mesh is False:
 #         domain.set_quantity('elevation',
 #                         filename=bathymetry_filename_stem+'.pts', 
 #                         alpha=0.02,                    
 #                         verbose=verbose,
 #                         use_cache=False)
-        domain.set_quantity('elevation',
+    domain.set_quantity('elevation',
                         filename=bathymetry_filename_stem+'.asc',                   
                         verbose=verbose)
 
@@ -107,9 +110,25 @@ domain = distribute(domain)
 wave_function = anuga.file_function(boundary_filename,
                          domain, verbose=verbose)
 
-# Create and assign boundary objects
-Bts = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, wave_function)
-Br = anuga.Reflective_boundary(domain)
+# Boundary condition options (background_stage=0.0 = sea level at rest):
+#
+# Bchar: nonlinear characteristic BC (recommended).
+#        Prescribes incoming Riemann invariant from wave_function and
+#        extrapolates outgoing invariant from the interior.  Handles
+#        large-amplitude reflections from runup correctly without
+#        linearisation error.
+#
+# Babs:  active-absorption BC.  Ghost stage = 2*wave - stage_interior
+#        pins the face to wave(t) exactly.  Good for small-amplitude
+#        waves; less effective for large runup reflections.
+#
+# Bts:   transmissive set-stage BC.  Directly prescribes stage = wave(t)
+#        at the ghost cell and reflects returning waves back into the
+#        domain.  Physically correct for a servo-controlled wavemaker.
+Bts   = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, wave_function)
+# Bchar = anuga.Characteristic_wave_boundary(domain, wave_function, background_stage=0.0)
+# Babs  = anuga.Absorbing_wave_boundary(domain, wave_function)
+Br    = anuga.Reflective_boundary(domain)
 domain.set_boundary({'wave': Bts, 'wall': Br})
 
 #-------------------------------------------------------------------------

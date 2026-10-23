@@ -1,3 +1,4 @@
+import tempfile
 import anuga
 import os
 from anuga import Reflective_boundary
@@ -25,8 +26,8 @@ def create_domain(name='domain'):
     domain.set_flow_algorithm('DE0')
     domain.set_low_froude(0)
 
-    domain.set_name(name)  
-    domain.set_datadir('.')
+    domain.set_name(name)
+    domain.set_datadir(tempfile.mkdtemp())
 
     #------------------
     # Define topography
@@ -65,7 +66,7 @@ def create_domain(name='domain'):
     #print(dir(domain))
     return domain
 
-    
+
 
 
 

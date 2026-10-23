@@ -1,0 +1,30 @@
+# Van Rijn (1986b) "Mathematical modeling of suspended sediment in nonuniform
+# flows", J. Hydraul. Eng. 112(6), Figs. 16-17: initial bed of the three
+# Delft Hydraulics trench tests, as vertices of the trapezoidal profile.
+# x is the distance from station 1 of Fig. 17 (1.0 m upstream of the trench
+# lip), positive downstream; z is the bed level BELOW the flat flume bed, in
+# metres (Fig. 16 plots it positive downward). Flume 30 m x 0.5 m x 0.7 m;
+# upstream h0 = 0.39 m, u0 = 0.51 m/s; D50 = 160 um, D90 = 200 um; suspended
+# size 130 um, w_s = 0.013 m/s at 15 C; k_s = 0.025 m; equilibrium supply
+# 0.04 kg/s/m total = 0.03 suspended + 0.01 bedload.
+# Slopes: test 1 1:3, test 2 1:7, test 3 1:10. The trench depth and the
+# vertex positions were read from the 600 dpi scan of Fig. 16 (2026-09-22;
+# +-0.05 m in x, +-0.003 m in z); the Fig. 17 sketch gives test 1 as
+# 1.0 | 0.5 | 4.0 | 0.5 | 1.0 m with depth 0.175 m.
+# test, x, z
+1, 0.00, 0.000
+1, 1.00, 0.000
+1, 1.50, 0.175
+1, 5.50, 0.175
+1, 6.00, 0.000
+1, 11.00, 0.000
+2, 0.00, 0.000
+2, 1.20, 0.170
+2, 3.80, 0.170
+2, 5.00, 0.000
+2, 11.00, 0.000
+3, 0.00, 0.000
+3, 1.50, 0.150
+3, 4.50, 0.150
+3, 6.00, 0.000
+3, 11.00, 0.000

@@ -5,11 +5,8 @@
     extra boundary classes to do with this specific domain.
 """
 
-from numpy._pytesttester import PytestTester
-test = PytestTester(__name__)
-del PytestTester
 
 
 
 
- 
+

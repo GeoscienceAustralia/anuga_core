@@ -7,9 +7,6 @@ imported from this module
 
 
 
-from numpy._pytesttester import PytestTester
-test = PytestTester(__name__)
-del PytestTester
 
 
 from .parallel_api import distribute, distribute_basic_mesh, distribute_basic_mesh_collaborative

@@ -109,15 +109,15 @@ def make_spatially_averaged_function(q_function,
                 # poly_j can either be a polygon, or a filename
                 if type(poly_j) is str:
                     poly_j = su.read_polygon(poly_j)
-                
-                points_in_poly_j = inside_polygon(centroid_coordinates_georef, 
+
+                points_in_poly_j = inside_polygon(centroid_coordinates_georef,
                     poly_j)
-                
+
                 averaging_flag[points_in_poly_j] = 1
-                
+
         else:
             averaging_flag = 1 + 0*xc
-        
+
 
         for i in range(lx_div_cs):
             # Evaluate in triangles lb:ub
@@ -135,7 +135,7 @@ def make_spatially_averaged_function(q_function,
             for j in range(lb, ub):
                 # If we average this cell, then get a grid
                 # of points in it. Otherwise just get the centroid
-                # coordinates. 
+                # coordinates.
                 if averaging_flag[j] == 1:
                     mesh_tri = \
                         domain.mesh.vertex_coordinates[
@@ -180,9 +180,9 @@ def make_spatially_averaged_function(q_function,
 # Quick test
 if __name__ == '__main__':
     import anuga
-    
+
     domain = anuga.rectangular_cross_domain(10, 5, len1=10.0, len2=5.0)
-   
+
     # Define a topography function where the spatial scale of variation matches
     # the scale of a mesh triangle
     def topography(x, y):
@@ -191,19 +191,19 @@ if __name__ == '__main__':
     # Do 'averaging' where 2 <= y <= 3
     polygon_for_averaging = [ [[0.0, 2.0], [0.0, 3.0], [10.0, 3.0], [10.0, 2.0]] ]
 
-    topography_smooth = make_spatially_averaged_function(topography, domain, 
-        approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
+    topography_smooth = make_spatially_averaged_function(topography, domain,
+        approx_grid_spacing = [0.1, 0.1], averaging = 'min',
         polygons_for_averaging = polygon_for_averaging,
         verbose=False)
-    
+
     domain.set_quantity('elevation', topography_smooth, location='centroids') # Use function for elevation
 
     # Check that it worked
 
-    inpol = ((domain.centroid_coordinates[:,1] >= 2.0) * 
+    inpol = ((domain.centroid_coordinates[:,1] >= 2.0) *
          (domain.centroid_coordinates[:,1] <= 3.0)).nonzero()
 
-    outpol = ((domain.centroid_coordinates[:,1] <= 2.0) + 
+    outpol = ((domain.centroid_coordinates[:,1] <= 2.0) +
          (domain.centroid_coordinates[:,1] >= 3.0)).nonzero()
 
     elv = domain.quantities['elevation'].centroid_values
@@ -222,27 +222,27 @@ if __name__ == '__main__':
     else:
         print('FAIL')
 
-    # Another test which can catch index errors   
- 
-    topography_smooth2 = make_spatially_averaged_function(topography, domain, 
-        approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
+    # Another test which can catch index errors
+
+    topography_smooth2 = make_spatially_averaged_function(topography, domain,
+        approx_grid_spacing = [0.1, 0.1], averaging = 'min',
         verbose=False)
-    
+
     domain.set_quantity('elevation', topography_smooth2, location='centroids')
 
     # If we get to here, then the above function did not hit an index error.
-    print('PASS') 
-    
+    print('PASS')
 
-    # Another test which can catch index errors   
+
+    # Another test which can catch index errors
     # Make the polygon entirely outside of the domain!
     polygon_for_averaging3 = [ [[0.0, -2.0], [0.0, -3.0], [10.0, -3.0], [10.0, -2.0]] ]
-    topography_smooth3 = make_spatially_averaged_function(topography, domain, 
-        approx_grid_spacing = [0.1, 0.1], averaging = 'min', 
+    topography_smooth3 = make_spatially_averaged_function(topography, domain,
+        approx_grid_spacing = [0.1, 0.1], averaging = 'min',
         verbose=False)
-    
+
     domain.set_quantity('elevation', topography_smooth3, location='centroids')
-    
+
     # If we get to here, then the above function did not hit an index error.
-    print('PASS') 
-    
+    print('PASS')
+

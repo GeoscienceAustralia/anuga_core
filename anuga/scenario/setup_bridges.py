@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 """
 
-Setup bridges (using hecras internal boundary rating curves)  
+Setup bridges (using hecras internal boundary rating curves)
 
 Gareth Davies, Geoscience Australia 2014+
 
@@ -17,9 +17,9 @@ from anuga.utilities import spatialInputUtil as su
 from anuga.parallel import myid, numprocs, barrier, finalize
 from anuga.parallel.parallel_api import pypar_available
 if pypar_available:
-    from anuga.parallel.parallel_operator_factory import Internal_boundary_operator 
+    from anuga.parallel.parallel_operator_factory import Internal_boundary_operator
 else:
-    from anuga.structures.internal_boundary_operator import Internal_boundary_operator 
+    from anuga.structures.internal_boundary_operator import Internal_boundary_operator
 from anuga.structures.internal_boundary_functions import hecras_internal_boundary_function
 
 def setup_bridges(domain, project):

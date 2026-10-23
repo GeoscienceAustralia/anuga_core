@@ -1,0 +1,21 @@
+# anuga_sww_gui configuration
+
+[render]
+qty = "stage"
+vmin = 0.0
+vmax = 0.08
+cmap = "Blues"
+cmap_reverse = false
+mindepth = 0.001
+flat_view = false
+
+[generate]
+outdir = "_plot"
+dpi = 100
+stride = 2
+alpha = 1.0
+basemap = false
+basemap_provider = "OpenStreetMap"
+
+[file]
+sww = "/home/steve/anuga_core/validation_tests/experimental_data/okushiri/okushiri_auto_validation.sww"

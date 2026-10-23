@@ -33,7 +33,7 @@ def compare_meshes(mesh_1, mesh_2):
     for k in mesh_1.tagged_elements:
         num.testing.assert_array_equal(mesh_1.tagged_elements[k], mesh_2.tagged_elements[k])
 
-    
+
     num.testing.assert_allclose(mesh_1.number_of_triangles_per_node, mesh_2.number_of_triangles_per_node)
     num.testing.assert_allclose(mesh_1.node_index, mesh_2.node_index)
 
@@ -51,7 +51,7 @@ def compare_meshes(mesh_1, mesh_2):
     mesh_2_triangle_set = get_triangle_set(mesh_2)
 
     assert mesh_1_triangle_set == mesh_2_triangle_set
-  
+
     num.testing.assert_allclose(mesh_1.neighbours, mesh_2.neighbours)
     num.testing.assert_allclose(mesh_1.neighbour_edges, mesh_2.neighbour_edges)
     num.testing.assert_allclose(mesh_1.number_of_boundaries, mesh_2.number_of_boundaries)
@@ -66,7 +66,7 @@ def compare_meshes(mesh_1, mesh_2):
     num.testing.assert_allclose(mesh_1.centroid_coordinates, mesh_2.centroid_coordinates)
     num.testing.assert_allclose(mesh_1.radii, mesh_2.radii)
 
-    
+
 
 class Test_Mesh_Reorder(unittest.TestCase):
     def setUp(self):
@@ -80,7 +80,7 @@ class Test_Mesh_Reorder(unittest.TestCase):
         """test_reorder(self):
 
         Check that reordering works
-        
+
         """
 
         # Build test mesh
@@ -108,10 +108,10 @@ class Test_Mesh_Reorder(unittest.TestCase):
 
         tagged_elements = {"south" : [0,2]}
 
-        mesh = Mesh(nodes, triangles, 
-                    boundary = boundary, 
+        mesh = Mesh(nodes, triangles,
+                    boundary = boundary,
                     tagged_elements=tagged_elements)
-        
+
         new_order = [2, 3, 0, 1]   # new_index = new_order[old_index]
 
         new_nodes = array([[0., 0.],
@@ -137,8 +137,8 @@ class Test_Mesh_Reorder(unittest.TestCase):
 
 
         # Create a new_mesh with correctly reordered input
-        new_mesh = Mesh(new_nodes, new_triangles, 
-                        boundary = new_boundary, 
+        new_mesh = Mesh(new_nodes, new_triangles,
+                        boundary = new_boundary,
                         tagged_elements=tagged_elements)
 
 
@@ -153,7 +153,7 @@ class Test_Mesh_Reorder(unittest.TestCase):
         """test_reorder(self):
 
         Check that reordering works
-        
+
         """
 
         # Build test mesh
@@ -162,7 +162,7 @@ class Test_Mesh_Reorder(unittest.TestCase):
 
         nodes, triangles, boundary = rectangular(2,3, 2,3)
 
-        tagged_elements = {"south" : [1,0,7,6], 
+        tagged_elements = {"south" : [1,0,7,6],
                            "north" : [5,4,11,10]}
 
         mesh = Mesh(nodes, triangles, boundary, tagged_elements=tagged_elements)
@@ -189,8 +189,8 @@ class Test_Mesh_Reorder(unittest.TestCase):
         #new_boundary = dict(sorted(new_boundary.items()))
 
         # Create a new_mesh with reordered input
-        new_mesh = Mesh(new_nodes, new_triangles, 
-                        boundary = new_boundary, 
+        new_mesh = Mesh(new_nodes, new_triangles,
+                        boundary = new_boundary,
                         tagged_elements=new_tagged_elements)
 
         # from original mesh create a reordered mesh
@@ -248,7 +248,7 @@ class Test_Mesh_Reorder(unittest.TestCase):
 
     # def test_reorder_larger_16_16(self):
     #     """Test larger mesh which failed in sequential_dist example
-        
+
     #     """
 
     #     # Build test mesh
@@ -256,7 +256,7 @@ class Test_Mesh_Reorder(unittest.TestCase):
     #     from anuga import rectangular_cross_domain
 
     #     N = 29
-    #     M = 29 
+    #     M = 29
     #     verbose = True
 
     #     domain = rectangular_cross_domain(N, M, 1.0, 1.0, verbose=verbose)

@@ -63,7 +63,7 @@ def parse_ogr_info_text(ogr_info, tag_attribute):
 
                 if ogr_info[i + counter].startswith(tag_match):
                     feature_tag = ogr_info[i + counter].split(' = ')[1]
-       
+
             # We now have feature_tag
 
             # Get the coordinates. They will start with '  LINESTRING ('
@@ -105,8 +105,8 @@ def get_boundary_tags_from_ogrinfo(shapefile_name,
 
     Get the boundary tags geometry information out of ogrinfo
 
-    This is a 'fall-back' routine to be used if the user has
-    an incompatible python gdal interface
+    This is a 'fall-back' routine used when fiona is unavailable.
+    Requires the ogrinfo CLI tool (from the GDAL utilities package).
 
     """
 
@@ -235,9 +235,9 @@ def read_boundary_tags_line_shapefile(shapefile_name,
 
                 if i == boundary_segnum - 2:
                     # The first and last points should match
-                    x_agree = numpy.allclose(bounding_polygon[0][0], 
+                    x_agree = numpy.allclose(bounding_polygon[0][0],
                                              bounding_polygon[-1][0])
-                    y_agree = numpy.allclose(bounding_polygon[0][1], 
+                    y_agree = numpy.allclose(bounding_polygon[0][1],
                                              bounding_polygon[-1][1])
                     if not (x_agree and y_agree):
                         msg = 'The first and last points of the bounding ' + \

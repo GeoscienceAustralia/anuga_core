@@ -1,0 +1,67 @@
+
+\section{A migrating bed hump under bedload}
+
+The classic Exner test of Hudson and Sweby~\cite{HudsonSweby2003}: a
+frictionless channel 1000~m long carries a uniform subcritical flow,
+10~m deep at 1~m/s ($q = 10$~m$^2$/s, $Fr = 0.1$), held by Dirichlet
+boundaries at both ends, over a flat bed at $z = 0.1$~m with a hump
+$z = 0.1 + \sin^2(\pi(x-300)/200)$ on $300 \le x \le 500$~m. Bedload
+follows Grass's law $q_b = A_g u^3$ with $A_g = 0.01$, the bed moves by its
+divergence with porosity $\lambda = 0.4$, and the inflow and outflow are
+open to bedload so that the flat reaches at either end are steady. Grass is
+total load, so nothing is in suspension.
+
+The hump is low against the depth and the Froude number small, so the free
+surface and the discharge barely change over it; holding both fixed,
+$u = q/(w - z)$ and Exner reduces to a scalar conservation law in $z$
+whose solution is carried along characteristics,
+\begin{equation}
+z\big(x_0 + c(z_0(x_0))\, t,\; t\big) = z_0(x_0), \qquad
+c(z) = \frac{3 A_g q^3}{(1-\lambda)(w - z)^4} ,
+\end{equation}
+faster the higher the bed: the hump migrates downstream ($c = 8$~mm/s at
+the crest, 5~mm/s on the flat) and its front steepens until the crest
+overtakes the toe and a shock forms, at $t = 22\,600$~s here. The run
+stops at half that time, while the solution is smooth. The frozen free
+surface is the only approximation in the reference; it dips by
+1~cm over the hump against a depth of 9~m and enters $c$ through
+$(w-z)^4$, so the reference is good to about half a percent.
+
+The case checks the Grass law, the bedload divergence and its bed update,
+the open bedload boundaries (without them the inflow cell exports bedload
+it never receives and digs a hole that travels downstream), and that the
+bed volume is conserved: the flux in at the inflow equals the flux out at
+the outflow over the same flat bed. The bed is compared with the
+characteristic solution cell by cell at the end of the run, as an $L^1$
+error relative to the hump volume, together with the crest position.
+
+The bedload edge flux is first order (centred with Rusanov dissipation
+scaled by the bed-wave speed), so the steepening front is smoothed: the
+$L^1$ error is 9.9\% of the hump volume at 10~m cells and 5.5\% at the 5~m
+cells used here, with the crest within a cell of the reference. This case
+is what showed that the earlier bare centred flux was unstable, growing a
+scour hole at the upstream toe and an overshoot at the crest.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_plot.png}
+\end{center}
+\caption{Bed elevation at the start, the middle and the end of the run,
+every cell, against the characteristic solution.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_error_plot.png}
+\end{center}
+\caption{Bed error at the end of the run.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{stage_plot.png}
+\end{center}
+\caption{Free surface at the end of the run.}
+\end{figure}
+
+\endinput

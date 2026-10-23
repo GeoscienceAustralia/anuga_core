@@ -95,11 +95,11 @@ def import_mesh_file(ofile):
             dict = _read_msh_file(ofile)
         else:
             msg = 'Extension .%s is unknown' % ofile[-4:]
-            raise IOError(msg)
+            raise OSError(msg)
     # FIXME No test for ValueError
     except (TitleError, SyntaxError, IndexError, ValueError):
         msg = 'File %s could not be opened' % ofile
-        raise IOError(msg)
+        raise OSError(msg)
 
     return dict
 
@@ -137,13 +137,13 @@ def export_mesh_file(ofile, mesh_dict):
         _write_msh_file(ofile, mesh_dict)
     else:
         msg = 'Unknown file type %s ' % ofile
-        raise IOError(msg)
+        raise OSError(msg)
 
 
 def _read_tsh_file(ofile):
     """Read the text file format for meshes"""
 
-    fd = open(ofile, 'r')
+    fd = open(ofile)
     dict = _read_triangulation(fd)
     dict_mesh = _read_outline(fd)
     for element in list(dict_mesh.keys()):
@@ -566,7 +566,7 @@ def _write_ASCII_outline(fd, dict):
         fd.write(str(i) + ' ' + area + '\n')
 
     # geo_reference info
-    if 'geo_reference' in dict and not dict['geo_reference'] is None:
+    if 'geo_reference' in dict and dict['geo_reference'] is not None:
         dict['geo_reference'].write_ASCII(fd)
 
 
@@ -632,7 +632,7 @@ def _write_msh_file(file_name, mesh):
     # NetCDF file definition
     try:
         outfile = NetCDFFile(file_name, netcdf_mode_w)
-    except IOError:
+    except OSError:
         msg = 'File %s could not be created' % file_name
         raise Exception(msg)
 
@@ -770,7 +770,7 @@ def _write_msh_file(file_name, mesh):
             outfile.variables['region_tags'][:] = mesh['region_tags']
 
     # geo_reference info
-    if 'geo_reference' in mesh and not mesh['geo_reference'] is None:
+    if 'geo_reference' in mesh and mesh['geo_reference'] is not None:
         mesh['geo_reference'].write_NetCDF(outfile)
 
     outfile.close()
@@ -780,7 +780,7 @@ def _read_msh_file(file_name):
     """ Read in an msh file."""
 
     # Check contents.  Get NetCDF
-    fd = open(file_name, 'r')
+    fd = open(file_name)
     fd.close()
 
     # throws prints to screen if file not present
@@ -818,7 +818,7 @@ def _read_msh_file(file_name):
     except KeyError:
         for ob in mesh['segments']:
             mesh['segment_tags'].append('')
-            
+
     try:
         mesh['triangles'] = fid.variables['triangles'][:]
         mesh['triangle_neighbors'] = fid.variables['triangle_neighbors'][:]
@@ -886,7 +886,7 @@ def _read_msh_file(file_name):
         mesh['region_max_areas'] = fid.variables['region_max_areas'][:]
     except KeyError:
         mesh['region_max_areas'] = num.array([], int)  # array default#
-        
+
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
         mesh['geo_reference'] = geo_reference
@@ -977,7 +977,7 @@ def reduce_pts(infile, outfile, max_points, verbose=False):
 
     while point_atts['pointlist'].shape[0] > max_points:
         if verbose:
-            log.critical("point_atts['pointlist'].shape[0]")
+            log.info("point_atts['pointlist'].shape[0]")
         point_atts = half_pts(point_atts)
 
     export_points_file(outfile, point_atts)
@@ -989,13 +989,13 @@ def produce_half_point_files(infile, max_points, delimiter, verbose=False):
     outfiles = []
 
     if verbose:
-        log.critical("# of points", point_atts['pointlist'].shape[0])
+        log.info("# of points", point_atts['pointlist'].shape[0])
 
     while point_atts['pointlist'].shape[0] > max_points:
         point_atts = half_pts(point_atts)
 
         if verbose:
-            log.critical("# of points = %s"
+            log.info("# of points = %s"
                          % str(point_atts['pointlist'].shape[0]))
 
         outfile = root + delimiter + \

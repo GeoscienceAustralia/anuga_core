@@ -19,7 +19,7 @@ from anuga.parallel.sequential_distribute import sequential_distribute_load_pick
 from os.path import join
 
 
-class Simulation(object):
+class Simulation:
 
     def __init__(self,
                  argument_adder=None,
@@ -122,7 +122,7 @@ class Simulation(object):
         # --------------------------------------------------
         domain.sww_merge()
 
-        
+
         finalize()
 
     def _setup_original_domain(self, np=None):
@@ -272,13 +272,10 @@ def parse_args_and_parameters(argument_adder=None, from_commandline=False, **kwa
 
         # Make variables in project.py into a dictionary
         project_dict = vars(project)
-        del project_dict['__builtins__']
-        del project_dict['__doc__']
-        del project_dict['__file__']
-        del project_dict['__name__']
-        del project_dict['__package__']
-        del project_dict['join']
-    except KeyError:
+        for _k in ('__builtins__', '__doc__', '__file__',
+                   '__name__', '__package__', 'join'):
+            project_dict.pop(_k, None)
+    except (ImportError, KeyError):
         project_dict = {}
 
     # add any benchmark-specific arguments

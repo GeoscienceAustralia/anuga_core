@@ -22,13 +22,13 @@ extensions_to_ignore += ['.tex', '.sty', '.cls', '.bib', '.def', '.fig']
 # Ignore pdf and doc documents
 extensions_to_ignore += ['.pdf', '.doc', '.eps', '.ps']
 
-# Ignore generated stuff 
+# Ignore generated stuff
 extensions_to_ignore += ['.pyc', '.o', '.so', '~']
 extensions_to_ignore += ['.aux', '.log', '.idx', 'ilg', '.ind',
                          '.bbl', '.blg', '.syn', '.toc']
 
 # Ignore license files themselves
-extensions_to_ignore += ['.lic']    
+extensions_to_ignore += ['.lic']
 
 
 # Ignore certain other files,
@@ -48,6 +48,6 @@ def IP_verified(directory, verbose=False):
                        extensions_to_ignore,
                        directories_to_ignore,
                        files_to_ignore,
-                       verbose=verbose)    
+                       verbose=verbose)
     return result
-    
+

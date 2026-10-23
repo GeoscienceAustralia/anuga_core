@@ -281,7 +281,7 @@ import time
 for t in domain.evolve(yieldstep=project.yieldstep,
                        finaltime=project.finaltime):
 
-    log.critical(domain.timestepping_statistics())
+    if myid == 0 and verbose: log.critical(domain.timestepping_statistics())
     #log.critical(domain.boundary_statistics(tags='ocean'))
 
 

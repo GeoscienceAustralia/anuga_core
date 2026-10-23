@@ -1,5 +1,4 @@
-""" This module is responsible for loading and saving NetCDF NC files
-"""
+"""Read and write NetCDF NC files (netCDF4 only)."""
 import numpy as num
 
 from anuga.coordinate_transforms.redfearn import \
@@ -8,7 +7,7 @@ from anuga.config import minimum_storable_height as \
      default_minimum_storable_height
 from anuga.config import netcdf_mode_r, netcdf_mode_w
 from anuga.config import netcdf_float, netcdf_int
-from anuga.utilities.numerical_tools import ensure_numeric,  mean
+from anuga.utilities.numerical_tools import ensure_numeric, mean
 
 import anuga.utilities.log as log
 
@@ -17,66 +16,32 @@ import anuga.utilities.log as log
 lon_name = 'LON'
 lat_name = 'LAT'
 time_name = 'TIME'
-precision = netcdf_float # So if we want to change the precision its done here
-
+precision = netcdf_float
 
 
 def NetCDFFile(file_name, netcdf_mode=netcdf_mode_r):
-    """Wrapper to isolate changes of the netcdf libray.
+    """Return a netCDF4 Dataset handle for *file_name*.
 
-    In theory we should be able to change over to NetCDF4 via this
-    wrapper, by ensuring the interface to the NetCDF library isthe same as the
-    the old Scientific.IO.NetCDF library.
+    Parameters
+    ----------
+    file_name : str
+        Path to the NetCDF file.
+    netcdf_mode : str
+        Open mode: ``'r'`` (read), ``'w'`` (write), ``'a'`` (append), or the
+        legacy alias ``'wl'`` which maps to write mode with NETCDF3_64BIT format.
 
-    There is a difference between extracting dimensions. We have used the following
-    to cover netcdf4 and scientific python
-
-    try: # works with netcdf4
-        number_of_timesteps = len(fid.dimensions['number_of_timesteps'])
-        number_of_points = len(fid.dimensions['number_of_points'])
-    except (TypeError, AttributeError): # works with Scientific.IO.NetCDF
-        number_of_timesteps = fid.dimensions['number_of_timesteps']
-        number_of_points = fid.dimensions['number_of_points']
-    
+    Returns
+    -------
+    netCDF4.Dataset
     """
-   
-    using_scientific = using_netcdf4 = False
-    
-    try:
-        from netCDF4 import Dataset
-        using_netcdf4 = True
-    except ImportError: 
-        from Scientific.IO.NetCDF import NetCDFFile
-        using_scientific = True
-
-    assert using_scientific or using_netcdf4
-
-    if using_scientific:
-        return NetCDFFile(file_name, netcdf_mode)
-
-    if using_netcdf4:
-        if netcdf_mode == 'wl' :
-            return Dataset(file_name, 'w', format='NETCDF3_64BIT')
-        else:
-            return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
+    from netCDF4 import Dataset
+    if netcdf_mode == 'wl':
+        return Dataset(file_name, 'w', format='NETCDF3_64BIT')
+    return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
 
 
 
-#    from netCDF4 import Dataset
-#    return Dataset(file_name, netcdf_mode, format='NETCDF3_64BIT')
-
-    #return Dataset(file_name, netcdf_mode, format='NETCDF3_CLASSIC')
-
-
-    # COMMENT SR; Can't use scipy.io.netcdf as we can't append to
-    # a file as of 2013/03/26
-    #from scipy.io.netcdf import netcdf_file
-    #return netcdf_file(file_name, netcdf_mode, version=2)
-
-
-
-
-class Write_nc(object):
+class Write_nc:
     """Write an nc file.
 
     Note, this should be checked to meet cdc netcdf conventions for gridded
@@ -111,7 +76,6 @@ class Write_nc(object):
 
         self.quantity_multiplier =  multiplier_dic[self.quantity_name]
 
-        #self.file_name = file_name
         self.time_step_count = time_step_count
         self.time_step = time_step
 
@@ -132,11 +96,6 @@ class Write_nc(object):
         outfile.variables[self.quantity_name].missing_value = -1.e+034
         outfile.variables[self.quantity_name].units = \
                                  quantity_units[self.quantity_name]
-        outfile.variables[lon_name][:]= ensure_numeric(lon)
-        outfile.variables[lat_name][:]= ensure_numeric(lat)
-
-        #Assume no one will be wanting to read this, while we are writing
-        #outfile.close()
 
     def store_timestep(self, quantity_slice):
         """Write a time slice of quantity info
@@ -148,11 +107,11 @@ class Write_nc(object):
         time = self.outfile.variables[time_name]
         quantity = self.outfile.variables[self.quantity_name]
 
-        # get index oflice to write
+        # get index of slice to write
         i = len(time)
 
         #Store time
-        time[i] = i * self.time_step    #self.domain.time
+        time[i] = i * self.time_step
         quantity[i,:] = quantity_slice * self.quantity_multiplier
 
     def close(self):
@@ -176,9 +135,6 @@ def write_elevation_nc(file_out, lon, lat, depth_vector):
     outfile.variables[zname].units = 'CENTIMETERS'
     outfile.variables[zname].missing_value = -1.e+034
 
-    outfile.variables[lon_name][:] = ensure_numeric(lon)
-    outfile.variables[lat_name][:] = ensure_numeric(lat)
-
     depth = num.reshape(depth_vector, (len(lat), len(lon)))
     outfile.variables[zname][:] = depth
 
@@ -201,65 +157,11 @@ def nc_lon_lat_header(outfile, lon, lat):
     outfile.createVariable(lon_name, precision, (lon_name,))
     outfile.variables[lon_name].point_spacing = 'uneven'
     outfile.variables[lon_name].units = 'degrees_east'
-    outfile.variables[lon_name].assignValue(lon)
+    outfile.variables[lon_name][:] = ensure_numeric(lon)
 
     # Latitude
     outfile.createDimension(lat_name, len(lat))
     outfile.createVariable(lat_name, precision, (lat_name,))
     outfile.variables[lat_name].point_spacing = 'uneven'
     outfile.variables[lat_name].units = 'degrees_north'
-    outfile.variables[lat_name].assignValue(lat)
-
-
-
-
-def filter_netcdf(filename1, filename2, first=0, last=None, step=1):
-    """Filter data file, selecting timesteps first:step:last.
-    
-    Read netcdf filename1, pick timesteps first:step:last and save to
-    nettcdf file filename2
-    """
-
-    from Scientific.IO.NetCDF import NetCDFFile
-
-    # Get NetCDF
-    infile = NetCDFFile(filename1, netcdf_mode_r)  #Open existing file for read
-    outfile = NetCDFFile(filename2, netcdf_mode_w)  #Open new file
-
-    # Copy dimensions
-    for d in infile.dimensions:
-        outfile.createDimension(d, infile.dimensions[d])
-
-    # Copy variable definitions
-    for name in infile.variables:
-        var = infile.variables[name]
-        outfile.createVariable(name, var.dtype.char, var.dimensions)
-
-    # Copy the static variables
-    for name in infile.variables:
-        if name == 'time' or name == 'stage':
-            pass
-        else:
-            outfile.variables[name][:] = infile.variables[name][:]
-
-    # Copy selected timesteps
-    time = infile.variables['time']
-    stage = infile.variables['stage']
-
-    newtime = outfile.variables['time']
-    newstage = outfile.variables['stage']
-
-    if last is None:
-        last = len(time)
-
-    selection = list(range(first, last, step))
-    for i, j in enumerate(selection):
-        log.critical('Copying timestep %d of %d (%f)'
-                     % (j, last-first, time[j]))
-        newtime[i] = time[j]
-        newstage[i,:] = stage[j,:]
-
-    # Close
-    infile.close()
-    outfile.close()
-
+    outfile.variables[lat_name][:] = ensure_numeric(lat)

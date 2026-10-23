@@ -24,7 +24,7 @@ class Set_elevation(Set_quantity):
     Helper class to setup calculation of elevation
     associated with a region (defined by indices, polygon or center/radius
     """
-    
+
     set_elevation = Set_quantity.set_value
 
 
@@ -114,8 +114,8 @@ class Set_elevation(Set_quantity):
         #------------------------------------------
         # Apply changes to elevation vertex values
         # via the update_quantites routine
-        # Assume vertex values updated and need to 
-        # fix up centroid values unless 
+        # Assume vertex values updated and need to
+        # fix up centroid values unless
         # domain.get_discontinuous_elevation is true
         #------------------------------------------
         if not self.update_quantities():
@@ -146,14 +146,14 @@ class Set_elevation(Set_quantity):
             # Make elevation continuous and clean up
             # stage values to ensure conservation
             #--------------------------------------
-            
+
             if self.domain.get_using_discontinuous_elevation():
                 pass
             else:
                 height_c = self.stage_c[self.vols] - self.elev_c[self.vols]
                 for nid in self.node_ids:
                     non = self.domain.number_of_triangles_per_node[nid]
-    
+
                     vid = num.arange(self.node_index[nid], self.node_index[nid+1], dtype=int)
                     vidd = self.domain.vertex_value_indices[vid]
 
@@ -164,17 +164,17 @@ class Set_elevation(Set_quantity):
                     res = num.sum(self.elev_v[vidd // 3, vidd % 3]) / non
                     self.elev_v[vidd // 3, vidd % 3] = res
 
-                    
-                    
+
+
                 #--------------------------------------
                 # clean up the centroid values and edge values
                 #--------------------------------------
                 self.elev_c[self.vols] = num.mean(self.elev_v[self.vols],axis=1)
-    
+
                 self.elev_e[self.vols,0] = 0.5*(self.elev_v[self.vols,1]+ self.elev_v[self.vols,2])
                 self.elev_e[self.vols,1] = 0.5*(self.elev_v[self.vols,2]+ self.elev_v[self.vols,0])
                 self.elev_e[self.vols,2] = 0.5*(self.elev_v[self.vols,0]+ self.elev_v[self.vols,1])
-    
+
                 self.stage_c[self.vols] = self.elev_c[self.vols] +  height_c
 
 
@@ -203,18 +203,18 @@ class Set_elevation(Set_quantity):
             else:
             #--------------------------------------
             # Update all three vertices for each cell
-            #--------------------------------------            
+            #--------------------------------------
                 try:
                     value = self.get_value(self.v_x, self.v_y)
                     self.elev_v[:] = value
                 except ValueError:
                     updated = False
                     pass
-     
+
         #----------------------------------
         # Apply just to indices
         #----------------------------------
-        else: 
+        else:
 
             if self.domain.get_using_discontinuous_elevation():
                 ids = self.indices
@@ -261,7 +261,7 @@ class Set_elevation(Set_quantity):
             return
 
 
-        
+
         node_ids = set()
 
         for ind in self.indices:

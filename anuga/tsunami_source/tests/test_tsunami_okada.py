@@ -31,15 +31,15 @@ class Test_eq(unittest.TestCase):
         """
         # Get path where this test is run
         path = get_pathname_from_package('anuga.tsunami_source')
-        
+
         # Choose what test to proceed
         T = 1
-        
+
 
         if T==0:
-            # Fortran output file            
+            # Fortran output file
             filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SP.txt'
-            
+
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -53,9 +53,9 @@ class Test_eq(unittest.TestCase):
             ns=1
             NSMAX=1
         elif T==1:
-            # Fortran output file        
+            # Fortran output file
             filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SS.txt'
-            
+
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -68,12 +68,12 @@ class Test_eq(unittest.TestCase):
             rake =90.0
             ns=1
             NSMAX=1
-            
+
         elif T==2:
 
             # Fortran output file
             filename = path+sep+'tests'+sep+'data'+sep+'fullokada_MS.txt'
-            
+
             # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
             y0 = [10000.0,7000.0]
@@ -91,7 +91,7 @@ class Test_eq(unittest.TestCase):
 
         # Get output file from original okada fortran script.
         # Vertical displacement is listed under tmp.
-        polyline_file=open(filename,'r')
+        polyline_file=open(filename)
         lines=polyline_file.readlines()
         polyline_file.close()
         tmp=[]
@@ -101,10 +101,10 @@ class Test_eq(unittest.TestCase):
             z=float(field[2])
             tmp.append(z)
 
-        
 
-                
-        #create domain 
+
+
+        #create domain
         dx = dy = 4000
         l=100000
         w=100000
@@ -117,10 +117,10 @@ class Test_eq(unittest.TestCase):
         #print int(w/dy)
         points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
                                                len1=l, len2=w)
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('test')
         domain.set_quantity('elevation',topography)
-        
+
         #create variable with elevation data to implement in okada
         zrec0 = Quantity(domain)
         zrec0.set_values(0.0)
@@ -154,7 +154,7 @@ class Test_eq(unittest.TestCase):
         #print tmp
         #print 'hello',stage
         assert num.allclose(stage,tmp,atol=1.e-3)
-        
+
     def test_earthquake_tsunami(self):
         from os import sep, getenv
         import sys
@@ -170,14 +170,14 @@ class Test_eq(unittest.TestCase):
 
         # Get path where this test is run
         path= get_pathname_from_package('anuga.tsunami_source')
-        
+
         # Choose what test to proceed
         T=1
 
         if T==0:
             # Fortran output file
             filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SP.txt'
-            
+
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -193,7 +193,7 @@ class Test_eq(unittest.TestCase):
         elif T==1:
             # Fortran output file
             filename = path+sep+'tests'+sep+'data'+sep+'fullokada_SS.txt'
-            
+
             # Initial condition of earthquake for multiple source
             x0 = 7000.0
             y0 = 10000.0
@@ -206,12 +206,12 @@ class Test_eq(unittest.TestCase):
             rake =90.0
             ns=1
             NSMAX=1
-            
+
         elif T==2:
 
             # Fortran output file
             filename = path+sep+'tests'+sep+'data'+sep+'fullokada_MS.txt'
-            
+
             # Initial condition of earthquake for multiple source
             x0 = [7000.0,10000.0]
             y0 = [10000.0,7000.0]
@@ -229,7 +229,7 @@ class Test_eq(unittest.TestCase):
 
         # Get output file from original okada fortran script.
         # Vertical displacement is listed under tmp.
-        polyline_file=open(filename,'r')
+        polyline_file=open(filename)
         lines=polyline_file.readlines()
         polyline_file.close()
         tmp=[]
@@ -239,26 +239,26 @@ class Test_eq(unittest.TestCase):
             z=float(field[2])
             tmp.append(z)
 
-         
-        # Create domain 
+
+        # Create domain
         dx = dy = 4000
         l=20000
         w=20000
-        
+
         # Create topography
         def topography(x,y):
             el=-1000
             return el
-        
+
         points, vertices, boundary = rectangular_cross(int(l/dx), int(w/dy),
                                                len1=l, len2=w)
-        domain = Domain(points, vertices, boundary)   
+        domain = Domain(points, vertices, boundary)
         domain.set_name('test')
         domain.set_quantity('elevation',topography)
         Ts = earthquake_tsunami(ns=ns,NSMAX=NSMAX,length=length, width=width, strike=strike,\
                                 depth=depth,dip=dip, xi=x0, yi=y0,z0=0, slip=slip, rake=rake,\
                                 domain=domain, verbose=False)
-        
+
         # Create a variable to store vertical displacement throughout the domain
         tsunami = Quantity(domain)
         tsunami.set_values(Ts)
@@ -295,7 +295,7 @@ class Test_eq(unittest.TestCase):
                    # Displacement in fortran code is looking downward
         #print 'c est fini'
         #print tmp
-        #print 'hello',stage   
+        #print 'hello',stage
         assert num.allclose(stage,tmp,atol=1.e-3)
 
 #-------------------------------------------------------------

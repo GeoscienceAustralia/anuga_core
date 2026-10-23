@@ -6,6 +6,27 @@ __date__= '2020/06/08'
 
 from pprint import pprint
 
+
+def _world_to_pixel(affine_transform, xs, ys):
+    """Pixel (column, row) for world coordinates, as floats.
+
+    The obvious spelling is ``~affine_transform * (xs, ys)``, but newer
+    versions of the `affine` package emit
+
+        PendingDeprecationWarning: Use `@` matmul instead of `*` mul
+        operator for matrix multiplication
+
+    for that, and `@` is Affine-times-Affine only -- it does not take a pair
+    of coordinate arrays, so the suggested replacement does not apply to a
+    point transform. Doing the arithmetic here is exactly what the operator's
+    point branch does, works on every version of affine, and keeps the float
+    result the caller truncates itself.
+    """
+    inv = ~affine_transform
+    return (inv.a * xs + inv.b * ys + inv.c,
+            inv.d * xs + inv.e * ys + inv.f)
+
+
 def tif2point_values(filename, zone=None, south=True, points=None, verbose=False):
 
     import numpy as np
@@ -52,7 +73,8 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
         points_lat = np.asarray(_lat)
         points_lon = np.asarray(_lon)
 
-        ilocs = np.array(~affine_transform * (points_lon, points_lat))
+        ilocs = np.array(_world_to_pixel(affine_transform,
+                                        points_lon, points_lat))
 
     elif not south:
         zone = int(zone)
@@ -61,7 +83,8 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
             tif_epsg == str(nad83_utm_north.get(zone))
         )
         if same_utm:
-            ilocs = np.array(~affine_transform * (points[:, 0], points[:, 1]))
+            ilocs = np.array(_world_to_pixel(affine_transform,
+                                            points[:, 0], points[:, 1]))
         else:
             raise Exception("zone and hemisphere of tif not the same as zone and hemisphere of points")
 
@@ -69,7 +92,8 @@ def tif2point_values(filename, zone=None, south=True, points=None, verbose=False
         zone = int(zone)
         same_utm = tif_epsg == str(wgs84_utm_south.get(zone))
         if same_utm:
-            ilocs = np.array(~affine_transform * (points[:, 0], points[:, 1]))
+            ilocs = np.array(_world_to_pixel(affine_transform,
+                                            points[:, 0], points[:, 1]))
         else:
             raise Exception("zone and hemisphere of tif not the same as zone and hemisphere of points")
 

@@ -23,9 +23,28 @@ u(x)= \left[- n^{-2} q^{4/3} z_x\right]^{3/10},
 h(x)= \frac{q}{u}\,.
 \end{equation}
 
-\subsection{Results}
-For our test, we consider a square dimensional domain with length and width 100. We take $q=0.2$, $n=0.03$, and $z_x=-0.1$.
-The topography is
+\subsection{Stability of the uniform flow: roll waves}
+The steady uniform flow is not always stable. When the Froude number
+$F = u/\sqrt{gh}$ exceeds a threshold -- $3/2$ for Manning friction, $2$ for
+Ch\'ezy friction -- small disturbances grow as they travel down the slope and
+form \emph{roll waves}: a train of bores separated by thin, fast
+flow~\cite{Dressler1949}. The growth is physical, not numerical, so a scheme
+that holds the uniform state in this regime is too dissipative rather than
+more accurate. Reducing the CFL number, or using a more diffusive scheme,
+delays the onset of roll waves without removing them.
+
+We therefore run two cases with the same discharge $q=0.2$ and bed slope
+$z_x=-0.1$:
+\begin{itemize}
+\item a \emph{stable} case with $n=0.06$, so that $u=1.424$, $h=0.1405$ and
+  $F=1.21$, on a $100 \times 100$ domain. The numerical solution should
+  reproduce the analytical one;
+\item a \emph{roll-wave} case with $n=0.03$, so that $u=2.158$, $h=0.0927$ and
+  $F=2.26$, on a channel $200$ long and $20$ wide. The uniform flow is
+  unstable here, and the numerical solution should depart from it
+  downstream.
+\end{itemize}
+Both use a $2$ m grid of cross-triangulated squares. The topography is
 \begin{equation}
 z(x, y)= -0.1 x\,.
 \end{equation}
@@ -33,29 +52,39 @@ The initial condition is $u=v=0$ and
 \begin{equation}
 w(x,y,0)= -0.1 x + 0.01\,.
 \end{equation}
+The upstream boundary imposes the analytical depth and discharge, the
+downstream boundary is transmissive and the sides are reflective walls.
+In the roll-wave case the inflow discharge carries a small disturbance,
+\begin{equation}
+q_{\mathrm{in}}(t) = q \left(1 + 0.01 \sin \frac{2\pi t}{3.3}\right),
+\end{equation}
+so that every flow algorithm is given the same seed. Without it, a scheme that
+settles to an exact discrete steady state has nothing to amplify and shows no
+roll waves, however weakly it damps them; the outcome would then depend on
+whether the scheme happens to generate its own unsteadiness rather than on
+how it treats the instability.
 
+\subsection{Results: stable case}
+Figure~\ref{fig:depthdownchan} shows the steady state depth in the downstream direction.
+There should be a good agreement with the analytical solution, at least away from the boundaries.
 
-Some simulation results are as follows.
-Figures~\ref{fig:depthdownchan} shows the steady state depth in the downstream direction. 
-There should be a good agreement with the analytical solution, at least away from the boundaries. 
+Figure~\ref{fig:depthacrosschan} shows the steady state depth across the slope around the line x = 50m.
+There should be a good agreement with the analytical solution, at least away from the boundaries.
 
-Figures~\ref{fig:depthacrosschan} shows the steady state depth across the slope around the line x = 50m. 
-There should be a good agreement with the analytical solution, at least away from the boundaries. 
-
-Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady state $x$- and $y$-velocities, along a slice in the cross slope direction (near $x=50$). The $x$-velocities should agree well with the analytical solution, and the $y$-velocities should be zero. 
+Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady state $x$- and $y$-velocities, along a slice in the cross slope direction (near $x=50$). The $x$-velocities should agree well with the analytical solution, and the $y$-velocities should be zero.
 
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.8\textwidth]{depth_x.png}
-\caption{Depth in the downstream direction}
+\caption{Stable case: depth in the downstream direction}
 \label{fig:depthdownchan}
 \end{center}
 \end{figure}
- 
+
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.8\textwidth]{depth_y.png}
-\caption{Depth across the slope around $x$ = 50m}
+\caption{Stable case: depth across the slope around $x$ = 50m}
 \label{fig:depthacrosschan}
 \end{center}
 \end{figure}
@@ -63,7 +92,7 @@ Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady sta
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.8\textwidth]{x_velocity.png}
-\caption{$x$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
+\caption{Stable case: $x$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
 \label{fig:xvelscrosschan}
 \end{center}
 \end{figure}
@@ -71,8 +100,82 @@ Figures~\ref{fig:xvelscrosschan} and~\ref{fig:yvelscroschan} show the steady sta
 \begin{figure}
 \begin{center}
 \includegraphics[width=0.8\textwidth]{y_velocity.png}
-\caption{$y$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
+\caption{Stable case: $y$-velocity along the cross-section $x=50$ (i.e. a cross-section with constant bed elevation)}
 \label{fig:yvelscroschan}
+\end{center}
+\end{figure}
+
+\subsection{Results: roll-wave case}
+There is no steady solution to compare with here. What we look for is the
+behaviour of the instability: the flow should stay close to uniform near the
+inflow, where the 1\% disturbance is small; the disturbance should then grow
+exponentially with distance down the slope; and it should saturate into roll
+waves of finite amplitude.
+
+Figure~\ref{fig:rollwavedepth} shows the depth along the centreline at the
+end of the run, and its range over the last quarter of the run.
+Figure~\ref{fig:rollwaveamp} shows half that range relative to the uniform
+depth: a straight line on the logarithmic scale is exponential growth, and
+the plateau is saturation. Figure~\ref{fig:rollwavext} shows the centreline
+depth in space and time over the last 30 s of the run, which is stored every
+0.5 s: each diagonal stripe is one roll wave travelling down the slope.
+
+The flow is supercritical, so both characteristics point downstream and the
+transmissive outflow boundary cannot influence where the waves start. Their
+onset is set by the size of the inflow disturbance and the rate at which it
+grows.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{rollwave_depth_x.png}
+\caption{Roll-wave case: depth along the centreline, at the final time and its range over the last quarter of the run}
+\label{fig:rollwavedepth}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{rollwave_amplitude.png}
+\caption{Roll-wave case: amplitude of the depth fluctuation down the slope, relative to the uniform depth}
+\label{fig:rollwaveamp}
+\end{center}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.8\textwidth]{rollwave_xt.png}
+\caption{Roll-wave case: centreline depth relative to the uniform depth, in space and time, over the last 30 s}
+\label{fig:rollwavext}
+\end{center}
+\end{figure}
+
+
+\FloatBarrier
+\subsection{Comparison of flow algorithms}
+The roll-wave case is run with each flow algorithm (DE0, DE1, DE2 and
+DE\_ader2, at their default settings) by \texttt{compare\_solvers.py}. All of
+them hold the stable case, so this is where they differ. The physical growth
+is the same for every scheme, so differences in where the disturbance reaches
+a given amplitude measure the scheme's numerical damping.
+Figure~\ref{fig:rollwavesolvers} compares the growth of the wave amplitude,
+and Figure~\ref{fig:rollwavesolversxt} the centreline depth in space and
+time over the last 30 s. The second-order schemes should grow the disturbance at nearly the same
+rate. DE0, with first-order timestepping and limiter $\beta = 0.5$, is
+expected to damp it much more strongly.
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=0.8\textwidth]{rollwave_solvers.png}
+\caption{Roll-wave case: growth of the wave amplitude down the slope for each flow algorithm}
+\label{fig:rollwavesolvers}
+\end{center}
+\end{figure}
+
+\begin{figure}[htb]
+\begin{center}
+\includegraphics[width=\textwidth]{rollwave_solvers_xt.png}
+\caption{Roll-wave case: centreline depth relative to the uniform depth, in space and time over the last 30 s, for each flow algorithm}
+\label{fig:rollwavesolversxt}
 \end{center}
 \end{figure}
 

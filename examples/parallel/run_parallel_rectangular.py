@@ -90,6 +90,15 @@ parser.add_argument('-ve', '--evolve_verbose', action='store_true', help='turn o
 parser.add_argument('-ps', '--partition_scheme', type=str, default='metis',
                     help='set partition scheme in [metis, morton, hilbert]')
 
+parser.add_argument('-ro', '--reorder', type=str, default='none',
+                    choices=['none', 'hilbert', 'morton', 'rcm', 'metis', 'metis_hilbert', 'metis_rcm'],
+                    help='reorder triangles for cache locality before evolving '
+                         '(none, hilbert, morton, rcm, metis, metis_hilbert, metis_rcm)')
+
+parser.add_argument('-rn', '--reorder_nprocs', type=int, default=None,
+                    help='number of Metis partitions for metis/metis_hilbert/metis_rcm reordering '
+                         '(defaults to OMP_NUM_THREADS if not set)')
+
 args = parser.parse_args()
 
 if myid == 0: print(args)
@@ -103,6 +112,7 @@ evolve_verbose = args.evolve_verbose
 fixed_flux_timestep = args.fixed_dt
 test_allreduce = args.test_allreduce
 store_sww = args.store_sww
+reorder_method = args.reorder
 
 dist_params = {}
 dist_params['ghost_layer_width'] = args.ghost_layer
@@ -199,6 +209,15 @@ if myid == 0 :
     
 if myid == 0 : print ('After parallel domain')
 
+#-------------------------------------------------------------------------
+# Reorder triangles within each rank for cache locality (optional)
+#-------------------------------------------------------------------------
+if reorder_method != 'none':
+    if myid == 0:
+        print('REORDERING DOMAIN using %s' % reorder_method)
+    anuga.reorder_domain(domain, method=reorder_method,
+                         n_procs=args.reorder_nprocs, verbose=verbose)
+
 #Boundaries
 T = Transmissive_boundary(domain)
 R = Reflective_boundary(domain)
@@ -223,6 +242,9 @@ t0 = time.time()
 
 # nvtx marker
 #rng = nvtx.start_range(message="rect_exam_evolve_time", color="blue")
+if myid == 0 :
+    anuga.print_domain_memory_stats(domain)
+    #anuga.print_domain_struct_stats(domain)
 
 #===========================================================================
 # Main Evolve Loop
@@ -240,6 +262,10 @@ evolve_time = time.time()-t0
 
 if myid == 0 :
     print ('Evolve: Time',evolve_time)
+
+if myid == 0 :
+    anuga.print_domain_memory_stats(domain)
+    #anuga.print_domain_struct_stats(domain)
 
 if evolve_verbose:
     for p in range(numprocs):

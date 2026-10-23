@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 import unittest
 import tempfile
-import os, sys
+import os
+import sys
 import time
 import csv
 
@@ -53,7 +54,8 @@ class Test_inundation_damage(unittest.TestCase):
 
 
         #have  a big area covered.
-        mesh_file = tempfile.mktemp(".tsh")
+        fd, mesh_file = tempfile.mkstemp(".tsh")
+        os.close(fd)
         points_lat_long = [[-33,152],[-35,152],[-35,150],[-33,150]]
         spat = Geospatial_data(data_points=points_lat_long,
                                points_are_lats_longs=True)
@@ -123,7 +125,8 @@ class Test_inundation_damage(unittest.TestCase):
         self.sww = sww # so it can be deleted
 
         #Create another sww file
-        mesh_file = tempfile.mktemp(".tsh")
+        fd, mesh_file = tempfile.mkstemp(".tsh")
+        os.close(fd)
         points_lat_long = [[-35,152],[-36,152],[-36,150],[-35,150]]
         spat = Geospatial_data(data_points=points_lat_long,
                                points_are_lats_longs=True)
@@ -194,7 +197,8 @@ class Test_inundation_damage(unittest.TestCase):
 
         # print "sww.filename", sww.filename
         #Create a csv file
-        self.csv_file = tempfile.mktemp(".csv")
+        fd, self.csv_file = tempfile.mkstemp(".csv")
+        os.close(fd)
         fd = open(self.csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['LONGITUDE','LATITUDE',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
@@ -204,7 +208,8 @@ class Test_inundation_damage(unittest.TestCase):
         fd.close()
 
         #Create a csv file
-        self.csv_fileII = tempfile.mktemp(".csv")
+        fd, self.csv_fileII = tempfile.mkstemp(".csv")
+        os.close(fd)
         fd = open(self.csv_fileII,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['LONGITUDE','LATITUDE',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
@@ -250,7 +255,8 @@ class Test_inundation_damage(unittest.TestCase):
     def test_inundation_damage2(self):
 
         # create mesh
-        mesh_file = tempfile.mktemp(".tsh")
+        fd, mesh_file = tempfile.mkstemp(".tsh")
+        os.close(fd)
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Pmesh()
         m.add_vertices(points)
@@ -293,7 +299,8 @@ class Test_inundation_damage(unittest.TestCase):
         sww.store_timestep()
 
         #Create a csv file
-        csv_file = tempfile.mktemp(".csv")
+        fd, csv_file = tempfile.mkstemp(".csv")
+        os.close(fd)
         fd = open(csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x', 'y', STR_VALUE_LABEL, CONT_VALUE_LABEL, \
@@ -323,7 +330,8 @@ class Test_inundation_damage(unittest.TestCase):
     def test_inundation_damage_list(self):
 
         # create mesh
-        mesh_file = tempfile.mktemp(".tsh")
+        fd, mesh_file = tempfile.mkstemp(".tsh")
+        os.close(fd)
         points = [[0.0,0.0],[6.0,0.0],[6.0,6.0],[0.0,6.0]]
         m = Pmesh()
         m.add_vertices(points)
@@ -366,7 +374,8 @@ class Test_inundation_damage(unittest.TestCase):
         sww.store_timestep()
 
         #Create a csv file
-        csv_file = tempfile.mktemp(".csv")
+        fd, csv_file = tempfile.mkstemp(".csv")
+        os.close(fd)
         fd = open(csv_file,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
@@ -377,7 +386,8 @@ class Test_inundation_damage(unittest.TestCase):
         fd.close()
 
         extension = ".csv"
-        csv_fileII = tempfile.mktemp(extension)
+        fd, csv_fileII = tempfile.mkstemp(extension)
+        os.close(fd)
         fd = open(csv_fileII,'w',newline="")
         writer = csv.writer(fd)
         writer.writerow(['x','y',STR_VALUE_LABEL,CONT_VALUE_LABEL,'ROOF_TYPE',WALL_TYPE_LABEL, SHORE_DIST_LABEL])
@@ -426,7 +436,8 @@ class Test_inundation_damage(unittest.TestCase):
         sww_file = self.domain.get_name() + "." + self.domain.format
         #print "sww_file",sww_file
 
-        out_csv = tempfile.mktemp(".csv")
+        fd, out_csv = tempfile.mkstemp(".csv")
+        os.close(fd)
         #print("out_csv",out_csv)
         add_depth_and_momentum2csv(sww_file, self.csv_file,
                                    out_csv, verbose=False)

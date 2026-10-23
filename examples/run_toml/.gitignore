@@ -1,0 +1,9 @@
+# Run artifacts produced by anuga_toml_run
+__pycache__/
+OUTPUT/
+PARTITIONS/
+SPATIAL_TEXT/
+*.sww
+*.tsh
+*.msh
+*.log

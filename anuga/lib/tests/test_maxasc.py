@@ -28,7 +28,7 @@ def FilesEqual(file1, file2):
     """
     Compare two ASC files for equality.
     """
-    
+
     def alltrue(a, b):
         return a and b
 
@@ -40,12 +40,12 @@ def FilesEqual(file1, file2):
                 print()
         print()
         print()
-    
+
     # get both files into memory
-    fd = open(file1, 'r')
+    fd = open(file1)
     data1 = fd.readlines()
     fd.close()
-    fd = open(file2, 'r')
+    fd = open(file2)
     data2 = fd.readlines()
     fd.close()
 
@@ -53,7 +53,7 @@ def FilesEqual(file1, file2):
     if len(data1) != len(data2):
         print('# lines differs: len(data1)=%d, len(data2)=%d' % (len(data1), len(data2)))
         return False
-    
+
     # read header lines, check identical
     for i in range(HEADER_SIZE):
         if data1[i] != data2[i]:
@@ -75,14 +75,14 @@ def FilesEqual(file1, file2):
         fd2 = [float(value) for value in d2]
 
         vec = list(map(lambda a,b: a==b, fd1, fd2))
-        
+
         if not reduce(lambda a,b: a and b, vec):
             print('line number = %d (out of %d)' % (line_num, len(data1)))
             do_list('fd1', fd1)
             do_list('fd2', fd2)
             do_list('vec', vec)
             return False
-    
+
     return True
 
 

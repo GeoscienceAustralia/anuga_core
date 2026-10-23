@@ -49,9 +49,9 @@ class Test_csv2sts(unittest.TestCase):
 12 -13.
 """)
         fid.close()
-                  
+
     def tearDown(self):
-        """ Cleanup for all tests. """     
+        """ Cleanup for all tests. """
         os.remove(testfile_csv)
 
     def test_missing_input_file(self):
@@ -59,13 +59,13 @@ class Test_csv2sts(unittest.TestCase):
         Test that a missing csv file raises the correct exception.
         """
         got_except = False
-        
+
         try:
             csv2sts('somename_not_here.csv', sts_out, 10, 20)
-        except IOError as e:
+        except OSError as e:
             got_except = True
         except Exception:
-            assert False, 'Missing file raised wrong exception.'
+            raise AssertionError('Missing file raised wrong exception.')
 
         assert got_except is True, 'Missing file did not raise an exception.'
 
@@ -75,7 +75,7 @@ class Test_csv2sts(unittest.TestCase):
         """
         csv2sts(testfile_csv, sts_out, latitude = lat, longitude = lon)
         self._check_generated_sts()
-        
+
     @pytest.mark.slow
     def test_run_via_commandline(self):
         """
@@ -86,10 +86,10 @@ class Test_csv2sts(unittest.TestCase):
         path = os.path.dirname( os.path.realpath( __file__ ) )
 
         path = get_pathname_from_package( 'anuga.file_conversion' )
-        
-        cmd = sys.executable + ' ' + os.path.join( path, 'csv2sts.py') + ' --latitude ' 
+
+        cmd = sys.executable + ' ' + os.path.join( path, 'csv2sts.py') + ' --latitude '
         cmd += '%s --lon %s %s %s' % (str(lat), str(lon), testfile_csv, sts_out)
-        
+
         os.system(cmd)
 
         #print(os.getcwd() + "\n")
@@ -101,14 +101,14 @@ class Test_csv2sts(unittest.TestCase):
     def _check_generated_sts(self):
         """ check that we can read data out of the file """
         sts = NetCDFFile(sts_out,'r')
-        
+
         data, names = load_csv_as_dict(testfile_csv, delimiter=' ', d_type = num.float64)
-        
+
         assert sts.latitude == lat, 'latitude does not match'
         assert sts.longitude == lon, 'longitude does not match'
-        
+
         assert len(sts.variables) == len(data), 'num variables does not match'
-        
+
         # make sure data is returned in exactly the expected format
         for key, values in list(data.items()):
             assert list(sts.variables[key][:]) == values, \
@@ -116,7 +116,7 @@ class Test_csv2sts(unittest.TestCase):
 
         if not sys.platform == 'win32':
             # Windows cannot delete the file for some reason.
-            os.remove(sts_out)           
+            os.remove(sts_out)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_csv2sts)

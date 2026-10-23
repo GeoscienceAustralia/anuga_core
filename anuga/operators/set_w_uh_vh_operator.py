@@ -38,6 +38,7 @@ class Set_w_uh_vh_operator(Operator, Region):
     def __init__(self,
                  domain,
                  w_uh_vh=None,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -50,6 +51,13 @@ class Set_w_uh_vh_operator(Operator, Region):
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
+        if region is not None:
+            # A ready-made anuga.Region: take its triangles
+            if any(x is not None for x in (indices, polygon, center, radius)):
+                raise ValueError('%s: cannot specify both a Region object and '
+                                 'polygon/center/radius/indices -- the Region '
+                                 'already encodes location' % type(self).__name__)
+            indices = region.get_indices(full_only=False)
         Region.__init__(self, domain,
                         indices=indices,
                         polygon=polygon,
@@ -59,7 +67,7 @@ class Set_w_uh_vh_operator(Operator, Region):
 
         #print self.indices
         self.set_w_uh_vh(w_uh_vh)
-        
+
         #------------------------------------------
         # Local variables
         #------------------------------------------
@@ -85,7 +93,7 @@ class Set_w_uh_vh_operator(Operator, Region):
             return
 
         if self.verbose is True:
-            log.critical('w_uh_vh of %s at time = %.2f = %f'
+            log.info('w_uh_vh of %s at time = %.2f = %f'
                          % (self.quantity_name, self.domain.get_time(), w_uh_vh[0]))
 
         if self.indices is None:
@@ -108,7 +116,7 @@ class Set_w_uh_vh_operator(Operator, Region):
         elif self.w_uh_vh_type == 'scalar':
             self.w_uh_vh = float(self.w_uh_vh)
 
-        
+
     def get_w_uh_vh(self, x = None, y = None, t = None):
         """Get w_uh_vh value at time t.
         If t not specified, return value at current domain time
@@ -122,7 +130,7 @@ class Set_w_uh_vh_operator(Operator, Region):
             t = self.domain.get_time()
 
         #print  self.w_uh_vh_type
-        
+
         #try:
         if self.w_uh_vh_type == 't':
             w_uh_vh = self.w_uh_vh(t)

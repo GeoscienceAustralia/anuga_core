@@ -53,7 +53,7 @@ void get_tri_extent(double *vertices, PTR_EXTENT out)
 
 void get_tri_vertices( double *x, double *y,\
 			anuga_int *volumes, \
-			anuga_int tri_id, \
+			int tri_id, \
 			double *out, \
 			double *v1,  \
 			double *v2,  \
@@ -81,7 +81,7 @@ void get_tri_vertices( double *x, double *y,\
 	}
 }
 
-void get_tri_norms( double *norms, anuga_int tri_id, 
+void get_tri_norms( double *norms, int tri_id, 
 		       double *n1, double *n2, double *n3)
 {
 	n1[0] = norms[tri_id*6];
@@ -94,7 +94,7 @@ void get_tri_norms( double *norms, anuga_int tri_id,
 
 void init_norms( double *x, double *y, double *norms, anuga_int *volumes, anuga_int num_tri  )
 {
-	anuga_int i;
+	int i;
 	double x1, x2, x3, y1, y2, y3;
 	double xn1, yn1, xn2, yn2, xn3, yn3;
 	double l1, l2, l3;
@@ -137,12 +137,6 @@ void init_norms( double *x, double *y, double *norms, anuga_int *volumes, anuga_
 		norms[i*6+5] = -xn3;
 	}
 
-}
-
-// remove nodes that are not in any triangles
-void remove_lone_verts( double **verts, anuga_int *volumes )
-{
-	
 }
 
 anuga_int _point_on_line(double x, double y,

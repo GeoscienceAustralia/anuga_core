@@ -58,17 +58,17 @@ def earthquake_tsunami(ns, NSMAX, length, width, strike, depth,
             y0[i] = y0[i] - yllcorner
     # a few temporary print statements
     if verbose is True:
-        log.critical('\nThe Earthquake ...')
-        log.critical('\tns: %s' % str(ns))
-        log.critical('\tNSMAX: %s' % str(NSMAX))
-        log.critical('\tLength: %s' % str(length))
-        log.critical('\tDepth: %s' % str(depth))
-        log.critical('\tStrike: %s' % str(strike))
-        log.critical('\tWidth: %s' % str(width))
-        log.critical('\tDip: %s' % str(dip))
-        log.critical('\tSlip: %s' % str(slip))
-        log.critical('\tx0: %s' % str(x0))
-        log.critical('\ty0: %s' % str(y0))
+        log.info('\nThe Earthquake ...')
+        log.info('\tns: %s' % str(ns))
+        log.info('\tNSMAX: %s' % str(NSMAX))
+        log.info('\tLength: %s' % str(length))
+        log.info('\tDepth: %s' % str(depth))
+        log.info('\tStrike: %s' % str(strike))
+        log.info('\tWidth: %s' % str(width))
+        log.info('\tDip: %s' % str(dip))
+        log.info('\tSlip: %s' % str(slip))
+        log.info('\tx0: %s' % str(x0))
+        log.info('\ty0: %s' % str(y0))
 
     # warning state
 #    test = width*1000.0*sin(radians(dip)) - depth
@@ -108,7 +108,7 @@ Optional
 """
 
 
-class Okada_func(object):
+class Okada_func:
 
     def __init__(self, ns, NSMAX, length, width, dip, x0, y0, strike,
                  depth, slip, rake, zrec):
@@ -180,7 +180,7 @@ class Okada_func(object):
         dips[:] = dip
         xs[:] = x0
         ys[:] = y0
-        
+
 
         # double Gaussian calculation assumes water displacement is oriented
         # E-W, so, for displacement at some angle alpha clockwise from the E-W
@@ -261,7 +261,7 @@ class Okada_func(object):
                     UZZ = self.UZZ
                     IRET = self.IRET
                     if IRET == 1:
-                        log.critical('There is a problem in Okada subroutine!')
+                        log.info('There is a problem in Okada subroutine!')
                         break
                 else:
                     #	        finite source
@@ -1019,7 +1019,7 @@ class Okada_func(object):
 
 # -----
         if Z > 0:
-            log.critical('** POSITIVE Z WAS GIVEN IN SUB-DC3D')
+            log.info('** POSITIVE Z WAS GIVEN IN SUB-DC3D')
 
         for I in range(0, 12):
             U[I] = F0

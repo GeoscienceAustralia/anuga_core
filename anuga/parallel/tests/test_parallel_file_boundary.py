@@ -6,7 +6,7 @@
    mpiexec -np m python run_parallel_sw_merimbula.py
 
    where m is the number of processors to be used.
-   
+
    Will produce sww files with names domain_Pn_m.sww where m is number of processors and
    n in [0, m-1] refers to specific processor that owned this part of the partitioned mesh.
 """
@@ -32,7 +32,7 @@ import copy
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.utilities.util_ext        import double_precision
 from anuga.utilities.norms           import l1_norm, l2_norm, linf_norm
-	
+
 from anuga import Domain
 from anuga import Reflective_boundary
 from anuga import Dirichlet_boundary
@@ -67,7 +67,7 @@ class Test_urs2sts_parallel(Test_Mux):
         These tests are quite coarse-grained: converting a file
         and checking that its headers and some of its contents
         are correct.
-    """ 
+    """
 
     def sequential_time_varying_file_boundary_sts(self):
         """sequential_ltest_time_varying_file_boundary_sts_sequential(self):
@@ -116,7 +116,7 @@ class Test_urs2sts_parallel(Test_Mux):
             d=","
             order_file=order_base_name+'order.txt'
             fid=open(order_file,'w')
-        
+
             # Write Header
             header='index, longitude, latitude\n'
             fid.write(header)
@@ -158,7 +158,7 @@ class Test_urs2sts_parallel(Test_Mux):
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
         boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
-        
+
         # have to change boundary tags from last example because now bounding
         # polygon starts in different place.
         if myid==0:
@@ -170,7 +170,7 @@ class Test_urs2sts_parallel(Test_Mux):
                                      verbose=verbose)
 
         barrier()
-        
+
         domain_fbound = Domain(meshname)
         domain_fbound.set_quantities_to_be_stored(None)
         domain_fbound.set_quantity('stage', tide)
@@ -185,12 +185,12 @@ class Test_urs2sts_parallel(Test_Mux):
         temp_fbound=num.zeros(int(finaltime/yieldstep)+1,float)
         if verbose: print("Evolving domain with file boundary condition")
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
-                                                   finaltime=finaltime, 
+                                                   finaltime=finaltime,
                                                    skip_initial_step = False)):
             temp_fbound[i]=domain_fbound.quantities['stage'].centroid_values[2]
             if verbose: domain_fbound.write_time()
-            
-        
+
+
         domain_drchlt = Domain(meshname)
         domain_drchlt.set_quantities_to_be_stored(None)
         domain_drchlt.set_starttime(time_step)
@@ -201,37 +201,37 @@ class Test_urs2sts_parallel(Test_Mux):
         #Bd = Time_boundary(domain=domain_drchlt,f=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
         temp_drchlt=num.zeros(int(finaltime/yieldstep)+1,float)
-        
+
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
-                                                   finaltime=finaltime, 
+                                                   finaltime=finaltime,
                                                    skip_initial_step = False)):
             temp_drchlt[i]=domain_drchlt.quantities['stage'].centroid_values[2]
             #domain_drchlt.write_time()
-        
+
         #print domain_fbound.quantities['stage'].vertex_values
         #print domain_drchlt.quantities['stage'].vertex_values
-                    
+
         assert num.allclose(temp_fbound,temp_drchlt),temp_fbound-temp_drchlt
 
-        
+
         assert num.allclose(domain_fbound.quantities['stage'].vertex_values,
                             domain_drchlt.quantities['stage'].vertex_values)
-                        
+
         assert num.allclose(domain_fbound.quantities['xmomentum'].vertex_values,
-                            domain_drchlt.quantities['xmomentum'].vertex_values)                        
-                        
+                            domain_drchlt.quantities['xmomentum'].vertex_values)
+
         assert num.allclose(domain_fbound.quantities['ymomentum'].vertex_values,
                             domain_drchlt.quantities['ymomentum'].vertex_values)
-        
+
         if not sys.platform == 'win32':
             if myid==0: os.remove(sts_file+'.sts')
-        
+
         if myid==0: os.remove(meshname)
 
     def parallel_time_varying_file_boundary_sts(self):
         """ parallel_test_time_varying_file_boundary_sts_sequential(self):
-            Read correct points from ordering file and apply sts to boundary. 
-            The boundary is time varying. Compares sequential result with 
+            Read correct points from ordering file and apply sts to boundary.
+            The boundary is time varying. Compares sequential result with
             distributed result found using anuga_parallel
         """
 
@@ -282,7 +282,7 @@ class Test_urs2sts_parallel(Test_Mux):
             d=","
             order_file=order_base_name+'order.txt'
             fid=open(order_file,'w')
-        
+
             # Write Header
             header='index, longitude, latitude\n'
             fid.write(header)
@@ -328,7 +328,7 @@ class Test_urs2sts_parallel(Test_Mux):
         meshname = 'urs_test_mesh' + '.tsh'
         interior_regions=None
         boundary_tags={'ocean': [0,1], 'otherocean': [2,3,4]}
-        
+
         #------------------------------------------------------------
         # Create mesh on the master processor and store in file. This file
         # is read in by each slave processor when needed
@@ -340,7 +340,7 @@ class Test_urs2sts_parallel(Test_Mux):
                                      filename=meshname,
                                      interior_regions=interior_regions,
                                      verbose=verbose)
-        
+
 
             # barrier()
             domain_fbound = Domain(meshname)
@@ -351,19 +351,19 @@ class Test_urs2sts_parallel(Test_Mux):
             domain_fbound=None
 
         barrier()
-        if ( verbose and myid == 0 ): 
+        if ( verbose and myid == 0 ):
             print('DISTRIBUTING PARALLEL DOMAIN')
         domain_fbound = distribute(domain_fbound)
 
         #--------------------------------------------------------------------
-        # Find which sub_domain in which the interpolation points are located 
+        # Find which sub_domain in which the interpolation points are located
         #
         # Sometimes the interpolation points sit exactly
         # between two centroids, so in the parallel run we
         # reset the interpolation points to the centroids
         # found in the sequential run
         #--------------------------------------------------------------------
-        interpolation_points = [[279000,664000], [280250,664130], 
+        interpolation_points = [[279000,664000], [280250,664130],
                                     [279280,665400], [280500,665000]]
 
         interpolation_points=num.array(interpolation_points)
@@ -385,7 +385,7 @@ class Test_urs2sts_parallel(Test_Mux):
                 if domain_fbound.tri_full_flag[k] == 1:
                     fbound_proc_tri_ids.append(k)
                 else:
-                    fbound_proc_tri_ids.append(-1)            
+                    fbound_proc_tri_ids.append(-1)
             except Exception:
                 fbound_proc_tri_ids.append(-2)
 
@@ -399,21 +399,21 @@ class Test_urs2sts_parallel(Test_Mux):
                            domain_fbound,
                            boundary_polygon=boundary_polygon)
         Br = Reflective_boundary(domain_fbound)
-    
+
         domain_fbound.set_boundary({'ocean': Bf,'otherocean': Br})
 
         #------------------------------------------------------------
         # Evolve the domain on each processor
-        #------------------------------------------------------------  
+        #------------------------------------------------------------
         for i, t in enumerate(domain_fbound.evolve(yieldstep=yieldstep,
-                                                   finaltime=finaltime, 
+                                                   finaltime=finaltime,
                                                    skip_initial_step = False)):
 
             stage = domain_fbound.get_quantity('stage')
             for i in range(4):
                 if fbound_proc_tri_ids[i] > -1:
                     fbound_gauge_values[i].append(stage.centroid_values[fbound_proc_tri_ids[i]])
-        
+
         #------------------------------------------------------------
         # Create domain to be run sequntially on each processor
         #------------------------------------------------------------
@@ -426,7 +426,7 @@ class Test_urs2sts_parallel(Test_Mux):
         Bd = Time_boundary(domain=domain_drchlt, function=lambda t: [2.0+t/finaltime+tide,220.+10.*tide+10.*t/finaltime,-220.-10.*tide-10.*t/finaltime])
         #Bd = Time_boundary(domain=domain_drchlt,function=lambda t: [2.0+num.sin(t)+tide,10.*(2+20.+num.sin(t)+tide),-10.*(2+20.+num.sin(t)+tide)])
         domain_drchlt.set_boundary({'ocean': Bd,'otherocean': Br})
-       
+
         drchlt_gauge_values = []
         drchlt_proc_tri_ids = []
         for i, point in enumerate(interpolation_points):
@@ -437,7 +437,7 @@ class Test_urs2sts_parallel(Test_Mux):
                 if domain_drchlt.tri_full_flag[k] == 1:
                     drchlt_proc_tri_ids.append(k)
                 else:
-                    drchlt_proc_tri_ids.append(-1)            
+                    drchlt_proc_tri_ids.append(-1)
             except Exception:
                 drchlt_proc_tri_ids.append(-2)
 
@@ -448,7 +448,7 @@ class Test_urs2sts_parallel(Test_Mux):
         # Evolve entire domain on each processor
         #------------------------------------------------------------
         for i, t in enumerate(domain_drchlt.evolve(yieldstep=yieldstep,
-                                                   finaltime=finaltime, 
+                                                   finaltime=finaltime,
                                                    skip_initial_step = False)):
 
             stage = domain_drchlt.get_quantity('stage')
@@ -469,13 +469,13 @@ class Test_urs2sts_parallel(Test_Mux):
                 success = success and num.allclose(fbound_gauge_values[i], drchlt_gauge_values[i])
                 assert success#, (fbound_gauge_values[i]-drchlt_gauge_values[i])
 
-        #assert_(success)       
+        #assert_(success)
 
         if not sys.platform == 'win32':
             if myid==0: os.remove(sts_file+'.sts')
-        
+
         if myid==0: os.remove(meshname)
-    
+
 # Because we are doing assertions outside of the TestCase class
 # the PyUnit defined assert_ function can't be used.
 def assert_(condition, msg="Assertion Failed"):
@@ -489,7 +489,7 @@ def assert_(condition, msg="Assertion Failed"):
 
 if __name__=="__main__":
     #verbose=False
-    if myid ==0 and verbose: 
+    if myid ==0 and verbose:
         print('PARALLEL START')
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_urs2sts_parallel)
     runner = unittest.TextTestRunner()
@@ -500,5 +500,5 @@ if __name__=="__main__":
     # results at 4 gauge stations
     #------------------------------------------
 
-    
+
     finalize()

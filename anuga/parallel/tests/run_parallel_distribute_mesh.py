@@ -82,7 +82,7 @@ def distibute_three_processors():
     else:
         from pymetis import part_graph
         metis_version = "5_part_graph"
-    
+
 
     if myid == 0 and verbose0: print('metis version = ', metis_version)
 
@@ -111,7 +111,7 @@ def distibute_three_processors():
             print_seq_values(vertices, triangles, triangles_per_proc)
 
         true_seq_values = get_true_seq_values(metis_version=metis_version)
-        
+
         if verbose0:
             print("True Seq Values = \\")
             pprint(true_seq_values)
@@ -128,7 +128,7 @@ def distibute_three_processors():
                                 quantities, triangles_per_proc)
 
 
-        if verbose0: 
+        if verbose0:
             print('submesh_values = \\')
             print_submesh_values(submesh)
 
@@ -151,7 +151,7 @@ def distibute_three_processors():
         numpy.allclose(submesh['ghost_triangles'][0], true_values['ghost_triangles_0'])
         numpy.allclose(submesh['ghost_triangles'][1], true_values['ghost_triangles_1'])
         numpy.allclose(submesh['ghost_triangles'][2], true_values['ghost_triangles_2'])
-        
+
         numpy.allclose(submesh['ghost_commun'][0], true_values['ghost_commun_0'])
         numpy.allclose(submesh['ghost_commun'][1], true_values['ghost_commun_1'])
         numpy.allclose(submesh['ghost_commun'][2], true_values['ghost_commun_2'])
@@ -306,7 +306,7 @@ def get_true_seq_values(metis_version=4):
 
         return true_seq_values
 
-    
+
     if sys.platform == 'win32' and metis_version == '5_part_graph':
         true_seq_values = dict(
             triangles = array([[ 0,  9,  1],
@@ -394,20 +394,6 @@ def get_true_seq_values(metis_version=4):
                 [0.75, 0.25],
                 [0.75, 0.75]])
 
-
-    if False:
-        from pprint import pformat
-        true_values = dict(
-        true_ghost_layer_width = ghost_layer_width,
-        true_points = points,
-        true_vertices = vertices,
-        true_ghost_recv_dict_1 = ghost_recv_dict[1],
-        true_ghost_recv_dict_2 = ghost_recv_dict[2],
-        true_full_send_dict_1 = full_send_dict[1],
-        true_full_send_dict_2 = full_send_dict[2])
-        for key,item in true_values.items():
-            msg = key + '=' + pformat(item)
-            print (msg)
 
     if metis_version == 4:
         triangles = [[4, 9, 3], [4, 12, 5], [7, 12, 4], [8, 12, 7], [5, 12, 8],
@@ -501,7 +487,7 @@ def get_true_seq_values(metis_version=4):
     if myid == 1:
 
         from numpy import array
-        
+
         if metis_version == 4:
             true_vertices=array([[ 0,  5,  1],
                 [ 1,  5,  3],
@@ -667,7 +653,7 @@ def print_submesh_values(submesh):
     print(msg)
 
 def get_true_submesh_values(metis_version = 4):
-    
+
     if sys.platform == 'win32'  and metis_version == 4:
 
         true_values = dict( \
@@ -1060,8 +1046,8 @@ def get_true_submesh_values(metis_version = 4):
             [4, 0],
             [7, 1],
             [9, 1]]),
-        full_commun=[{0: [1], 1: [], 2: [1, 2], 3: [1], 4: [2]}, {5: [0], 
-            6: [0], 7: [0, 2], 8: [], 9: [2]}, {10: [0], 11: [0], 12: [0, 1], 13: [0, 1], 14: [1], 15: [1]}]    
+        full_commun=[{0: [1], 1: [], 2: [1, 2], 3: [1], 4: [2]}, {5: [0],
+            6: [0], 7: [0, 2], 8: [], 9: [2]}, {10: [0], 11: [0], 12: [0, 1], 13: [0, 1], 14: [1], 15: [1]}]
         )
         return true_values
 
@@ -1170,9 +1156,9 @@ def get_true_submesh_values(metis_version = 4):
                              {4: [], 5: [2], 6: [2], 7: [2],
                              8: [2], 9: [0, 2], 10: [0, 2]},
                              {11: [1], 12: [0, 1], 13: [1], 14: [0, 1], 15: [0, 1]}])
-    
+
         return true_values
-                
+
 
 
 
@@ -1771,7 +1757,7 @@ def get_true_rec_submesh_2(metis_version=4):
         ghost_recv_dict_1=[array([8, 9]), array([7, 9])],
         ghost_recv_dict_0=[array([6, 7]), array([2, 4])],
         ghost_layer_width=2,
-        tri_map=array([-1, -1,  6, -1,  7, -1, -1,  8, -1,  9,  0,  1,  2,  3,  4,  5, -1]))    
+        tri_map=array([-1, -1,  6, -1,  7, -1, -1,  8, -1,  9,  0,  1,  2,  3,  4,  5, -1]))
 
         return true_values
 
@@ -1818,5 +1804,5 @@ def get_true_rec_submesh_2(metis_version=4):
 
 #-------------------------------------------------------------
 if __name__ == "__main__":
-    
+
     distibute_three_processors()

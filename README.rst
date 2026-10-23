@@ -184,6 +184,24 @@ If you would like to take part in ANUGA development, take a look
 at `CONTRIBUTING.rst <https://github.com/anuga-community/anuga_core/blob/main/CONTRIBUTING.rst>`_.
 
 
+Acknowledgements
+----------------
+
+ANUGA was created by Geoscience Australia and the Mathematical Sciences
+Institute at the Australian National University, and is developed and
+maintained by a community of volunteers.
+
+The GPU and multicore solver introduced in ANUGA 4.0 (the unified compute
+mode and its OpenMP target offloading) was developed in collaboration with the
+`Centre for Development of Advanced Computing (C-DAC) <https://www.cdac.in/>`_,
+India, and the `National Computational Infrastructure (NCI) <https://nci.org.au/>`_,
+Australia. The C-DAC collaboration is part of a catchment flood prediction
+project aimed at two-day flood forecasts, and grew out of GPU hackathons held
+from 2023; NCI's Gadi supercomputer provided the GPU systems on which the work
+was developed, tested and benchmarked. We thank Samir Shaikh, Shweta Das and Rutvik
+Gulhane (C-DAC) and Jorge Luis Gálvez Vallejo (NCI) for their
+contributions, and both organisations for their support.
+
 License information
 -------------------
 

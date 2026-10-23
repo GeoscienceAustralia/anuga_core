@@ -21,7 +21,7 @@ def sww2pts(name_in, name_out=None,
 
     if reduction is given use that to reduce quantity over all timesteps.
 
-    data_points (Nx2 array) give locations of points where quantity is to 
+    data_points (Nx2 array) give locations of points where quantity is to
     be computed.
     """
 
@@ -38,7 +38,7 @@ def sww2pts(name_in, name_out=None,
         reduction = max
 
     basename_in, in_ext = os.path.splitext(name_in)
-    
+
     if name_out != None:
         basename_out, out_ext = os.path.splitext(name_out)
     else:
@@ -47,14 +47,14 @@ def sww2pts(name_in, name_out=None,
         name_out = basename_out + out_ext
 
     if in_ext != '.sww':
-        raise IOError('Input format for %s must be .sww' % name_in)
+        raise OSError('Input format for %s must be .sww' % name_in)
 
     if out_ext != '.pts':
-        raise IOError('Output format for %s must be .pts' % name_out)
+        raise OSError('Output format for %s must be .pts' % name_out)
 
 
     # Read sww file
-    if verbose: log.critical('Reading from %s' % name_in)
+    if verbose: log.info('Reading from %s' % name_in)
     from anuga.file.netcdf import NetCDFFile
     fid = NetCDFFile(name_in)
 
@@ -71,7 +71,7 @@ def sww2pts(name_in, name_out=None,
         number_of_timesteps = fid.dimensions['number_of_timesteps']
         number_of_points = fid.dimensions['number_of_points']
 
-        
+
     if origin is None:
         # Get geo_reference
         # sww files don't have to have a geo_ref
@@ -94,26 +94,26 @@ def sww2pts(name_in, name_out=None,
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
         times = fid.variables['time'][:]
-        log.critical('------------------------------------------------')
-        log.critical('Statistics of SWW file:')
-        log.critical('  Name: %s' % name_in)
-        log.critical('  Reference:')
-        log.critical('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
-        log.critical('    Start time: %f' % fid.starttime[0])
-        log.critical('  Extent:')
-        log.critical('    x [m] in [%f, %f], len(x) == %d'
+        log.info('------------------------------------------------')
+        log.info('Statistics of SWW file:')
+        log.info('  Name: %s' % name_in)
+        log.info('  Reference:')
+        log.info('    Lower left corner: [%f, %f]' % (xllcorner, yllcorner))
+        log.info('    Start time: %f' % fid.starttime[0])
+        log.info('  Extent:')
+        log.info('    x [m] in [%f, %f], len(x) == %d'
                      % (num.min(x), num.max(x), len(x.flat)))
-        log.critical('    y [m] in [%f, %f], len(y) == %d'
+        log.info('    y [m] in [%f, %f], len(y) == %d'
                      % (num.min(y), num.max(y), len(y.flat)))
-        log.critical('    t [s] in [%f, %f], len(t) == %d'
+        log.info('    t [s] in [%f, %f], len(t) == %d'
                      % (min(times), max(times), len(times)))
-        log.critical('  Quantities [SI units]:')
+        log.info('  Quantities [SI units]:')
         for name in ['stage', 'xmomentum', 'ymomentum', 'elevation']:
             q = fid.variables[name][:].flat
-            log.critical('    %s in [%f, %f]' % (name, min(q), max(q)))
+            log.info('    %s in [%f, %f]' % (name, min(q), max(q)))
 
     # Get quantity and reduce if applicable
-    if verbose: log.critical('Processing quantity %s' % quantity)
+    if verbose: log.info('Processing quantity %s' % quantity)
 
     # Turn NetCDF objects into numeric arrays
     quantity_dict = {}
@@ -126,7 +126,7 @@ def sww2pts(name_in, name_out=None,
     if len(q.shape) == 2:
         # q has a time component and needs to be reduced along
         # the temporal dimension
-        if verbose: log.critical('Reducing quantity %s' % quantity)
+        if verbose: log.info('Reducing quantity %s' % quantity)
 
         q_reduced = num.zeros(number_of_points, float)
         for k in range(number_of_points):
@@ -138,7 +138,7 @@ def sww2pts(name_in, name_out=None,
     assert q.shape[0] == number_of_points
 
     if verbose:
-        log.critical('Processed values for %s are in [%f, %f]'
+        log.info('Processed values for %s are in [%f, %f]'
                      % (quantity, min(q), max(q)))
 
     # Create grid and update xll/yll corner and x,y
@@ -150,11 +150,11 @@ def sww2pts(name_in, name_out=None,
     interp = Interpolate(vertex_points, volumes, verbose=verbose)
 
     # Interpolate using quantity values
-    if verbose: log.critical('Interpolating')
+    if verbose: log.info('Interpolating')
     interpolated_values = interp.interpolate(q, data_points).flatten()
 
     if verbose:
-        log.critical('Interpolated values are in [%f, %f]'
+        log.info('Interpolated values are in [%f, %f]'
                      % (num.min(interpolated_values),
                         num.max(interpolated_values)))
 

@@ -215,23 +215,22 @@ def xml2object(xml, verbose=False):
         fid = xml
 
     try:
-        dom = parse(fid)
-    except Exception as e:
-        # Throw filename into dom exception
+        try:
+            dom = parse(fid)
+        except Exception as e:
+            msg = 'XML file "%s" could not be parsed.\n' % fid.name
+            msg += 'Error message from parser: "%s"' % str(e)
+            raise Exception(msg)
 
-        msg = 'XML file "%s" could not be parsed.\n' % fid.name
-        msg += 'Error message from parser: "%s"' % str(e)
-        raise Exception(msg)
-
-    try:
-        xml_object = dom2object(dom)
-    except Exception as e:
-        msg = 'Could not convert %s into XML object.\n' % fid.name
-        msg += str(e)
-        raise Exception(msg)
-
-    if opened_file:
-        fid.close()
+        try:
+            xml_object = dom2object(dom)
+        except Exception as e:
+            msg = 'Could not convert %s into XML object.\n' % fid.name
+            msg += str(e)
+            raise Exception(msg)
+    finally:
+        if opened_file:
+            fid.close()
 
     return xml_object
 

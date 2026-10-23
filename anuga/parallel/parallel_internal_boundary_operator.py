@@ -6,7 +6,7 @@ from numpy.linalg import solve
 import scipy
 import scipy.optimize as sco
 
-#from anuga.structures.boyd_box_operator import boyd_box_function 
+#from anuga.structures.boyd_box_operator import boyd_box_function
 
 from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
@@ -52,7 +52,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
         # Since no barrel_velocity is computed we cannot use_momentum_jet
         use_momentum_jet = False
-                     
+
         Parallel_Structure_operator.__init__(self,
                                           domain=domain,
                                           end_points=end_points,
@@ -84,15 +84,15 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                                           inlet_master_proc=inlet_master_proc,
                                           inlet_procs=inlet_procs,
                                           enquiry_proc=enquiry_proc)
-       
- 
+
+
         self.internal_boundary_function = internal_boundary_function
         self.use_momentum_jet = use_momentum_jet
         self.use_velocity_head = use_velocity_head
         self.zero_outflow_momentum = zero_outflow_momentum
 
         self.compute_discharge_implicitly = compute_discharge_implicitly
-        
+
         #FIXME SR: Why is this hard coded!
         self.max_velocity = 99999999999.0
 
@@ -120,14 +120,14 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
     #def __call__(self):
     #    """
-    #        Update for n sub-timesteps 
+    #        Update for n sub-timesteps
     #    """
 
     #    number_of_substeps = 20
     #    original_timestep = self.domain.get_timestep()
     #    self.domain.timestep = original_timestep/(1.0*number_of_substeps)
-    #    
-    #    for i in range(number_of_substeps): 
+    #
+    #    for i in range(number_of_substeps):
     #        anuga.parallel.parallel_structure_operator.Parallel_Structure_operator.__call__(self)
 
     #    self.domain.timestep = original_timestep
@@ -143,7 +143,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         cases). The latter will have less communication in parallel, and
         for some simple internal_boundary_functions there is no benefit to
         the implicit approach
-            
+
         """
 
         if self.compute_discharge_implicitly:
@@ -158,7 +158,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
-        
+
         # If the structure has been closed, then no water gets through
         if self.height <= 0.0:
             if self.myid == self.master_proc:
@@ -288,8 +288,8 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
             return Q, barrel_velocity, outlet_culvert_depth
         else:
             return None, None, None
-        
-        
+
+
     def discharge_routine_implicit(self):
         """
             Uses semi-implicit discharge estimation:
@@ -311,7 +311,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
         from anuga.utilities import parallel_abstraction as pypar
 
         local_debug = False
-        
+
         # If the structure has been closed, then no water gets through
         if self.height <= 0.0:
             if self.myid == self.master_proc:
@@ -364,7 +364,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                 area0 = pypar.receive(self.inlet_master_proc[0])
         elif self.myid == self.inlet_master_proc[0]:
             pypar.send(area0, self.master_proc)
-        
+
         # area1
         if self.myid in self.inlet_procs[1]:
             area1 = self.inlets[1].get_global_area()
@@ -393,7 +393,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
 
             Q0 = self.internal_boundary_function(E0, E1)
             dt = self.domain.get_timestep()
-            
+
             if dt > 0.:
                 # Key constants for iterative solution
                 theta = 1.0
@@ -405,7 +405,7 @@ class Parallel_Internal_boundary_operator(Parallel_Structure_operator):
                     Q1 =  self.internal_boundary_function(E0 + sol[0], E1 + sol[1])
                     discharge = (1-theta)*Q0 + theta*Q1
                     output = sol*areas - discharge*dt*numpy.array([-1., 1.])
-                    return(output) 
+                    return(output)
 
                 final_sol = sco.root(F_to_solve, sol, method='lm').x
                 Q1 =  self.internal_boundary_function(E0 + final_sol[0], E1 + final_sol[1])

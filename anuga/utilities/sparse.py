@@ -208,7 +208,7 @@ class Sparse:
         return R
 
 
-class Sparse_CSR(object):
+class Sparse_CSR:
 
     def __init__(self, A=None, data=None, Colind=None, rowptr=None, m=None, n=None):
         """Create sparse matrix in csr format.
@@ -283,6 +283,8 @@ class Sparse_CSR(object):
         else:
             raise ValueError(
                 'Sparse_CSR(A) expects A == Sparse Matrix *or* data==array,colind==array,rowptr==array,m==int,n==int')
+
+        self.shape = (self.M, self.N)
 
     def __repr__(self):
         return '%d X %d sparse matrix:\n' % (self.M, self.N) + 'data ' + repr(self.data) + '\ncolind ' + \

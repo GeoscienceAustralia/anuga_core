@@ -172,12 +172,6 @@ The geo-reference metadata can be read directly from a SWW file:
 
 ---
 
-Reference
----------
+.. seealso::
 
-.. autoclass:: Geo_reference
-   :members: epsg, get_epsg, is_located, get_zone, get_hemisphere,
-             get_xllcorner, get_yllcorner, get_origin,
-             get_absolute, get_relative,
-             write_NetCDF, read_NetCDF
-   :undoc-members:
+   :ref:`Geo_reference API <api_geo_reference>` in the API Reference.

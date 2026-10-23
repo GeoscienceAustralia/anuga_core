@@ -1,0 +1,42 @@
+name: anuga_env_3.10_intel
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - affine
+  - cartopy
+  - contextily
+  - cython
+  - dill
+  - rasterio
+  - fiona
+  - shapely
+  - matplotlib
+  - meshpy
+  - meson
+  - meson-python=0.17
+  - mpi4py
+  - netcdf4
+  - ninja
+  - mkl
+  - mkl-devel
+  - libblas=*=*mkl
+  - libcblas=*=*mkl
+  - liblapack=*=*mkl
+  - numpy
+  - openpyxl
+  - pandas
+  - pkg-config
+  - pybind11
+  - pymetis
+  - pyproj
+  - pytest
+  - pytest-regressions
+  - scipy
+  - sympy
+  - utm
+  - wheel
+  - xarray
+  - pip:
+    - pmw

@@ -17,13 +17,13 @@ use_least_squares_list = [False]
 is_fit_list = [True] #[True, False]
 
 # a maxArea of 0.00001 gives 155195 triangles
-# Simulating Cairns. 
- 
+# Simulating Cairns.
+
 #maxArea_list = [0.00001]
 #num_of_points_list = [1863558]
 
-# Simulating 1 tenth of Cairns. 
- 
+# Simulating 1 tenth of Cairns.
+
 #maxArea_list = [0.0001]
 #num_of_points_list = [186558]
 
@@ -35,7 +35,7 @@ is_fit_list = [True] #[True, False]
 #   3 points/tri is 4617
 #  20 points/tri is 30780
 # 132 points/tri is 203148
-#maxArea_list = [0.001] 
+#maxArea_list = [0.001]
 #num_of_points_list = [4617,30780,203148]
 #num_of_points_list = [203148]
 
@@ -43,22 +43,22 @@ is_fit_list = [True] #[True, False]
 #   3 points/tri is 957
 #  20 points/tri is 6380
 # 132 points/tri is 42108
-#maxArea_list = [0.005] 
+#maxArea_list = [0.005]
 num_of_points_list = [957,6380,42108]
 
 # a maxArea of 0.01 gives 150 triangles
 #   3 points/tri is 450
 #  20 points/tri is 3000
 # 132 points/tri is 19800
-#maxArea_list = [0.01] 
+#maxArea_list = [0.01]
 #num_of_points_list = [450,3000] #,19800]
 
 # Quick check
-#maxArea_list = [0.61] 
-#num_of_points_list = [4] 
+#maxArea_list = [0.61]
+#num_of_points_list = [4]
 
 # the auto-validate benchmark fit
-maxArea_list = [0.0001] 
+maxArea_list = [0.0001]
 num_of_points_list = [1000]
 
 
@@ -98,7 +98,7 @@ for is_fit in is_fit_list:
                 for use_file_type in use_file_type_list:
                     for num_of_points in num_of_points_list:
                         for max_points_per_cell in max_points_per_cell_list:
-    
+
                             time, mem, num_tri, one_t, more_t, quad_t = ben.trial(
                                 num_of_points=num_of_points
                                 ,maxArea=maxArea
@@ -128,4 +128,4 @@ for is_fit in is_fit_list:
                                      str(quad_t) + delimiter +
                                      str(mem)  + delimiter +
                                      str(time) + delimiter + "\n")
-fd.close()                         
+fd.close()

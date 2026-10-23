@@ -42,7 +42,7 @@ verbose = False
 #--------------------------------------------------------------------------
 # Setup procedures
 #--------------------------------------------------------------------------
-class Set_Stage(object):
+class Set_Stage:
     """Set an initial condition with constant water height, for x < x0
     """
 

@@ -8,14 +8,16 @@ The `claude/` directory contains documents to orient a new session quickly:
 
 | File | Contents |
 |------|---------|
-| `claude/SESSION_GUIDE.md` | Branches, common commands, timeline, next priorities |
-| `claude/ROADMAP.md` | Release plan — v3.3.0 (imminent), v4.0.0 (sp26/SC26 based) |
-| `claude/PROGRESS.md` | Task tracking — code, docs, and Hydrata refactor phases |
+| `claude/SESSION_GUIDE.md` | Branches, common commands, recent session summaries |
+| `claude/ROADMAP.md` | Release plan — v3.3.2 shipped, v4.0.0 (SC26) in progress |
+| `claude/PROGRESS.md` | Overview totals and remaining/deferred items |
+| `claude/PROGRESS_ARCHIVE.md` | Full history of all completed work with dates |
+| `claude/FUTURE_WORK.md` | Prioritised recommendations for future sessions (P1–P3) |
 | `claude/DECISIONS.md` | Key design choices with rationale |
 | `claude/CONVENTIONS.md` | Coding style, naming, testing, import conventions |
 | `claude/KNOWN_ISSUES.md` | Surprises, gotchas, non-obvious behaviour |
 
-**Start here when picking up existing work:** read `claude/SESSION_GUIDE.md` first.
+**Start here when picking up existing work:** read `claude/SESSION_GUIDE.md` then `claude/FUTURE_WORK.md`.
 
 ## What is ANUGA
 
@@ -35,7 +37,7 @@ conda activate anuga_env
 pip install --no-build-isolation -v -e .
 ```
 
-The `--no-build-isolation` flag is required because meson-python needs the existing numpy/Cython from the conda environment.
+The `--no-build-isolation` flag is recommended (not strictly required in all environments) to ensure meson-python uses the existing numpy/Cython from the conda environment.
 
 OpenMP is enabled conditionally: Linux/macOS use gcc/clang with OpenMP; Windows requires mingw compilers.
 
@@ -61,6 +63,61 @@ pytest anuga/shallow_water/tests/test_shallow_water_domain.py::TestCase::test_na
 cd sandpit && OMP_NUM_THREADS=1 pytest -rs --pyargs anuga
 ```
 
+### Testing a GPU-offload (nvc) build
+
+On the standard **CPU build** (`-Dgpu_offload=false`, gcc) everything above runs
+as-is, in one process — including the mode-2 GPU tests (`test_DE_gpu_omp.py`),
+whose `omp target` regions execute on the host.
+
+On a **GPU-offload build** (`-Dgpu_offload=true`, nvc) the NVHPC OpenMP-target
+runtime aborts the process once many mode-2 GPU domains have been created in it,
+so the full suite cannot run in one process. Do this instead:
+
+```bash
+# 1. Bulk suite — legacy default (domains stay on the CPU), GPU file excluded:
+OMP_NUM_THREADS=1 ANUGA_DEFAULT_COMPUTE_MODE=legacy \
+  pytest anuga/shallow_water/tests/ \
+  --ignore=anuga/shallow_water/tests/test_DE_gpu_omp.py
+
+# 2a. GPU tests — one fresh process per CLASS (fast). Do NOT use --forked
+#     (CUDA is fork-unsafe). test_DE_gpu_omp.py auto-skips in a normal in-process
+#     run on a GPU build; this runner sets ANUGA_GPU_TESTS_ISOLATED=1 to opt in:
+bash anuga/shallow_water/tests/run_gpu_tests_isolated.sh
+
+# 2b. Maximum isolation — one fresh process per TEST FUNCTION, with a per-test
+#     timeout so a genuine hang is reported (not stuck). Works on any target.
+#     Installed as the `anuga_run_isolated_tests` command (scripts/, via meson);
+#     in a source checkout run scripts/anuga_run_isolated_tests.py directly:
+anuga_run_isolated_tests                                  # the GPU file
+anuga_run_isolated_tests --pyargs anuga.shallow_water -k riverwall --timeout 120
+anuga_run_isolated_tests --pyargs anuga.shallow_water
+
+# 2c. Whole anuga.shallow_water set under the unified default — GREEN on a GPU
+#     build *only via the isolated runner* (each test in a fresh process, so the
+#     NVHPC abort never accumulates). -cm/--compute-mode sets the default per-domain
+#     compute path (ANUGA_DEFAULT_COMPUTE_MODE) for every child:
+anuga_run_isolated_tests --pyargs anuga.shallow_water -cm unified   # 408 pass, 2 skip
+```
+
+`-cm legacy|unified` (omit to inherit the environment) is the ergonomic way to
+flip compute mode; it is equivalent to exporting `ANUGA_DEFAULT_COMPUTE_MODE`.
+
+Do **not** run `ANUGA_DEFAULT_COMPUTE_MODE=unified` over the full suite **in one
+process** on a GPU build — every default domain then offloads and the suite
+aborts early. Use the isolated runner (2c) on a GPU build, or validate the
+unified default in one process on the **CPU build** (the documented all-green
+run). See `claude/KNOWN_ISSUES.md` for the root cause.
+
+**Compute mode and tests:** a handful of white-box tests probe mode-1-only host
+state — they call `compute_forcing_terms()` / `compute_fluxes()` and assert on
+the host `semi_implicit_update` / `explicit_update` arrays, which mode-2
+('unified') computes on-device and never syncs back. Such tests pin themselves
+to legacy with `domain.set_compute_mode('legacy')` right after constructing the
+domain (see the existing pins in `test_forcing.py`, `test_friction.py`,
+`test_physics_sw.py`). Follow that pattern for any new test that inspects those
+internal Python update arrays. See `claude/CONVENTIONS.md` → "Compute mode in
+tests".
+
 Tests are marked slow with `@pytest.mark.slow`. All tests under `anuga/parallel/tests/`
 are automatically treated as slow (they spawn MPI subprocesses). To mark a new slow test:
 
@@ -79,10 +136,11 @@ Validation tests (against analytical solutions and experimental data) live in `v
 ## Code Quality
 
 ```bash
-pyflakes path/to/module.py   # no warnings required for contributions
-pep8 path/to/module.py       # PEP8 compliance required
-autopep8 path/to/module.py   # auto-fix PEP8 issues
+ruff check anuga/path/to/module.py   # linting (configured in pyproject.toml)
+ruff check --fix anuga/path/to/module.py   # auto-fix safe violations
 ```
+
+Pre-commit hooks run `ruff check --fix` and `ruff-format` automatically on staged files.
 
 ## Architecture
 

@@ -56,7 +56,7 @@ except ImportError:
 
 
 
-class Generic_Domain(object):
+class Generic_Domain:
     """Generic computational Domain constructor.
     """
 
@@ -149,7 +149,7 @@ class Generic_Domain(object):
         ghost_layer_width : int, optional
             Width of ghost cell layer in parallel computation.
             Default is 2.
-            
+
         Notes
         -----
         - Conserved quantities must be the first entries of evolved_quantities.
@@ -159,44 +159,57 @@ class Generic_Domain(object):
         """
 
         if verbose:
-            log.critical('Domain: Initialising')
+            log.info('Domain: Initialising')
 
-        # FIXME SR: This is a bug
-        # FIXME(Ole): Do you mean a hack?
-        # FIXME SR: Of course, a hack.
-        number_of_full_nodes = None
-        number_of_full_triangles = None
+        vertex_quantity_dict = self._init_mesh(
+            source, triangles, boundary, tagged_elements, geo_reference,
+            use_inscribed_circle, mesh_filename, use_cache, verbose)
 
+        self._init_quantities(
+            conserved_quantities, evolved_quantities, other_quantities, verbose)
+
+        self._init_parallel(
+            full_send_dict, ghost_recv_dict,
+            processor, numproc, ghost_layer_width, verbose)
+
+        self._init_timestepping(starttime, verbose)
+
+        if vertex_quantity_dict:
+            if verbose:
+                log.info('Domain: Initialising quantity values')
+            self.set_quantity_vertices_dict(vertex_quantity_dict)
+
+        if verbose:
+            log.info('Domain: Done')
+
+    def _init_mesh(self, source, triangles, boundary, tagged_elements,
+                   geo_reference, use_inscribed_circle, mesh_filename,
+                   use_cache, verbose):
+        """Construct self.mesh and expose its attributes on the domain.
+
+        Returns vertex_quantity_dict (non-empty only when loading from a mesh file).
+        """
+        vertex_quantity_dict = {}
         mesh_input = None
+        coordinates = None
 
-        # Determine whether source is a mesh filename or coordinates
         if isinstance(source, str):
             mesh_filename = source
-            mesh_input = None
-            coordinates = None
         elif isinstance(source, Mesh):
             mesh_input = source
-            coordinates = None
         else:
-            # Check if source is a pmesh Pmesh object (returned by
-            # create_mesh_from_regions) and convert it to an anuga Mesh.
             try:
                 from anuga.pmesh.mesh import Mesh as Pmesh
                 if isinstance(source, Pmesh):
                     from .pmesh2domain import pmesh_to_mesh
                     mesh_input = pmesh_to_mesh(source, verbose=verbose)
                     mesh_filename = None
-                    coordinates = None
                 else:
                     coordinates = source
-                    mesh_input = None
             except ImportError:
                 coordinates = source
-                mesh_input = None
 
-        # In case a filename has been specified, extract content
         if mesh_filename is not None:
-
             coordinates, triangles, boundary, vertex_quantity_dict, \
                 tagged_elements, geo_reference = \
                     pmesh_to_domain(file_name=mesh_filename,
@@ -204,23 +217,17 @@ class Generic_Domain(object):
                                     verbose=verbose)
 
         if mesh_input is not None:
-
             self.mesh = mesh_input
-            # FIXME: We should update tagged_elements 
-
         else:
-            # Initialise underlying mesh structure
             self.mesh = Mesh(coordinates, triangles,
-                            boundary=boundary,
-                            tagged_elements=tagged_elements,
-                            geo_reference=geo_reference,
-                            use_inscribed_circle=use_inscribed_circle,
-                            # number_of_full_nodes=number_of_full_nodes,
-                            # number_of_full_triangles=number_of_full_triangles,
-                            verbose=verbose)
-        
+                             boundary=boundary,
+                             tagged_elements=tagged_elements,
+                             geo_reference=geo_reference,
+                             use_inscribed_circle=use_inscribed_circle,
+                             verbose=verbose)
+
         if verbose:
-            log.critical('Domain: Expose mesh attributes')
+            log.info('Domain: Expose mesh attributes')
 
         # Expose Mesh attributes (FIXME: Maybe turn into methods)
         self.triangles = self.mesh.triangles
@@ -243,10 +250,7 @@ class Generic_Domain(object):
         self.number_of_boundaries = self.mesh.number_of_boundaries
         self.boundary_length = self.mesh.boundary_length
         self.tag_boundary_cells = self.mesh.tag_boundary_cells
-        # self.number_of_full_nodes = self.mesh.number_of_full_nodes
-        # self.number_of_full_triangles = self.mesh.number_of_full_triangles
-        self.number_of_triangles_per_node = \
-            self.mesh.number_of_triangles_per_node
+        self.number_of_triangles_per_node = self.mesh.number_of_triangles_per_node
         self.node_index = self.mesh.node_index
         self.vertex_value_indices = self.mesh.vertex_value_indices
         self.number_of_triangles = self.mesh.number_of_triangles
@@ -254,79 +258,47 @@ class Generic_Domain(object):
 
         self.geo_reference = self.mesh.geo_reference
         self.institution = 'Geosciences Australia'
-
         self.verbose = verbose
 
+        return vertex_quantity_dict
+
+    def _init_quantities(self, conserved_quantities, evolved_quantities,
+                         other_quantities, verbose):
+        """Set up quantity name lists, build Quantity instances, and initialise operator lists."""
         if verbose:
-            log.critical('Domain: Expose quantity names and types')
+            log.info('Domain: Expose quantity names and types')
 
-        # List of quantity names entering the conservation equations
-        if conserved_quantities is None:
-            self.conserved_quantities = []
-        else:
-            self.conserved_quantities = conserved_quantities
+        self.conserved_quantities = conserved_quantities if conserved_quantities is not None else []
+        self.evolved_quantities = evolved_quantities if evolved_quantities is not None else self.conserved_quantities
+        self.other_quantities = other_quantities if other_quantities is not None else []
 
-        if evolved_quantities is None:
-            self.evolved_quantities = self.conserved_quantities
-        else:
-            self.evolved_quantities = evolved_quantities
-
-        # List of other quantity names
-        if other_quantities is None:
-            self.other_quantities = []
-        else:
-            self.other_quantities = other_quantities
-
-        # Test that conserved_quantities are stored in the first entries of
-        # evolved_quantities
-        for i, quantity in enumerate(self.conserved_quantities):
-            msg = 'The conserved quantities must be the first entries of '
-            msg += 'evolved_quantities'
-            assert quantity == self.evolved_quantities[i], msg
+        for i, q in enumerate(self.conserved_quantities):
+            assert q == self.evolved_quantities[i], \
+                'The conserved quantities must be the first entries of evolved_quantities'
 
         if verbose:
-            log.critical('Domain: Build Quantities')
+            log.info('Domain: Build Quantities')
 
-        # Build dictionary of Quantity instances keyed by quantity names
         self.quantities = {}
-
         for name in self.evolved_quantities:
-            # self.quantities[name] = Quantity(self, name=name)
             Quantity(self, name=name, register=True)
         for name in self.other_quantities:
-            # self.quantities[name] = Quantity(self, name=name)
             Quantity(self, name=name, register=True)
 
-        # Create an empty list for forcing terms
         self.forcing_terms = []
-
-        # Create an empty list for fractional step operators
         self.fractional_step_operators = []
         self.fractional_step_volume_integral = 0.
 
-        # by default domain is not parallel
+    def _init_parallel(self, full_send_dict, ghost_recv_dict,
+                       processor, numproc, ghost_layer_width, verbose):
+        """Set up parallel communication buffers, ghost/full flags, and processor attributes."""
         self.parallel = False
-
         self.number_of_global_triangles = self.number_of_triangles
         self.number_of_global_nodes = self.number_of_nodes
 
-        # Setup the ghost cell communication
-        if full_send_dict is None:
-            self.full_send_dict = {}
-        else:
-            self.full_send_dict = full_send_dict
+        self.full_send_dict = full_send_dict if full_send_dict is not None else {}
+        self.ghost_recv_dict = ghost_recv_dict if ghost_recv_dict is not None else {}
 
-        # List of other quantity names
-        if ghost_recv_dict is None:
-            self.ghost_recv_dict = {}
-        else:
-            self.ghost_recv_dict = ghost_recv_dict
-
-        #-------------------------------
-        # Set multiprocessor mode 
-        # 1. openmp (in development)
-        # 2. cuda (in development)
-        #-------------------------------    
         self.set_multiprocessor_mode(MULTIPROCESSOR_OPENMP)
 
         self.processor = processor
@@ -336,74 +308,44 @@ class Generic_Domain(object):
         self.communication_reduce_time = 0.0
         self.communication_broadcast_time = 0.0
 
-        # Setup Communication Buffers
         if verbose:
-            log.critical('Domain: Set up communication buffers ')
+            log.info('Domain: Set up communication buffers ')
 
         self.nsys = len(self.conserved_quantities)
         for key in self.full_send_dict:
             buffer_shape = self.full_send_dict[key][0].shape[0]
-            self.full_send_dict[key].append(num.zeros((buffer_shape,
-                                                       self.nsys),
-                                                      float))
+            self.full_send_dict[key].append(
+                num.zeros((buffer_shape, self.nsys), float))
 
         for key in self.ghost_recv_dict:
             buffer_shape = self.ghost_recv_dict[key][0].shape[0]
-            self.ghost_recv_dict[key].append(num.zeros((buffer_shape,
-                                                        self.nsys),
-                                                       float))
+            self.ghost_recv_dict[key].append(
+                num.zeros((buffer_shape, self.nsys), float))
 
-        # Setup triangle full flag
         if verbose:
-            log.critical('Domain: Set up triangle/node full flags ')
+            log.info('Domain: Set up triangle/node full flags ')
 
-        N = len(self)  # Number_of_elements
+        N = len(self)
         self.number_of_elements = N
-
-        # =1 for full
-        # =0 for ghost
         self.tri_full_flag = num.ones(N, int)
-
         for i in list(self.ghost_recv_dict.keys()):
-            id = self.ghost_recv_dict[i][0]
-            self.tri_full_flag[id] = 0
-
+            self.tri_full_flag[self.ghost_recv_dict[i][0]] = 0
         self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
 
-        # Identify full nodes as those that intersect a full triangle.
-        Vol_ids = self.vertex_value_indices // 3
-
-        # Want this
-        # W = num.repeat(self.tri_full_flag, 3)
-        # but without creating extra memeory
-        # Got this
-        # b = np.lib.stride_tricks.as_strided(a, (1000, a.size), (0, a.itemsize))
-        # from
-        # http://stackoverflow.com/questions/5564098/repeat-numpy-array-without-replicating-data
+        # Identify full nodes as those intersecting at least one full triangle.
+        # stride_tricks avoids the memory cost of num.repeat(tri_full_flag, 3).
         a = self.tri_full_flag
         b = num.lib.stride_tricks.as_strided(a, (a.size, 3), (a.itemsize, 0))
         W = b.flat
-
-#        print a
-#        print a.itemsize
-#        print list(b)
-#        print num.repeat(self.tri_full_flag, 3)
-
-        self.node_full_flag = num.minimum(num.bincount(self.triangles.flat, weights=W).astype(int), 1)
-
-        # FIXME SR: The following line leads to a nasty segmentation fault!
-        # self.number_of_full_nodes = int(num.sum(self.node_full_flag))
+        self.node_full_flag = num.minimum(
+            num.bincount(self.triangles.flat, weights=W).astype(int), 1)
+        # FIXME SR: num.sum(node_full_flag) causes a segfault — use node count directly
         self.number_of_full_nodes = self.number_of_nodes
 
-        # Test the assumption that all full triangles are stored before
-        # the ghost triangles.
-        # if not num.allclose(self.tri_full_flag[:self.number_of_full_nodes], 1):
-        #     log.critical('WARNING: Not all full triangles are stored before '
-        #                      'ghost triangles')
-
-        # Defaults
+    def _init_timestepping(self, starttime, verbose):
+        """Set up timestepping parameters, algorithm flags, and work arrays."""
         if verbose:
-            log.critical('Domain: Set defaults')
+            log.info('Domain: Set defaults')
 
         self.g = g
         self.beta_w = beta_w
@@ -427,64 +369,52 @@ class Generic_Domain(object):
 
         self.boundary_map = None  # Will be populated by set_boundary
 
-        # Model time
         self.finaltime = None
         self.recorded_min_timestep = self.recorded_max_timestep = 0.0
-        self.starttime = starttime  # Physical starttime if any
+        self.starttime = starttime
         self.evolve_starttime = 0.0
-        self.relative_time= self.evolve_starttime
+        self.relative_time = self.evolve_starttime
         self.timestep = 0.0
         self.flux_timestep = 0.0
         self.evolved_called = False
 
-        self.last_walltime    = walltime()
+        self.last_walltime = walltime()
         self.initial_walltime = self.last_walltime
         self.evolve_start_walltime = self.last_walltime
         self.relative_finaltime = None
 
-        # Monitoring
         self.quantities_to_be_monitored = None
         self.monitor_polygon = None
         self.monitor_time_interval = None
         self.monitor_indices = None
 
-        # Checkpointing and storage
         from anuga.config import default_datadir
-
         self.datadir = default_datadir
         self.simulation_name = 'domain'
         self.checkpoint = False
 
-        # Early algorithms need elevation to remain continuous
         self.set_using_discontinuous_elevation(False)
         self.set_using_centroid_averaging(False)
-        self.set_using_centroid_averaging(False)
 
         if verbose:
-            log.critical('Domain: Set work arrays')
+            log.info('Domain: Set work arrays')
 
-        # To avoid calculating the flux across each edge twice, keep an integer
-        # (boolean) array, to be used during the flux calculation.
-        N = len(self)  # Number_of_triangles
-        self.already_computed_flux = num.zeros((N, 3), int)
+        N = len(self)
 
-        self.work_centroid_values = num.zeros(N, float)
+        # Confirmed-dead arrays: allocated historically but never read by the C
+        # computation code.  Kept as None (→ NULL in C struct) permanently.
+        self.already_computed_flux = None   # (N,3) int — dead, NULL in C struct
+        self.work_centroid_values  = None   # (N,)  float — dead, no C reference
 
-        # Storage for maximal speeds computed for each triangle by
-        # compute_fluxes.
-        # This is used for diagnostics only (reset at every yieldstep)
-        self.max_speed = num.zeros(N, float)
+        # Allocated lazily by _ensure_work_arrays() on first evolve step.
+        self.max_speed             = None   # (N,)  float — CFL timestep calc
 
-        if mesh_filename is not None:
-            # If the mesh file passed any quantity values,
-            # initialise with these values.
-            if verbose:
-                log.critical('Domain: Initialising quantity values')
-
-            self.set_quantity_vertices_dict(vertex_quantity_dict)
-
-        if verbose:
-            log.critical('Domain: Done')
+        # Shared gradient workspace for the Python extrapolation path (old
+        # solver / operators). Allocated eagerly because operators may use
+        # them before the first evolve() call, before _ensure_work_arrays().
+        self._grad_workspace_x = num.zeros(N, float)
+        self._grad_workspace_y = num.zeros(N, float)
+        self._phi_workspace    = num.zeros(N, float)
 
     ######
     # Expose underlying Mesh functionality
@@ -589,6 +519,102 @@ class Generic_Domain(object):
 
     def build_tagged_elements_dictionary(self, *args, **kwargs):
         self.mesh.build_tagged_elements_dictionary(*args, **kwargs)
+
+    def reorder(self, new_order):
+        """Reorder triangles by permutation new_order.
+
+        new_order[i] is the old triangle index that moves to position i.
+        Reorders mesh geometry and centroid_values for all quantities.
+
+        Intended use: sequential domain (numprocs=1), called after
+        distribute() and before create_riverwalls() / operator setup so
+        those indices are built on top of the reordered mesh.
+
+        WARNING: any triangle indices held outside the domain (e.g. gauge
+        point lookups, user numpy arrays keyed by triangle id) are
+        invalidated by this call.  Always call reorder_domain() before
+        computing or storing any triangle indices.
+
+        For parallel domains (numprocs > 1) distribute() already reorders
+        the mesh; this method updates tri_l2g and the ghost communication
+        dicts if they are present so that a post-distribute reorder is
+        technically possible, but is not normally needed.
+        """
+        new_order = num.asarray(new_order, dtype=int)
+        N = self.number_of_triangles
+
+        # Build inverse permutation for remapping stored local indices.
+        inv_order = num.empty(N, dtype=int)
+        inv_order[new_order] = num.arange(N, dtype=int)
+
+        # --- mesh geometry ---
+        # mesh.reorder() calls build_boundary_neighbours() internally, which
+        # creates NEW boundary_cells/edges/enumeration/tag_boundary_cells objects
+        # on the mesh.  The domain caches these from __init__ — rebind after.
+        #
+        # A boundary index is a position in the sorted (triangle, edge) order,
+        # so renumbering triangles renumbers the boundary edges too. Anything
+        # indexed by boundary edge and NOT recomputed each timestep has to be
+        # permuted to match, and that needs the old enumeration -- capture it
+        # before it is thrown away.
+        old_boundary_enumeration = dict(self.mesh.boundary_enumeration)
+
+        self.mesh.reorder(new_order, in_place=True)
+        self.boundary_enumeration = self.mesh.boundary_enumeration
+        self.boundary_cells       = self.mesh.boundary_cells
+        self.boundary_edges       = self.mesh.boundary_edges
+        self.tag_boundary_cells   = self.mesh.tag_boundary_cells
+
+        # --- domain flags ---
+        self.tri_full_flag = self.tri_full_flag[new_order]
+        self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
+
+        # --- tracers ---
+        # Tracers are not Quantity objects, so the loop below cannot see them:
+        # they live in contiguous (ns, N) / (ns, 3N) blocks so the C kernel can
+        # stride them. Without this hook their blocks would keep the OLD
+        # ordering while the mesh moved underneath -- cell k's concentration
+        # landing on whichever triangle used to be at k, silently. The shallow
+        # water domain knows the layout, so it does the permuting.
+        reorder_tracers = getattr(self, '_reorder_tracer_arrays', None)
+        if reorder_tracers is not None:
+            reorder_tracers(new_order, inv_order, old_boundary_enumeration)
+
+        # --- quantities ---
+        # Reorder centroid_values and any cached per-triangle arrays.
+        # vertex_values and edge_values are recomputed each timestep by
+        # extrapolation, but they are also cached from setup (set_quantity).
+        # They must be reordered here so the first evolve step reads
+        # consistent values before the first extrapolation pass.
+        for q in self.quantities.values():
+            q.centroid_values[:] = q.centroid_values[new_order]
+            if q._vertex_values is not None:
+                q._vertex_values = q._vertex_values[new_order]
+            if q.edge_values is not None:
+                q.edge_values = q.edge_values[new_order]
+            if q._x_gradient is not None:
+                q._x_gradient = q._x_gradient[new_order]
+            if q._y_gradient is not None:
+                q._y_gradient = q._y_gradient[new_order]
+
+        # --- (3N,) per-edge arrays: reshape to (N,3), permute rows ---
+        for attr in ('edge_flux_type', 'edge_river_wall_counter'):
+            arr = getattr(self, attr, None)
+            if arr is not None:
+                setattr(self, attr, arr.reshape(N, 3)[new_order].ravel())
+
+        # --- parallel bookkeeping (tri_l2g, communication dicts) ---
+        # tri_l2g maps local index -> global index; reorder rows.
+        tri_l2g = getattr(self, 'tri_l2g', None)
+        if tri_l2g is not None:
+            self.tri_l2g = tri_l2g[new_order]
+
+        # full_send_dict / ghost_recv_dict: {proc: [local_tri_indices, buf]}
+        # The stored local indices must be remapped via inv_order.
+        for d in (getattr(self, 'full_send_dict', {}),
+                  getattr(self, 'ghost_recv_dict', {})):
+            for proc in d:
+                d[proc][0] = inv_order[d[proc][0]]
 
     def statistics(self, *args, **kwargs):
         return self.mesh.statistics(*args, **kwargs)
@@ -760,7 +786,7 @@ class Generic_Domain(object):
 
         absolute_time = self.get_time()
 
-        return datetime.datetime.utcfromtimestamp(absolute_time).strftime('%c')
+        return datetime.datetime.fromtimestamp(absolute_time, datetime.timezone.utc).strftime('%c')
 
     def get_timestep(self):
         """get current timestep (seconds)."""
@@ -856,8 +882,8 @@ class Generic_Domain(object):
 
     def set_multiprocessor_mode(self, multiprocessor_mode= 0):
         """
-        Set multiprocessor mode 
-        
+        Set multiprocessor mode
+
         1. openmp (in development)
         2. cuda (in development)
         """
@@ -869,18 +895,18 @@ class Generic_Domain(object):
 
     def get_multiprocessor_mode(self):
         """
-        Get multiprocessor mode 
-        
+        Get multiprocessor mode
+
         1. openmp (in development)
         2. cuda (in development)
         """
-        return self.multiprocessor_mode 
-            
+        return self.multiprocessor_mode
+
     def set_using_centroid_averaging(self, flag=True):
         """Set flag to use centroid averaging in output
         of smoothed vertex values. This is good to ensure
         that vertex stage >= vertex elevation. But can be
-        less accurate than vertex averaging. 
+        less accurate than vertex averaging.
         """
 
         if flag is True:
@@ -1095,18 +1121,18 @@ class Generic_Domain(object):
         restored!!!
         """
 
-        
+
         # Check that all tags in boundary map actually exists in the domain
         # This check is disabled for parallel domains because a valid tag may belong to another instance.
         # Alternative way of addressing this are
         # - make the check a flag so that parallel domains can disable the check.
         # - make the check only applicable when set_domain() is called from a top level user script.
 
-        #print('ID', self.processor, 'Parallel =', self.parallel) #, 'Strict_tag_check =', strict_tag_check)        
+        #print('ID', self.processor, 'Parallel =', self.parallel) #, 'Strict_tag_check =', strict_tag_check)
 
         # FIXME (Ole): Perhaps make method .is_parallel() returing True if numprocs > 1 and False if numprocs == 0
         if not self.parallel:
-            allowed_tags = list(set(self.boundary.values())) # List of unique tags 
+            allowed_tags = list(set(self.boundary.values())) # List of unique tags
             allowed_tags.append('ghost') # Sometimes we create parallel domains sequentially
             for key in boundary_map:
                 if key not in allowed_tags:
@@ -1114,9 +1140,9 @@ class Generic_Domain(object):
                     msg = f'Tag "{key}" provided does not exist in the domain. '
                     msg += 'Allowed tags are: %s' % allowed_tags
                     raise Exception(msg)
-        
 
-        # Update self.boundary_map with values provided to this method        
+
+        # Update self.boundary_map with values provided to this method
         if self.boundary_map is None:
             # This the first call to set_boundary. Store
             # map for later updates and for use with boundary_stats.
@@ -1127,8 +1153,8 @@ class Generic_Domain(object):
             for key in list(boundary_map.keys()):
                 self.boundary_map[key] = boundary_map[key]
 
-             
-        # FIXME (Ole): Try to remove the sorting. Everyhing works except three tests 
+
+        # FIXME (Ole): Try to remove the sorting. Everyhing works except three tests
         # in test_urs2sts (representing functionality not likely to be used anymore).
         # All other tests and validations work without this sorting step.
         x = list(self.boundary.keys())
@@ -1309,7 +1335,7 @@ class Generic_Domain(object):
             assert quantity == self.evolved_quantities[i], msg
 
     def write_time(self, track_speeds=False):
-        log.critical(self.timestepping_statistics(track_speeds))
+        log.info(self.timestepping_statistics(track_speeds))
 
     def timestepping_statistics(self,
                                 track_speeds=False,
@@ -1384,14 +1410,14 @@ class Generic_Domain(object):
             # Report cpu time since evolve was called
             # (which may be different from the time since the last call to
             # this function)
-            
+
             try:
                 cpu_time = walltime() - self.evolve_start_walltime
                 cpu_time_hhmmss = anuga.seconds_to_hhmmss(int(cpu_time))
                 fraction = self.relative_time/self.relative_finaltime
                 bar_len = 10
                 filled = int(bar_len * fraction)
-                
+
                 bar = "#" * filled + "-" * (bar_len - filled)
                 #msg += f' |{bar}|'
 
@@ -1409,7 +1435,7 @@ class Generic_Domain(object):
         from anuga.utilities.system_tools import memory_stats
         msg += f', {memory_stats()}'
 
-        if track_speeds is True:
+        if track_speeds is True and self.max_speed is not None:
             msg += '\n'
 
             # Setup 10 bins for speed histogram
@@ -1484,18 +1510,19 @@ class Generic_Domain(object):
             for name in self.quantities:
                 q = self.quantities[name]
 
-                V = q.get_values(location='vertices', indices=[k])[0]
-                E = q.get_values(location='edges', indices=[k])[0]
                 C = q.get_values(location='centroids', indices=[k])
-
-                s = '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
-                    % (name.ljust(qwidth), V[0], V[1], V[2])
-
-                s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n' \
-                    % (name.ljust(qwidth), E[0], E[1], E[2])
-
-                s += '    %s: centroid_value = %.4f\n' \
+                s = '    %s: centroid_value = %.4f\n' \
                     % (name.ljust(qwidth), C[0])
+
+                if q.edge_values is not None:
+                    E = q.get_values(location='edges', indices=[k])[0]
+                    s += '    %s: edge_values =    %.4f,\t %.4f,\t %.4f\n' \
+                        % (name.ljust(qwidth), E[0], E[1], E[2])
+
+                if q._vertex_values is not None:
+                    V = q.get_values(location='vertices', indices=[k])[0]
+                    s += '    %s: vertex_values =  %.4f,\t %.4f,\t %.4f\n' \
+                        % (name.ljust(qwidth), V[0], V[1], V[2])
 
                 msg += s
 
@@ -1508,7 +1535,7 @@ class Generic_Domain(object):
         print(self.boundary_statistics(quantities, tags))
 
     def write_boundary_statistics(self, quantities=None, tags=None):
-        log.critical(self.boundary_statistics(quantities, tags))
+        log.info(self.boundary_statistics(quantities, tags))
 
     def boundary_statistics(self, quantities=None,
                                   tags=None):
@@ -1683,8 +1710,8 @@ class Generic_Domain(object):
 
     def set_timestepping_method(self, timestepping_method):
         # Number of calls to compute_fluxes within the timestep
-        methods = ['euler', 'rk2', 'rk3']
-        substeps= [   1   ,  2   ,  3   ]
+        methods = ['euler', 'rk2', 'rk3', 'ader2']
+        substeps= [   1   ,  2   ,  3   ,   1    ]
 
         if timestepping_method in methods:
             self.timestepping_method = timestepping_method
@@ -1713,7 +1740,7 @@ class Generic_Domain(object):
         Without parameters the name will be derived from the script file,
         ie run_simulation.py -> output_run_simulation.sww
 
-        :param str name: name of simulation, 
+        :param str name: name of simulation,
             and in particular the base name of the sww output file
         :param bool timestamp: add a timestamp to the simulation name
         """
@@ -1800,14 +1827,14 @@ class Generic_Domain(object):
         n = int(len(fx) // 3)  # FIXME (Ole): No need to cast as int()
 
         triang = num.array(list(range(0, 3 * n)))
-        triang.shape = (n, 3)
+        triang = triang.reshape(n, 3)
         plt.triplot(fx, fy, triang, 'g-')
 
         # Plot ghost triangles
         n = int(len(gx) // 3)  # FIXME (Ole): No need to cast as int()
         if n > 0:
             triang = num.array(list(range(0, 3 * n)))
-            triang.shape = (n, 3)
+            triang = triang.reshape(n, 3)
             plt.triplot(gx, gy, triang, 'b--')
 
         # Save triangulation to location pointed by filename
@@ -1852,7 +1879,7 @@ class Generic_Domain(object):
         self.evolve_start_walltime = walltime()
         self.last_walltime = self.evolve_start_walltime
 
-        for t in self._evolve_base(yieldstep=yieldstep,
+        for t in self._evolve_base(yieldstep=yieldstep,  # noqa: UP028
                                    finaltime=finaltime, duration=duration,
                                    skip_initial_step=skip_initial_step):
 
@@ -1949,7 +1976,7 @@ class Generic_Domain(object):
             return
 
         N = len(self)                             # Number of triangles
-        
+
         self.relative_yieldtime = self.relative_time + yieldstep     # set next relative yield time
         self.yieldtime = self.relative_yieldtime + self.starttime    # set next yield time
 
@@ -1991,6 +2018,9 @@ class Generic_Domain(object):
 
             elif self.get_timestepping_method() == 'rk3':
                 self.evolve_one_rk3_step(yieldstep, self.finaltime)
+
+            elif self.get_timestepping_method() == 'ader2':
+                self.evolve_one_ader2_step(yieldstep, self.finaltime)
 
             # Apply other fractional steps
             self.apply_fractional_steps()
@@ -2049,14 +2079,15 @@ class Generic_Domain(object):
                 yield(self.get_time())
 
                 # Reinitialise
-                
+
                 self.relative_yieldtime += yieldstep
                 self.yieldtime = self.relative_yieldtime + self.starttime
                 self.recorded_min_timestep = self.evolve_max_timestep
                 self.recorded_max_timestep = self.evolve_min_timestep
                 self.number_of_steps = 0
                 self.number_of_first_order_steps = 0
-                self.max_speed[:] = 0.0
+                if self.max_speed is not None:
+                    self.max_speed[:] = 0.0
 
     def evolve_one_euler_step(self, yieldstep, finaltime):
         """One Euler Time Step
@@ -2100,14 +2131,6 @@ class Generic_Domain(object):
         nvtxRangePush('update_timestep')
         # Update timestep to fit yieldstep and finaltime
         self.update_timestep(yieldstep, finaltime)
-        #nvtx marker
-        nvtxRangePop()
-
-        #nvtx marker
-        nvtxRangePush('compute_flux_update_frequency')
-        if self.max_flux_update_frequency != 1:
-            # Update flux_update_frequency using the new timestep
-            self.compute_flux_update_frequency()
         #nvtx marker
         nvtxRangePop()
 
@@ -2322,6 +2345,18 @@ class Generic_Domain(object):
         # Update ghosts
         # self.update_ghosts()
 
+    def evolve_one_ader2_step(self, yieldstep, finaltime):
+        """One ADER-2 timestep using a local Cauchy-Kovalewski predictor.
+
+        Q^{n+1} = Q^n + dt * R(Q^{n+1/2})
+
+        Subclasses with access to the C predictor should override this.
+        """
+        raise NotImplementedError(
+            'evolve_one_ader2_step requires the shallow_water domain '
+            '(the ADER predictor is implemented in sw_domain_openmp_ext)'
+        )
+
     def evolve_to_end(self, finaltime=1.0):
         """Iterate evolve all the way to the end."""
 
@@ -2371,7 +2406,7 @@ class Generic_Domain(object):
         # FIXME: Boundary objects should not include ghost nodes.
         for i, ((vol_id, edge_id), B) in enumerate(self.boundary_objects):
             if B is None:
-                log.critical('WARNING: Ignored boundary segment (None)')
+                log.warning('WARNING: Ignored boundary segment (None)')
             else:
                 q_bdry = B.evaluate(vol_id, edge_id)
 
@@ -2409,7 +2444,7 @@ class Generic_Domain(object):
             blah, B = self.boundary_objects[i]
 
             if B is None:
-                log.critical('WARNING: Ignored boundary segment (None)')
+                log.warning('WARNING: Ignored boundary segment (None)')
             else:
                 q_bdry = B.evaluate(vol_id, edge_id)
 
@@ -2451,7 +2486,7 @@ class Generic_Domain(object):
             boundary_segment_edges = self.tag_boundary_cells[tag]
 
             B.evaluate_segment(self, boundary_segment_edges)
-        
+
         nvtxRangePop()
 
     def compute_fluxes(self):
@@ -2480,8 +2515,8 @@ class Generic_Domain(object):
 
     def set_fixed_flux_timestep(self, flux_timestep=None):
         """Disable variable timestepping and manually set a fixed flux_timestep
-        
-        :param flux_timestep: [float, None] Either set fixed flux_flux_timestep or 
+
+        :param flux_timestep: [float, None] Either set fixed flux_flux_timestep or
                               disable with value None"""
 
         if flux_timestep is None:
@@ -2529,11 +2564,11 @@ class Generic_Domain(object):
                         % timestep
                     msg += 'even after %d steps of 1 order scheme' \
                         % self.max_smallsteps
-                    log.critical(msg)
+                    log.info(msg)
                     timestep = self.evolve_min_timestep  # Try enforce min_step
 
                     stats = self.timestepping_statistics(track_speeds=True)
-                    log.critical(stats)
+                    log.info(stats)
 
                     raise Exception(msg)
                 else:
@@ -2554,22 +2589,58 @@ class Generic_Domain(object):
         #       recorded_min_timesteps simply because of we have to yield at a
         #       given time
 
-        # Ensure that final time is not exceeded
-        if self.relative_finaltime is not None and self.relative_time + timestep > self.relative_finaltime:
-            timestep = self.relative_finaltime - self.relative_time
-
-        # Ensure that model time is aligned with yieldsteps
-        if self.relative_time + timestep > self.relative_yieldtime:
-            timestep = self.relative_yieldtime - self.relative_time
+        timestep = self._clip_timestep_to_output_times(timestep, yieldstep, finaltime)
 
         self.timestep = timestep
+
+    def _time_remaining_until(self, target_time):
+        """Return non-negative relative time remaining until target_time."""
+
+        if target_time is None:
+            return None
+
+        return max(target_time - self.relative_time, 0.0)
+
+    def _clip_timestep_to_output_times(self, timestep, yieldstep, finaltime):
+        """Limit timestep so evolve lands on yield/final boundaries.
+
+        A small roundoff overshoot can make ``target - relative_time`` negative
+        even though the evolve loop is about to yield.  Clamp those stale
+        deadlines to zero instead of returning a negative timestep.
+
+        Use the explicitly tracked ``relative_yieldtime`` when available.
+        Computing the next yield boundary with ``relative_time % yieldstep`` is
+        floating-point fragile and can leave a tiny remainder that drives the
+        maximum timestep toward zero.
+        """
+
+        remaining_finaltime = self._time_remaining_until(self.relative_finaltime)
+        if remaining_finaltime is None and finaltime is not None:
+            remaining_finaltime = max(finaltime - self.get_time(), 0.0)
+        if remaining_finaltime is not None and timestep > remaining_finaltime:
+            timestep = remaining_finaltime
+
+        remaining_yieldstep = self._time_remaining_until(getattr(self, 'relative_yieldtime', None))
+        if remaining_yieldstep is None and yieldstep is not None:
+            remaining_yieldstep = max(float(yieldstep), 0.0)
+        if remaining_yieldstep is not None and timestep > remaining_yieldstep:
+            timestep = remaining_yieldstep
+
+        return timestep
+
+    def _get_max_timestep_to_output_times(self, yieldstep, finaltime):
+        """Return max step allowed before the next evolve output boundary."""
+
+        return self._clip_timestep_to_output_times(self.evolve_max_timestep,
+                                                   yieldstep,
+                                                   finaltime)
 
     def compute_forcing_terms(self):
         """If there are any forcing functions driving the system
         they should be defined in Domain subclass and appended to
         the list self.forcing_terms
         """
-    
+
         # The parameter self.flux_timestep should be updated
         # by the forcing_terms to ensure stability
 
@@ -2625,13 +2696,6 @@ class Generic_Domain(object):
         """
         pass
 
-    def compute_flux_update_frequency(self):
-        """Some flux calculations can be sped up by not recalculating
-        fluxes and interpolation for regions with low velocities and large
-        triangles
-        """
-        pass
-
     def distribute_to_vertices_and_edges(self):
         """Extrapolate conserved quantities from centroid to
         vertices and edge-midpoints for each volume
@@ -2661,6 +2725,95 @@ class Generic_Domain(object):
 
         return normfunc(self.quantities[quantity].centroid_values)
 
+    # ------------------------------------------------------------------ #
+    # Memory diagnostics                                                   #
+    # ------------------------------------------------------------------ #
+
+    def memory_stats(self):
+        """Return a string showing current process RSS memory usage.
+
+        Returns
+        -------
+        str
+            e.g. ``'mem=342MB'`` or ``'mem=1.50GB'``.
+        """
+        from anuga.utilities.system_tools import memory_stats
+        return memory_stats()
+
+    def print_memory_stats(self):
+        """Print current process RSS memory usage to stdout."""
+        print(self.memory_stats())
+
+    def quantity_memory_stats(self):
+        """Return a detailed breakdown of memory used by all quantities.
+
+        Returns
+        -------
+        str
+            Multi-line table showing per-quantity array allocations in kB.
+        """
+        from anuga.utilities.system_tools import quantity_memory_stats
+        return quantity_memory_stats(self)
+
+    def print_quantity_memory_stats(self):
+        """Print a detailed breakdown of memory used by all quantities."""
+        print(self.quantity_memory_stats())
+
+    def domain_memory_stats(self):
+        """Return a breakdown of memory used by the domain and its quantities.
+
+        Returns
+        -------
+        str
+            Multi-line table grouping numpy arrays by category plus RSS.
+        """
+        from anuga.utilities.system_tools import domain_memory_stats
+        return domain_memory_stats(self)
+
+    def print_domain_memory_stats(self):
+        """Print a breakdown of memory used by the domain and its quantities."""
+        print(self.domain_memory_stats())
+
+    def domain_struct_stats(self):
+        """Return a breakdown of the C domain struct and GPU domain struct.
+
+        Returns
+        -------
+        str
+            Multi-line diagnostic string for C/GPU struct sizes.
+        """
+        from anuga.utilities.system_tools import domain_struct_stats
+        return domain_struct_stats(self)
+
+    def print_domain_struct_stats(self):
+        """Print a breakdown of the C domain struct and GPU domain struct."""
+        print(self.domain_struct_stats())
+
+    def save_mesh_to_file(self, filename):
+        """Save the mesh geometry to a TSH or MSH file.
+
+        Delegates to :meth:`Mesh.save_to_file`.  Writes vertices, triangles
+        (with neighbour links and region tags), and boundary segments.
+
+        Parameters
+        ----------
+        filename : str
+            Output path.  Must end in ``.tsh`` (ASCII) or ``.msh`` (NetCDF).
+
+        Examples
+        --------
+        >>> domain.save_mesh_to_file('my_mesh.tsh')
+        >>> domain.save_mesh_to_file('my_mesh.msh')
+        """
+        self.mesh.save_to_file(filename)
+
+    def save_mesh_to_tsh(self, filename):
+        """Deprecated — use :meth:`save_mesh_to_file` instead."""
+        import warnings
+        warnings.warn(
+            'save_mesh_to_tsh() is deprecated; use save_mesh_to_file() instead.',
+            DeprecationWarning, stacklevel=2)
+        self.save_mesh_to_file(filename)
 
 
 if __name__ == "__main__":

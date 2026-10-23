@@ -1,6 +1,9 @@
 
 
-import unittest, os, sys
+import tempfile
+import unittest
+import os
+import sys
 import numpy as num
 import anuga
 
@@ -13,7 +16,7 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference, \
      DEFAULT_ZONE
 
 from anuga.file.sww import SWW_file
-     
+
 # boundary functions
 from anuga.shallow_water.boundaries import Reflective_boundary, \
             Field_boundary, Transmissive_momentum_set_stage_boundary, \
@@ -59,7 +62,7 @@ class Test_Sww2Dem(unittest.TestCase):
     def setUp(self):
         import time
         from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-        
+
         # Create basic mesh
         points, vertices, boundary = rectangular(2, 2)
 
@@ -93,7 +96,7 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.set_quantity('stage', stage)
 
 
-        domain.distribute_to_vertices_and_edges()               
+        domain.distribute_to_vertices_and_edges()
         self.domain = domain
 
         C = domain.get_vertex_coordinates()
@@ -110,23 +113,23 @@ class Test_Sww2Dem(unittest.TestCase):
 
     def old_test_sww2dem_asc_elevation_depth(self):
         """test_sww2dem_asc_elevation_depth
-        
+
         Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
-        
+
         Also check geo_reference is correct
         """
 
-        import time, os
+        import time
 
         # Setup
         self.domain.set_name('datatest')
 
-        prjfile = self.domain.get_name() + '_elevation.prj'
-        ascfile = self.domain.get_name() + '_elevation.asc'
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_elevation.asc')
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
@@ -155,18 +158,18 @@ class Test_Sww2Dem(unittest.TestCase):
         z = fid.variables['elevation'][:]
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
-        
+
         # Check georeferencig: zone, xllcorner and yllcorner
         assert fid.zone == 56
         assert fid.xllcorner == 308500
         assert fid.yllcorner == 6189000
-                
+
 
         fid.close()
 
         # Export to ascii/prj files
-        sww2dem(self.domain.get_name() + '.sww',
-                self.domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -248,7 +251,7 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 assert num.allclose(float(L[i]), -i * cellsize - y)
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -257,13 +260,13 @@ class Test_Sww2Dem(unittest.TestCase):
         prjfile = self.domain.get_name() + '_depth.prj'
 
         # Export to ascii/prj files
-        sww2dem(self.domain.get_name() + '.sww',
+        sww2dem(os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww'),
                 ascfile,
                 quantity='depth',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
                 verbose=self.verbose)
-        
+
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -308,30 +311,30 @@ class Test_Sww2Dem(unittest.TestCase):
 
     def test_sww2dem_asc_elevation_depth_DE0_undefined(self):
         """test_sww2dem_asc_elevation_depth
-        
+
         Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
-        
+
         Also check geo_reference is correct
         """
 
-        import time, os
+        import time
 
         # Setup
 
         domain = anuga.rectangular_cross_domain(16,16)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})        
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         domain.set_name('datatest')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.set_flow_algorithm('DE0')
         domain.format = 'sww'
         domain.smooth = True
@@ -360,18 +363,18 @@ class Test_Sww2Dem(unittest.TestCase):
         z = fid.variables['elevation'][:]
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
-        
+
         # Check georeferencig: zone, xllcorner and yllcorner
         assert fid.zone == 56
         assert fid.xllcorner == 308500
         assert fid.yllcorner == 6189000
-                
+
 
         fid.close()
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -450,7 +453,7 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5e-2, atol=5e-2)
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -459,13 +462,13 @@ class Test_Sww2Dem(unittest.TestCase):
         prjfile = domain.get_name() + '_depth.prj'
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
                 ascfile,
                 quantity='depth',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
                 verbose=self.verbose)
-        
+
         # Check asc file
         with open(ascfile) as ascid:
             lines = ascid.readlines()
@@ -509,30 +512,30 @@ class Test_Sww2Dem(unittest.TestCase):
 
     def test_sww2dem_asc_elevation_depth_DE0_northern(self):
         """test_sww2dem_asc_elevation_depth
-        
+
         Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
-        
+
         Also check geo_reference is correct
         """
 
-        import time, os
+        import time
 
         # Setup
 
         domain = anuga.rectangular_cross_domain(16,16)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})        
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         domain.set_name('datatest')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.set_flow_algorithm('DE0')
         domain.format = 'sww'
         domain.smooth = True
@@ -561,18 +564,18 @@ class Test_Sww2Dem(unittest.TestCase):
         z = fid.variables['elevation'][:]
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
-        
+
         # Check georeferencig: zone, xllcorner and yllcorner
         assert fid.zone == 56
         assert fid.xllcorner == 308500
         assert fid.yllcorner == 6189000
-                
+
 
         fid.close()
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -652,7 +655,7 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5e-2, atol=5e-2)
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -661,13 +664,13 @@ class Test_Sww2Dem(unittest.TestCase):
         prjfile = domain.get_name() + '_depth.prj'
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
                 ascfile,
                 quantity='depth',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
                 verbose=self.verbose)
-        
+
         # Check asc file
         with open(ascfile) as ascid:
             lines = ascid.readlines()
@@ -710,30 +713,30 @@ class Test_Sww2Dem(unittest.TestCase):
 
     def test_sww2dem_asc_elevation_depth_DE0_southern(self):
         """test_sww2dem_asc_elevation_depth
-        
+
         Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
-        
+
         Also check geo_reference is correct
         """
 
-        import time, os
+        import time
 
         # Setup
 
         domain = anuga.rectangular_cross_domain(16,16)
 
         B = Transmissive_boundary(domain)
-        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})        
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
         domain.set_name('datatest')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.set_flow_algorithm('DE0')
         domain.format = 'sww'
         domain.smooth = True
@@ -762,18 +765,18 @@ class Test_Sww2Dem(unittest.TestCase):
         z = fid.variables['elevation'][:]
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
-        
+
         # Check georeferencig: zone, xllcorner and yllcorner
         assert fid.zone == 56
         assert fid.xllcorner == 308500
         assert fid.yllcorner == 6189000
-                
+
 
         fid.close()
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -855,7 +858,7 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5e-2, atol=5e-2)
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -864,13 +867,13 @@ class Test_Sww2Dem(unittest.TestCase):
         prjfile = domain.get_name() + '_depth.prj'
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
                 ascfile,
                 quantity='depth',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
                 verbose=self.verbose)
-        
+
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -939,7 +942,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         """
 
-        import time, os
+        import time
 
         # Create basic mesh (100m x 100m)
         points, vertices, boundary = rectangular(2, 2, 100, 100)
@@ -951,17 +954,17 @@ class Test_Sww2Dem(unittest.TestCase):
 
         domain.set_name('datatest_de0')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
         domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
 
-        # FIXME: de0 algorithm doesn't recreate a linear function! 
+        # FIXME: de0 algorithm doesn't recreate a linear function!
         domain.set_quantity('elevation', lambda x, y:-x - y)
         domain.set_quantity('stage', 0)
 
@@ -972,17 +975,17 @@ class Test_Sww2Dem(unittest.TestCase):
         sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
-        
+
         #domain.tight_slope_limiters = 1
         domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
         cellsize = 10.0  # 10m grid
 
-        
+
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=3,
@@ -1062,7 +1065,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Check grid values (FIXME: Use same strategy for other sww2dem tests)
 
-        
+
 #         V = [-1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.433e+02, -1.467e+02, -1.500e+02,
 #              - 9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.300e+02, -1.333e+02, -1.367e+02, -1.400e+02, -1.467e+02,
 #              - 8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02, -1.233e+02, -1.267e+02, -1.300e+02, -1.367e+02, -1.433e+02,
@@ -1073,9 +1076,9 @@ class Test_Sww2Dem(unittest.TestCase):
 #              - 6.000e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.333e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02, -1.200e+02,
 #              - 5.667e+01, -6.333e+01, -7.000e+01, -7.333e+01, -7.667e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02, -1.133e+02,
 #              - 5.333e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.000e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02, -1.067e+02,
-#              - 5.000e+01, -5.333e+01, -5.667e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02 ]    
-        
-        
+#              - 5.000e+01, -5.333e+01, -5.667e+01, -6.000e+01, -6.333e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.333e+01, -1.000e+02 ]
+
+
         V = [-1.000e+02, -1.033e+02, -1.067e+02, -1.100e+02, -1.133e+02, -1.167e+02, -1.233e+02, -1.300e+02, -1.367e+02, -1.433e+02, -1.500e+02,
              -9.667e+01, -1.000e+02, -1.033e+02, -1.067e+02, -1.100e+02, -1.133e+02, -1.200e+02, -1.267e+02, -1.333e+02, -1.400e+02, -1.433e+02,
              -9.333e+01, -9.667e+01, -1.000e+02, -1.033e+02, -1.067e+02, -1.100e+02, -1.167e+02, -1.233e+02, -1.300e+02, -1.333e+02, -1.367e+02,
@@ -1087,7 +1090,7 @@ class Test_Sww2Dem(unittest.TestCase):
              -6.333e+01, -6.667e+01, -7.000e+01, -7.667e+01, -8.333e+01, -9.000e+01, -9.333e+01, -9.667e+01, -1.000e+02, -1.033e+02, -1.067e+02,
              -5.667e+01, -6.000e+01, -6.667e+01, -7.333e+01, -8.000e+01, -8.667e+01, -9.000e+01, -9.333e+01, -9.667e+01, -1.000e+02, -1.033e+02,
              -5.000e+01, -5.667e+01, -6.333e+01, -7.000e+01, -7.667e+01, -8.333e+01, -8.667e+01, -9.000e+01, -9.333e+01, -9.667e+01, -1.000e+02]
-        
+
         for i, line in enumerate(lines[6:]):
             for j, value in enumerate(line.split()):
                 assert num.allclose(float(value), V[i * 11 + j],
@@ -1104,7 +1107,7 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
-        
+
 
 
 
@@ -1120,7 +1123,7 @@ class Test_Sww2Dem(unittest.TestCase):
         0.0 ....
         """
 
-        import time, os
+        import time
 
         # Setup
 
@@ -1135,11 +1138,11 @@ class Test_Sww2Dem(unittest.TestCase):
 
         domain.set_name('datatest')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
         domain.geo_reference = Geo_reference(56, 308500, 6189000)
@@ -1156,7 +1159,7 @@ class Test_Sww2Dem(unittest.TestCase):
         sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
-        
+
         domain.tight_slope_limiters = 1
         domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
@@ -1178,8 +1181,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -1312,7 +1315,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         """
 
-        import time, os
+        import time
 
         # Setup
 
@@ -1328,11 +1331,11 @@ class Test_Sww2Dem(unittest.TestCase):
 
         domain.set_name('datatest_DE0')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
         domain.geo_reference = Geo_reference(56, 308500, 6189000)
@@ -1371,8 +1374,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -1476,16 +1479,16 @@ class Test_Sww2Dem(unittest.TestCase):
         This tests the reduction of quantity stage using min
         """
 
-        import time, os
+        import time
 
         # Setup
         self.domain.set_name('datatest')
 
-        prjfile = self.domain.get_name() + '_stage.prj'
-        ascfile = self.domain.get_name() + '_stage.asc'
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_stage.prj')
+        ascfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_stage.asc')
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -1516,8 +1519,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         # Export to ascii/prj files
-        sww2dem(self.domain.get_name() + '.sww',
-                self.domain.get_name() + '_stage.asc',
+        sww2dem(os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww'),
+                ascfile,
                 quantity='stage',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -1583,16 +1586,16 @@ class Test_Sww2Dem(unittest.TestCase):
         This tests the reduction of quantity stage using min
         """
 
-        import time, os
+        import time
 
         # Setup
         self.domain.set_name('datatest')
 
-        prjfile = self.domain.get_name() + '_stage.prj'
-        ascfile = self.domain.get_name() + '_stage.asc'
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_stage.prj')
+        ascfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_stage.asc')
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -1621,8 +1624,8 @@ class Test_Sww2Dem(unittest.TestCase):
         stage = fid.variables['stage'][:]
 
         # Export to ascii/prj files
-        sww2dem(self.domain.get_name() + '.sww',
-                self.domain.get_name() + '_stage.asc',
+        sww2dem(os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww'),
+                ascfile,
                 quantity='stage',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -1667,9 +1670,9 @@ class Test_Sww2Dem(unittest.TestCase):
                 for i in range(5):
                     if i % 2 == 0:
                         index = jj//2 + i//2 * 3
-                        
+
                         val = stage[1, index]
-                   
+
                         assert num.allclose(float(L[i]), val)
 
         fid.close()
@@ -1687,16 +1690,16 @@ class Test_Sww2Dem(unittest.TestCase):
         This tests the use of derived quantities
         """
 
-        import time, os
+        import time
 
         # Setup
         self.domain.set_name('datatest')
 
-        prjfile = self.domain.get_name() + '_depth.prj'
-        ascfile = self.domain.get_name() + '_depth.asc'
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_depth.prj')
+        ascfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_depth.asc')
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -1728,8 +1731,8 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         # Export to ascii/prj files
-        sww2dem(self.domain.get_name() + '.sww',
-                name_out='datatest_depth.asc',
+        sww2dem(os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww'),
+                name_out=ascfile,
                 quantity='stage - elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -1800,7 +1803,7 @@ class Test_Sww2Dem(unittest.TestCase):
         This test includes the writing of missing values
         """
 
-        import time, os
+        import time
 
         # Setup mesh not coinciding with rectangle.
         # This will cause missing values to occur in gridded data
@@ -1848,11 +1851,11 @@ class Test_Sww2Dem(unittest.TestCase):
 
         domain.set_name('datatest')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
 
@@ -1884,8 +1887,8 @@ class Test_Sww2Dem(unittest.TestCase):
             geo_reference = Geo_reference(DEFAULT_ZONE, 0, 0)
 
         # Export to ascii/prj files
-        sww2dem(domain.get_name() + '.sww',
-                domain.get_name() + '_elevation.asc',
+        sww2dem(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
+                ascfile,
                 quantity='elevation',
                 cellsize=cellsize,
                 number_of_decimal_places=9,
@@ -1952,7 +1955,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format
         """
 
-        import time, os
+        import time
 
 
         NODATA_value = 1758323
@@ -1961,9 +1964,9 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_name('datatest')
 
         headerfile = self.domain.get_name() + '.ers'
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -1994,7 +1997,7 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Export to ers files
         outname = self.domain.get_name() + '_elevation.ers'
-        sww2dem(self.domain.get_name() + '.sww',
+        sww2dem(os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww'),
                 outname,
                 quantity='elevation',
                 cellsize=cellsize,
@@ -2031,9 +2034,9 @@ class Test_Sww2Dem(unittest.TestCase):
                     - 0.66666663, -0.75      , -0.91666663, -1.        , -1.08333325,
                     - 0.5       , -0.66666663, -0.83333331, -0.91666663, -1.        ],
 
-        
+
         # pprint(grid)
-        
+
         assert num.allclose(grid, ref_grid)
 
         fid.close()
@@ -2044,20 +2047,20 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(sww.filename)
         os.remove(self.domain.get_name() + '_elevation')
         os.remove(self.domain.get_name() + '_elevation.ers')
-       
+
     def old_test_export_grid_parallel(self):
         """Test that sww information can be converted correctly to asc/prj
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         base_name = 'tegp'
         # Setup
         self.domain.set_name(base_name + '_P0_8')
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
@@ -2072,7 +2075,7 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.evolve_to_end(finaltime=0.0001)
         # Setup
         self.domain.set_name(base_name + '_P1_8')
-        swwfile2 = self.domain.get_name() + '.sww'
+        swwfile2 = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
@@ -2104,7 +2107,7 @@ class Test_Sww2Dem(unittest.TestCase):
                     format='asc')
 
         prjfile = base_name + '_P0_8_elevation_yeah.prj'
-        ascfile = base_name + '_P0_8_elevation_yeah.asc'       
+        ascfile = base_name + '_P0_8_elevation_yeah.asc'
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2116,13 +2119,13 @@ class Test_Sww2Dem(unittest.TestCase):
             for i in range(5):
                 # print " -i*cellsize - y",  -i*cellsize - y
                 # print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i * cellsize - y)               
+                assert num.allclose(float(L[i]), -i * cellsize - y)
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
 
         prjfile = base_name + '_P1_8_elevation_yeah.prj'
-        ascfile = base_name + '_P1_8_elevation_yeah.asc'       
+        ascfile = base_name + '_P1_8_elevation_yeah.asc'
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2134,7 +2137,7 @@ class Test_Sww2Dem(unittest.TestCase):
             for i in range(5):
                 # print " -i*cellsize - y",  -i*cellsize - y
                 # print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i * cellsize - y)               
+                assert num.allclose(float(L[i]), -i * cellsize - y)
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -2178,7 +2181,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         base_name = 'tegp'
         # Setup
@@ -2190,9 +2193,9 @@ class Test_Sww2Dem(unittest.TestCase):
 
 
         domain.set_name(base_name + '_P0_8')
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.set_flow_algorithm('DE0')
         domain.format = 'sww'
         domain.smooth = True
@@ -2207,7 +2210,7 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.evolve_to_end(finaltime=0.0001)
         # Setup
         domain.set_name(base_name + '_P1_8')
-        swwfile2 = domain.get_name() + '.sww'
+        swwfile2 = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()
@@ -2231,15 +2234,15 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Export to ascii/prj files
         extra_name_out = 'yeah'
-        sww2dem_batch(base_name,
+        sww2dem_batch(os.path.join(domain.get_datadir(), base_name),
                     quantities=['elevation', 'depth'],
                     extra_name_out=extra_name_out,
                     cellsize=cellsize,
                     verbose=self.verbose,
                     format='asc')
 
-        prjfile = base_name + '_P0_8_elevation_yeah.prj'
-        ascfile = base_name + '_P0_8_elevation_yeah.asc'       
+        prjfile = os.path.join(domain.get_datadir(), base_name + '_P0_8_elevation_yeah.prj')
+        ascfile = os.path.join(domain.get_datadir(), base_name + '_P0_8_elevation_yeah.asc')
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2251,13 +2254,13 @@ class Test_Sww2Dem(unittest.TestCase):
             for i in range(5):
                 # print " -i*cellsize - y",  -i*cellsize - y
                 # print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5.0e-2, atol=5.0e-2)               
+                assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5.0e-2, atol=5.0e-2)
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
 
-        prjfile = base_name + '_P1_8_elevation_yeah.prj'
-        ascfile = base_name + '_P1_8_elevation_yeah.asc'       
+        prjfile = os.path.join(domain.get_datadir(), base_name + '_P1_8_elevation_yeah.prj')
+        ascfile = os.path.join(domain.get_datadir(), base_name + '_P1_8_elevation_yeah.asc')
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2269,15 +2272,15 @@ class Test_Sww2Dem(unittest.TestCase):
             for i in range(5):
                 # print " -i*cellsize - y",  -i*cellsize - y
                 # print "float(L[i])", float(L[i])
-                assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5.0e-2, atol=5.0e-2)               
+                assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5.0e-2, atol=5.0e-2)
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
 
         # Check asc file
-        ascfile = base_name + '_P0_8_depth_yeah.asc'
-        prjfile = base_name + '_P0_8_depth_yeah.prj'
+        ascfile = os.path.join(domain.get_datadir(), base_name + '_P0_8_depth_yeah.asc')
+        prjfile = os.path.join(domain.get_datadir(), base_name + '_P0_8_depth_yeah.prj')
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -2292,8 +2295,8 @@ class Test_Sww2Dem(unittest.TestCase):
         os.remove(ascfile)
 
         # Check asc file
-        ascfile = base_name + '_P1_8_depth_yeah.asc'
-        prjfile = base_name + '_P1_8_depth_yeah.prj'
+        ascfile = os.path.join(domain.get_datadir(), base_name + '_P1_8_depth_yeah.asc')
+        prjfile = os.path.join(domain.get_datadir(), base_name + '_P1_8_depth_yeah.prj')
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -2316,7 +2319,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         try:
             os.remove('teg*.sww')
@@ -2327,11 +2330,11 @@ class Test_Sww2Dem(unittest.TestCase):
         # Setup
         self.domain.set_name('teg')
 
-        prjfile = self.domain.get_name() + '_elevation.prj'
-        ascfile = self.domain.get_name() + '_elevation.asc'
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_elevation.asc')
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.set_flow_algorithm('DE0')
         self.domain.smooth = True
         #self.domain.set_using_centroid_averaging(False)
@@ -2362,7 +2365,7 @@ class Test_Sww2Dem(unittest.TestCase):
         fid.close()
 
         # Export to ascii/prj files
-        sww2dem_batch(self.domain.get_name(),
+        sww2dem_batch(os.path.join(self.domain.get_datadir(), self.domain.get_name()),
                 quantities='elevation',
                 cellsize=cellsize,
                 verbose=self.verbose,
@@ -2390,7 +2393,7 @@ class Test_Sww2Dem(unittest.TestCase):
                 #print(i, float(L[i]), -i * cellsize - y)
                 msg = 'Got %f expected %f' % (float(L[i]), -i * cellsize - y)
                 assert num.allclose(float(L[i]), -i * cellsize - y), msg
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
@@ -2403,7 +2406,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         try:
             os.remove('teg*.sww')
@@ -2418,11 +2421,11 @@ class Test_Sww2Dem(unittest.TestCase):
         # Setup
         domain.set_name('teg')
 
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.set_flow_algorithm('DE0')
         domain.smooth = True
         #domain.set_using_centroid_averaging(False)
@@ -2453,7 +2456,7 @@ class Test_Sww2Dem(unittest.TestCase):
         fid.close()
 
         # Export to ascii/prj files
-        sww2dem_batch(domain.get_name(),
+        sww2dem_batch(os.path.join(domain.get_datadir(), domain.get_name()),
                 quantities='elevation',
                 cellsize=cellsize,
                 verbose=self.verbose,
@@ -2481,12 +2484,12 @@ class Test_Sww2Dem(unittest.TestCase):
                 #print(i, float(L[i]), -i * cellsize - y)
                 msg = 'Got %f expected %f' % (float(L[i]), -i * cellsize - y)
                 assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5.0e-2, atol=5.0e-2), msg
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
         os.remove(swwfile)
-    
+
 
     def old_test_export_gridII(self):
         """
@@ -2495,7 +2498,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         try:
             os.remove('teg*.sww')
@@ -2505,9 +2508,9 @@ class Test_Sww2Dem(unittest.TestCase):
         # Setup
         self.domain.set_name('tegII')
 
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.set_flow_algorithm('DE0')
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -2534,39 +2537,24 @@ class Test_Sww2Dem(unittest.TestCase):
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
-        ymomentum = fid.variables['ymomentum'][:]        
+        ymomentum = fid.variables['ymomentum'][:]
 
         # print 'stage', stage
         # print 'xmom', xmomentum
-        # print 'ymom', ymomentum        
+        # print 'ymom', ymomentum
 
         fid.close()
 
         # Export to ascii/prj files
-        if True:
-            sww2dem_batch(self.domain.get_name(),
-                        quantities=['elevation', 'depth'],
-                        cellsize=cellsize,
-                        verbose=self.verbose,
-                        format='asc')
-
-        else:
-            sww2dem_batch(self.domain.get_name(),
-                quantities=['depth'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
-
-
-            export_grid(self.domain.get_name(),
-                quantities=['elevation'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
+        sww2dem_batch(os.path.join(self.domain.get_datadir(), self.domain.get_name()),
+                    quantities=['elevation', 'depth'],
+                    cellsize=cellsize,
+                    verbose=self.verbose,
+                    format='asc')
 
         prjfile = self.domain.get_name() + '_elevation.prj'
         ascfile = self.domain.get_name() + '_elevation.asc'
-        
+
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2593,7 +2581,7 @@ class Test_Sww2Dem(unittest.TestCase):
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
-        
+
         # Check asc file
         ascfile = self.domain.get_name() + '_depth.asc'
         prjfile = self.domain.get_name() + '_depth.prj'
@@ -2615,7 +2603,7 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 # print " -i*cellsize - y",  -i*cellsize - y
-                # print "float(L[i])", float(L[i])                
+                # print "float(L[i])", float(L[i])
                 assert num.allclose(float(L[i]), 1 - (-i * cellsize - y))
 
         # Cleanup
@@ -2630,7 +2618,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         try:
             os.remove('teg*.sww')
@@ -2646,9 +2634,9 @@ class Test_Sww2Dem(unittest.TestCase):
 
         domain.set_name('tegII')
 
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.set_flow_algorithm('DE0')
         domain.smooth = True
         domain.set_quantity('elevation', lambda x, y:-x - y)
@@ -2675,39 +2663,24 @@ class Test_Sww2Dem(unittest.TestCase):
         time = fid.variables['time'][:]
         stage = fid.variables['stage'][:]
         xmomentum = fid.variables['xmomentum'][:]
-        ymomentum = fid.variables['ymomentum'][:]        
+        ymomentum = fid.variables['ymomentum'][:]
 
         # print 'stage', stage
         # print 'xmom', xmomentum
-        # print 'ymom', ymomentum        
+        # print 'ymom', ymomentum
 
         fid.close()
 
         # Export to ascii/prj files
-        if True:
-            sww2dem_batch(domain.get_name(),
-                        quantities=['elevation', 'depth'],
-                        cellsize=cellsize,
-                        verbose=self.verbose,
-                        format='asc')
+        sww2dem_batch(os.path.join(domain.get_datadir(), domain.get_name()),
+                    quantities=['elevation', 'depth'],
+                    cellsize=cellsize,
+                    verbose=self.verbose,
+                    format='asc')
 
-        else:
-            sww2dem_batch(domain.get_name(),
-                quantities=['depth'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.asc')
 
-
-            export_grid(domain.get_name(),
-                quantities=['elevation'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
-
-        prjfile = domain.get_name() + '_elevation.prj'
-        ascfile = domain.get_name() + '_elevation.asc'
-        
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2734,10 +2707,10 @@ class Test_Sww2Dem(unittest.TestCase):
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
-        
+
         # Check asc file
-        ascfile = domain.get_name() + '_depth.asc'
-        prjfile = domain.get_name() + '_depth.prj'
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_depth.asc')
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_depth.prj')
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -2756,7 +2729,7 @@ class Test_Sww2Dem(unittest.TestCase):
             y = (4 - j) * cellsize
             for i in range(5):
                 # print (" -i*cellsize - y", 1.0 - (-i*cellsize - y))
-                # print ("float(L[i])", float(L[i]) )               
+                # print ("float(L[i])", float(L[i]) )
                 assert num.allclose(float(L[i]), 1 - (-i * cellsize - y), rtol=5.0e-2, atol=5.0e-2)
 
         # Cleanup
@@ -2772,7 +2745,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         try:
             os.remove('teg*.sww')
@@ -2780,12 +2753,12 @@ class Test_Sww2Dem(unittest.TestCase):
             pass
 
         # Setup
-        
+
         self.domain.set_name('tegIII')
 
-        swwfile = self.domain.get_name() + '.sww'
+        self.domain.set_datadir(tempfile.mkdtemp())
 
-        self.domain.set_datadir('.')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
         self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
@@ -2793,7 +2766,7 @@ class Test_Sww2Dem(unittest.TestCase):
         self.domain.set_quantity('stage', 1.0)
 
         self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
-        
+
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()  # 'stage')
@@ -2817,31 +2790,16 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Export to ascii/prj files
         extra_name_out = 'yeah'
-        if True:
-            sww2dem_batch(self.domain.get_name(),
-                        quantities=['elevation', 'depth'],
-                        extra_name_out=extra_name_out,
-                        cellsize=cellsize,
-                        verbose=self.verbose,
-                        format='asc')
-
-        else:
-            sww2dem_batch(self.domain.get_name(),
-                quantities=['depth'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
-
-
-            sww2dem_batch(self.domain.get_name(),
-                quantities=['elevation'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
+        sww2dem_batch(os.path.join(self.domain.get_datadir(), self.domain.get_name()),
+                    quantities=['elevation', 'depth'],
+                    extra_name_out=extra_name_out,
+                    cellsize=cellsize,
+                    verbose=self.verbose,
+                    format='asc')
 
         prjfile = self.domain.get_name() + '_elevation_yeah.prj'
         ascfile = self.domain.get_name() + '_elevation_yeah.asc'
-        
+
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2864,11 +2822,11 @@ class Test_Sww2Dem(unittest.TestCase):
                 # print " -i*cellsize - y",  -i*cellsize - y
                 # print "float(L[i])", float(L[i])
                 assert num.allclose(float(L[i]), -i * cellsize - y)
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
-        
+
         # Check asc file
         ascfile = self.domain.get_name() + '_depth_yeah.asc'
         prjfile = self.domain.get_name() + '_depth_yeah.prj'
@@ -2903,7 +2861,7 @@ class Test_Sww2Dem(unittest.TestCase):
         format readable by e.g. ArcView
         """
 
-        import time, os
+        import time
 
         try:
             os.remove('teg*.sww')
@@ -2918,7 +2876,7 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
 
 
-        domain.set_datadir('.')
+        domain.set_datadir(tempfile.mkdtemp())
         domain.set_flow_algorithm('DE0')
         domain.format = 'sww'
         domain.smooth = True
@@ -2926,7 +2884,7 @@ class Test_Sww2Dem(unittest.TestCase):
         domain.set_quantity('stage', 1.0)
 
         domain.geo_reference = Geo_reference(56, 308500, 6189000)
-        
+
         sww = SWW_file(domain)
         sww.store_connectivity()
         sww.store_timestep()  # 'stage')
@@ -2950,31 +2908,16 @@ class Test_Sww2Dem(unittest.TestCase):
 
         # Export to ascii/prj files
         extra_name_out = 'yeah'
-        if True:
-            sww2dem_batch(domain.get_name(),
-                        quantities=['elevation', 'depth'],
-                        extra_name_out=extra_name_out,
-                        cellsize=cellsize,
-                        verbose=self.verbose,
-                        format='asc')
+        sww2dem_batch(os.path.join(domain.get_datadir(), domain.get_name()),
+                    quantities=['elevation', 'depth'],
+                    extra_name_out=extra_name_out,
+                    cellsize=cellsize,
+                    verbose=self.verbose,
+                    format='asc')
 
-        else:
-            sww2dem_batch(domain.get_name(),
-                quantities=['depth'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation_yeah.prj')
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation_yeah.asc')
 
-
-            sww2dem_batch(domain.get_name(),
-                quantities=['elevation'],
-                cellsize=cellsize,
-                verbose=self.verbose,
-                format='asc')
-
-        prjfile = domain.get_name() + '_elevation_yeah.prj'
-        ascfile = domain.get_name() + '_elevation_yeah.asc'
-        
         # Check asc file
         ascid = open(ascfile)
         lines = ascid.readlines()
@@ -2997,14 +2940,14 @@ class Test_Sww2Dem(unittest.TestCase):
                 # print " -i*cellsize - y",  -i*cellsize - y
                 # print "float(L[i])", float(L[i])
                 assert num.allclose(float(L[i]), -i * cellsize - y, rtol=5.0e-2, atol=5.0e-2)
-                
+
         # Cleanup
         os.remove(prjfile)
         os.remove(ascfile)
-        
+
         # Check asc file
-        ascfile = domain.get_name() + '_depth_yeah.asc'
-        prjfile = domain.get_name() + '_depth_yeah.prj'
+        ascfile = os.path.join(domain.get_datadir(), domain.get_name() + '_depth_yeah.asc')
+        prjfile = os.path.join(domain.get_datadir(), domain.get_name() + '_depth_yeah.prj')
         ascid = open(ascfile)
         lines = ascid.readlines()
         ascid.close()
@@ -3040,123 +2983,70 @@ class Test_Sww2Dem(unittest.TestCase):
                         cellsize=99,
                         verbose=self.verbose,
                         format='asc')
-        except IOError:
+        except OSError:
             pass
         else:
             self.assertTrue(0 == 1, 'Bad input did not throw exception error!')
-        
+
     def test_sww2dem_verbose_True(self):
-        """test sww2dem when verbose is True
-        Uses the example from function test_sww2dem_asc_elevation_depth
+        """test sww2dem when verbose is True: verify log.info() is called
+        with the expected statistics messages.
         """
-
+        from unittest.mock import patch
         import anuga.utilities.log as log
-        cwd = os.getcwd()
-        LOG_FILENAME = cwd + '/log_critical_message.log'
-        # Remove old log file
-        try:
-            os.remove(LOG_FILENAME)
-        except OSError:
-            pass
-        filehandler = log.logging.FileHandler(LOG_FILENAME)
-        filehandler.setLevel(log.logging.CRITICAL)
-        log.logging.getLogger('').addHandler(filehandler)
-        # Setup
+
         self.domain.set_name('datatest_verbose')
+        self.domain.set_datadir(tempfile.mkdtemp())
+        prjfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_elevation.prj')
+        ascfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '_elevation.asc')
+        swwfile = os.path.join(self.domain.get_datadir(), self.domain.get_name() + '.sww')
 
-        prjfile = self.domain.get_name() + '_elevation.prj'
-        ascfile = self.domain.get_name() + '_elevation.asc'
-        swwfile = self.domain.get_name() + '.sww'
-
-        self.domain.set_datadir('.')
         self.domain.set_flow_algorithm('DE0')
         self.domain.format = 'sww'
         self.domain.smooth = True
         self.domain.set_quantity('elevation', lambda x, y:-x - y)
         self.domain.set_quantity('stage', 1.0)
-
         self.domain.geo_reference = Geo_reference(56, 308500, 6189000)
 
         sww = SWW_file(self.domain)
         sww.store_connectivity()
         sww.store_timestep()
-
         self.domain.evolve_to_end(finaltime=0.01)
         sww.store_timestep()
 
-        cellsize = 0.25
-
-        with Capturing() as myout:
+        # Capture log.info() calls made by sww2dem rather than relying on
+        # the logging infrastructure (which the new log.py manages differently).
+        logged = []
+        with patch.object(log, 'info', side_effect=lambda msg='': logged.append(msg)):
             sww2dem(swwfile, ascfile,
-                   quantity='elevation',
-                   cellsize=cellsize,
-                   number_of_decimal_places=9,
-                   verbose=True)
-              
-        log_critical_msg = open(LOG_FILENAME)
-        output = log_critical_msg.read()
-        #print(' ')
-        #print('-----------------------')
-        #print(f' Multiproccessor Mode {self.domain.multiprocessor_mode}')
-        #print(output)
-        #print('-----------------------')
-        log_critical_msg.close()
-        output = output.split('\n')
+                    quantity='elevation',
+                    cellsize=0.25,
+                    number_of_decimal_places=9,
+                    verbose=True)
 
-        
-        #print (output, 'log message output')
-    
-        output_verbose_True = '''Reading from datatest_verbose.sww
-Output directory is datatest_verbose_elevation.asc
-------------------------------------------------
-Statistics of SWW file:
-  Name: datatest_verbose.sww
-  Reference:
-    Lower left corner: [308500.000000, 6189000.000000]
-    Start time: 0.000000
-  Extent:
-    x [m] in [0.000000, 1.000000], len(x) == 9
-    y [m] in [0.000000, 1.000000], len(y) == 9
-    t [s] in [0.000000, 0.010000], len(t) == 2
-  Quantities [SI units]:
-    stage in [1.000000, 1.000000]
-    xmomentum in [-0.000000, 0.000000]
-    ymomentum in [-0.000000, 0.000000]
-    elevation in [-1.500000, -0.500000]
-'''
+        expected = [
+            f'Reading from {swwfile}',
+            f'Output directory is {ascfile}',
+            'Statistics of SWW file:',
+            f'  Name: {swwfile}',
+            '    Lower left corner: [308500.000000, 6189000.000000]',
+            '    Start time: 0.000000',
+            '    x [m] in [0.000000, 1.000000], len(x) == 9',
+            '    y [m] in [0.000000, 1.000000], len(y) == 9',
+            '    t [s] in [0.000000, 0.010000], len(t) == 2',
+            '    stage in [1.000000, 1.000000]',
+            '    elevation in [-1.500000, -0.500000]',
+        ]
+        for msg in expected:
+            self.assertIn(msg, logged, f'Expected log message not found: {msg!r}')
 
-        output_verbose_True = output_verbose_True.split('\n')
-        
-        # check the output line by line
-        for output_verbose_True_line, line in zip(output_verbose_True,
-                                                  output[:len(output_verbose_True)-1]):
-
-            #print(str(line))
-            #print(str(output_verbose_True_line))
-            #print()
-            assert str(line).lstrip() == output_verbose_True_line.lstrip()
-            # cleanup
+        for f in [prjfile, ascfile, swwfile]:
             try:
-                os.remove(prjfile)
+                os.remove(f)
             except OSError:
                 pass
-            try:
-                os.remove(ascfile)
-            except OSError:
-                pass
-            try:
-                os.remove(swwfile)
-            except OSError:
-                pass
-    #     os.remove(LOG_FILENAME)
-        log.logging.disable(log.logging.CRITICAL)
 
-        try:    
-            os.remove(LOG_FILENAME)
-        except OSError:
-            pass
-        
-        
+
 
 #################################################################################
 

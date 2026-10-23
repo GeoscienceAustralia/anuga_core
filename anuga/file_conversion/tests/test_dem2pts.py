@@ -18,20 +18,20 @@ class Test_Dem2Pts(unittest.TestCase):
         These tests are quite coarse-grained: converting a file
         and checking that its headers and some of its contents
         are correct.
-    """ 
+    """
 
     def tearDown(self):
         for file in ['demtest2.pts']:
             try:
                 os.remove(file)
             except OSError:
-                pass 
-     
+                pass
+
     def test_dem2pts_bounding_box_v2(self):
         """Test conversion from dem in ascii format to native NetCDF format
         """
 
-        import time, os
+        import time
 
 
         #Write test asc file
@@ -143,7 +143,7 @@ Parameters
         """Test conversion from dem in ascii format to native NetCDF format
         """
 
-        import time, os
+        import time
 
         #Write test asc file
         root = 'demtest2'
@@ -260,7 +260,7 @@ Parameters
 
         #print elevation
         #print ref_elevation
-        
+
         assert num.allclose(elevation, ref_elevation)
 
         #Cleanup
@@ -278,7 +278,7 @@ Parameters
         Check missing values on clipping boundary
         """
 
-        import time, os
+        import time
 
         #Write test asc file
         root = 'demtest3'

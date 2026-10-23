@@ -67,7 +67,7 @@ def sww_merge_parallel(domain_global_name, np, verbose=False, delete_old=False,
     else:
         _sww_merge_parallel_smooth(swwfiles, output, verbose, delete_old,
                                    chunk_size=chunk_size)
-        
+
 
 def _sww_merge(swwfiles, output, verbose=False):
     """
@@ -123,7 +123,7 @@ def _sww_merge(swwfiles, output, verbose=False):
             from anuga.coordinate_transforms.geo_reference import Geo_reference
             geo_reference = Geo_reference(NetCDFObject=fid)
 
-            description = 'merged:' + getattr(fid, 'description')
+            description = 'merged:' + fid.description
             first_file = False
 
         try: # works with netcdf4
@@ -276,21 +276,20 @@ def _sww_merge_parallel_smooth(swwfiles, output, verbose=False, delete_old=False
             for q in static_quantities:
                 out_s_quantities[q] = num.zeros((number_of_global_nodes,), num.float32)
 
-            # Classify centroid-based quantities
-            candidates_c = set(['elevation_c', 'friction_c', 'stage_c', 'xmomentum_c',
-                                 'ymomentum_c', 'xvelocity_c', 'yvelocity_c', 'height_c'])
+            # Classify centroid-based quantities (any _c variable in the file)
             static_c_quantities  = []
             dynamic_c_quantities = []
-            for q in candidates_c & present:
-                if fid.variables[q].shape[0] == n_steps:
+            for q in sorted(v for v in present if v.endswith('_c')):
+                shape = fid.variables[q].shape
+                if len(shape) == 2 and shape[0] == n_steps:
                     dynamic_c_quantities.append(q)
-                else:
+                elif len(shape) == 1:
                     static_c_quantities.append(q)
 
             for q in static_c_quantities:
                 out_s_c_quantities[q] = num.zeros((number_of_global_triangles,), num.float32)
 
-            description = 'merged:' + getattr(fid, 'description')
+            description = 'merged:' + fid.description
             first_file = False
 
         # --- Geometry and index arrays ---
@@ -329,7 +328,7 @@ def _sww_merge_parallel_smooth(swwfiles, output, verbose=False, delete_old=False
         # --- Static centroid quantities ---
         for q in static_c_quantities:
             out_s_c_quantities[q][ftri_l2g] = \
-                num.array(fid.variables[q]).astype(num.float32)[ftri_ids]
+                num.array(fid.variables[q][:]).astype(num.float32)[ftri_ids]
 
         fid.close()
 
@@ -514,28 +513,21 @@ def _sww_merge_parallel_non_smooth(swwfiles, output, verbose=False, delete_old=F
                 out_s_quantities[quantity] = num.zeros((3*number_of_global_triangles,),num.float32)
 
             #=======================================
-            # Deal with the centroid based variables
+            # Deal with the centroid based variables (any _c variable in the file)
             #=======================================
-            quantities = set(['elevation_c', 'friction_c', 'stage_c', 'xmomentum_c',
-                              'ymomentum_c', 'xvelocity_c', 'yvelocity_c', 'height_c'])
-            variables = set(fid.variables.keys())
-
-            quantities = list(quantities & variables)
-            
-            static_c_quantities = []
+            static_c_quantities  = []
             dynamic_c_quantities = []
-
-            for quantity in quantities:
-                # Test if quantity is static
-                if n_steps == fid.variables[quantity].shape[0]:
+            for quantity in sorted(v for v in fid.variables.keys() if v.endswith('_c')):
+                shape = fid.variables[quantity].shape
+                if len(shape) == 2 and shape[0] == n_steps:
                     dynamic_c_quantities.append(quantity)
-                else:
+                elif len(shape) == 1:
                     static_c_quantities.append(quantity)
-                
+
             for quantity in static_c_quantities:
                 out_s_c_quantities[quantity] = num.zeros((number_of_global_triangles,),num.float32)
 
-            description = 'merged:' + getattr(fid, 'description')
+            description = 'merged:' + fid.description
             first_file = False
 
 
@@ -562,12 +554,12 @@ def _sww_merge_parallel_non_smooth(swwfiles, output, verbose=False, delete_old=F
         # Read in static vertex quantities
         for quantity in static_quantities:
             out_s_quantities[quantity][g_vids] = \
-                num.array(fid.variables[quantity]).astype(num.float32)[l_vids]
+                num.array(fid.variables[quantity][:]).astype(num.float32)[l_vids]
 
         # Read in static centroid quantities
         for quantity in static_c_quantities:
             out_s_c_quantities[quantity][f_gids] = \
-                num.array(fid.variables[quantity]).astype(num.float32)[f_ids]
+                num.array(fid.variables[quantity][:]).astype(num.float32)[f_ids]
 
         fid.close()
 
@@ -598,7 +590,7 @@ def _sww_merge_parallel_non_smooth(swwfiles, output, verbose=False, delete_old=F
 
     sww.store_static_quantities(fido, verbose=verbose, **out_s_quantities)
     sww.store_static_quantities_centroid(fido, verbose=verbose, **out_s_c_quantities)
-    
+
     # Bulk write time
     fido.variables['time'][:] = times
 

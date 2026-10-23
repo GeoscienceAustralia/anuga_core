@@ -32,22 +32,22 @@ mesh_file = 'riverwall.msh'
 class Test_parallel_riverwall(unittest.TestCase):
     def setUp(self):
         # Run the sequential and parallel simulations to produce sww files for comparison.
-        
+
         path = os.path.dirname(__file__)  # Get folder where this script lives
         run_filename = os.path.join(path, 'run_parallel_riverwall.py')
 
-        #-----------------------        
+        #-----------------------
         # First run sequentially
         #-----------------------
         cmd = 'python ' + run_filename
-        if verbose: 
-            print(cmd)        
-            
+        if verbose:
+            print(cmd)
+
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
             print(result.stdout)
             print(result.stderr)
-            raise Exception(result.stderr)        
+            raise Exception(result.stderr)
 
         # --------------------
         # Calculate extra_options
@@ -65,10 +65,10 @@ class Test_parallel_riverwall(unittest.TestCase):
 
         #---------------------
         # Then run in parallel
-        #---------------------           
+        #---------------------
 
         cmd = 'mpiexec -np 3 ' + extra_options + ' python ' + run_filename
-        if verbose: 
+        if verbose:
             print(cmd)
 
         result = subprocess.run(cmd.split(), capture_output=True)
@@ -79,12 +79,12 @@ class Test_parallel_riverwall(unittest.TestCase):
 
     def tearDown(self):
         os.remove(sequential_sww_file)
-        os.remove(parallel_sww_file)        
+        os.remove(parallel_sww_file)
         os.remove(mesh_file)
 
     def test_that_sequential_and_parallel_outputs_are_identical(self):
         from anuga.file.sww import sww_files_are_equal
-        assert sww_files_are_equal(sequential_sww_file, parallel_sww_file)         
+        assert sww_files_are_equal(sequential_sww_file, parallel_sww_file)
 
 if __name__ == "__main__":
     runner = unittest.TextTestRunner()

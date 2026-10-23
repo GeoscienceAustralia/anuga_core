@@ -67,7 +67,8 @@ edge_t *find_dok_entry(sparse_dok * edgetable,edge_key_t key);
 // the specified value. If entry already exists value is added to current
 // value. If entry already exists and this function causes the value to become
 // zero, the entry is removed.
-void add_dok_entry(sparse_dok * edgetable,edge_key_t key, double value);
+// Returns 0, or -1 if a new entry could not be allocated.
+anuga_int add_dok_entry(sparse_dok * edgetable,edge_key_t key, double value);
 
 // delete_dok_entry - Remove an edge from the hash table. Implicitly sets
 // the corresponding entry in the matrix to zero.
@@ -97,14 +98,16 @@ void sort_by_key(sparse_dok * hashtable);
 // convert_to_csr_ptr - Convert the DOK format matrix into CSR format. The
 // new matrix is stored in the (already allocated) input pointer. The old 
 // pointer is not freed, and should be cleaned up manually.
-void convert_to_csr_ptr(sparse_csr * new_csr,sparse_dok * hashtable);
+// Returns 0, or -1 on allocation failure (new_csr is then left empty).
+anuga_int convert_to_csr_ptr(sparse_csr * new_csr,sparse_dok * hashtable);
 
 // add_sparse_dok - Perform a linear addition on two dok_matricies A=a*A+b*B.
 // The result is stored in the first input sparse_dok. The second sparse_dok is 
 // not freed and should be cleaned up manually. 
 // Note: No size conditions are imposed on the matricies, so potentially different
 // sized matricies can be combined.
-void add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult2);
+// Returns 0, or -1 on allocation failure.
+anuga_int add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult2);
 
 // get_dok_rows -- Return the number of rows currently stored in the matrix
 anuga_int get_dok_rows(sparse_dok * dok);

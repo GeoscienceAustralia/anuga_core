@@ -1,0 +1,184 @@
+# Nightly validation: the analytical, experimental and behaviour cases under
+# validation_tests/, run through run_auto_validation_tests.py.
+#
+# The unit tests (scheduled-build.yml) say the code does what the code says;
+# these say the solver still reproduces the dam-break, run-up, lake-at-rest,
+# Okushiri and other benchmarks it is validated against. A regression that
+# keeps every unit test green -- a limiter change, a flux-term slip, a wet/dry
+# threshold -- shows up here and nowhere else. They take an hour or so, which
+# is why they run nightly rather than on every pull request.
+#
+# Runs on Linux only, one Python, both long-lived branches. The HEC-RAS bridge
+# and weir behaviour cases (>100 s each) are included on the schedule and
+# optional on a manual run. Results and the plots each case writes are kept
+# as an artifact for two weeks, so a failure can be looked at without a rerun.
+#
+# Failure opens (or comments on) a tracking issue, like the nightly build.
+
+name: Validation tests
+
+on:
+  schedule:
+    # 22:00 UTC daily: two hours after the nightly build, so the two do not
+    # compete for runners and a shared upstream breakage is reported by the
+    # build first, where it is cheaper to diagnose.
+    - cron: '0 22 * * *'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag or SHA to validate'
+        type: string
+        default: 'develop'
+      alg:
+        description: 'Flow algorithm (-alg). DE1 is the suite default (validation_utilities/parameters.py)'
+        type: string
+        default: 'DE1'
+      long:
+        description: 'Include the long HEC-RAS behaviour cases (-l)'
+        type: boolean
+        default: false
+      python_version:
+        description: 'Python version for the conda environment'
+        type: string
+        default: '3.12'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.inputs.ref || 'nightly' }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: validate (${{ matrix.ref }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        # Manual runs validate the one ref asked for; the schedule covers both
+        # long-lived branches.
+        ref: ${{ fromJSON(github.event_name == 'workflow_dispatch' && format('["{0}"]', inputs.ref) || '["main", "develop"]') }}
+    env:
+      PY: ${{ inputs.python_version || '3.12' }}
+      ALG: ${{ inputs.alg || 'DE1' }}
+      # Scheduled runs include the long cases; manual runs only if asked.
+      LONG: ${{ github.event_name == 'schedule' || inputs.long }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ matrix.ref }}
+          fetch-depth: 0   # git describe needs the tags for the version
+
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          use-mamba: true
+          python-version: ${{ env.PY }}
+          auto-update-conda: true
+          conda-remove-defaults: true
+
+      # The same recipe as conda-setup.yml's Linux path, so a failure here is
+      # a validation failure and not an environment difference.
+      - name: Create the environment
+        shell: bash -el {0}
+        run: |
+          conda env create --name anuga_env --file environments/environment_${PY}.yml
+          conda install -c conda-forge -n anuga_env compilers libgomp openmpi mpi4py
+
+      - name: Install anuga
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          pip install --no-build-isolation -v .
+          # From a subdirectory: at the repository root `import anuga` picks up
+          # the unbuilt source tree instead of the installed package (#237).
+          cd validation_tests
+          python -c "import anuga; print('anuga', anuga.__version__)"
+
+      - name: Run the validation suite
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          cd validation_tests
+          export OMP_NUM_THREADS=2
+          LONG_FLAG=""
+          if [ "$LONG" = "true" ]; then LONG_FLAG="-l"; fi
+          set -o pipefail
+          python run_auto_validation_tests.py -alg "$ALG" $LONG_FLAG 2>&1 | tee validation.log
+
+      - name: Summary
+        if: always()
+        shell: bash -el {0}
+        run: |
+          {
+            echo "## Validation (${{ matrix.ref }}, -alg $ALG, long=$LONG)"
+            echo
+            echo '```'
+            sed -n '/VALIDATION SUMMARY/,$p' validation_tests/validation.log || echo "(no summary: the run did not reach the end)"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Artifact names may not contain / \ : * ? " < > | or newlines, and a
+      # branch like fix/x or a PR ref like refs/pull/N/head has slashes. The
+      # ref goes through env rather than into the script text.
+      - name: Artifact name
+        if: always()
+        id: artifact
+        env:
+          REF: ${{ matrix.ref }}
+        run: |
+          safe=$(printf '%s' "$REF" | tr '/\\:*?"<>| \n\r' '-')
+          echo "name=validation-${safe}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Keep the log and plots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: |
+            validation_tests/validation.log
+            validation_tests/**/*.png
+          if-no-files-found: warn
+          retention-days: 14
+
+  report:
+    name: Report failure
+    needs: [validate]
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - name: Open or update the tracking issue
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          RESULT: ${{ needs.validate.result }}
+        run: |
+          set -euo pipefail
+          TITLE="Validation tests failing"
+          BODY=$(printf '%s\n' \
+            "The nightly validation run failed (\`${RESULT}\`)." \
+            "" \
+            "Run: ${RUN_URL}" \
+            "" \
+            "The job summary lists the cases that failed, and the artifact holds" \
+            "the full log and the plots each case wrote. Unlike the nightly build," \
+            "a failure here is usually ours: the unit tests were green for the" \
+            "same commit, so look for a change to the solver, the limiters or the" \
+            "wet/dry handling since the last green run rather than for an" \
+            "upstream package moving.")
+          EXISTING=$(gh issue list --repo "$REPO" --state open \
+                       --search "\"$TITLE\" in:title" --json number \
+                       --jq '.[0].number // empty')
+          if [ -n "$EXISTING" ]; then
+            gh issue comment "$EXISTING" --repo "$REPO" --body "$BODY"
+            echo "Commented on #$EXISTING"
+          else
+            gh issue create --repo "$REPO" --title "$TITLE" --body "$BODY"
+            echo "Opened a new tracking issue"
+          fi

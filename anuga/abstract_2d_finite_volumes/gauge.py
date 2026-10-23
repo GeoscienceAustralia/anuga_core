@@ -7,7 +7,6 @@
    Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou, James Hudson
    Geoscience Australia
 """
-from six import string_types
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
@@ -79,8 +78,7 @@ def _quantities2csv(quantities, point_quantities, centroids, point_i):
 def sww2csv_gauges(sww_file,
                    gauge_file,
                    out_name='gauge_',
-                   quantities=['stage', 'depth', 'elevation',
-                               'xmomentum', 'ymomentum'],
+                   quantities=None,
                    verbose=False,
                    use_cache=True,
                    output_centroids=False):
@@ -130,53 +128,41 @@ def sww2csv_gauges(sww_file,
     This is really returning speed, not velocity.
     """
 
-    from csv import reader,writer
+    from csv import reader, writer
     from anuga.utilities.numerical_tools import ensure_numeric, mean, NAN
-    import string
     from anuga.utilities.file_utils import get_all_swwfiles
     from anuga.abstract_2d_finite_volumes.util import file_function
 
-    assert isinstance(gauge_file,string_types) or isinstance(gauge_file, str), 'Gauge filename must be a string or unicode'
-    assert isinstance(out_name,string_types) or isinstance(out_name, str), 'Output filename prefix must be a string'
+    if quantities is None:
+        quantities = ['stage', 'depth', 'elevation', 'xmomentum', 'ymomentum']
+
+    assert isinstance(gauge_file, str), 'Gauge filename must be a string or unicode'
+    assert isinstance(out_name, str), 'Output filename prefix must be a string'
+
+    if verbose: log.info('Gauges obtained from: %s' % gauge_file)
 
     try:
-        gid = open(gauge_file)
-        point_reader = reader(gid)
-        gid.close()
+        points = []
+        point_name = []
+        with open(gauge_file) as gid:
+            point_reader = reader(gid)
+            for i, row in enumerate(point_reader):
+                if i == 0:
+                    for j, value in enumerate(row):
+                        if value.strip() == 'easting':  easting = j
+                        if value.strip() == 'northing': northing = j
+                        if value.strip() == 'name':     name = j
+                        if value.strip() == 'elevation': elevation = j
+                else:
+                    points.append([float(row[easting]), float(row[northing])])
+                    point_name.append(row[name])
     except Exception as e:
         msg = 'File "%s" could not be opened: Error="%s"' % (gauge_file, e)
         raise Exception(msg)
 
-    if verbose: log.critical('Gauges obtained from: %s' % gauge_file)
-
-    gid = open(gauge_file)
-    point_reader = reader(gid)
-
-    points = []
-    point_name = []
-
-    # read point info from file
-    for i,row in enumerate(point_reader):
-        # read header and determine the column numbers to read correctly.
-        if i==0:
-            for j,value in enumerate(row):
-                if value.strip()=='easting':easting=j
-                if value.strip()=='northing':northing=j
-                if value.strip()=='name':name=j
-                if value.strip()=='elevation':elevation=j
-        else:
-            #points.append([float(row[easting]),float(row[northing])])
-            points.append([float(row[easting]),float(row[northing])])
-            point_name.append(row[name])
-
-    gid.close()
-
-    #convert to array for file_function
-    points_array = num.array(points,float)
-
+    # convert to array for file_function
+    points_array = num.array(points, float)
     points_array = ensure_absolute(points_array)
-
-    #print 'points_array', points_array
 
     dir_name, base = os.path.split(sww_file)
 
@@ -186,7 +172,7 @@ def sww2csv_gauges(sww_file,
         dir_name =getcwd()
 
     if access(sww_file,R_OK):
-        if verbose: log.critical('File %s exists' % sww_file)
+        if verbose: log.info('File %s exists' % sww_file)
     else:
         msg = 'File "%s" could not be opened: no read permission' % sww_file
         raise Exception(msg)
@@ -199,7 +185,7 @@ def sww2csv_gauges(sww_file,
     sww_files.sort()
 
     if verbose:
-        log.critical('sww files=%s' % sww_files)
+        log.info('sww files=%s' % sww_files)
 
     #to make all the quantities lower case for file_function
     quantities = [quantity.lower() for quantity in quantities]
@@ -215,7 +201,7 @@ def sww2csv_gauges(sww_file,
     heading.insert(0,'time')
     heading.insert(1,'hours')
 
-    if verbose: log.critical('Writing csv files')
+    if verbose: log.info('Writing csv files')
 
     quake_offset_time = None
 
@@ -233,32 +219,24 @@ def sww2csv_gauges(sww_file,
             quake_offset_time = callable_sww.starttime
 
         for point_i, point in enumerate(points_array):
-            for time in callable_sww.get_time():
-                # add domain starttime to relative time.
-                quake_time = time + quake_offset_time
-                point_quantities = callable_sww(time, point_i) # __call__ is overridden
-
-
-                if point_quantities[0] != NAN:
-                    if is_opened[point_i] == False:
-                        points_handle = open(dir_name + sep + gauge_file
-                                             + point_name[point_i] + '.csv', 'w', newline='')
-                        points_writer = writer(points_handle)
-                        points_writer.writerow(heading)
-                        is_opened[point_i] = True
-                    else:
-                        points_handle = open(dir_name + sep + gauge_file
-                                             + point_name[point_i] + '.csv', 'a', newline='')
-                        points_writer = writer(points_handle)
-
-
-                    points_list = [quake_time, quake_time/3600.] +  _quantities2csv(quantities, point_quantities, callable_sww.centroids, point_i)
-                    points_writer.writerow(points_list)
-                    points_handle.close()
-                else:
-                    if verbose:
-                        msg = 'gauge' + point_name[point_i] + 'falls off the mesh in file ' + sww_file + '.'
-                        log.warning(msg)
+            csv_path = dir_name + sep + gauge_file + point_name[point_i] + '.csv'
+            mode = 'w' if not is_opened[point_i] else 'a'
+            with open(csv_path, mode, newline='') as points_handle:
+                points_writer = writer(points_handle)
+                if not is_opened[point_i]:
+                    points_writer.writerow(heading)
+                    is_opened[point_i] = True
+                for time in callable_sww.get_time():
+                    quake_time = time + quake_offset_time
+                    point_quantities = callable_sww(time, point_i)
+                    if point_quantities[0] != NAN:
+                        points_list = ([quake_time, quake_time / 3600.] +
+                                       _quantities2csv(quantities, point_quantities,
+                                                       callable_sww.centroids, point_i))
+                        points_writer.writerow(points_list)
+                    elif verbose:
+                        log.warning('gauge %s falls off the mesh in file %s.'
+                                    % (point_name[point_i], sww_file))
 
 def sww2timeseries(swwfiles,
                    gauge_filename,
@@ -372,12 +350,6 @@ def sww2timeseries(swwfiles,
 
     """
 
-    msg = 'NOTE: A new function is available to create csv files from sww '
-    msg += 'files called sww2csv_gauges in anuga.abstract_2d_finite_volumes.util'
-    msg += ' PLUS another new function to create graphs from csv files called '
-    msg += 'csv2timeseries_graphs in anuga.abstract_2d_finite_volumes.util'
-    log.critical(msg)
-
     k = _sww2timeseries(swwfiles,
                         gauge_filename,
                         production_dirs,
@@ -414,14 +386,10 @@ def _sww2timeseries(swwfiles,
                     verbose = False,
                     output_centroids = False):
 
-    # FIXME(Ole): Shouldn't print statements here be governed by verbose?
-    assert type(gauge_filename) == type(''), 'Gauge filename must be a string'
+    assert isinstance(gauge_filename, str), 'Gauge filename must be a string'
 
-    try:
-        fid = open(gauge_filename)
-    except Exception as e:
-        msg = 'File "%s" could not be opened: Error="%s"' % (gauge_filename, e)
-        raise Exception(msg)
+    if not os.path.isfile(gauge_filename):
+        raise Exception('File "%s" could not be opened: not found' % gauge_filename)
 
     if report is None:
         report = False
@@ -429,7 +397,7 @@ def _sww2timeseries(swwfiles,
     if plot_quantity is None:
         plot_quantity = ['depth', 'speed']
     else:
-        assert type(plot_quantity) == list, 'plot_quantity must be a list'
+        assert isinstance(plot_quantity, list), 'plot_quantity must be a list'
         check_list(plot_quantity)
 
     if surface is None:
@@ -441,7 +409,7 @@ def _sww2timeseries(swwfiles,
     if title_on is None:
         title_on = True
 
-    if verbose: log.critical('Gauges obtained from: %s' % gauge_filename)
+    if verbose: log.info('Gauges obtained from: %s' % gauge_filename)
 
     gauges, locations, elev = gauge_get_from_file(gauge_filename)
 
@@ -455,14 +423,11 @@ def _sww2timeseries(swwfiles,
     theminT = 0.0
 
     for swwfile in list(swwfiles.keys()):
-        try:
-            fid = open(swwfile)
-        except Exception as e:
-            msg = 'File "%s" could not be opened: Error="%s"' % (swwfile, e)
-            raise Exception(msg)
+        if not os.path.isfile(swwfile):
+            raise Exception('File "%s" could not be opened: not found' % swwfile)
 
         if verbose:
-            log.critical('swwfile = %s' % swwfile)
+            log.info('swwfile = %s' % swwfile)
 
         # Extract parent dir name and use as label
         path, _ = os.path.split(swwfile)
@@ -484,17 +449,19 @@ def _sww2timeseries(swwfiles,
         for k, g in enumerate(gauges):
             if f(0.0, point_id = k)[2] > 1.0e6:
                 count += 1
-                if count == 1: log.critical('Gauges not contained here:')
-                log.critical(locations[k])
+                if verbose:
+                    if count == 1: log.info('Gauges not contained here:')
+                    log.info(locations[k])
             else:
                 gauge_index.append(k)
 
-        if len(gauge_index) > 0:
-            log.critical('Gauges contained here:')
-        else:
-            log.critical('No gauges contained here.')
-        for i in range(len(gauge_index)):
-             log.critical(locations[gauge_index[i]])
+        if verbose:
+            if len(gauge_index) > 0:
+                log.info('Gauges contained here:')
+            else:
+                log.info('No gauges contained here.')
+            for i in range(len(gauge_index)):
+                log.info(locations[gauge_index[i]])
 
         index = swwfile.rfind(sep)
         file_loc.append(swwfile[:index+1])
@@ -521,7 +488,7 @@ def _sww2timeseries(swwfiles,
             raise Exception(msg)
 
     if verbose and len(gauge_index) > 0:
-         log.critical('Inputs OK - going to generate figures')
+         log.info('Inputs OK - going to generate figures')
 
     if len(gauge_index) != 0:
         texfile, elev_output = \
@@ -538,88 +505,54 @@ def _sww2timeseries(swwfiles,
 
 
 def gauge_get_from_file(filename):
-    """ Read in gauge information from file
+    """Read gauge locations from a CSV file.
+
+    The file must have a header row with columns ``easting``, ``northing``,
+    ``name``, and ``elevation`` (order is flexible, case-insensitive).
+
+    Parameters
+    ----------
+    filename : str
+        Path to a CSV gauge file with columns: easting, northing, name,
+        elevation (header row required; column order is flexible).
+
+    Returns
+    -------
+    gauges : list of [easting, northing]
+    locations : list of str
+    elev : list of float
     """
+    from csv import DictReader
 
-    from os import sep, getcwd, access, F_OK, mkdir
+    with open(filename, newline='') as fid:
+        # Read and normalise the header line separately so key lookup is
+        # case-insensitive and whitespace-tolerant without a double seek.
+        first_line = fid.readline()
+        fieldnames = [h.strip().lower() for h in first_line.split(',')]
 
-    # Get data from the gauge file
-    fid = open(filename)
-    lines = fid.readlines()
-    fid.close()
+        for required in ('easting', 'northing', 'name', 'elevation'):
+            if required not in fieldnames:
+                raise Exception(
+                    'File %s is missing required column: %s' % (filename, required))
 
-    gauges = []
-    gaugelocation = []
-    elev = []
+        reader = DictReader(fid, fieldnames=fieldnames, skipinitialspace=True)
 
-    # Check header information
-    line1 = lines[0]
-    line11 = line1.split(',')
-
-    if isinstance(line11[0], string_types) is True:
-        # We have found text in the first line
-        east_index = None
-        north_index = None
-        name_index = None
-        elev_index = None
-
-        for i in range(len(line11)):
-            if line11[i].strip().lower() == 'easting':   east_index = i
-            if line11[i].strip().lower() == 'northing':  north_index = i
-            if line11[i].strip().lower() == 'name':      name_index = i
-            if line11[i].strip().lower() == 'elevation': elev_index = i
-
-        if east_index < len(line11) and north_index < len(line11):
-            pass
-        else:
-            msg = 'WARNING: %s does not contain correct header information' \
-                  % filename
-            msg += 'The header must be: easting, northing, name, elevation'
-            raise Exception(msg)
-
-        if elev_index is None:
-            raise Exception
-
-        if name_index is None:
-            raise Exception
-
-        lines = lines[1:] # Remove header from data
-    else:
-        # No header, assume that this is a simple easting, northing file
-
-        msg = 'There was no header in file %s and the number of columns is %d' \
-              % (filename, len(line11))
-        msg += '- was assuming two columns corresponding to Easting and Northing'
-        assert len(line11) == 2, msg
-
-        east_index = 0
-        north_index = 1
-
-        N = len(lines)
-        elev = [-9999]*N
-        gaugelocation = list(range(N))
-
-    # Read in gauge data
-    for line in lines:
-        fields = line.split(',')
-
-        gauges.append([float(fields[east_index]), float(fields[north_index])])
-
-        if len(fields) > 2:
-            elev.append(float(fields[elev_index]))
-            loc = fields[name_index]
-            gaugelocation.append(loc.strip())
+        gauges = []
+        gaugelocation = []
+        elev = []
+        for row in reader:
+            gauges.append([float(row['easting']), float(row['northing'])])
+            gaugelocation.append(row['name'].strip())
+            elev.append(float(row['elevation']))
 
     return gauges, gaugelocation, elev
 
 
-def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
+def _generate_figures(plot_quantity, file_loc, report, reportname, surface,  # pragma: no cover
                      leg_label, f_list, gauges, locations, elev, gauge_index,
                      production_dirs, time_min, time_max, time_unit,
                      title_on, label_id, generate_fig, verbose):
-    """ Generate figures based on required quantities and gauges for
-    each sww file
-    """
+    """Generate figures based on required quantities and gauges for each sww file."""
     from os import sep, altsep, getcwd, mkdir, access, F_OK, environ
 
     if generate_fig is True:
@@ -642,14 +575,14 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
             texfilename = texfile + '.tex'
             fid = open(texfilename, 'w')
 
-            if verbose: log.critical('Latex output printed to %s' % texfilename)
+            if verbose: log.info('Latex output printed to %s' % texfilename)
         else:
             texfile = texdir+reportname
             texfile2 = reportname
             texfilename = texfile + '.tex'
             fid = open(texfilename, 'w')
 
-            if verbose: log.critical('Latex output printed to %s' % texfilename)
+            if verbose: log.info('Latex output printed to %s' % texfilename)
     else:
         texfile = ''
         texfile2 = ''
@@ -693,7 +626,7 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
     ##### loop over each swwfile #####
     for j, f in enumerate(f_list):
-        if verbose: log.critical('swwfile %d of %d' % (j, len(f_list)))
+        if verbose: log.info('swwfile %d of %d' % (j, len(f_list)))
 
         starttime = f.starttime
         comparefile = file_loc[j] + sep + 'gauges_maxmins' + '.csv'
@@ -703,7 +636,7 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
 
         ##### loop over each gauge #####
         for k in gauge_index:
-            if verbose: log.critical('Gauge %d of %d' % (k, len(gauges)))
+            if verbose: log.info('Gauge %d of %d' % (k, len(gauges)))
 
             g = gauges[k]
             min_stage = 10
@@ -781,13 +714,18 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
             max_speeds.append(max_speed)
             min_speeds.append(min_speed)
             #### finished generating quantities for each swwfile #####
+            if j == 0:
+                fid_out.close()
+
+        fid_compare.close()
+        fid_0.close()
 
         model_time_plot3d[:,:] = model_time[:,:,j]
         stages_plot3d[:,:] = stages[:,:,j]
         eastings_plot3d[:,] = eastings[:,:,j]
 
         if surface is True:
-            log.critical('Printing surface figure')
+            if verbose: log.info('Printing surface figure')
             for i in range(2):
                 fig = p1.figure(10)
                 ax = p3.Axes3D(fig)
@@ -1084,5 +1022,8 @@ def _generate_figures(plot_quantity, file_loc, report, reportname, surface,
                 #### finished generating figures ###
 
             close('all')
+
+    if report:
+        fid.close()
 
     return texfile2, elev_output

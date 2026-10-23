@@ -42,7 +42,7 @@ class Test_smf(unittest.TestCase):
         assert num.allclose(dg.kappad, kappad)
         assert num.allclose(dg.dx, dx)
 
-    
+
     def test_slide_tsunami(self):
 
         len = 600.0
@@ -101,7 +101,7 @@ class Test_smf(unittest.TestCase):
         kappad = 0.8
         x0 = 100000.
         y0 = x0
-        
+
         from anuga.pmesh.mesh_interface import create_pmesh_from_regions
         polygon = [[0,0],[200000,0],[200000,200000],[0,200000]]
         create_pmesh_from_regions(polygon,

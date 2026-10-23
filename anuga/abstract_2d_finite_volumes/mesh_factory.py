@@ -370,7 +370,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
     #Calculate number of points
     Np = (m+1)*(n+1)
 
-    class VIndex(object):
+    class VIndex:
 
         def __init__(self, n,m):
             self.n = n
@@ -379,7 +379,7 @@ def rectangular_periodic(m_g, n_g, len1_g=1.0, len2_g=1.0, origin_g = (0.0, 0.0)
         def __call__(self, i,j):
             return j+i*(self.n+1)
 
-    class EIndex(object):
+    class EIndex:
 
         def __init__(self, n,m):
             self.n = n
@@ -489,7 +489,7 @@ def oblique(m, n, lenx = 1.0, leny = 1.0, theta = 8.95, origin = (0.0, 0.0)):
     """
 
     # FIXME (Ole): Someone wrote this but didn't add a test for it. Anything could happen here
-    
+
     import math
 
     from anuga.config import epsilon
@@ -720,7 +720,7 @@ def from_polyfile(name):
         else:
             offending +=1
 
-    log.critical('Removed %d offending triangles out of %d'
+    log.info('Removed %d offending triangles out of %d'
                  % (offending, len(lines)))
     return points, triangles, values
 

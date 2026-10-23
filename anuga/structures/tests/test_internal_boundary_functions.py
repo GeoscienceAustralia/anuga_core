@@ -31,19 +31,19 @@ class Test_internal_boundary_functions(unittest.TestCase):
 
         return
 
-    def create_domain(self, wallHeight, InitialOceanStage, InitialLandStage, 
+    def create_domain(self, wallHeight, InitialOceanStage, InitialLandStage,
                       riverWall=None, riverWall_Par=None):
         # Riverwall = list of lists, each with a set of x,y,z (and optional QFactor) values
 
         if(riverWall is None):
             riverWall = { 'centralWall':
                            [ [wallLoc, 0.0, wallHeight],
-                             [wallLoc, 100.0, wallHeight]] 
+                             [wallLoc, 100.0, wallHeight]]
                         }
         if(riverWall_Par is None):
             riverWall_Par = {'centralWall':{'Qfactor':1.0}}
         # Make the domain
-        anuga.create_pmesh_from_regions(boundaryPolygon, 
+        anuga.create_pmesh_from_regions(boundaryPolygon,
                                  boundary_tags={'left': [0],
                                                 'top': [1],
                                                 'right': [2],
@@ -65,17 +65,17 @@ class Test_internal_boundary_functions(unittest.TestCase):
         domain.set_name('test_riverwall')
 
         def topography(x,y):
-            return -x/150. 
+            return -x/150.
 
         def stagefun(x,y):
             stg = InitialOceanStage*(x>=wallLoc) + InitialLandStage*(x<wallLoc)
-            return stg 
+            return stg
 
         # NOTE: Setting quantities at centroids is important for exactness of tests
-        domain.set_quantity('elevation',topography,location='centroids')     
-        domain.set_quantity('stage', stagefun,location='centroids')            
-        
-        domain.riverwallData.create_riverwalls(riverWall,riverWall_Par,verbose=False) 
+        domain.set_quantity('elevation',topography,location='centroids')
+        domain.set_quantity('stage', stagefun,location='centroids')
+
+        domain.riverwallData.create_riverwalls(riverWall,riverWall_Par,verbose=False)
 
         # Boundary conditions
         Br = anuga.Reflective_boundary(domain)
@@ -155,8 +155,8 @@ class Test_internal_boundary_functions(unittest.TestCase):
 
     def test_pumping_station_function(self):
 
-        domain = self.create_domain(wallHeight=10., 
-            InitialOceanStage=4., 
+        domain = self.create_domain(wallHeight=10.,
+            InitialOceanStage=4.,
             InitialLandStage=0.)
 
         ps_function = pumping_station_function(
@@ -164,16 +164,16 @@ class Test_internal_boundary_functions(unittest.TestCase):
             pump_capacity=1.0,
             hw_to_start_pumping=0.0,
             hw_to_stop_pumping=-1.0,
-            initial_pump_rate=0., 
-            pump_rate_of_increase = 1.0, 
-            pump_rate_of_decrease = 1.0, 
+            initial_pump_rate=0.,
+            pump_rate_of_increase = 1.0,
+            pump_rate_of_decrease = 1.0,
             verbose=False)
 
 
-        # Pump should be starting at zero       
+        # Pump should be starting at zero
         assert(ps_function(1., 1.) == 0.)
-    
-        # As time increases, so will the pump rate 
+
+        # As time increases, so will the pump rate
         domain.set_time(0.5)
         assert(numpy.allclose(ps_function(1., 1.), 0.5))
         assert(numpy.allclose(ps_function(1., 1.), 0.5))
@@ -195,7 +195,7 @@ class Test_internal_boundary_functions(unittest.TestCase):
         # Can't increase any more
         domain.set_time(3.0)
         assert (ps_function(1., 1.) == 1.0)
-       
+
         # Let's try to decrease the pump
         assert (ps_function(-1.5, 1.) == 1.0)
         domain.set_time(3.5)
@@ -208,8 +208,8 @@ class Test_internal_boundary_functions(unittest.TestCase):
         domain.set_time(5.0)
         assert (numpy.allclose(ps_function(-1.5, 1.), 0.0))
 
-        
-        return 
+
+        return
 
 
 if __name__ == "__main__":

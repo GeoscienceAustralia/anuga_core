@@ -1,0 +1,101 @@
+\documentclass[11pt,a4paper]{report}
+
+% The combined validation report: the same body as validations_report.tex,
+% with every figure that differs between flow algorithms shown once per
+% algorithm, side by side. Built by validations_combine_algs.py combine,
+% which also writes combined_algs.tex, combined_summary.tex and the figures
+% under combined/.
+
+\usepackage{graphicx}
+\usepackage{array}      % \newcolumntype, used by the sediment tables
+\usepackage{epstopdf}
+\usepackage[section]{placeins} % 'one-shot' command to nicely place figures
+\usepackage{datatool}
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{titlesec}
+\usepackage{longtable}
+\usepackage[margin=1.5cm]{geometry}   % room for three panels across the page
+\newcommand{\sectionbreak}{\clearpage}
+\DeclareUrlCommand\UScore{\urlstyle{rm}}
+
+
+\input{local-defs}
+\input{saved_parameters}
+\input{combined_algs}
+\renewcommand{\alg}{\algnames}
+
+% \casepath: the case directory relative to validation_tests/, which is how
+% combined/ is laid out. \inputresults is given it as ../<case>.
+\makeatletter
+\def\anuga@stripdots../#1\@nil{#1}
+\newcommand{\casepath}{}
+\renewcommand{\inputresults}[1]{%
+  \graphicspath{{../}{#1/}}%
+  \renewcommand{\casedir}{#1}%
+  \edef\casepath{\anuga@stripdots#1\@nil}%
+  \input{#1/results}%
+  \renewcommand{\casedir}{.}%
+}
+\makeatother
+
+% One panel: [width]{directory under combined/}{label}{figure}
+\newcommand{\algpanel}[4]{%
+  \begin{minipage}[t]{#1\linewidth}\centering
+    {\footnotesize\textsf{#3}}\\[2pt]
+    \IfFileExists{combined/#2/\casepath/#4}%
+      {\origincludegraphics[width=\linewidth]{combined/#2/\casepath/#4}}%
+      {\fbox{\parbox[c][0.5\linewidth][c]{0.9\linewidth}{\centering\footnotesize not produced}}}%
+  \end{minipage}}
+
+% Every figure a case includes: once if all algorithms produced the same
+% file, otherwise one panel per algorithm. The case's own size options apply
+% only to the shared form.
+\let\origincludegraphics\includegraphics
+\renewcommand{\includegraphics}[2][]{%
+  \IfFileExists{combined/shared/\casepath/#2}%
+    {\origincludegraphics[#1]{combined/shared/\casepath/#2}}%
+    {\allalgpanels{#2}}}
+\renewcommand{\figifexists}[3]{\anyalgfigexists{#1}{#2}{#3}}
+
+%=========================================
+\begin{document}
+%=========================================
+
+\title{Automated Report on the Performance of \anuga{} on (all) Validation
+Test Problems\\[6pt] \large Flow algorithms \algnames{} compared}
+\author{Sudi Mungkasi, Stephen Roberts, Gareth Davies, Rudy van Drie}
+\maketitle
+\tableofcontents
+
+%======================
+\chapter*{How to read this report}
+\addcontentsline{toc}{chapter}{How to read this report}
+%======================
+This report runs every validation case with each of the flow algorithms
+\algnames{}. The text of each case appears once. A figure that differs
+between the algorithms is shown as a row of panels, one per algorithm,
+labelled above each panel and in the order \algnames{}; a figure that is the
+same for all of them (a setup diagram, a mesh) is shown once. Where a case's
+text names a single algorithm, it describes that case's own discussion, not
+the panels. The separate report for each algorithm, with full-size figures,
+is published alongside this one.
+
+The table gives each case's run time for each algorithm, or \textbf{failed}
+where the case did not produce its results.
+
+\begin{small}
+\input{combined_summary}
+\end{small}
+
+\input{validations_report_body}
+
+%======================
+% bibliography
+%======================
+
+\bibliographystyle{plain}
+\bibliography{bibliography}
+
+\end{document}

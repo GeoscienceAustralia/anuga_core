@@ -26,6 +26,11 @@ def build_neighbour_structure(int64_t N,
         Vertex indices of each triangle [a, b, c].
     neighbours : (M, 3) int64 array
         Output: neighbouring triangle index per edge (-1 = boundary).
+        MUST be pre-filled with -1 by the caller: only matched edges are
+        written, and number_of_boundaries is derived by counting entries that
+        are still negative. (The C++ implementation this replaced counted down
+        from 3 instead, so it did not need the pre-fill; callers in
+        basic_mesh.py and neighbour_mesh.py already do it.)
     neighbour_edges : (M, 3) int64 array
         Output: edge index in the neighbouring triangle.
     number_of_boundaries : (M,) int64 array

@@ -51,16 +51,16 @@ quantity - quantity e.g stage
 filename - output filename
 '''
 
-def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12, 
+def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
                       quantity = 'stage', filename = 'centroid_error.png'):
 
     n_triangles = num.sum(domain.tri_full_flag)
-    
+
     if size() > 1:
         # If parallel, translate control data to parallel indexing
         local_control_data = num.zeros(n_triangles)
         inv_tri_map = domain.get_inv_tri_map()
-        
+
         for i in range(n_triangles):
             local_control_data[i] = control_data[inv_tri_map[(rank(), i)]]
     else:
@@ -69,13 +69,13 @@ def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
     # Evaluate absolute and relative difference between control and actual values
     stage = domain.get_quantity(quantity)
     actual_data = stage.centroid_values[:n_triangles]
-    adiff = num.fabs((actual_data - local_control_data))
+    adiff = num.fabs(actual_data - local_control_data)
     rdiff = adiff/num.fabs(local_control_data)
 
     # Compute masks for error (err_mask) and non-error (acc_mask) vertex indices based on thresholds
     vertices = domain.get_vertex_coordinates()
     err_mask = rdiff > rthr
-    err_mask[adiff <= athr] = False    
+    err_mask[adiff <= athr] = False
     err_mask = num.repeat(err_mask, 3)
 
     acc_mask = ~err_mask
@@ -104,7 +104,7 @@ def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
         for i in range(0,size()):
             n = int(len(fx[i])//3)
             triang = num.array(list(range(0,3*n)))
-            triang.shape = (n, 3)
+            triang = triang.reshape(n, 3)
 
             if len(fx[i]) > 0:
                 plt.triplot(fx[i], fy[i], triang, 'g-')
@@ -112,19 +112,19 @@ def plotCentroidError(domain, control_data, rthr = 1E-7, athr = 1E-12,
         # Plot error triangles in blue
         for i in range(0,size()):
             n = int(len(gx[i])//3)
-                            
-            triang = num.array(list(range(0,3*n)))
-            triang.shape = (n, 3)
 
-            if len(gx[i]) > 0: 
+            triang = num.array(list(range(0,3*n)))
+            triang = triang.reshape(n, 3)
+
+            if len(gx[i]) > 0:
                 plt.triplot(gx[i], gy[i], triang, 'b--')
-                
+
         # Save plot
         plt.savefig(filename)
-        
+
     else:
         # Send error and non-error vertex indices to Proc 0
         send(vertices[acc_mask,0], 0)
         send(vertices[acc_mask,1], 0)
         send(vertices[err_mask,0], 0)
-        send(vertices[err_mask,1], 0)      
+        send(vertices[err_mask,1], 0)

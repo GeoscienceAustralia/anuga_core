@@ -1,0 +1,191 @@
+# ANUGA — GPU image WITH CUDA-aware MPI (multi-GPU / HPC runs).
+#
+# Same multi-stage shape as Dockerfile.gpu.slim, plus the MPI stack:
+#   * mpi4py + pymetis, so anuga.parallel can decompose and run distributed,
+#   * ANUGA built with -Dgpu_aware_mpi=true (halo exchange straight from device
+#     buffers, no host staging),
+#   * the HPC-X OpenMPI + UCX runtime copied into the runtime stage.
+#
+# This is the PUBLISHED GPU image (ghcr.io …:<version>-gpu).
+#
+# It was originally kept separate from anuga:gpu-slim because the MPI runtime
+# "adds several hundred MB" — ompi ~235 MB + ucx ~285 MB *before* the trimming
+# below.  Measured after trimming, on a full multi-arch build (2026-08-30):
+#
+#     gpu.slim   0.46 GB compressed / 2.12 GB on disk
+#     gpu.mpi    0.60 GB compressed / 2.66 GB on disk
+#
+# i.e. MPI costs 0.14 GB on a pull, against 15.94 GB for the old single-stage
+# devel image.  At that price the split is not worth its complexity: MPI-capable
+# is a superset, nothing about it degrades single-GPU use, and one image is
+# simpler to build, publish and document.  gpu.slim remains for anyone who wants
+# the smallest possible pull for a large single-GPU fleet.
+#
+# Note single-GPU instances (g4dn.xlarge, g6.xlarge) still cannot use multi-rank
+# GPU — mode 2 requires one rank per GPU — they simply run this image as one
+# rank.
+#
+# MPI comes from the NVHPC base's bundled HPC-X, which is built CUDA-aware
+# (ompi_info: mpi_built_with_cuda_support:value:true).  There is one HPC-X per
+# bundled CUDA; we take the 12.9 one to match the CUDA the kernels are built
+# for (see GPU_ARCH below).
+#
+# Build + smoke test:
+#   docker build -f docker/Dockerfile.gpu.mpi -t anuga:gpu-mpi .
+#   docker run --rm --gpus all anuga:gpu-mpi \
+#     python -c "from anuga.shallow_water import sw_domain_gpu_ext as e; print(e.gpu_has_mpi())"
+#   docker run --rm --gpus all anuga:gpu-mpi \
+#     mpirun --allow-run-as-root -np 2 python -c "from anuga import myid,numprocs; print(myid,numprocs)"
+#
+# Running as root inside the container makes OpenMPI refuse to start without
+# --allow-run-as-root; that is left to the caller rather than baked in, so the
+# image stays usable under a non-root user too.
+
+ARG NVHPC_TAG=25.9-devel-cuda_multi-ubuntu24.04
+ARG CUDA_RUNTIME_TAG=12.6.2-base-ubuntu24.04
+
+# ---- builder ---------------------------------------------------------------
+FROM nvcr.io/nvidia/nvhpc:${NVHPC_TAG} AS builder
+# See Dockerfile.gpu.slim for why cuda12.9 leads and why cc70 needs it.
+ARG GPU_ARCH=cuda12.9,cc70,cc75,cc80,cc86,cc89,cc90,cc120
+ARG ANUGA_VERSION=
+# HPC-X matching the CUDA the kernels are built for.
+ARG HPCX=/opt/nvidia/hpc_sdk/Linux_x86_64/25.9/comm_libs/12.9/hpcx/hpcx-2.20
+SHELL ["/bin/bash", "-lc"]
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-venv python3-dev python3-pip git ca-certificates \
+        build-essential libnuma-dev && \
+    rm -rf /var/lib/apt/lists/*
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+WORKDIR /opt/anuga
+COPY . .
+
+# mpi4py FIRST and against HPC-X's mpicc: meson decides whether ANUGA gets real
+# C MPI at *configure* time, and its detection falls back to parsing
+# `mpicc -show` via mpi4py.  Installing mpi4py afterwards would leave the
+# extension built against the single-process stubs with no error (see
+# claude/KNOWN_ISSUES.md, "A reused meson build dir does NOT re-detect MPI").
+# OMPI_CC/OMPI_CXX=gcc: HPC-X's mpicc wrapper drives nvc by default, but
+# mpi4py compiles with the flags Python itself was built with (-fno-strict-
+# overflow, -Wsign-compare, ...) and nvc rejects those outright:
+#     nvc-Error-Unknown switch: -fno-strict-overflow
+# The wrapper only needs to supply MPI's include/link flags, so point it at gcc
+# -- `mpicc -show` still prints the paths meson's MPI detection parses.
+ENV OMPI_CC=gcc OMPI_CXX=g++
+# OPAL_PREFIX: this HPC-X was built under /proj/nv/... and relocated into the
+# SDK, so OpenMPI cannot find its own MCA plugins or help files without being
+# told where it now lives.
+ENV OPAL_PREFIX=${HPCX}/ompi
+# Singleton MPI_Init (a plain `python script.py`, no mpirun) spawns an orted
+# daemon, which hangs in a container.  That matters well beyond MPI runs:
+# `import anuga` imports mpi4py, which initialises MPI on import, so even a
+# serial run would hang.  Isolated singleton init skips the daemon; verified
+# not to disturb real mpirun jobs.
+ENV OMPI_MCA_ess_singleton_isolated=1
+RUN set -euo pipefail && \
+    export PATH="${HPCX}/ompi/bin:$PATH" \
+           LD_LIBRARY_PATH="${HPCX}/ompi/lib:${HPCX}/ucx/lib:${LD_LIBRARY_PATH:-}" && \
+    pip install --no-cache-dir -U pip && \
+    pip install --no-cache-dir "numpy>=2.0" cython "meson>=1.4" meson-python ninja pybind11 && \
+    MPICC="$(command -v mpicc)" pip install --no-cache-dir --no-binary=mpi4py mpi4py && \
+    pip install --no-cache-dir pymetis && \
+    python -c "from mpi4py import MPI; print('mpi4py OK:', MPI.Get_library_version().splitlines()[0])"
+
+# CFLAGS=-tp=haswell: portable ISA baseline (see Dockerfile.gpu.slim).
+# gpu_aware_mpi=true: halo exchange passes device pointers to MPI directly.
+RUN set -euo pipefail && \
+    export PATH="${HPCX}/ompi/bin:$PATH" \
+           LD_LIBRARY_PATH="${HPCX}/ompi/lib:${HPCX}/ucx/lib:${LD_LIBRARY_PATH:-}" && \
+    NVC="$(command -v nvc)" && \
+    ANUGA_VERSION="${ANUGA_VERSION}" CC="$NVC" \
+    CFLAGS="-tp=haswell" \
+    pip install --no-cache-dir --no-build-isolation -v \
+        -Csetup-args=-Dgpu_offload=true \
+        -Csetup-args=-Dgpu_arch="${GPU_ARCH}" \
+        -Csetup-args=-Dgpu_aware_mpi=true \
+        ".[data]" && \
+    pip install --no-cache-dir awscli && \
+    install -m 0755 docker/anuga-entrypoint.sh /opt/anuga-entrypoint
+
+# Fail the BUILD if MPI did not get wired in — otherwise the image silently
+# ships a sequential-stub extension that only shows up as wrong answers later.
+# NB: run from OUTSIDE /opt/anuga.  WORKDIR is the source tree, and importing
+# anuga from there picks up the un-built source package rather than the one
+# installed in the venv ("No module named 'anuga._version'").
+RUN set -euo pipefail && \
+    export LD_LIBRARY_PATH="${HPCX}/ompi/lib:${HPCX}/ucx/lib:${LD_LIBRARY_PATH:-}" && \
+    cd /tmp && python -c "\
+from anuga.shallow_water import sw_domain_gpu_ext as e; \
+assert e.gpu_has_mpi(), 'GPU extension was built WITHOUT C MPI'; \
+print('GPU extension has C MPI: OK')"
+
+# NVHPC redistributable runtime libs (see Dockerfile.gpu.slim).
+RUN set -euo pipefail && \
+    GPU_EXT="$(find "$VIRTUAL_ENV" -name 'sw_domain_gpu_ext*.so' | head -1)" && \
+    echo "GPU extension: ${GPU_EXT:-<not found>}" && \
+    if [ -n "$GPU_EXT" ]; then echo '--- ldd sw_domain_gpu_ext ---'; ldd "$GPU_EXT" || true; fi && \
+    mkdir -p /opt/nvhpc-redist && \
+    cp -aL /opt/nvidia/hpc_sdk/Linux_x86_64/*/REDIST/compilers/lib/*.so* /opt/nvhpc-redist/ 2>/dev/null || true
+
+# Stage the MPI runtime, dropping what only a *build* needs: static archives,
+# libtool descriptors, headers, man pages and the compiler wrappers.
+#
+# HPC-X ships mpirun/mpiexec as shell wrappers that source hpcx-mt-init.sh from
+# the HPC-X root (above ompi/, which we do not copy) and call hpcx_load; moved
+# here they print "hpcx_load: command not found" on every launch.  The real
+# binaries sit in bin/.bin/, and we set OPAL_PREFIX and LD_LIBRARY_PATH
+# ourselves, so swap each wrapper for the binary it fronts.
+RUN set -euo pipefail && \
+    mkdir -p /opt/mpi && \
+    cp -aL "${HPCX}/ompi" /opt/mpi/ompi && \
+    cp -aL "${HPCX}/ucx"  /opt/mpi/ucx  && \
+    find /opt/mpi \( -name '*.a' -o -name '*.la' \) -delete && \
+    for w in /opt/mpi/ompi/bin/.bin/*; do \
+        b="$(basename "$w")"; \
+        [ -f "/opt/mpi/ompi/bin/$b" ] && cp -a "$w" "/opt/mpi/ompi/bin/$b"; \
+    done && \
+    rm -rf /opt/mpi/ompi/include /opt/mpi/ucx/include \
+           /opt/mpi/ompi/share/man /opt/mpi/ucx/share/man \
+           /opt/mpi/ompi/share/doc /opt/mpi/ucx/share/doc && \
+    du -sh /opt/mpi/ompi /opt/mpi/ucx
+
+# ---- runtime ---------------------------------------------------------------
+FROM nvidia/cuda:${CUDA_RUNTIME_TAG}
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 libgomp1 ca-certificates libnuma1 openssh-client && \
+    rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/venv           /opt/venv
+COPY --from=builder /opt/nvhpc-redist   /opt/nvhpc-redist
+COPY --from=builder /opt/mpi            /opt/mpi
+COPY --from=builder /opt/anuga-entrypoint /usr/local/bin/anuga-entrypoint
+# OPAL_PREFIX: OpenMPI hardcodes its install prefix at build time, and we moved
+# it, so without this mpirun cannot find its own MCA plugins.
+# Container-friendly transport defaults.  HPC-X defaults to the UCX PML, which
+# finds no usable transport inside a plain container and aborts MPI_Init with
+# "no components were able to be opened" -- even for two ranks on one host.
+# ob1 + smcuda works and, unlike vader, is CUDA-aware (CUDA IPC), so
+# device-buffer sends keep working.
+#
+# hwloc binding is disabled because a container usually lacks the privileges
+# for it, and OpenMPI otherwise prints "failed to bind memory" on every run.
+#
+# OVERRIDE THESE on a cluster with a real fabric (InfiniBand/EFA): the settings
+# below would confine you to shared memory and TCP. There, prefer the UCX PML,
+# e.g. `-x OMPI_MCA_pml=ucx -x UCX_TLS=rc,cuda_copy,cuda_ipc,sm,self`.
+ENV PATH="/opt/venv/bin:/opt/mpi/ompi/bin:$PATH" \
+    OPAL_PREFIX=/opt/mpi/ompi \
+    OMPI_MCA_ess_singleton_isolated=1 \
+    OMPI_MCA_pml=ob1 \
+    OMPI_MCA_btl=self,smcuda,tcp \
+    OMPI_MCA_hwloc_base_binding_policy=none \
+    LD_LIBRARY_PATH="/opt/nvhpc-redist:/opt/mpi/ompi/lib:/opt/mpi/ucx/lib:${LD_LIBRARY_PATH}" \
+    ANUGA_WORKDIR=/work HOME=/tmp MPLCONFIGDIR=/tmp
+RUN python -c "import anuga; print('ANUGA', anuga.__version__, 'imports OK')" && \
+    python -c "from mpi4py import MPI; print('mpi4py OK, size', MPI.COMM_WORLD.Get_size())" && \
+    python -c "\
+from anuga.shallow_water import sw_domain_gpu_ext as e; \
+print('GPU extension has C MPI:', e.gpu_has_mpi())"
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/anuga-entrypoint"]

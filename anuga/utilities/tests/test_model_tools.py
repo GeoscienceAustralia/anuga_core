@@ -90,25 +90,25 @@ class Test_Model_Tools(unittest.TestCase):
 
     @pytest.mark.slow
     def test_create_culvert_bridge_operator(self):
-        
+
         import os
         import subprocess
-        
+
         path = os.path.dirname(__file__)  # Get folder where this script lives
         run_filename = os.path.join(path, 'run_create_culvert_bridge_operator.py')
 
-        #-----------------------        
+        #-----------------------
         # Run the models
         #-----------------------
         cmd = 'python ' + run_filename
-        if verbose: 
-            print(cmd)        
-            
+        if verbose:
+            print(cmd)
+
         result = subprocess.run(cmd.split(), capture_output=True)
         if result.returncode != 0:
             print(result.stdout)
             print(result.stderr)
-            raise Exception(result.stderr)        
+            raise Exception(result.stderr)
 
 
 ################################################################################

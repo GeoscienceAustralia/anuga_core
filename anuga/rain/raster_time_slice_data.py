@@ -1,7 +1,27 @@
 
 import anuga
 from anuga.fit_interpolate.interpolate2d import interpolate_raster
-import matplotlib.pyplot as plt
+# Tolerated rather than required: anuga/rain is imported by `import anuga`,
+# so a hard matplotlib import here made a PLOTTING library a prerequisite of
+# running the solver at all. Only the three plot_* methods below need it, and
+# they say so when called. See the note in anuga/__init__.py.
+try:
+    import matplotlib.pyplot as plt
+except ImportError as _mpl_error:            # pragma: no cover - env specific
+    plt = None
+    _MPL_IMPORT_ERROR = _mpl_error
+else:
+    _MPL_IMPORT_ERROR = None
+
+
+def _require_matplotlib(what):
+    """Raise a clear error if a plotting method is called without matplotlib."""
+    if plt is None:
+        raise ImportError(
+            '%s needs matplotlib, which could not be imported:\n    %s\n'
+            'Install it with: conda install matplotlib  or  '
+            'pip install matplotlib' % (what, _MPL_IMPORT_ERROR))
+
 import numpy as np
 import os
 from os.path import join
@@ -10,7 +30,7 @@ import fnmatch
 
 # -----------------------------------------------------------------------------------------
 
-class Raster_time_slice_data(object):
+class Raster_time_slice_data:
 
     def __init__(self,
                  start_time=None,
@@ -21,11 +41,11 @@ class Raster_time_slice_data(object):
         start_time: seconds since epoch  or string of form 20120229_1210
         final_time: seconds since epoch  or string of form 20120229_1210
 
-        The data is assumed to be stored as a raster, ie. columns  
+        The data is assumed to be stored as a raster, ie. columns
         in the x direction (eastings) and rows in the vertical y direction
-        (northings) from north to south. 
+        (northings) from north to south.
 
-        It is assumed that the data is in SI units. 
+        It is assumed that the data is in SI units.
 
         """
 
@@ -46,7 +66,7 @@ class Raster_time_slice_data(object):
 
     def read_data_files(self):
         """
-        Implement method to read in specific data formats. 
+        Implement method to read in specific data formats.
 
         Convert to SI units, ie convert mm to metres when importing rain data.
         """
@@ -55,7 +75,7 @@ class Raster_time_slice_data(object):
 
     def ungzip_data_files(self, data_dir):
         """
-        Given a data_dir walk through all sub directories to find 
+        Given a data_dir walk through all sub directories to find
         gzipped files and unzip
         """
 
@@ -77,9 +97,9 @@ class Raster_time_slice_data(object):
 
     def extract_data_at_locations(self, locations):
         """
-        Extract data from Rasters at locations  
+        Extract data from Rasters at locations
         """
-        
+
         if self.verbose or self.debug:
             print('Extract data at locations', locations)
 
@@ -118,7 +138,7 @@ class Raster_time_slice_data(object):
         ldx = dx/nx
         ldy = dy/ny
 
-        if not polygon is None:
+        if polygon is not None:
             X, Y = np.meshgrid(x, y)
             Y = np.flipud(Y)
 
@@ -137,7 +157,7 @@ class Raster_time_slice_data(object):
         Accumulate stats of data over slices, either for a specified tid timeslice
         or over all time slices.
 
-        Can be restricted to a polygon 
+        Can be restricted to a polygon
         """
 
         dx = self.extent[1]-self.extent[0]
@@ -185,6 +205,8 @@ class Raster_time_slice_data(object):
         return total_data_volume, data_max_in_period, peak_intensity, catchment_area, time_period
 
     def plot_data(self, tid, plot_vmax=None, save=False, show=True, polygons=None):
+
+        _require_matplotlib('plot_data')
         """
         Plot data at timestep tid
         """
@@ -207,9 +229,9 @@ class Raster_time_slice_data(object):
         plt.figure(1)
         plt.clf()
 
-        if not polygons is None:
+        if polygons is not None:
             for polygon in polygons:
-                if not polygon is None:
+                if polygon is not None:
                     polygon = np.array(polygon)
                     plt.plot(polygon[:, 0], polygon[:, 1], '--w')
 
@@ -231,6 +253,8 @@ class Raster_time_slice_data(object):
         return
 
     def plot_accumulated_data(self, polygons=None):
+
+        _require_matplotlib('plot_accumulated_data')
 
         data_accumulated = self.data_accumulated
 
@@ -268,9 +292,9 @@ class Raster_time_slice_data(object):
                   % (peak_intensity, np.mean(data_accumulated), total_data_vol)
         plt.title(s_title)
 
-        if not polygons is None:
+        if polygons is not None:
             for polygon in polygons:
-                if not polygon is None:
+                if polygon is not None:
                     polygon = np.array(polygon)
                     plt.plot(polygon[:, 0], polygon[:, 1], '--w')
 
@@ -283,6 +307,8 @@ class Raster_time_slice_data(object):
         return
 
     def plot_time_hist_locations(self, locations):
+
+        _require_matplotlib('plot_time_hist_locations')
         """
         Plot time histograms at selected locations i.e.
         gauge locations

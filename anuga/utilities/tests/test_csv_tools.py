@@ -31,25 +31,26 @@ class Test_CSV_utils(unittest.TestCase):
         # create 4 test CSV files
         self.num_files = self.NUM_FILES
         self.filenames = []
-        
-        for i in range(self.NUM_FILES):
-            self.filenames.append(tempfile.mktemp('.csv'))
-            
-        for (i, fn) in enumerate(self.filenames):
-            fd = open(fn, 'w')
-            csv_fd = csv.writer(fd)
-            
-            # write colums row
-            columns = []
-            for j in range(self.NUM_COLS):
-                columns.append(col_text_string[j % 4] % j)
-            csv_fd.writerow(columns)
 
-            # write data rows
-            for j in range(self.NUM_LINES):
-                data = [j, j, '%d.%d' % (j, i)] + ['qwert']*(self.NUM_COLS-3)
-                csv_fd.writerow(data)
-            fd.close()
+        for i in range(self.NUM_FILES):
+            fd, fname = tempfile.mkstemp('.csv')
+            os.close(fd)
+            self.filenames.append(fname)
+
+        for (i, fn) in enumerate(self.filenames):
+            with open(fn, 'w') as fd:
+                csv_fd = csv.writer(fd)
+
+                # write colums row
+                columns = []
+                for j in range(self.NUM_COLS):
+                    columns.append(col_text_string[j % 4] % j)
+                csv_fd.writerow(columns)
+
+                # write data rows
+                for j in range(self.NUM_LINES):
+                    data = [j, j, '%d.%d' % (j, i)] + ['qwert']*(self.NUM_COLS-3)
+                    csv_fd.writerow(data)
 
     def tearDown(self):
         for fn in self.filenames:
@@ -285,7 +286,7 @@ class Test_CSV_utils(unittest.TestCase):
         """Test merging two CSV files with different number of rows."""
 
         # get data from file [1]
-        fd = open(self.filenames[1], 'r')
+        fd = open(self.filenames[1])
         data = fd.readlines()
         fd.close()
 
@@ -314,7 +315,7 @@ class Test_CSV_utils(unittest.TestCase):
         """Test merging two CSV files with different key values."""
 
         # Get data from file [1]
-        fd = open(self.filenames[1], 'r')
+        fd = open(self.filenames[1])
         data = fd.readlines()
         fd.close()
 
@@ -327,8 +328,8 @@ class Test_CSV_utils(unittest.TestCase):
 
         file_title_list = [(self.filenames[0], 'test0'),
                            (test_filename, 'test2')]
-        
-        
+
+
         try:
             csv_tools.merge_csv_key_values(file_title_list,
                                            self.OUTPUT_FILE,
@@ -412,10 +413,57 @@ class Test_CSV_utils(unittest.TestCase):
     def get_file_contents(self, filename):
         """Return file contents as a string."""
 
-        fd = open(filename, 'r')
+        fd = open(filename)
         data = fd.readlines()
         fd.close()
         return ''.join(data).replace('\r', '')
+
+class Test_CSV_extra(unittest.TestCase):
+    """Additional targeted tests for csv_tools.py."""
+
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        import shutil
+        shutil.rmtree(self.tmp_dir, ignore_errors=True)
+
+    def _write_csv(self, name, rows):
+        path = os.path.join(self.tmp_dir, name)
+        with open(path, 'w', newline='') as f:
+            w = csv.writer(f)
+            for row in rows:
+                w.writerow(row)
+        return path
+
+    def test_read_csv_file_short_row(self):
+        """Rows with too few columns are silently skipped (lines 45-46)."""
+        path = self._write_csv('short.csv', [
+            ['key', 'val'],
+            ['a', 'b'],
+            ['c'],        # short row — triggers IndexError
+        ])
+        result = csv_tools.read_csv_file(path, 'key', 'val')
+        self.assertEqual(result, [('a', 'b')])
+
+    def test_merge_different_row_count_raises(self):
+        """Files with different row counts raise (lines 96-99)."""
+        f1 = self._write_csv('f1.csv', [['k', 'v'], ['1', 'a'], ['2', 'b']])
+        f2 = self._write_csv('f2.csv', [['k', 'v'], ['1', 'x']])
+        out = os.path.join(self.tmp_dir, 'out.csv')
+        with self.assertRaises(Exception):
+            csv_tools.merge_csv_key_values(
+                [(f1, 'c1'), (f2, 'c2')], out, key_col='k', data_col='v')
+
+    def test_merge_different_key_values_raises(self):
+        """Files with different key values raise (lines 106-108)."""
+        f1 = self._write_csv('g1.csv', [['k', 'v'], ['1', 'a'], ['2', 'b']])
+        f2 = self._write_csv('g2.csv', [['k', 'v'], ['1', 'x'], ['9', 'y']])
+        out = os.path.join(self.tmp_dir, 'out2.csv')
+        with self.assertRaises(Exception):
+            csv_tools.merge_csv_key_values(
+                [(f1, 'c1'), (f2, 'c2')], out, key_col='k', data_col='v')
+
 
 ################################################################################
 

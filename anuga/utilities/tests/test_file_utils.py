@@ -59,7 +59,7 @@ class Test_FileUtils(unittest.TestCase):
     def test_get_all_swwfiles(self):
         try:
             swwfiles = get_all_swwfiles('', 'test.txt')  # Invalid
-        except IOError:
+        except OSError:
             pass
         else:
             raise Exception('Should have raised exception')
@@ -67,10 +67,14 @@ class Test_FileUtils(unittest.TestCase):
     def test_get_all_swwfiles1(self):
 
         temp_dir = tempfile.mkdtemp('', 'sww_test')
-        filename0 = tempfile.mktemp('.sww', 'test', temp_dir)
-        filename1 = tempfile.mktemp('.sww', 'test', temp_dir)
-        filename2 = tempfile.mktemp('.sww', 'test', temp_dir)
-        filename3 = tempfile.mktemp('.sww', 'test', temp_dir)
+        fd, filename0 = tempfile.mkstemp('.sww', 'test', temp_dir)
+        os.close(fd)
+        fd, filename1 = tempfile.mkstemp('.sww', 'test', temp_dir)
+        os.close(fd)
+        fd, filename2 = tempfile.mkstemp('.sww', 'test', temp_dir)
+        os.close(fd)
+        fd, filename3 = tempfile.mkstemp('.sww', 'test', temp_dir)
+        os.close(fd)
 
         # print'filename', filename0,filename1,filename2,filename3
 

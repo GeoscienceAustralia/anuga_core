@@ -70,3 +70,21 @@ def pytest_collection_modifyitems(config, items):
     for item in items:
         if 'slow' in item.keywords:
             item.add_marker(skip_slow)
+
+
+# ---------------------------------------------------------------------------
+# SWW writer locks
+#
+# Every SWW file a test creates takes a sidecar '<file>.sww.lock' that is
+# normally removed at interpreter exit. A pytest process that dies without
+# running atexit handlers (SIGKILL, a timeout kill, an abort in a native
+# runtime) leaves every lock taken so far in the session behind, in whatever
+# directory the tests wrote to -- usually the cwd. Releasing them after each
+# test bounds that to the test that was running.
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(autouse=True)
+def _release_sww_locks():
+    yield
+    from anuga.file.sww import _release_all_sww_locks
+    _release_all_sww_locks()

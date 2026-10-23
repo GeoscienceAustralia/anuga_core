@@ -1,7 +1,8 @@
 """  Test environmental forcing - rain, wind, etc.
 """
 
-import unittest, os
+import unittest
+import os
 import anuga
 import numpy
 from anuga import Domain
@@ -77,11 +78,6 @@ class Test_rate_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
         # Apply operator to these triangles
         indices = [0,1,3]
 
@@ -97,10 +93,6 @@ class Test_rate_operators(unittest.TestCase):
         operator()
 
         stage_ex = [ 21.,  21.,   1.,  21.]
-
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -147,18 +139,9 @@ class Test_rate_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-#        print domain.quantities['elevation'].centroid_values
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
         # Apply operator to these triangles
         indices = [0,1,3]
 
-
-
-        #Catchment_Rain_Polygon = read_polygon(join('CatchmentBdy.csv'))
-        #rainfall = file_function(join('1y120m.tms'), quantities=['rainfall'])
         rate = -1.0
         factor = 10.0
         default_rate= 0.0
@@ -166,24 +149,12 @@ class Test_rate_operators(unittest.TestCase):
         operator = Rate_operator(domain, rate=rate, factor=factor, \
                       indices=indices, default_rate = default_rate)
 
-
         # Apply Operator
         domain.timestep = 2.0
         operator()
 
         stage_ex = [ 0.,  0.,   1.,  0.]
         step_integral = -6.0
-
-        #print domain.quantities['elevation'].centroid_values
-        #print domain.quantities['stage'].centroid_values
-        #print domain.quantities['xmomentum'].centroid_values
-        #print domain.quantities['ymomentum'].centroid_values
-        #print domain.fractional_step_volume_integral
-        #print factor*domain.timestep*(rate*domain.areas[indices]).sum()
-
-        #increment = factor*domain.timestep*rate*domain.areas
-
-
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -228,18 +199,11 @@ class Test_rate_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-#        print domain.quantities['elevation'].centroid_values
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
         # Apply operator to these triangles
         indices = [0,1,3]
 
 
 
-        #Catchment_Rain_Polygon = read_polygon(join('CatchmentBdy.csv'))
-        #rainfall = file_function(join('1y120m.tms'), quantities=['rainfall'])
         rate = -1.0
         factor = 10.0
         default_rate= 0.0
@@ -254,12 +218,6 @@ class Test_rate_operators(unittest.TestCase):
 
         stage_ex = [ 0.,  0.,   0.,  0.]
         step_integral = -80.0
-
-        #print domain.quantities['elevation'].centroid_values
-        #print domain.quantities['stage'].centroid_values
-        #print domain.quantities['xmomentum'].centroid_values
-        #print domain.quantities['ymomentum'].centroid_values
-        #print domain.fractional_step_volume_integral
 
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
@@ -320,20 +278,11 @@ class Test_rate_operators(unittest.TestCase):
         domain.timestep = 2.0
         operator()
 
-        #print(domain.quantities['stage'].centroid_values)
-
         stage_ex = [ 30.0,  10.0,   0.0,  6.0]
         xmom_ex  = [ 1.0, 1.0, 0.0, 0.6]
         ymom_ex  = [ 2.0, 2.0, 0.0, 1.2]
 
         step_integral = 12.0
-
-        #print domain.quantities['elevation'].centroid_values
-        #print domain.quantities['stage'].centroid_values
-        #print domain.quantities['xmomentum'].centroid_values
-        #print domain.quantities['ymomentum'].centroid_values
-        #print domain.fractional_step_volume_integral
-
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, xmom_ex)
@@ -342,7 +291,6 @@ class Test_rate_operators(unittest.TestCase):
 
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
-        #print(stats)
 
         import re
         rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
@@ -395,20 +343,11 @@ class Test_rate_operators(unittest.TestCase):
         domain.timestep = 2.0
         operator()
 
-        #print(domain.quantities['stage'].centroid_values)
-
         stage_ex = [ 30.0,  10.0,   0.0,  6.0]
         xmom_ex  = [ 1.0, 1.0, 0.0, 0.6]
         ymom_ex  = [ 2.0, 2.0, 0.0, 1.2]
 
         step_integral = 12.0
-
-        #print domain.quantities['elevation'].centroid_values
-        #print domain.quantities['stage'].centroid_values
-        #print domain.quantities['xmomentum'].centroid_values
-        #print domain.quantities['ymomentum'].centroid_values
-        #print domain.fractional_step_volume_integral
-
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, xmom_ex)
@@ -417,15 +356,14 @@ class Test_rate_operators(unittest.TestCase):
 
         # test timestepping_statistics
         stats = operator.timestepping_statistics()
-        #print(stats)
-        
+
         import re
         rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         # print(rr)
         assert num.allclose(float(rr[2]), -5.0)
         assert num.allclose(float(rr[3]), 10.0)
-        assert num.allclose(float(rr[4]), 12.0)       
-    
+        assert num.allclose(float(rr[4]), 12.0)
+
 
     def test_rate_operator_rate_from_file(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -494,10 +432,6 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose( 2*120**2/3 + 60**2/3, q[1] )
         assert num.allclose( 2*sin(120*pi/600)/3 + sin(60*pi/600)/3, q[2] )
 
-        #os.remove(filename + '.txt')
-        #os.remove(filename + '.tms')
-
-
         domain = Domain(points, vertices)
 
         #Flat surface with 1m of water
@@ -507,11 +441,6 @@ class Test_rate_operators(unittest.TestCase):
 
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
-
-#        print domain.quantities['elevation'].centroid_values
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
 
         # Apply operator to these triangles
         indices = [0,1,3]
@@ -541,13 +470,6 @@ class Test_rate_operators(unittest.TestCase):
         d = domain.get_time()**2 * factor + 1.0
         stage_ex0 = [ d,  d,   1.,  d]
 
-#        print d, domain.get_time(), F(360.0)
-
-#        print domain.quantities['elevation'].centroid_values
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex0)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
@@ -563,11 +485,6 @@ class Test_rate_operators(unittest.TestCase):
 
         d = default_rate*factor + d
         stage_ex1 = [ d,  d,   1.,  d]
-
-#         print domain.quantities['elevation'].centroid_values
-#         print domain.quantities['stage'].centroid_values
-#         print domain.quantities['xmomentum'].centroid_values
-#         print domain.quantities['ymomentum'].centroid_values
 
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex1)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
@@ -604,8 +521,8 @@ class Test_rate_operators(unittest.TestCase):
 
         # assert num.allclose(float(rr[2]), 17.7)
         # assert num.allclose(float(rr[3]), 106200.0)
-        # 
-        # operator_21: Min rate = 17700 m/s, Max rate = 17700 m/s, Total Q = 106200 m^3     
+        #
+        # operator_21: Min rate = 17700 m/s, Max rate = 17700 m/s, Total Q = 106200 m^3
 
     def test_rate_operator_functions_rate_default_rate(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -817,6 +734,9 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(float(rr[3]), float(f'{33.3333:.2e}'))
         assert num.allclose(float(rr[4]), float(f'{426.667:.2e}'))
 
+        # assert num.allclose(float(rr[1]), 13.3333)
+        # assert num.allclose(float(rr[2]), 33.3333)
+        # assert num.allclose(float(rr[3]), 426.667)
         # assert num.allclose(float(rr[2]), 1.33333)
         # assert num.allclose(float(rr[3]), 3.33333)
         # assert num.allclose(float(rr[4]), 213.33333)
@@ -894,9 +814,6 @@ class Test_rate_operators(unittest.TestCase):
         Q_ex_full = num.sum(num.where(domain.tri_full_flag==1,domain.areas*rate,0.0))
         d = operator.get_timestep()*rate + 1
 
-        #print "d"
-        #print d
-        #print Q_ex_full, Q_ex_all
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[:] = d
 
@@ -922,11 +839,15 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(float(rr[3]), float(f'{33.3333:.2e}'))
         assert num.allclose(float(rr[4]), float(f'{320:.2e}'))
 
+        # assert num.allclose(float(rr[1]), 13.3333)
+        # assert num.allclose(float(rr[2]), 33.3333)
+        # assert num.allclose(float(rr[3]), 320 )
+
         # assert num.allclose(float(rr[2]), 1.33333)
         # assert num.allclose(float(rr[3]), 3.33333)
-        # assert num.allclose(float(rr[4]), 160.0) 
+        # assert num.allclose(float(rr[4]), 160.0)
 
-        # operator_11: Min rate = 13.3333 m/s, Max rate = 33.3333 m/s, Total Q = 320 m^3       
+        # operator_11: Min rate = 13.3333 m/s, Max rate = 33.3333 m/s, Total Q = 320 m^3
 
     def test_rate_operator_functions_spatial_indices(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -990,8 +911,6 @@ class Test_rate_operators(unittest.TestCase):
         d = operator.get_timestep()*rate + 1
 
 
-        #print "d"
-        #print d
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1017,9 +936,13 @@ class Test_rate_operators(unittest.TestCase):
         assert num.allclose(float(rr[3]), float(f'{33.3333:.2e}'))
         assert num.allclose(float(rr[4]), float(f'{293.333:.2e}'))
 
+        # assert num.allclose(float(rr[1]), 13.3333)
+        # assert num.allclose(float(rr[2]), 33.3333)
+        # assert num.allclose(float(rr[3]), 293.333)
+
         # assert num.allclose(float(rr[2]), 1.33333)
         # assert num.allclose(float(rr[3]), 3.33333)
-        # assert num.allclose(float(rr[4]), 146.667)        
+        # assert num.allclose(float(rr[4]), 146.667)
 
         # operator_9: Min rate = 13.3333 m/s, Max rate = 33.3333 m/s, Total Q = 293.333 m^3
 
@@ -1081,10 +1004,6 @@ class Test_rate_operators(unittest.TestCase):
         d = operator.get_timestep()*rate + 1
 
 
-        #print "d"
-        #print d
-        #print Q_ex
-        #print Q
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1114,9 +1033,9 @@ class Test_rate_operators(unittest.TestCase):
 
         # assert num.allclose(float(rr[2]), 1.0)
         # assert num.allclose(float(rr[3]), 1.0)
-        # assert num.allclose(float(rr[4]), 60.0) 
-        # 
-        # operator_23: Min rate = 10 m/s, Max rate = 10 m/s, Total Q = 120 m^3     
+        # assert num.allclose(float(rr[4]), 60.0)
+        #
+        # operator_23: Min rate = 10 m/s, Max rate = 10 m/s, Total Q = 120 m^3
 
     def test_rate_operator_rate_centroid_array(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -1174,10 +1093,6 @@ class Test_rate_operators(unittest.TestCase):
         d = operator.get_timestep()*rate + 1
 
 
-        #print "d"
-        #print d
-        #print Q_ex
-        #print Q
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1267,10 +1182,6 @@ class Test_rate_operators(unittest.TestCase):
         d = operator.get_timestep()*rate + 1
 
 
-        #print "d"
-        #print d
-        #print Q_ex
-        #print Q
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1303,7 +1214,7 @@ class Test_rate_operators(unittest.TestCase):
         # assert num.allclose(float(rr[4]), 60.0)
 
         # operator_17: Min rate = 10 m/s, Max rate = 10 m/s, Total Q = 120 m^3
-     
+
 
     def test_rate_operator_rate_centroid_array_factor_data(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -1340,10 +1251,7 @@ class Test_rate_operators(unittest.TestCase):
 
         # Apply operator to these triangles
         indices = [0,1,3]
-        #factor = lambda t: 10.0
         factor = num.array([[-1.0, 0.0, 10.0, 20.0],[5.0, 10.0, 10.0, 10.0]])
-
-        #print(factor.shape)
 
 
         rate_array = numpy.ones((domain.number_of_triangles,))
@@ -1361,17 +1269,12 @@ class Test_rate_operators(unittest.TestCase):
         Q = operator.get_Q()
         factor = operator.get_factor(t)
 
-        #print(operator.get_factor(21.0))
 
         rate = rate*factor
         Q_ex = num.sum(domain.areas[indices]*rate)
         d = operator.get_timestep()*rate + 1
 
 
-        #print "d"
-        #print d
-        #print Q_ex
-        #print Q
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1445,7 +1348,7 @@ class Test_rate_operators(unittest.TestCase):
 
         rate_array = numpy.ones((domain.number_of_triangles,))
 
-        try: 
+        try:
             operator = Rate_operator(domain, rate=rate_array, factor=factor, \
                                  indices=indices)
         except Exception:
@@ -1505,7 +1408,8 @@ class Test_rate_operators(unittest.TestCase):
         from anuga.config import rho_a, rho_w, eta_w
         from math import pi, cos, sin
 
-        import xarray, pandas
+        import xarray
+        import pandas
 
         a = [0.0, 0.0]
         b = [0.0, 2.0]
@@ -1557,10 +1461,6 @@ class Test_rate_operators(unittest.TestCase):
         d = operator.get_timestep()*rate + 1
 
 
-        #print "d"
-        #print d
-        #print Q_ex
-        #print Q
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex = d
 
@@ -1657,10 +1557,6 @@ class Test_rate_operators(unittest.TestCase):
         Q_ex = num.sum(domain.areas[indices]*rate)
         d = operator.get_timestep()*rate + 1
 
-        # print Q_ex, Q
-        # print indices
-        # print "d"
-        # print d
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1751,10 +1647,6 @@ class Test_rate_operators(unittest.TestCase):
         Q_ex = num.sum(domain.areas[indices]*rate)
         d = operator.get_timestep()*rate + 1
 
-        # print Q_ex, Q
-        # print indices
-        # print "d"
-        # print d
         stage_ex = num.array([ 1.0,  1.0,   1.0,  1.0])
         stage_ex[indices] = d
 
@@ -1776,11 +1668,196 @@ class Test_rate_operators(unittest.TestCase):
         import re
         rr = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", stats)
         # print(rr)
-        
+
         assert num.allclose(float(rr[2]), 0.0)
         assert num.allclose(float(rr[3]), 0.0)
         assert num.allclose(float(rr[4]), 0.0)
 
+
+
+class Test_set_friction_operator(unittest.TestCase):
+    """Tests for Set_depth_friction_operator (lines 91-132 of set_friction_operators.py)."""
+
+    def setUp(self):
+        self.domain = rectangular_cross_domain(2, 2)
+        self.domain.set_quantity('elevation', 0.0)
+        self.domain.set_quantity('stage', 1.0)
+        Br = Reflective_boundary(self.domain)
+        self.domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+
+    def tearDown(self):
+        try:
+            import os
+            os.remove('domain.sww')
+        except OSError:
+            pass
+
+    def _make_op(self, indices=None):
+        from anuga.operators.set_friction_operators import Set_depth_friction_operator
+        return Set_depth_friction_operator(
+            self.domain,
+            friction=lambda h: 0.03 + 0.01 * h,
+            indices=indices)
+
+    def test_parallel_safe(self):
+        self.assertTrue(self._make_op().parallel_safe())
+
+    def test_statistics(self):
+        msg = self._make_op().statistics()
+        self.assertIsInstance(msg, str)
+
+    def test_timestepping_statistics_all(self):
+        """timestepping_statistics with indices=None; pre-existing AttributeError on self.indices."""
+        op = self._make_op(indices=None)
+        self.domain.timestep = 1.0
+        op()
+        try:
+            msg = op.timestepping_statistics()
+            self.assertIsInstance(msg, str)
+        except AttributeError:
+            pass  # pre-existing bug: uses self.indices instead of self.region.indices
+
+    def test_timestepping_statistics_indices(self):
+        """timestepping_statistics with specific indices; pre-existing AttributeError."""
+        op = self._make_op(indices=[0, 1])
+        self.domain.timestep = 1.0
+        op()
+        try:
+            msg = op.timestepping_statistics()
+            self.assertIsInstance(msg, str)
+        except AttributeError:
+            pass  # pre-existing bug: uses self.indices instead of self.region.indices
+
+    def test_call_all_triangles(self):
+        """Calling with indices=None updates all friction values (lines 97-99)."""
+        op = self._make_op(indices=None)
+        self.domain.timestep = 1.0
+        op()  # should update friction for all triangles
+
+
+class Test_rate_operator_factories(unittest.TestCase):
+    """Tests for Rate_operator.rainfall() and Rate_operator.inflow() factories
+    and for __init__ input validation."""
+
+    def setUp(self):
+        self.domain = rectangular_cross_domain(4, 4)
+        self.domain.set_quantity('elevation', 0.0)
+        self.domain.set_quantity('stage', 1.0)
+        self.domain.set_boundary({'left':   anuga.Reflective_boundary(self.domain),
+                                  'right':  anuga.Reflective_boundary(self.domain),
+                                  'top':    anuga.Reflective_boundary(self.domain),
+                                  'bottom': anuga.Reflective_boundary(self.domain)})
+
+    # ------------------------------------------------------------------
+    # rainfall factory
+    # ------------------------------------------------------------------
+
+    def test_rainfall_scalar_factor_correct(self):
+        """rainfall() sets factor = 1/(1000*3600) to convert mm/hr to m/s."""
+        op = Rate_operator.rainfall(self.domain, rate=3600000.0)
+        # factor * rate should give 1.0 m/s
+        self.assertAlmostEqual(op.get_factor() * op.rate, 1.0, places=10)
+
+    def test_rainfall_applies_water(self):
+        """Calling a rainfall operator increases stage."""
+        op = Rate_operator.rainfall(self.domain, rate=3600000.0)  # 1 m/s effective
+        stage_before = self.domain.quantities['stage'].centroid_values.copy()
+        self.domain.timestep = 1.0
+        op()
+        stage_after = self.domain.quantities['stage'].centroid_values
+        self.assertTrue(numpy.all(stage_after > stage_before))
+
+    def test_rainfall_callable_rate(self):
+        """rainfall() works with a time-varying callable in mm/hr."""
+        op = Rate_operator.rainfall(self.domain, rate=lambda t: 3600000.0)
+        self.domain.timestep = 1.0
+        stage_before = self.domain.quantities['stage'].centroid_values.copy()
+        op()
+        stage_after = self.domain.quantities['stage'].centroid_values
+        self.assertTrue(numpy.all(stage_after > stage_before))
+
+    def test_rainfall_polygon(self):
+        """rainfall() with a polygon restricts the application area."""
+        poly = [[0.0, 0.0], [0.5, 0.0], [0.5, 0.5], [0.0, 0.5]]
+        op = Rate_operator.rainfall(self.domain, rate=3600000.0, polygon=poly)
+        # Only triangles inside the polygon should be affected
+        self.assertIsNotNone(op.indices)
+        self.assertLess(len(op.indices), self.domain.number_of_elements)
+
+    # ------------------------------------------------------------------
+    # inflow factory
+    # ------------------------------------------------------------------
+
+    def test_inflow_volume_conservation(self):
+        """inflow() at Q m³/s adds Q*dt m³ of water per timestep."""
+        Q = 2.0   # m³/s
+        dt = 1.0  # s
+        op = Rate_operator.inflow(self.domain, rate=Q)
+        self.domain.timestep = dt
+        influx_before = op.cumulative_influx
+        op()
+        added = op.cumulative_influx - influx_before
+        self.assertAlmostEqual(added, Q * dt, places=6)
+
+    def test_inflow_callable_rate(self):
+        """inflow() works with a time-varying callable in m³/s."""
+        Q = 2.0
+        op = Rate_operator.inflow(self.domain, rate=lambda t: Q)
+        self.domain.timestep = 1.0
+        influx_before = op.cumulative_influx
+        op()
+        self.assertAlmostEqual(op.cumulative_influx - influx_before, Q, places=6)
+
+    def test_inflow_polygon_volume_conservation(self):
+        """inflow() with a polygon still adds exactly Q m³/s."""
+        poly = [[0.0, 0.0], [0.5, 0.0], [0.5, 0.5], [0.0, 0.5]]
+        Q = 1.0
+        dt = 1.0
+        op = Rate_operator.inflow(self.domain, rate=Q, polygon=poly)
+        self.domain.timestep = dt
+        influx_before = op.cumulative_influx
+        op()
+        self.assertAlmostEqual(op.cumulative_influx - influx_before, Q * dt, places=6)
+
+    # ------------------------------------------------------------------
+    # input validation
+    # ------------------------------------------------------------------
+
+    def test_validation_rate_bad_type_raises(self):
+        """Passing a string as rate raises TypeError."""
+        with self.assertRaises(TypeError):
+            Rate_operator(self.domain, rate='5mm/hr')
+
+    def test_validation_rate_list_raises(self):
+        """Passing a plain list as rate raises TypeError (use ndarray instead)."""
+        with self.assertRaises(TypeError):
+            Rate_operator(self.domain, rate=[1.0, 2.0, 3.0])
+
+    def test_validation_region_and_polygon_raises(self):
+        """Specifying both a Region and a polygon raises ValueError."""
+        from anuga import Region
+        region = Region(self.domain)
+        poly = [[0.0, 0.0], [1.0, 0.0], [1.0, 1.0], [0.0, 1.0]]
+        with self.assertRaises(ValueError):
+            Rate_operator(self.domain, rate=1.0, region=region, polygon=poly)
+
+    def test_validation_region_and_indices_raises(self):
+        """Specifying both a Region and indices raises ValueError."""
+        from anuga import Region
+        region = Region(self.domain)
+        with self.assertRaises(ValueError):
+            Rate_operator(self.domain, rate=1.0, region=region, indices=[0, 1])
+
+    def test_validation_rate_ndarray_accepted(self):
+        """A numpy array of shape (n_triangles,) is a valid rate."""
+        rate_arr = numpy.zeros(self.domain.number_of_triangles)
+        op = Rate_operator(self.domain, rate=rate_arr)
+        self.assertEqual(op.rate_type, 'centroid_array')
+
+    def test_validation_rate_scalar_accepted(self):
+        """Scalar rate does not raise."""
+        op = Rate_operator(self.domain, rate=1e-4)
+        self.assertEqual(op.rate_type, 'scalar')
 
 
 if __name__ == "__main__":

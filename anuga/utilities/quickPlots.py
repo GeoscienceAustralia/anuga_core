@@ -12,12 +12,12 @@ matplotlib.use('Agg') # This let's us run on NCI
 from matplotlib import pyplot
 import argparse
 import os
-    
+
 
 
 def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=None):
     """
-        Routine to make a set of 'quick and dirty' plots of initial conditions + maxima. 
+        Routine to make a set of 'quick and dirty' plots of initial conditions + maxima.
         Useful for preliminary check on ANUGA outputs
     """
 
@@ -80,7 +80,7 @@ def quickPlots(swwFile=None, ocean_land_threshold=None, fig_dir=None, figScale=N
     pyplot.savefig(fig_dir+'/Initial_stage.png')
     pyplot.close()
 
-    # Plot Initial Depth 
+    # Plot Initial Depth
     pyplot.figure(figsize=figSize)
     pyplot.scatter(x,y,c=p2.height[0,:],edgecolors='none')
     pyplot.gca().set_aspect('equal')

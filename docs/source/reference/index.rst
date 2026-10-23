@@ -32,6 +32,8 @@ The three classes below form the foundation of every ANUGA simulation:
        area of the domain.
 
 
+.. _api_domain:
+
 Domain
 ------
 
@@ -58,6 +60,17 @@ The ``Domain`` class is the top-level simulation object.  A typical script:
 
 :doc:`Full Domain API <anuga.Domain>`
 
+Domain creation functions and the domain methods used throughout this guide:
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   rectangular_cross_domain
+   create_domain_from_regions
+   size_field_from_regions
+   Size_field
+
 
 Quantity
 --------
@@ -72,6 +85,11 @@ not usually instantiated directly.  They are accessed via
    print(elev.centroid_values)     # values at triangle centroids
    print(elev.vertex_values)       # values at triangle vertices
    print(elev.get_integral())      # integral over the domain
+
+Each quantity allocates only the arrays it needs via the ``qty_type``
+parameter (``'evolved'``, ``'centroid_only'``, ``'edge_diagnostic'``,
+or ``'coordinate'``).  Gradient and phi arrays are lazy for all types.
+See :ref:`quantity-memory-layout` for details.
 
 .. toctree::
    :hidden:
@@ -90,10 +108,11 @@ Region
 ------
 
 A ``Region`` identifies a spatial subset of the mesh.  It is typically
-created by passing a polygon to an operator or by calling
-``domain.get_region()``, and it provides the list of triangle indices
-that fall inside the polygon.  Operators use regions to apply forcing
-(rainfall, extraction) only over a defined area.
+created by passing a polygon to an operator, or directly with
+``anuga.Region(domain, polygon=...)`` -- a region may also be given as a
+centre and radius, a line, or explicit triangle indices.  It provides the
+list of triangle indices that fall inside it.  Operators use regions to
+apply forcing (rainfall, extraction) only over a defined area.
 
 .. code-block:: python
 
@@ -103,17 +122,11 @@ that fall inside the polygon.  Operators use regions to apply forcing
    region = anuga.Region(domain, polygon=polygon)
    print(region.get_indices())    # triangle IDs inside the polygon
 
-.. toctree::
-   :hidden:
-
-   anuga.Region
-
 .. autosummary::
+   :toctree: generated
    :nosignatures:
 
    Region
-
-:doc:`Full Region API <anuga.Region>`
 
 
 Geo_reference
@@ -139,12 +152,92 @@ national grids such as RD New (EPSG:28992) or British National Grid
 
 See :doc:`../setup_anuga_script/coordinate_reference` for full usage guidance.
 
-.. toctree::
-   :hidden:
+.. _api_geo_reference:
 
-   anuga.Geo_reference
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
 
-:doc:`Full Geo_reference API <anuga.Geo_reference>`
+   Geo_reference
+
+
+.. _api_boundaries:
+
+Boundary conditions
+-------------------
+
+The boundary classes assigned to named domain edges via
+``domain.set_boundary()``. See
+:doc:`../setup_anuga_script/boundaries` for a description of each and when to
+use it; the full API of each class is below.
+
+.. currentmodule:: anuga
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   Reflective_boundary
+   Dirichlet_boundary
+   Time_boundary
+   Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+   Flather_external_stage_zero_velocity_boundary
+   File_boundary
+   Field_boundary
+   Absorbing_wave_boundary
+   Characteristic_wave_boundary
+
+
+.. _api_operators:
+
+Operators
+---------
+
+Operators modify domain quantities each timestep (rainfall/extraction, inlets,
+culverts, setting quantities, viscosity). See
+:doc:`../setup_anuga_script/operators` for categories and usage; the full API of
+each is below.
+
+.. currentmodule:: anuga
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   Rate_operator
+   Inlet_operator
+   Set_quantity_operator
+   Set_stage_operator
+   Set_elevation_operator
+   Boyd_box_operator
+   Boyd_pipe_operator
+   Weir_orifice_trapezoid_operator
+   Internal_boundary_operator
+   Kinematic_viscosity_operator
+
+
+.. _api_logging:
+
+Logging
+-------
+
+Configuring ANUGA's log output. See
+:doc:`../setup_anuga_script/logging` for usage.
+
+.. currentmodule:: anuga
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   set_logfile
+   utilities.log.TeeStream
+   utilities.log.file_only
+   utilities.log.verbose
+   utilities.log.info
+   utilities.log.warning
+   utilities.log.debug
+   utilities.log.critical
 
 
 File format reference

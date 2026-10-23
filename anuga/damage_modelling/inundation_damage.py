@@ -7,7 +7,6 @@
 import os
 from math import sqrt
 from scipy.interpolate import interp1d
-scipy_available = True
 
 
 from random import choice
@@ -15,22 +14,22 @@ from random import choice
 import numpy as num
 
 
-try:  
-    import kinds  
-except ImportError:  
+try:
+    import kinds
+except ImportError:
     # Hand-built mockup of the things we need from the kinds package, since it
-    # was recently removed from the standard numeric distro.  Some users may  
-    # not have it by default.  
-    class _bunch(object):  
-        pass  
-         
-    class _kinds(_bunch):  
-        default_float_kind = _bunch()  
+    # was recently removed from the standard numeric distro.  Some users may
+    # not have it by default.
+    class _bunch:
+        pass
+
+    class _kinds(_bunch):
+        default_float_kind = _bunch()
         default_float_kind.MIN = 2.2250738585072014e-308  #smallest +ve number
-        default_float_kind.MAX = 1.7976931348623157e+308  
-     
+        default_float_kind.MAX = 1.7976931348623157e+308
+
     kinds = _kinds()
-    
+
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from .exposure import Exposure
@@ -63,7 +62,7 @@ def inundation_damage(sww_base_name, exposure_files_in,
 
     Note, structures outside of the sww file get the minimum inundation
     (-ground_floor_height).
-    
+
     These calculations are done over all the sww files with the sww_base_name
     in the specified directory.
 
@@ -96,7 +95,7 @@ def inundation_damage(sww_base_name, exposure_files_in,
                                                 verbose=verbose)
         for title, value in results_dic.items():
             csv.set_column(title, value, overwrite=overwrite)
-    
+
         # Save info back to csv file
         if exposure_file_out_marker is None:
             exposure_file_out = exposure_file_in
@@ -106,9 +105,9 @@ def inundation_damage(sww_base_name, exposure_files_in,
             exposure_file_out =  '.'.join(split_name[:-1]) + exposure_file_out_marker + \
                                 '.' + split_name[-1]
         csv.save(exposure_file_out)
-        if verbose: log.critical('Augmented building file written to %s'
+        if verbose: log.info('Augmented building file written to %s'
                                  % exposure_file_out)
-    
+
 def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
                       exposure_file_out=None,
                       overwrite=False, verbose=True,
@@ -116,7 +115,7 @@ def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
     """
     Calculate the maximum depth and momemtum in an sww file, for locations
     specified in an csv exposure file.
-    
+
     These calculations are done over all the sww files with the sww_base_name
     in the specified directory.
     """
@@ -130,7 +129,7 @@ def add_depth_and_momentum2csv(sww_base_name, exposure_file_in,
     csv.set_column("MAX INUNDATION DEPTH (m)",max_depths, overwrite=overwrite)
     csv.set_column("MOMENTUM (m^2/s) ",max_momentums, overwrite=overwrite)
     csv.save(exposure_file_out)
-    
+
 def calc_max_depth_and_momentum(sww_base_name, points,
                                 ground_floor_height=0.0,
                                 verbose=True,
@@ -153,7 +152,7 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     # initialise the max lists
     max_depths = [-ground_floor_height]*point_count
     max_momentums = [-ground_floor_height]*point_count
-    
+
     # How many sww files are there?
     dir, base = os.path.split(sww_base_name)
     if base[-4:] == '.sww':
@@ -164,7 +163,7 @@ def calc_max_depth_and_momentum(sww_base_name, points,
     if len(interate_over) == 0:
         msg = 'No files of the base name %s.'\
               %(sww_base_name)
-        raise IOError(msg)
+        raise OSError(msg)
     from os import sep
 
     for this_sww_file in interate_over:
@@ -179,19 +178,19 @@ def calc_max_depth_and_momentum(sww_base_name, points,
                 quantity_values = callable_sww(time,point_i)
                 w = quantity_values[0]
                 z = quantity_values[1]
-                uh = quantity_values[2] 
+                uh = quantity_values[2]
                 vh = quantity_values[3]
 
                 #print w,z,uh,vh
                 if w == NAN or z == NAN or uh == NAN or vh == NAN:
                     continue
-                    
+
                 #  -ground_floor_height is the minimum value.
                 depth = w - z - ground_floor_height
-              
+
                 if depth > max_depths[point_i]:
                     max_depths[point_i] = depth
-                
+
                 momentum = sqrt(uh*uh + vh*vh)
                 if momentum > max_momentums[point_i]:
                     max_momentums[point_i] = momentum
@@ -199,7 +198,7 @@ def calc_max_depth_and_momentum(sww_base_name, points,
 
     return max_depths, max_momentums
 
-class EventDamageModel(object):
+class EventDamageModel:
     """
     Object for working out the damage and cost
 
@@ -227,13 +226,9 @@ class EventDamageModel(object):
                                            #[kinds.default_float_kind.MAX,64.7]
                                            ])
 
-    if scipy_available:
-        double_brick_damage_curve = interp1d(double_brick_damage_array[:,0],double_brick_damage_array[:,1])
-    else:
-        double_brick_damage_curve = InterpolatingFunction( \
-             (num.ravel(double_brick_damage_array[:,0:1]),),
-              num.ravel(double_brick_damage_array[:,1:]))
-    
+    double_brick_damage_curve = interp1d(double_brick_damage_array[:,0],
+                                        double_brick_damage_array[:,1])
+
     brick_veeer_damage_array = num.array([#[-kinds.default_float_kind.MAX, 0.0],
                                           [-1000.0,0.0],
                                           [0.0-depth_epsilon, 0.0],
@@ -249,14 +244,10 @@ class EventDamageModel(object):
                                           #[kinds.default_float_kind.MAX,69.4]
                                           ])
 
-    if scipy_available:
-        brick_veeer_damage_curve = interp1d(brick_veeer_damage_array[:,0],brick_veeer_damage_array[:,1])
-    else:
-        brick_veeer_damage_curve = InterpolatingFunction( \
-                                 (num.ravel(brick_veeer_damage_array[:,0:1]),),
-                                  num.ravel(brick_veeer_damage_array[:,1:]))
+    brick_veeer_damage_curve = interp1d(brick_veeer_damage_array[:,0],
+                                       brick_veeer_damage_array[:,1])
 
-    
+
 
     struct_damage_curve = {'Double Brick':double_brick_damage_curve,
                            'Brick Veneer':brick_veeer_damage_curve}
@@ -277,12 +268,8 @@ class EventDamageModel(object):
                                        ])
 
 
-    if scipy_available:
-        contents_damage_curve = interp1d(contents_damage_array[:,0],contents_damage_array[:,1])
-    else:
-        contents_damage_curve = InterpolatingFunction( \
-             (num.ravel(contents_damage_array[:,0:1]),),
-              num.ravel(contents_damage_array[:,1:]))
+    contents_damage_curve = interp1d(contents_damage_array[:,0],
+                                     contents_damage_array[:,1])
 
 
 
@@ -299,7 +286,7 @@ class EventDamageModel(object):
                             [0.8, 0.4, 0.25, 0.15],
                             [0.95, 0.7, 0.5, 0.3],
                             [0.99, 0.9, 0.65, 0.45]]
-    
+
     def __init__(self, max_depths, shore_distances, walls,
                  struct_costs, content_costs):
         """
@@ -341,7 +328,7 @@ class EventDamageModel(object):
         if verbose_csv:
            results_dict[self.COLLAPSE_CSV_INFO_TITLE] = self.collapse_csv_info
         return results_dict
-            
+
     def calc_damage_percentages(self):
         """
         Using stage curves calc the damage to structures and contents
@@ -357,23 +344,23 @@ class EventDamageModel(object):
                                                    self.max_depths,
                                                    self.shore_distances,
                                                    self.walls):
-            ## WARNING SKIP IF DEPTH < 0.0 
+            ## WARNING SKIP IF DEPTH < 0.0
             if 0.0 > max_depth:
                 continue
-            
+
             # The definition of inundated is if the max_depth is > 0.0
             self.struct_inundated[i] = 1.0
-            
+
             #calc structural damage %
             damage_curve = self.struct_damage_curve.get(wall,
                                               self.default_struct_damage_curve)
             struct_damage[i] = damage_curve(max_depth)
             contents_damage[i] = self.contents_damage_curve(max_depth)
-           
+
         self.struct_damage = struct_damage
         self.contents_damage = contents_damage
-           
-        
+
+
     def calc_cost(self):
         """
         Once the damage has been calculated, determine the $ cost.
@@ -383,24 +370,24 @@ class EventDamageModel(object):
                            ensure_numeric(self.struct_costs)
         self.contents_loss = self.contents_damage * \
                            ensure_numeric(self.content_costs)
-        
+
     def calc_collapse_probability(self):
         """
         return a dict of which structures have x probability of collapse.
              key is collapse probability
-             value is list of struct indexes with key probability of collapse 
+             value is list of struct indexes with key probability of collapse
         """
         # I could've done this is the calc_damage_percentages and
         # Just had one loop.
         # But for ease of testing and bug finding I'm seperating the loops.
         # I'm make the outer loop for both of them the same though,
         # so this loop can easily be folded into the other loop.
-        
+
         # dict of which structures have x probability of collapse.
         # key of collapse probability
-        # value of list of struct indexes 
+        # value of list of struct indexes
         struct_coll_prob = {}
-        
+
         for i,max_depth,shore_distance,wall in zip(
                                                    list(range(self.structure_count)),
                                                    self.max_depths,
@@ -425,23 +412,23 @@ class EventDamageModel(object):
                             struct_coll_prob.setdefault(coll_prob,[]).append(i)
                             break
                     break
-                            
+
         return struct_coll_prob
-    
+
     def _calc_collapse_structures(self, collapse_probability,
                                   verbose_csv=False):
         """
         Given the collapse probabilities, throw the dice
         and collapse some houses
         """
-        
+
         self.struct_collapsed = [''] * self.structure_count
         if verbose_csv:
             self.collapse_csv_info = [''] * self.structure_count
         #for a given 'bin', work out how many houses will collapse
         for probability, house_indexes in collapse_probability.items():
             collapse_count = round(len(house_indexes) * probability)
-            
+
             if verbose_csv:
                 for i in house_indexes:
                     # This could be sped up I think
@@ -454,10 +441,10 @@ class EventDamageModel(object):
                 self.contents_damage[house_index] = 1.0
                 house_indexes.remove(house_index)
                 self.struct_collapsed[house_index] = 1
-            
-            # Warning, the collapse_probability list now lists 
+
+            # Warning, the collapse_probability list now lists
             # houses that did not collapse, (though not all of them)
-            
+
 #############################################################################
 if __name__ == "__main__":
-    pass 
+    pass

@@ -5,7 +5,7 @@ import array as p_array
 import numpy as num
 
 from anuga.anuga_exceptions import ANUGAError
-from anuga.utilities.numerical_tools import ensure_numeric   
+from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.caching.caching import myhash
 
 from anuga.file.netcdf import Write_nc, write_elevation_nc
@@ -37,10 +37,10 @@ def urs2nc(basename_in='o', basename_out='urs'):
         if os.access(file_name, os.F_OK) == 0:
             if os.access(file_name + '.mux', os.F_OK) == 0 :
                 msg = 'File %s does not exist or is not accessible' % file_name
-                raise IOError(msg)
+                raise OSError(msg)
             else:
                files_in[i] += '.mux'
-               log.critical("file_name %s" % file_name)
+               log.info("file_name %s" % file_name)
 
     hashed_elevation = None
     for file_in, file_out, quantity in zip(files_in,
@@ -105,7 +105,7 @@ def _binary_c2nc(file_in, file_out, quantity):
 
     if not num.all(lon == lon_sorted):
         msg = "Longitudes in mux file are not in ascending order"
-        raise IOError(msg)
+        raise OSError(msg)
 
     lat_sorted = list(lat)
     lat_sorted.sort()

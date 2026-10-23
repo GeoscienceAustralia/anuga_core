@@ -1,0 +1,55 @@
+
+\section{A settling basin with flow}
+
+Sediment-laden water enters a straight channel 300~m long and 10~m wide
+carrying a uniform steady flow: a flat frictionless bed, depth $h = 1$~m
+and velocity $u = 0.5$~m/s, fixed at both ends by Dirichlet boundaries that
+hold the same state, so the discharge per unit width $q = uh = 0.5$~m$^2$/s
+is exact. The inflow carries 100~$\mu$m silt at the volumetric concentration
+$c_0 = 2\times10^{-4}$, with the settling velocity $v_s$ of Ferguson and
+Church~\cite{FergusonChurch2004} ($v_s = 8.0$~mm/s); entrainment is switched
+off by a zero critical Shields stress, and deposition is the well-mixed rate
+$D = d^{*} v_s c$, $d^{*} = 1$. At steady state the depth-averaged
+concentration obeys $d(qc)/dx = -d^{*} v_s c$, so
+\begin{equation}
+c(x) = c_0\, e^{-x/L_s}, \qquad L_s = \frac{q}{d^{*} v_s} = 62.5~\mathrm{m} ,
+\end{equation}
+and the bed rises where the sediment lands at the rate
+$dz/dt = d^{*} v_s c(x)/(1-\lambda)$, $\lambda = 0.3$. As the bed rises the
+depth falls and the velocity rises to keep $q$, so $L_s$ is unchanged and the
+reference holds for the whole run; the bed rise stays a few millimetres.
+
+The case checks the tracer advection scheme with an inflow boundary
+concentration, the deposition term in the sediment mass balance, the bed
+update under deposition, and that sediment is conserved between the
+boundaries, the water column and the bed: the net inflow across the
+boundaries must equal what is in suspension plus $(1-\lambda)$ times the
+deposited volume. The steady profile is compared cell by cell at the end of
+the run, the bed-rise rate over its last 100~s, and the budget to
+$10^{-3}$; the tracer advection is first-order upwind, so the profile carries
+an error of order $\Delta x / L_s$.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{concentration_plot.png}
+\end{center}
+\caption{Steady concentration along the channel, every cell, against
+$c_0 e^{-x/L_s}$.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_rise_plot.png}
+\end{center}
+\caption{Bed-rise rate along the channel over the last 100~s against
+$d^{*} v_s c(x)/(1-\lambda)$.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{approach_plot.png}
+\end{center}
+\caption{Approach to the steady state at four stations along the channel.}
+\end{figure}
+
+\endinput

@@ -50,9 +50,9 @@ triangle * new_triangle(anuga_int index, double x1, double x2, double x3,
 // deletes entire list of triangles
 void delete_triangle_list(triangle * T);
 
-// take a point and calculate 'sigma' with the given triangle. returns
-// a pointer to malloc'ed memory of a double array.
-double * calculate_sigma(triangle * T,double x,double y);
+// take a point and calculate 'sigma' (its three barycentric weights) with
+// the given triangle, written into the caller's 3-element array.
+void calculate_sigma(triangle * T,double x,double y,double sigma[3]);
 
 // Tests to see if a triangle contains a given point,
 // returns a anuga_int value 0 false, 1 true.
@@ -88,8 +88,9 @@ quad_tree* new_quad_tree(double xmin, double xmax, double ymin, double ymax);
 // delete a search tree - recursively deletes all children.
 void delete_quad_tree(quad_tree * tree);
 
-// add a new triangle to the quad_tree
-void quad_tree_insert_triangle(quad_tree *node,triangle *T);
+// add a new triangle to the quad_tree. Returns 0, or -1 if a node split
+// could not be allocated (T is then NOT owned by the tree).
+anuga_int quad_tree_insert_triangle(quad_tree *node,triangle *T);
 
 // returns the quadrant of the quad_tree containing the point, or 0 if intersects
 // center axes
@@ -110,8 +111,9 @@ triangle * search(quad_tree * node ,double xp, double yp);
 // return number of noes in tree
 anuga_int quad_tree_node_count(quad_tree * tree);
 
-// split the node to make 4 children
-void quad_tree_make_children(quad_tree *node);
+// split the node to make 4 children. Returns 0, or -1 on allocation failure
+// (the node is left childless).
+anuga_int quad_tree_make_children(quad_tree *node);
 
 // add a triangle to the nodes leaves
 void quad_tree_add_triangle_to_list(quad_tree *node,triangle *T);

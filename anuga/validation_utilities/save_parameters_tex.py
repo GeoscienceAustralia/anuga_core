@@ -2,7 +2,7 @@
 
 def save_parameters_tex(domain):
 
-    from anuga import myid  
+    from anuga import myid
 
     if myid == 0:
         #----------------------------------------------------------------------
@@ -14,4 +14,4 @@ def save_parameters_tex(domain):
         pprint(domain.get_algorithm_parameters(),parameter_file,indent=4)
         parameter_file.write('\\end{verbatim}\n')
         parameter_file.close()
-        
+

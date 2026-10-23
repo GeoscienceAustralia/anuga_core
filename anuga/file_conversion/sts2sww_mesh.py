@@ -9,27 +9,26 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.shallow_water.boundaries import Reflective_boundary
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.shallow_water.forcing import *
 from anuga.utilities.numerical_tools import ensure_numeric
 
-from anuga.file.sww import Write_sww  
+from anuga.file.sww import Write_sww
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a, \
                             netcdf_float
 
-def sts2sww_mesh(basename_in, basename_out=None, 
+def sts2sww_mesh(basename_in, basename_out=None,
                  spatial_thinning=1, verbose=False):
-    
+
     from anuga.mesh_engine.mesh_engine import NoTrianglesError
     from anuga.pmesh.mesh import Pmesh
     if verbose:
         print("Starting sts2sww_mesh")
-    
+
     mean_stage=0.
     zscale=1.
 
     if (basename_in[:-4]=='.sts'):
         stsname = basename_in
-    else: 
+    else:
         stsname = basename_in + '.sts'
 
     if verbose: print("Reading sts NetCDF file: %s" %stsname)
@@ -58,7 +57,7 @@ def sts2sww_mesh(basename_in, basename_out=None,
     thinned_indices=[]
     for i in range(number_of_points):
         if (i//ncols==0 or i//ncols==ncols-1 or (i//ncols)%(spatial_thinning)==0):
-            if ( i%(spatial_thinning)==0 or i%nrows==0 or i%nrows==nrows-1 ):  
+            if ( i%(spatial_thinning)==0 or i%nrows==0 or i%nrows==nrows-1 ):
                 thinned_indices.append(i)
 
     #Spatial thinning
@@ -102,9 +101,9 @@ def sts2sww_mesh(basename_in, basename_out=None,
     volumes = mesh_dic['generatedtrianglelist']
 
     # Write sww intro and grid stuff.
-    if (basename_out is not None and basename_out[:-4]=='.sww'): 
+    if (basename_out is not None and basename_out[:-4]=='.sww'):
         swwname = basename_out
-    else: 
+    else:
         swwname = basename_in + '.sww'
 
     if verbose: 'Output to %s' % swwname
@@ -118,13 +117,13 @@ def sts2sww_mesh(basename_in, basename_out=None,
     outfile.mean_stage = mean_stage
     outfile.zscale = zscale
     sww.store_triangulation(outfile, points_utm, volumes,
-                            refzone,  
+                            refzone,
                             new_origin=origin, #check effect of this line
                             verbose=verbose)
 
-    if verbose: 
+    if verbose:
         print('Converting quantities')
-    
+
     # Read in a time slice from the sts file and write it to the SWW file
 
     #print wind_angle[0,:10]
@@ -137,6 +136,6 @@ def sts2sww_mesh(basename_in, basename_out=None,
                              barometric_pressure=barometric_pressure[i,:],
                              sww_precision=float)
 
-    if verbose: 
+    if verbose:
         sww.verbose_quantities(outfile)
     outfile.close()

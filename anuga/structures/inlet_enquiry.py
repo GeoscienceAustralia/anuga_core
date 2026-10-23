@@ -2,10 +2,36 @@
 from anuga.geometry.polygon import inside_polygon, is_inside_polygon, line_intersect
 from anuga.config import velocity_protection, g
 import math
+import warnings
 
 import numpy as num
 
 from . import inlet
+
+
+class EnquiryPointWarning(UserWarning):
+    """A structure's enquiry point lies inside one of its own inlet triangles.
+
+    The structure then reads its upstream head from a cell it is also filling
+    or draining. Usually harmless on a coarse mesh, so the message text is
+    fixed and Python shows it once per run, however many inlets are affected.
+    Silence it with
+    ``warnings.simplefilter('ignore', anuga.EnquiryPointWarning)``.
+    """
+
+
+ENQUIRY_POINT_MESSAGE = (
+    'Enquiry point is in an inlet triangle for one or more structures: the '
+    'head is read from a cell the structure is also filling or draining. '
+    'Increase enquiry_gap or refine the mesh near the inlets; verbose=True '
+    'lists each point.')
+
+
+def warn_enquiry_point_in_inlet(enquiry_pt, verbose=False):
+    if verbose:
+        print('Enquiry point %s is in an inlet triangle' % str(enquiry_pt))
+    warnings.warn(ENQUIRY_POINT_MESSAGE, EnquiryPointWarning, stacklevel=3)
+
 
 class Inlet_enquiry(inlet.Inlet):
     """Contains information associated with each inlet plus an enquiry point
@@ -24,11 +50,11 @@ class Inlet_enquiry(inlet.Inlet):
 
         #print region
         #print enquiry_pt
-        
+
         inlet.Inlet.__init__(self, domain, region, verbose)
 
 
-        
+
         self.enquiry_pt = enquiry_pt
         self.invert_elevation = invert_elevation
         self.outward_culvert_vector = outward_culvert_vector
@@ -43,7 +69,7 @@ class Inlet_enquiry(inlet.Inlet):
         #domain_centroids = self.domain.get_centroid_coordinates(absolute=True)
         #vertex_coordinates = self.domain.get_vertex_coordinates(absolute=True)
 
-                
+
         point = self.enquiry_pt
         msg = 'Enquiry Point %s ' %  str(point)
         msg += ' did not fall within the domain boundary.'
@@ -55,13 +81,10 @@ class Inlet_enquiry(inlet.Inlet):
             msg = "Enquiry point %s doesn't intersect mesh, maybe inside a building, try reducing enquiry_gap" % str(self.enquiry_pt)
             raise Exception(msg)
 
-        
+
         if self.enquiry_index in self.triangle_indices:
-            msg = 'Enquiry point %s' % (self.enquiry_pt)
-            msg += ' is in an inlet triangle'
-            import warnings
-            warnings.warn(msg)
-            
+            warn_enquiry_point_in_inlet(self.enquiry_pt, self.verbose)
+
 
     def get_enquiry_position(self):
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #
 
-# This file was reverted from changeset:5484 to changeset:5470 on 10th July 
+# This file was reverted from changeset:5484 to changeset:5470 on 10th July
 # by Ole.
 
 
@@ -12,7 +12,7 @@ import numpy as num
 
 
 import anuga.file.sww as sww
-                
+
 
 class Test_read_sww(unittest.TestCase):
     # Class variable
@@ -20,7 +20,7 @@ class Test_read_sww(unittest.TestCase):
 
     def set_verbose(self):
         Test_read_sww.verbose = True
-        
+
     def setUp(self):
         pass
 
@@ -53,12 +53,12 @@ class Test_read_sww(unittest.TestCase):
         length = 8.
         width = 4.
         dx = dy = 2   # Resolution: Length of subdivisions on both axes
-        
+
         inc = 0.05 # Elevation increment
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
-                                                       len1=length, 
+                                                       len1=length,
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
         domain.set_name('read_sww_test'+str(domain.processor))  # Output name
@@ -69,7 +69,7 @@ class Test_read_sww(unittest.TestCase):
                                             'friction': 1})
 
         domain.set_store_vertices_uniquely(True)
-        
+
         #---------------------------------------------------------------------
         # Setup initial conditions
         #---------------------------------------------------------------------
@@ -92,9 +92,9 @@ class Test_read_sww(unittest.TestCase):
 
         for t in domain.evolve(yieldstep=1, finaltime=4.0):
             pass
-            
-            
-        # Check that quantities have been stored correctly    
+
+
+        # Check that quantities have been stored correctly
         source = domain.get_name() + '.sww'
 
 
@@ -103,12 +103,12 @@ class Test_read_sww(unittest.TestCase):
         #stage = fid.variables['stage'][:]
         #elevation = fid.variables['elevation'][:]
         #fid.close()
-                   
+
         #assert len(stage.shape) == 2
-        #assert len(elevation.shape) == 2        
-        
+        #assert len(elevation.shape) == 2
+
         #M, N = stage.shape
-                
+
         sww_file = sww.Read_sww(source)
 
         #print 'last frame number',sww_file.get_last_frame_number()
@@ -116,14 +116,14 @@ class Test_read_sww(unittest.TestCase):
         assert num.allclose(sww_file.x, domain.get_vertex_coordinates()[:,0])
         assert num.allclose(sww_file.y, domain.get_vertex_coordinates()[:,1])
 
-        
+
         assert num.allclose(sww_file.time, [0.0, 1.0, 2.0, 3.0, 4.0])
-        
+
         M = domain.get_number_of_triangles()
-        
+
         assert num.allclose(num.reshape(num.arange(3*M), (M,3)), sww_file.vertices)
 
-        last_frame_number = sww_file.get_last_frame_number() 
+        last_frame_number = sww_file.get_last_frame_number()
         assert last_frame_number == 4
 
         assert num.allclose(sww_file.get_bounds(), [0.0, length, 0.0, width])
@@ -136,10 +136,10 @@ class Test_read_sww(unittest.TestCase):
 
 
         for qname, q in list(sww_file.read_quantities(last_frame_number).items()):
-            
+
             #print qname
             #print num.linalg.norm(num.abs((domain.get_quantity(qname).get_values()-q).flatten()), ord=1)
-            
+
             assert num.allclose(domain.get_quantity(qname).get_values(), q)
 
         #-----------------------------------------
@@ -147,9 +147,9 @@ class Test_read_sww(unittest.TestCase):
         #-----------------------------------------
         sww_file.read_quantities(last_frame_number-1)
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
-                                                       len1=length, 
+                                                       len1=length,
                                                        len2=width)
         new_domain = Domain(points, vertices, boundary)
         new_domain.set_quantities_to_be_stored(None)
@@ -157,7 +157,7 @@ class Test_read_sww(unittest.TestCase):
         new_domain.set_store_vertices_uniquely(True)
 
         for qname, q in list(sww_file.read_quantities(last_frame_number-1).items()):
-            new_domain.set_quantity(qname, q)    
+            new_domain.set_quantity(qname, q)
 
         #------------------------------------------------------------------
         # Setup boundary conditions
@@ -175,7 +175,7 @@ class Test_read_sww(unittest.TestCase):
         for t in new_domain.evolve(yieldstep=1.0, finaltime=1.0):
              pass
 
-        # Compare  new_domain and domain quantities 
+        # Compare  new_domain and domain quantities
         for quantity in domain.get_quantity_names():
             dv = domain.get_quantity(quantity).get_values()
             ndv = new_domain.get_quantity(quantity).get_values()
@@ -186,7 +186,7 @@ class Test_read_sww(unittest.TestCase):
 
         # Clean up
         #os.remove(source)
-        
+
     def test_read_sww_with_centroids(self):
         """
         Save to an sww file and then read back the info.
@@ -209,12 +209,12 @@ class Test_read_sww(unittest.TestCase):
         length = 8.
         width = 4.
         dx = dy = 2   # Resolution: Length of subdivisions on both axes
-        
+
         inc = 0.05 # Elevation increment
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
-                                                       len1=length, 
+                                                       len1=length,
                                                        len2=width)
         domain = Domain(points, vertices, boundary)
         domain.set_name('read_sww_test_c'+str(domain.processor))  # Output name
@@ -226,7 +226,7 @@ class Test_read_sww(unittest.TestCase):
 
         domain.set_store_vertices_uniquely(True)
         domain.set_store_centroids(True)
-        
+
         #---------------------------------------------------------------------
         # Setup initial conditions
         #---------------------------------------------------------------------
@@ -249,9 +249,9 @@ class Test_read_sww(unittest.TestCase):
 
         for t in domain.evolve(yieldstep=1, finaltime=4.0):
             pass
-            
-            
-        # Check that quantities have been stored correctly    
+
+
+        # Check that quantities have been stored correctly
         source = domain.get_name() + '.sww'
 
 
@@ -260,12 +260,12 @@ class Test_read_sww(unittest.TestCase):
         #stage = fid.variables['stage'][:]
         #elevation = fid.variables['elevation'][:]
         #fid.close()
-                   
+
         #assert len(stage.shape) == 2
-        #assert len(elevation.shape) == 2        
-        
+        #assert len(elevation.shape) == 2
+
         #M, N = stage.shape
-                
+
         sww_file = sww.Read_sww(source)
 
         #print 'last frame number',sww_file.get_last_frame_number()
@@ -273,14 +273,14 @@ class Test_read_sww(unittest.TestCase):
         assert num.allclose(sww_file.x, domain.get_vertex_coordinates()[:,0])
         assert num.allclose(sww_file.y, domain.get_vertex_coordinates()[:,1])
 
-        
+
         assert num.allclose(sww_file.time, [0.0, 1.0, 2.0, 3.0, 4.0])
-        
+
         M = domain.get_number_of_triangles()
-        
+
         assert num.allclose(num.reshape(num.arange(3*M), (M,3)), sww_file.vertices)
 
-        last_frame_number = sww_file.get_last_frame_number() 
+        last_frame_number = sww_file.get_last_frame_number()
         assert last_frame_number == 4
 
         assert num.allclose(sww_file.get_bounds(), [0.0, length, 0.0, width])
@@ -303,9 +303,9 @@ class Test_read_sww(unittest.TestCase):
         #-----------------------------------------
         sww_file.read_quantities(last_frame_number-1)
 
-        points, vertices, boundary = rectangular_cross(int(length/dx), 
+        points, vertices, boundary = rectangular_cross(int(length/dx),
                                                        int(width/dy),
-                                                       len1=length, 
+                                                       len1=length,
                                                        len2=width)
         new_domain = Domain(points, vertices, boundary)
         new_domain.set_quantities_to_be_stored(None)
@@ -313,7 +313,7 @@ class Test_read_sww(unittest.TestCase):
         new_domain.set_store_vertices_uniquely(True)
 
         for qname, q in list(sww_file.read_quantities(last_frame_number-1).items()):
-            new_domain.set_quantity(qname, q)    
+            new_domain.set_quantity(qname, q)
 
         #------------------------------------------------------------------
         # Setup boundary conditions
@@ -331,7 +331,7 @@ class Test_read_sww(unittest.TestCase):
         for t in new_domain.evolve(yieldstep=1.0, finaltime=1.0):
              pass
 
-        # Compare  new_domain and domain quantities 
+        # Compare  new_domain and domain quantities
         for quantity in domain.get_quantity_names():
             dv = domain.get_quantity(quantity).get_values()
             ndv = new_domain.get_quantity(quantity).get_values()
@@ -342,10 +342,10 @@ class Test_read_sww(unittest.TestCase):
 
         # Clean up
         #os.remove(source)
-        
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_read_sww)
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
-    
+

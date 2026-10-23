@@ -13,7 +13,7 @@ cdef extern from "polygon.c":
     int64_t __polygon_overlap(double* polygon, double* triangles, int64_t* indices, int64_t M, int64_t polygon_number_of_vertices)
     int64_t __line_intersect(double* line, double* triangles, int64_t* indices, int64_t M)
     int64_t __is_inside_triangle(double* point, double* triangle, int64_t closed, double rtol, double atol)
-    int64_t __separate_points_by_polygon(int64_t M, int64_t N, double* points, double* polygon, int64_t* indices, int64_t closed, int64_t verbose)
+    int64_t __separate_points_by_polygon(int64_t M, int64_t N, double* points, double* polygon, int64_t* indices, int64_t closed, int64_t verbose, double rtol, double atol)
 
 def _point_on_line(double x,\
                     double y,\
@@ -83,7 +83,9 @@ def _separate_points_by_polygon(np.ndarray[double, ndim=2, mode="c"] points not 
                                 np.ndarray[double, ndim=2, mode="c"] polygon not None,\
                                 np.ndarray[int64_t, ndim=1, mode="c"] indices not None,\
                                 int64_t closed,\
-                                int64_t verbose):
+                                int64_t verbose,\
+                                double rtol=0.0,\
+                                double atol=0.0):
 
     cdef int64_t count, M, N
 
@@ -93,6 +95,8 @@ def _separate_points_by_polygon(np.ndarray[double, ndim=2, mode="c"] points not 
     if verbose:
         print ("Got %d points and %d polygon vertices" % (M,N))
 
-    count = __separate_points_by_polygon(M, N, &points[0,0], &polygon[0,0], &indices[0], closed, verbose)
+    count = __separate_points_by_polygon(M, N, &points[0,0], &polygon[0,0], &indices[0], closed, verbose, rtol, atol)
+    if count < 0:
+        raise MemoryError("separate_points_by_polygon: could not allocate the work array")
 
     return count

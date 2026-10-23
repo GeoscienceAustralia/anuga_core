@@ -1,0 +1,12 @@
+# Matplotlib settings for the validation report runs.
+# validations_produce_results.py points MATPLOTLIBRC here, so every case's
+# plot_results.py picks it up; running one case's produce_results.py on its
+# own keeps matplotlib's defaults.
+#
+# The combined report shows a figure at about a third of the page width, which
+# shrinks matplotlib's default 10 pt text to about 3.5 pt. Larger text keeps
+# legends and labels legible there, and 200 dpi keeps them sharp when the PDF
+# is zoomed.
+font.size:        13
+legend.fontsize:  medium
+savefig.dpi:      200

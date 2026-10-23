@@ -58,12 +58,12 @@ def vertex_to_centroid_list(quantities_vertex):
         arrays = []
         for array in vals:
             # vals: (N, 3) → mean over the 3 vertices
-            c = num.mean(array, axis=1) 
+            c = num.mean(array, axis=1)
             arrays.append(c[:, None])          # (N, 1)
         quantities_centroid[name] = arrays
     return quantities_centroid
 
-   
+
 
 # Setup to skip test if mpi4py not available
 import sys
@@ -1196,11 +1196,11 @@ class Test_Distribute_Mesh(unittest.TestCase):
         for key, value in true_submesh["ghost_quan"].items():
             for i in range(3):
                 assert num.allclose(
-                    vertex_to_centroid_array(true_submesh["ghost_quan"][key][i]), 
+                    vertex_to_centroid_array(true_submesh["ghost_quan"][key][i]),
                     vertex_to_centroid_array(submesh["ghost_quan"][key][i])
                 )
                 assert num.allclose(
-                    vertex_to_centroid_array(true_submesh["full_quan"][key][i]), 
+                    vertex_to_centroid_array(true_submesh["full_quan"][key][i]),
                     vertex_to_centroid_array(submesh["full_quan"][key][i])
                 )
 
@@ -2244,11 +2244,11 @@ class Test_Distribute_Mesh(unittest.TestCase):
         for key, value in true_submesh["ghost_quan"].items():
             for i in range(3):
                 assert num.allclose(
-                    vertex_to_centroid_array(true_submesh["ghost_quan"][key][i]), 
+                    vertex_to_centroid_array(true_submesh["ghost_quan"][key][i]),
                     vertex_to_centroid_array(submesh["ghost_quan"][key][i])
                 )
                 assert num.allclose(
-                    vertex_to_centroid_array(true_submesh["full_quan"][key][i]), 
+                    vertex_to_centroid_array(true_submesh["full_quan"][key][i]),
                     vertex_to_centroid_array(submesh["full_quan"][key][i])
                 )
 
@@ -2935,11 +2935,11 @@ class Test_Distribute_Mesh(unittest.TestCase):
         for key, value in true_submesh["ghost_quan"].items():
             for i in range(3):
                 assert num.allclose(
-                    vertex_to_centroid_array(true_submesh["ghost_quan"][key][i]), 
+                    vertex_to_centroid_array(true_submesh["ghost_quan"][key][i]),
                     vertex_to_centroid_array(submesh["ghost_quan"][key][i])
                 )
                 assert num.allclose(
-                    vertex_to_centroid_array(true_submesh["full_quan"][key][i]), 
+                    vertex_to_centroid_array(true_submesh["full_quan"][key][i]),
                     vertex_to_centroid_array(submesh["full_quan"][key][i])
                 )
 

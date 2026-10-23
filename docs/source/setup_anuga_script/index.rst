@@ -2,8 +2,8 @@
 
 
 
-Script Structure
-=================
+Writing an ANUGA script
+=======================
 
 
 .. only:: html
@@ -12,13 +12,23 @@ Script Structure
    :maxdepth: 1
 
    domain
+   conventions
+   flow_algorithms
    coordinate_reference
    initial_conditions
    boundaries
    operators
+   rainfall
+   riverwalls
+   vegetation
+   tracers
+   sediment
    evolve
-   checkpointing
-   logging
+
+.. seealso::
+
+   :ref:`advanced_script`
+      Flow algorithm selection, checkpointing, and logging.
    
 .. only:: html
 

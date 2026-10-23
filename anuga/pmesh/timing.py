@@ -4,7 +4,7 @@ Script to measure how long pmesh spends doing various methods
 from .mesh import *
 from anuga.pmesh import *
 import time
- 
+
 def mem_usage():
     '''
     returns the rss.
@@ -12,17 +12,17 @@ def mem_usage():
   RSS  The total amount of physical memory used by  the  task,  in  kilo-
             bytes,  is  shown  here.  For ELF processes used library pages are
             counted here, for a.out processes not.
-            
+
     Only works on nix systems.
     '''
     import string
-    p=os.popen('ps uwp %s'%os.getpid()) 
+    p=os.popen('ps uwp %s'%os.getpid())
     lines=p.readlines()
     #print "lines", lines
-    status=p.close() 
-    if status or len(lines)!=2 or sys.platform == 'win32': 
-        return None 
-    return int(string.split(lines[1])[4]) 
+    status=p.close()
+    if status or len(lines)!=2 or sys.platform == 'win32':
+        return None
+    return int(string.split(lines[1])[4])
 
 
 
@@ -89,12 +89,12 @@ times.append(("export_mesh_file",time.time()- tinitial - times[1][1], mem))
 print("Number of user verts. ", n)
 print("maxArea",maxArea)
 print("funtion     time   memory usage, cumulative, for nix machines")
-for time in times:
-    print("%s   %0.2f   %0.2f" %(time[0],  time[1], time[2]))
+for t in times:
+    print("%s   %0.2f   %0.2f" %(t[0], t[1], t[2]))
 
 """
-#Results - mesh.py ver   1.84 	       	1.85	
-# N	400	
+#Results - mesh.py ver   1.84 	       	1.85
+# N	400
 # initial			0		0
 # user_outline_created	1.467999935	1.609999895
 # mesh_generated       	21.70300007	22.3440001
@@ -129,7 +129,7 @@ user_outline_created   0.49   0.00
 mesh_generated   1.94   0.00
 export_mesh_file   2.75   0.00
 
-# anuga version 4897 
+# anuga version 4897
 Results of tornado head node
 Number of user verts.  2
 maxArea 5e-05

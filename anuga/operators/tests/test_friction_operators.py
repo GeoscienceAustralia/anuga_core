@@ -1,7 +1,8 @@
 """  Test set operators - stage elevation erosion.
 """
 
-import unittest, os
+import unittest
+import os
 import anuga
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -56,11 +57,6 @@ class Test_set_friction_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
         # Apply operator to these triangles
         indices = [0,1,3]
 
@@ -68,24 +64,17 @@ class Test_set_friction_operators(unittest.TestCase):
 
         friction_float = 3.0
 
-
         operator = Set_depth_friction_operator(domain, friction=friction_float, region=region)
-        
+
         # Apply Operator
         domain.timestep = 2.0
         operator()
-
-
-
-        #print domain.quantities['stage'].centroid_values
-        #print domain.quantities['xmomentum'].centroid_values
-        #print domain.quantities['ymomentum'].centroid_values
 
         assert np.allclose(domain.quantities['friction'].centroid_values[indices], friction_float)
         assert np.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert np.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
- 
+
 
 
     def test_set_friction_operator_function(self):
@@ -113,11 +102,6 @@ class Test_set_friction_operators(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-
-#        print domain.quantities['stage'].centroid_values
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
         # Apply operator to these triangles
         indices = [0,1,3]
 
@@ -136,8 +120,6 @@ class Test_set_friction_operators(unittest.TestCase):
 
         friction_ex = [ 5.,  5.,   0.0,  5.]
 
-
-
         assert np.allclose(domain.quantities['friction'].centroid_values, friction_ex)
         assert np.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert np.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
@@ -147,8 +129,6 @@ class Test_set_friction_operators(unittest.TestCase):
         operator()
 
         friction_ex = [ 10.,  10.,   0.,  10.]
-
-
 
         assert np.allclose(domain.quantities['friction'].centroid_values, friction_ex)
         assert np.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)

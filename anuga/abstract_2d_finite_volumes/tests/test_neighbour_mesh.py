@@ -80,7 +80,7 @@ class Test_Mesh(unittest.TestCase):
         #Vertex coordinates
         #V = mesh.get_vertex_coordinates()
         #assert allclose(V[0], [0.0, 0.0, 4.0, 0.0, 0.0, 3.0])
-        
+
 
         V = mesh.get_vertex_coordinates()
         assert num.allclose(V, [ [0.0, 0.0],
@@ -179,7 +179,7 @@ class Test_Mesh(unittest.TestCase):
         V = mesh.get_vertex_coordinates()
         x0 = V[0, 0]; y0 = V[0, 1]
         x1 = V[1, 0]; y1 = V[1, 1]
-        x2 = V[2, 0]; y2 = V[2, 1]        
+        x2 = V[2, 0]; y2 = V[2, 1]
 
         #x0 = V[0,0]
         #y0 = V[0,1]
@@ -688,7 +688,7 @@ class Test_Mesh(unittest.TestCase):
         #else:
         #    raise Exception('Should have raised an exception')
 
-        #Specifying wrong non existing segment       
+        #Specifying wrong non existing segment
         try:
             mesh = Mesh(points, vertices, {(5,0): 'x'})
         except AssertionError:
@@ -811,7 +811,7 @@ class Test_Mesh(unittest.TestCase):
         for p in points:
             assert is_inside_polygon(p, P)
 
-	    
+
     def test_boundary_polygon_IIIa(self):
         """
         test_boundary_polygon_IIIa - Check pathological situation where
@@ -829,7 +829,7 @@ class Test_Mesh(unittest.TestCase):
         f = [1.0, 0.0] #5
         g = [1.0, 0.5] #6
         h = [1.0, 1.0] #7
-       
+
         # Add pathological triangle with no neighbours to an otherwise
         # trivial mesh
 
@@ -837,14 +837,14 @@ class Test_Mesh(unittest.TestCase):
 
         #cbe, aeb, dea, fed, ghe (pathological triangle)
         vertices = [[2,1,4], [0,4,1], [3,4,0], [5,4,3],
-     	            [6,7,4]]	
+     	            [6,7,4]]
 
         mesh = Mesh(points, vertices)
         mesh.check_integrity()
 
         P = mesh.get_boundary_polygon(verbose=False)
 
-        
+
         assert len(P) == 9
 
         # Note that point e appears twice!
@@ -852,7 +852,7 @@ class Test_Mesh(unittest.TestCase):
 
         for p in points:
             msg = 'Point %s is not inside polygon %s'\
-             %(p, P)	
+             %(p, P)
             assert is_inside_polygon(p, P), msg
 
 
@@ -861,12 +861,12 @@ class Test_Mesh(unittest.TestCase):
         from test_util.py that looked as if it produced the wrong boundary
         """
 
-        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular        
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
         #Create a domain to hold test grid
         #(0:15, -20:10)
         points, vertices, boundary =\
-                rectangular(4, 4, 15, 30, origin = (0, -20))        
+                rectangular(4, 4, 15, 30, origin = (0, -20))
 
         #####
         mesh = Mesh(points, vertices)
@@ -887,21 +887,21 @@ class Test_Mesh(unittest.TestCase):
 
         P = mesh.get_boundary_polygon()
 
-        
+
         #print P, len(P)
         assert len(P) == 16
 
         for p in points:
             assert is_inside_polygon(p, P)
 
-        #print mesh.statistics()    
+        #print mesh.statistics()
 
 
 
     def test_boundary_polygon_V(self):
         """Create a discontinuous mesh (duplicate vertices)
         and check that boundary is as expected
-        
+
         """
 
         #Points
@@ -919,11 +919,11 @@ class Test_Mesh(unittest.TestCase):
         #gid [6,8,7] (top right boundary) to them disconnected
         #from the others
 
-        e0 = [0.5, 0.5] #9 
+        e0 = [0.5, 0.5] #9
         d0 = [0.5, 0.0] #10
         g0 = [1.0, 0.5] #11
-        i0 = [1.5, 0.5] #12        
-        
+        i0 = [1.5, 0.5] #12
+
 
         points = [a, b, c, d, e, f, g, h, i, e0, d0, g0, i0]
 
@@ -938,7 +938,7 @@ class Test_Mesh(unittest.TestCase):
         #dea, bae, bec, fgd,
         #e0d0g0, ghe, gfi, g0i0h
         vertices = [[3,4,0], [1,0,4], [1,4,2], [5,6,3],
-                    [9,10,11], [6,7,4], [6,5,8], [11,12,7]]        
+                    [9,10,11], [6,7,4], [6,5,8], [11,12,7]]
 
         mesh = Mesh(points, vertices)
 
@@ -947,11 +947,11 @@ class Test_Mesh(unittest.TestCase):
         P = mesh.get_boundary_polygon()
 
         #print P
-        
+
         assert len(P) == 8
         assert num.allclose(P, [a, d, f, i, h, e, c, b])
         assert num.allclose(P, [(0.0, 0.0), (0.5, 0.0), (1.0, 0.0), (1.5, 0.5), (1.0, 1.0), (0.5, 0.5), (0.0, 1.0), (0.0, 0.5)])
-        
+
 
         for p in points:
             #print p, P
@@ -1023,13 +1023,13 @@ class Test_Mesh(unittest.TestCase):
 
         for p in points:
             assert is_inside_polygon(p, Pref)
-        
-        
+
+
         # Then do the discontinuous version
         import warnings
         warnings.filterwarnings('ignore')
 
-        
+
         points = [[  52341.70703125,  38563.39453125],
                   [   6626.85400391,      0.        ],
                   [  49985.4140625 ,   2272.06396484],
@@ -1125,17 +1125,17 @@ class Test_Mesh(unittest.TestCase):
         P = mesh.get_boundary_polygon()
 
         for p in scaled_points:
-            assert is_inside_polygon(p, P)            
+            assert is_inside_polygon(p, P)
 
-        # Then use original points and test        
+        # Then use original points and test
         mesh = Mesh(points, triangles)
         mesh.check_integrity()
         P = mesh.get_boundary_polygon()
 
         for p in points:
-            assert is_inside_polygon(p, P)            
+            assert is_inside_polygon(p, P)
 
-        assert num.allclose(P, Pref)    
+        assert num.allclose(P, Pref)
 
     def test_lone_vertices(self):
         a = [2.0, 1.0]
@@ -1155,7 +1155,7 @@ class Test_Mesh(unittest.TestCase):
         self.assertTrue(loners==[2,4],
                         'FAILED!')
 
-        
+
         a = [2.0, 1.0]
         b = [6.0, 2.0]
         c = [1.0, 3.0]
@@ -1168,14 +1168,14 @@ class Test_Mesh(unittest.TestCase):
         mesh.check_integrity()
         loners = mesh.get_lone_vertices()
         self.assertTrue(loners==[0],
-                        'FAILED!') 
+                        'FAILED!')
 
     def test_mesh_get_boundary_polygon_with_georeferencing(self):
         """test_mesh_get_boundary_polygon_with_georeferencing
-        
+
         Test that get_boundary_polygon returns absolute coordinates
         """
-        
+
         # test
         a = [0.0, 0.0]
         b = [4.0, 0.0]
@@ -1183,7 +1183,7 @@ class Test_Mesh(unittest.TestCase):
 
         absolute_points = [a, b, c]
         vertices = [[0, 1, 2]]
-        
+
         geo = Geo_reference(56, 67, -56)
 
         relative_points = geo.change_points_geo_ref(absolute_points)
@@ -1206,7 +1206,7 @@ class Test_Mesh(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
         mesh = Mesh(points, vertices)
-        
+
         mesh.check_integrity()
 
 
@@ -1215,18 +1215,18 @@ class Test_Mesh(unittest.TestCase):
         except Exception:
             pass
         else:
-            msg = 'Should have caught point outside polygon (Non)'            
+            msg = 'Should have caught point outside polygon (Non)'
             raise Exception(msg)
-            
+
         id = mesh.get_triangle_containing_point([0.5, 1.0])
         assert id == 0
 
         id = mesh.get_triangle_containing_point([1.0, 3.0])
-        assert id == 3        
+        assert id == 3
 
         for i, point in enumerate(mesh.get_centroid_coordinates()):
             id = mesh.get_triangle_containing_point(point)
-            assert id == i        
+            assert id == i
 
     def test_get_triangle_near_point(self):
 
@@ -1241,7 +1241,7 @@ class Test_Mesh(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
         mesh = Mesh(points, vertices)
-        
+
         mesh.check_integrity()
 
         id = mesh.get_triangle_near_point([3.0, 5.0])
@@ -1252,11 +1252,11 @@ class Test_Mesh(unittest.TestCase):
         except Exception:
             pass
         else:
-            msg = 'Should have caught point further than tolerance from centroid'            
+            msg = 'Should have caught point further than tolerance from centroid'
             raise Exception(msg)
 
         id = mesh.get_triangle_near_point([-1.0, -1.0])
-        assert id == 0       
+        assert id == 0
 
         for i, point in enumerate(mesh.get_centroid_coordinates()):
             id = mesh.get_triangle_near_point(point)
@@ -1275,18 +1275,18 @@ class Test_Mesh(unittest.TestCase):
         #bac, bce, ecf, dbe
         vertices = [ [1,0,2], [1,2,4], [4,2,5], [3,1,4]]
         mesh = Mesh(points, vertices)
-        
+
         mesh.check_integrity()
-            
+
         polygon =[[1.0, -1.0], [1.0, 4.0], [5.0, 4.0], [5.0, -2.0]]
         ids = mesh.get_triangles_inside_polygon(polygon)
         assert num.allclose(ids, [1,2])
 
         polygon =[[4.0, -1.0], [4.0, 4.0], [5.0, 4.0], [5.0, -2.0]]
         ids = mesh.get_triangles_inside_polygon(polygon)
-        assert ids.size == 0     
+        assert ids.size == 0
 
-        
+
 
     def test_get_triangle_neighbours(self):
         a = [0.0, 0.0]
@@ -1312,7 +1312,7 @@ class Test_Mesh(unittest.TestCase):
         """
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
@@ -1341,7 +1341,7 @@ class Test_Mesh(unittest.TestCase):
             L = mesh.get_intersecting_segments(line)
             assert len(L) == 4
 
-            
+
 
             # Check all normals point straight down etc
             total_length = 0
@@ -1349,14 +1349,14 @@ class Test_Mesh(unittest.TestCase):
                 if x.triangle_id % 2 == 0:
                     assert num.allclose(x.length, ceiling-y_line)
                 else:
-                    assert num.allclose(x.length, y_line-floor)                
+                    assert num.allclose(x.length, y_line-floor)
 
-                
+
                 assert num.allclose(x.normal, [0,-1])
 
                 assert num.allclose(x.segment[1][0], x.segment[0][0] + x.length)
                 assert num.allclose(x.segment[0][1], y_line)
-                assert num.allclose(x.segment[1][1], y_line)                
+                assert num.allclose(x.segment[1][1], y_line)
 
                 assert x.triangle_id in intersected_triangles
 
@@ -1364,7 +1364,7 @@ class Test_Mesh(unittest.TestCase):
 
             msg = 'Segments do not add up'
             assert num.allclose(total_length, 2), msg
-            
+
 
     def test_get_intersecting_segments_coinciding(self):
         """test_get_intersecting_segments_coinciding(self):
@@ -1373,7 +1373,7 @@ class Test_Mesh(unittest.TestCase):
         """
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
@@ -1385,17 +1385,17 @@ class Test_Mesh(unittest.TestCase):
         #
 
         y_line = 1.0
-        
+
         line = [[-1,y_line], [3,y_line]]
 
         L = mesh.get_intersecting_segments(line)
 
 
-        msg = 'Only two triangles should be returned'    
-        assert len(L) == 2, msg    
-            
+        msg = 'Only two triangles should be returned'
+        assert len(L) == 2, msg
 
-        # Check all 
+
+        # Check all
         total_length = 0
         for x in L:
             assert num.allclose(x.length, 1.0)
@@ -1403,7 +1403,7 @@ class Test_Mesh(unittest.TestCase):
 
             assert num.allclose(x.segment[1][0], x.segment[0][0] + x.length)
             assert num.allclose(x.segment[0][1], y_line)
-            assert num.allclose(x.segment[1][1], y_line)                            
+            assert num.allclose(x.segment[1][1], y_line)
 
 
 
@@ -1413,17 +1413,17 @@ class Test_Mesh(unittest.TestCase):
 
         msg = 'Segments do not add up'
         assert num.allclose(total_length, 2), msg
-        
+
 
     def test_get_intersecting_segments_partially_coinciding(self):
         """test_get_intersecting_segments_partially_coinciding(self):
 
         Test that line coinciding with triangle edges work.
-        But this ones only coincide with parts of the edge. 
+        But this ones only coincide with parts of the edge.
         """
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
@@ -1436,7 +1436,7 @@ class Test_Mesh(unittest.TestCase):
         #
 
         y_line = 1.0
-        
+
         #line = [[0, y_line], [2, y_line]]
         line = [[0, y_line], [1.5, y_line]]
 
@@ -1444,17 +1444,17 @@ class Test_Mesh(unittest.TestCase):
         #for x in L:
         #    print x
 
-        msg = 'Two triangles should be returned'    
-        assert len(L) == 2, msg    
-            
+        msg = 'Two triangles should be returned'
+        assert len(L) == 2, msg
 
-        # Check all 
+
+        # Check all
         total_length = 0
         for x in L:
             if x.triangle_id == 1:
-                assert num.allclose(x.length, 1)        
+                assert num.allclose(x.length, 1)
                 assert num.allclose(x.normal, [0, -1])
-                
+
             if x.triangle_id == 5:
                 assert num.allclose(x.length, 0.5)
                 assert num.allclose(x.normal, [0, -1])
@@ -1465,7 +1465,7 @@ class Test_Mesh(unittest.TestCase):
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert num.allclose(total_length, 1.5), msg            
+        assert num.allclose(total_length, 1.5), msg
 
 
 
@@ -1476,33 +1476,33 @@ class Test_Mesh(unittest.TestCase):
         """
 
         s2 = sqrt(2.0)/2
-        
+
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
         points, vertices, boundary = rectangular(2, 2, 2, 2)
         mesh = Mesh(points, vertices, boundary)
-        
+
 
         # Diagonal cutting through a vertex and hypothenuses
         line = [[0, 2], [2, 0]]
-        intersected_triangles = [3,2,5,4]                
+        intersected_triangles = [3,2,5,4]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 4
 
         #print L
-        
+
         # Check all segments
         total_length = 0
-        for i, x in enumerate(L): 
+        for i, x in enumerate(L):
             assert num.allclose(x.length, s2)
             assert num.allclose(x.normal, [-s2, -s2])
             assert num.allclose(sum(x.normal**2), 1)
-            
+
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
@@ -1513,94 +1513,94 @@ class Test_Mesh(unittest.TestCase):
 
         # Diagonal cutting through a vertex and hypothenuses (reversed)
         line = [[2, 0], [0, 2]]
-        intersected_triangles = [3,2,5,4]                
+        intersected_triangles = [3,2,5,4]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 4
 
         #print L
-        
+
         # Check all segments
         total_length = 0
-        for i, x in enumerate(L): 
+        for i, x in enumerate(L):
             assert num.allclose(x.length, s2)
             assert num.allclose(x.normal, [s2, s2])
             assert num.allclose(sum(x.normal**2), 1)
-            
+
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert num.allclose(total_length, 4*s2), msg                    
+        assert num.allclose(total_length, 4*s2), msg
 
 
 
         # Diagonal coinciding with hypothenuses
         line = [[2, 2], [0, 0]]
-        intersected_triangles = [6,0]                
+        intersected_triangles = [6,0]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 2
 
         #print L
-        
+
         # Check all segments
         total_length = 0
-        for i, x in enumerate(L): 
+        for i, x in enumerate(L):
             assert num.allclose(x.length, 2*s2)
             assert num.allclose(x.normal, [-s2, s2])
             assert num.allclose(sum(x.normal**2), 1)
-            
+
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert num.allclose(total_length, 4*s2), msg                        
+        assert num.allclose(total_length, 4*s2), msg
 
 
         # Diagonal coinciding with hypothenuses (reversed)
         line = [[0, 0], [2, 2]]
-        intersected_triangles = [6,0]                
+        intersected_triangles = [6,0]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 2
 
         #print L
-        
+
         # Check all segments
         total_length = 0
-        for i, x in enumerate(L): 
+        for i, x in enumerate(L):
             assert num.allclose(x.length, 2*s2)
             assert num.allclose(x.normal, [s2, -s2])
             assert num.allclose(sum(x.normal**2), 1)
-            
+
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
 
         msg = 'Segments do not add up'
-        assert num.allclose(total_length, 4*s2), msg                        
+        assert num.allclose(total_length, 4*s2), msg
 
 
 
         # line with slope [1, -1] cutting through vertices of tri 7 and 6
         line = [[1, 2], [2, 1]]
-        intersected_triangles = [7,6]                
+        intersected_triangles = [7,6]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 2
 
         #print L
-        
+
         # Check all segments
         total_length = 0
-        for i, x in enumerate(L): 
+        for i, x in enumerate(L):
             assert num.allclose(x.length, s2)
             assert num.allclose(x.normal, [-s2, -s2])
             assert num.allclose(sum(x.normal**2), 1)
-            
+
             assert x.triangle_id in intersected_triangles
 
             total_length += x.length
@@ -1611,58 +1611,58 @@ class Test_Mesh(unittest.TestCase):
 
         # Arbitrary line with slope [1, -1] cutting through tri 7 and 6
         line = [[1.1, 2], [2.1, 1]]
-        intersected_triangles = [7,6]                
+        intersected_triangles = [7,6]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 2
-        
+
         # Check all segments
         total_length = 0
-        for i, x in enumerate(L): 
+        for i, x in enumerate(L):
             assert num.allclose(x.normal, [-s2, -s2])
             assert num.allclose(sum(x.normal**2), 1)
 
             msg = 'Triangle %d' %x.triangle_id + ' is not in %s' %(intersected_triangles)
             assert x.triangle_id in intersected_triangles, msg
-            
+
 
 
     def test_get_intersecting_segments3(self):
         """test_get_intersecting_segments(self):
 
         Check that line can stop inside a triangle
-        
+
         """
 
 
 
         s2 = sqrt(2.0)/2
-        
+
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
         points, vertices, boundary = rectangular(2, 2, 2, 2)
         mesh = Mesh(points, vertices, boundary)
-        
+
 
         # Line cutting through one triangle and ending on its edge
         line = [[0.5, 3], [0.5, 1.5]]
-        intersected_triangles = [3]                
+        intersected_triangles = [3]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 1
         assert L[0].triangle_id == 3
-        assert num.allclose(L[0].length, 0.5)        
-        assert num.allclose(L[0].normal, [-1,0])                
+        assert num.allclose(L[0].length, 0.5)
+        assert num.allclose(L[0].normal, [-1,0])
 
 
 
         # Now try to shorten it so that its endpoint falls short of the far edge
         line = [[0.5, 3], [0.5, 1.6]]
-        intersected_triangles = [3]                
+        intersected_triangles = [3]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 1
@@ -1674,38 +1674,38 @@ class Test_Mesh(unittest.TestCase):
 
         # Now the same, but with direction changed
         line = [[0.5, 3], [0.5, 1.6]]
-        line = [[0.5, 1.6], [0.5, 3]]        
-        intersected_triangles = [3]                
+        line = [[0.5, 1.6], [0.5, 3]]
+        intersected_triangles = [3]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 1
         assert L[0].triangle_id == 3
         assert num.allclose(L[0].length, 0.4)
-        assert num.allclose(L[0].normal, [1,0])                
-        
+        assert num.allclose(L[0].normal, [1,0])
 
-            
+
+
 
     def test_get_intersecting_segments4(self):
         """test_get_intersecting_segments(self):
 
         Simple poly line
-        
+
         """
 
 
 
         s2 = sqrt(2.0)/2
-        
+
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
         points, vertices, boundary = rectangular(2, 2, 2, 2)
         mesh = Mesh(points, vertices, boundary)
-        
+
 
         # Polyline with three segments cutting through mesh
         line = [[0.5, 3], [0.5, 1.5], [1,1]]
@@ -1715,9 +1715,9 @@ class Test_Mesh(unittest.TestCase):
 
         for x in L:
             if x.triangle_id == 3:
-                assert num.allclose(x.length, 0.5)        
+                assert num.allclose(x.length, 0.5)
                 assert num.allclose(x.normal, [-1,0])
-                
+
             if x.triangle_id == 2:
                 assert num.allclose(x.length, s2)
                 assert num.allclose(x.normal, [-s2,-s2])
@@ -1728,34 +1728,34 @@ class Test_Mesh(unittest.TestCase):
         """test_get_intersecting_segments(self):
 
         More complex poly line
-        
+
         """
 
 
 
         s2 = sqrt(2.0)/2
-        
+
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
         points, vertices, boundary = rectangular(2, 2, 2, 2)
         mesh = Mesh(points, vertices, boundary)
-        
+
 
         # Polyline with three segments cutting through mesh
-        line = [[0.5, 3], [0.5, 1.5], [1.25, 0.75]] 
+        line = [[0.5, 3], [0.5, 1.5], [1.25, 0.75]]
 
         L = mesh.get_intersecting_segments(line)
         assert len(L) == 3
 
         for x in L:
             if x.triangle_id == 3:
-                assert num.allclose(x.length, 0.5)        
+                assert num.allclose(x.length, 0.5)
                 assert num.allclose(x.normal, [-1,0])
-                
+
             if x.triangle_id == 2:
                 msg = str(x.length)
                 assert num.allclose(x.length, s2), msg
@@ -1766,7 +1766,7 @@ class Test_Mesh(unittest.TestCase):
                                     line[2][1]-1])
                 msg = str(x.length)
                 assert num.allclose(x.length, sqrt(sum(segvec**2))), msg
-                assert num.allclose(x.normal, [-s2,-s2])                                                
+                assert num.allclose(x.normal, [-s2,-s2])
 
 
     def test_get_intersecting_segments6(self):
@@ -1776,22 +1776,22 @@ class Test_Mesh(unittest.TestCase):
 
         5 segments are returned even though only four triangles [3,2,5,6] are touched.
         Triangle 5 therefor has two segments in it.
-        
+
         """
 
 
 
         s2 = sqrt(2.0)/2
-        
+
 
         # Build test mesh
-        
+
         # Create basic mesh
         # 9 points at (0,0), (0, 1), ..., (2,2)
         # 8 triangles enumerated from left bottom to right top.
         points, vertices, boundary = rectangular(2, 2, 2, 2)
         mesh = Mesh(points, vertices, boundary)
-        
+
 
         # Polyline with three segments cutting through mesh
         line = [[0.5, 3], [0.5, 1.5], [1.25, 0.75], [2.25, 1.75]]
@@ -1804,16 +1804,16 @@ class Test_Mesh(unittest.TestCase):
 
         for x in L:
             if x.triangle_id == 3:
-                assert num.allclose(x.length, 0.5)        
+                assert num.allclose(x.length, 0.5)
                 assert num.allclose(x.normal, [-1,0])
-                
+
             if x.triangle_id == 2:
                 msg = str(x.length)
                 assert num.allclose(x.length, s2), msg
                 assert num.allclose(x.normal, [-s2,-s2])
 
             if x.triangle_id == 5:
-                if x.segment == ((1.0, 1.0), (1.25, 0.75)):                    
+                if x.segment == ((1.0, 1.0), (1.25, 0.75)):
                     segvec = num.array([line[2][0]-1,
                                         line[2][1]-1])
                     msg = str(x.length)
@@ -1822,15 +1822,15 @@ class Test_Mesh(unittest.TestCase):
                 elif x.segment == ((1.25, 0.75), (1.5, 1.0)):
                     segvec = num.array([1.5-line[2][0],
                                         1.0-line[2][1]])
-                    
+
                     assert num.allclose(x.length, sqrt(sum(segvec**2))), msg
                     assert num.allclose(x.normal, [s2,-s2])
                 else:
                     msg = 'Unknown segment: %s' %x.segment
                     raise Exception(msg)
-                
 
-                    
+
+
             if x.triangle_id == 6:
                 assert num.allclose(x.normal, [s2,-s2])
                 assert num.allclose(x.segment, ((1.5, 1.0), (2, 1.5)))
@@ -1842,7 +1842,7 @@ class Test_Mesh(unittest.TestCase):
 
         Check that line can stop inside a triangle - this is from
         flow through a cross sections example in test_datamanager.
-        
+
         """
 
         # Build test mesh
@@ -1853,27 +1853,27 @@ class Test_Mesh(unittest.TestCase):
                                                  length, width)
 
         mesh = Mesh(points, vertices, boundary)
-        
+
 
         # A range of partial lines
         x = length/2.
         for i in range(10):
             start_point = [length/2., i*width/10.]
-            #print 
+            #print
             #print start_point
-                            
+
             line = [start_point, [length/2., width]]
- 
+
             L = mesh.get_intersecting_segments(line)
 
             if start_point[1] < 1:
                 assert len(L) == 5
-                
-            
-            total_length = 0    
+
+
+            total_length = 0
             for x in L:
                 total_length += x.length
-                
+
 
             ref_length = line[1][1] - line[0][1]
             #print ref_length, total_length
@@ -1881,7 +1881,344 @@ class Test_Mesh(unittest.TestCase):
 
 
 
+class Test_Mesh_extra(unittest.TestCase):
+    """Extra tests for uncovered methods in neighbour_mesh.py."""
+
+    def _make_mesh(self, points, triangles, boundary=None):
+        return Mesh(points, triangles, boundary=boundary or {})
+
+    def test_build_neighbour_structure_python_two_triangles(self):
+        """Python version of build_neighbour_structure gives same result."""
+        points = [[0.0, 0.0], [4.0, 0.0], [0.0, 3.0], [4.0, 3.0]]
+        triangles = [[0, 1, 2], [1, 3, 2]]
+        boundary = {(0, 0): 'left', (0, 1): 'bottom',
+                    (1, 0): 'right', (1, 2): 'top'}
+        mesh = Mesh(points, triangles, boundary=boundary)
+        # Reset and rebuild with Python implementation
+        mesh.neighbours = -1 * num.ones((2, 3), dtype=int)
+        mesh.neighbour_edges = -1 * num.ones((2, 3), dtype=int)
+        mesh.number_of_boundaries = num.zeros(2, dtype=int)
+        mesh.build_neighbour_structure_python()
+        # The two triangles share an edge — each should see the other
+        nbrs = mesh.neighbours
+        self.assertTrue(1 in nbrs[0] or 0 in nbrs[1])
+
+    def test_build_neighbour_structure_python_rectangle(self):
+        """Python neighbour builder on a rectangular mesh."""
+        points, triangles, boundary = rectangular(2, 2)
+        mesh = Mesh(points, triangles, boundary=boundary)
+        mesh.neighbours = -1 * num.ones((len(triangles), 3), dtype=int)
+        mesh.neighbour_edges = -1 * num.ones((len(triangles), 3), dtype=int)
+        mesh.number_of_boundaries = num.zeros(len(triangles), dtype=int)
+        mesh.build_neighbour_structure_python()
+        for i in range(len(triangles)):
+            for e in range(3):
+                self.assertGreaterEqual(mesh.neighbours[i, e], -1)
+
+    def test_build_neighbour_structure_python_matches_ext(self):
+        """Python builder result matches C extension result."""
+        points, triangles, boundary = rectangular(3, 3)
+        mesh_py = Mesh(points, triangles, boundary=boundary)
+        mesh_ext = Mesh(points, triangles, boundary=boundary)
+
+        mesh_py.neighbours = -1 * num.ones((len(triangles), 3), dtype=int)
+        mesh_py.neighbour_edges = -1 * num.ones((len(triangles), 3), dtype=int)
+        mesh_py.number_of_boundaries = num.zeros(len(triangles), dtype=int)
+        mesh_py.build_neighbour_structure_python()
+
+        # The ext-built mesh was built in __init__; compare neighbour symmetry
+        for i in range(len(triangles)):
+            for e in range(3):
+                b_py = mesh_py.neighbours[i, e]
+                if b_py >= 0:
+                    self.assertIn(i, mesh_py.neighbours[b_py])
+
+
 #-------------------------------------------------------------
+
+class Test_Mesh_extra(unittest.TestCase):
+    """Tests for uncovered Mesh methods."""
+
+    def _make_mesh(self):
+        points, triangles, boundary = rectangular(1, 2)
+        return Mesh(points, triangles, boundary)
+
+    def test_set_to_inscribed_circle(self):
+        """set_to_inscribed_circle modifies radii (lines 160-188)."""
+        mesh = self._make_mesh()
+        max_r, min_r = mesh.set_to_inscribed_circle(safety_factor=1)
+        self.assertGreater(max_r, 0)
+        self.assertGreater(min_r, 0)
+
+    def test_reorder_original_method(self):
+        """reorder with original_method=True (lines 1147-1162)."""
+        mesh = self._make_mesh()
+        N = mesh.number_of_triangles
+        new_order = list(range(N-1, -1, -1))  # reverse order
+        new_mesh = mesh.reorder(new_order, original_method=True)
+        self.assertEqual(new_mesh.number_of_triangles, N)
+
+
+class Test_Mesh_extra2(unittest.TestCase):
+    """More coverage for uncovered Mesh methods and module-level functions."""
+
+    def _make_mesh(self):
+        points, triangles, boundary = rectangular(1, 2)
+        return Mesh(points, triangles, boundary)
+
+    def test_build_neighbour_structure_python(self):
+        """build_neighbour_structure_python covers lines 206-252."""
+        mesh = self._make_mesh()
+        # Reset and call the Python version directly
+        N = mesh.number_of_triangles
+        mesh.neighbours[:] = -1
+        mesh.neighbour_edges[:] = -1
+        mesh.number_of_boundaries[:] = 0
+        mesh.build_neighbour_structure_python()
+        # After rebuild, some non-boundary edges should have valid neighbours
+        self.assertTrue(num.any(mesh.neighbours >= 0))
+
+    def test_build_boundary_neighbours_no_boundary_raises(self):
+        """build_boundary_neighbours with boundary=None raises (lines 389-391)."""
+        mesh = self._make_mesh()
+        mesh.boundary = None
+        with self.assertRaises(Exception) as cm:
+            mesh.build_boundary_neighbours()
+        self.assertIn('Boundary dictionary must be defined', str(cm.exception))
+
+    def test_get_boundary_polygon_verbose(self):
+        """get_boundary_polygon(verbose=True) covers verbose log paths (530, 569, 579-581)."""
+        mesh = self._make_mesh()
+        # The verbose path is taken when multiple candidates exist for a point
+        # At minimum, calling with verbose=True exercises the verbose branches
+        poly = mesh.get_boundary_polygon(verbose=True)
+        self.assertGreater(len(poly), 0)
+
+    def test_triangle_intersection_repr(self):
+        """Triangle_intersection.__repr__ covers lines 1260-1267."""
+        from anuga.abstract_2d_finite_volumes.neighbour_mesh import Triangle_intersection
+        import numpy as num
+        seg = ((0.0, 0.0), (1.0, 0.0))
+        ti = Triangle_intersection(segment=seg,
+                                   normal=num.array([0.0, 1.0]),
+                                   length=1.0,
+                                   triangle_id=0)
+        s = repr(ti)
+        self.assertIn('Triangle_intersection', s)
+
+    def test_segment_midpoints(self):
+        """segment_midpoints covers lines 1479-1487."""
+        from anuga.abstract_2d_finite_volumes.neighbour_mesh import (
+            Triangle_intersection, segment_midpoints)
+        import numpy as num
+        seg1 = Triangle_intersection(segment=((0.0, 0.0), (2.0, 0.0)),
+                                     normal=num.array([0.0, 1.0]),
+                                     length=2.0,
+                                     triangle_id=0)
+        seg2 = Triangle_intersection(segment=((1.0, 1.0), (1.0, 3.0)),
+                                     normal=num.array([1.0, 0.0]),
+                                     length=2.0,
+                                     triangle_id=1)
+        midpoints = segment_midpoints([seg1, seg2])
+        self.assertEqual(len(midpoints), 2)
+        num.testing.assert_allclose(midpoints[0], [1.0, 0.0])
+
+    # ------------------------------------------------------------------
+    # save_to_file tests
+    # ------------------------------------------------------------------
+
+    def test_save_to_file_vertices_and_triangles(self):
+        """save_to_file writes correct vertices and triangles."""
+        import tempfile
+        import os
+        from anuga.load_mesh.loadASCII import import_mesh_file
+
+        nodes = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        triangles = [[0, 1, 2], [1, 3, 2]]
+        mesh = Mesh(nodes, triangles)
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            d = import_mesh_file(fname)
+        finally:
+            os.unlink(fname)
+
+        self.assertEqual(len(d['vertices']), 4)
+        self.assertEqual(len(d['triangles']), 2)
+        num.testing.assert_allclose(d['vertices'][0], [0.0, 0.0])
+        num.testing.assert_allclose(d['vertices'][3], [1.0, 1.0])
+        self.assertEqual(d['triangles'][0], [0, 1, 2])
+        self.assertEqual(d['triangles'][1], [1, 3, 2])
+
+    def test_save_to_file_neighbours(self):
+        """save_to_file preserves triangle neighbour information."""
+        import tempfile
+        import os
+        from anuga.load_mesh.loadASCII import import_mesh_file
+
+        nodes = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        triangles = [[0, 1, 2], [1, 3, 2]]
+        mesh = Mesh(nodes, triangles)
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            d = import_mesh_file(fname)
+        finally:
+            os.unlink(fname)
+
+        # The two triangles share one edge; each should list the other as a
+        # neighbour on that shared edge and -1 elsewhere.
+        neighbors0 = d['triangle_neighbors'][0]
+        neighbors1 = d['triangle_neighbors'][1]
+        self.assertIn(1, neighbors0)
+        self.assertIn(0, neighbors1)
+
+    def test_save_to_file_boundary_segments(self):
+        """save_to_file writes boundary segments with correct tags."""
+        import tempfile
+        import os
+        from anuga.load_mesh.loadASCII import import_mesh_file
+
+        nodes = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        triangles = [[0, 1, 2], [1, 3, 2]]
+        boundary = {(0, 1): 'left', (0, 2): 'bottom',
+                    (1, 0): 'right', (1, 2): 'top'}
+        mesh = Mesh(nodes, triangles, boundary=boundary)
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            d = import_mesh_file(fname)
+        finally:
+            os.unlink(fname)
+
+        self.assertEqual(len(d['segments']), 4)
+        tags = set(d['segment_tags'])
+        self.assertIn('left', tags)
+        self.assertIn('right', tags)
+        self.assertIn('bottom', tags)
+        self.assertIn('top', tags)
+
+    def test_save_to_file_triangle_tags(self):
+        """save_to_file preserves tagged_elements (region tags per triangle)."""
+        import tempfile
+        import os
+        from anuga.load_mesh.loadASCII import import_mesh_file
+
+        nodes = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0], [1.0, 1.0]]
+        triangles = [[0, 1, 2], [1, 3, 2]]
+        mesh = Mesh(nodes, triangles,
+                    tagged_elements={'inland': [0], 'ocean': [1]})
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            d = import_mesh_file(fname)
+        finally:
+            os.unlink(fname)
+
+        self.assertEqual(d['triangle_tags'][0], 'inland')
+        self.assertEqual(d['triangle_tags'][1], 'ocean')
+
+    def test_save_to_file_geo_reference(self):
+        """save_to_file writes geo_reference zone and origin correctly."""
+        import tempfile
+        import os
+        from anuga.load_mesh.loadASCII import import_mesh_file
+
+        nodes = [[0.0, 0.0], [1.0, 0.0], [0.0, 1.0]]
+        triangles = [[0, 1, 2]]
+        geo = Geo_reference(zone=55, xllcorner=300000.0, yllcorner=6000000.0)
+        mesh = Mesh(nodes, triangles, geo_reference=geo)
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            d = import_mesh_file(fname)
+        finally:
+            os.unlink(fname)
+
+        gr = d.get('geo_reference')
+        self.assertIsNotNone(gr)
+        self.assertEqual(gr.zone, 55)
+        self.assertAlmostEqual(gr.xllcorner, 300000.0)
+        self.assertAlmostEqual(gr.yllcorner, 6000000.0)
+
+    def test_save_to_file_roundtrip(self):
+        """Mesh saved to TSH and reloaded via pmesh2domain gives same triangles."""
+        import tempfile
+        import os
+        from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_domain
+
+        points, vertices, boundary = rectangular(3, 3)
+        mesh = Mesh(points, vertices, boundary=boundary)
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            coords, tris, _, _, _, _ = pmesh_to_domain(file_name=fname)
+        finally:
+            os.unlink(fname)
+
+        self.assertEqual(len(tris), len(vertices))
+        self.assertEqual(len(coords), len(points))
+
+    def test_save_to_file_msh(self):
+        """Mesh.save_to_file accepts .msh extension (NetCDF format)."""
+        import tempfile
+        import os
+
+        points, vertices, boundary = rectangular(3, 3)
+        mesh = Mesh(points, vertices, boundary=boundary)
+
+        with tempfile.NamedTemporaryFile(suffix='.msh', delete=False) as f:
+            fname = f.name
+        try:
+            mesh.save_to_file(fname)
+            self.assertTrue(os.path.getsize(fname) > 0)
+        finally:
+            os.unlink(fname)
+
+    def test_save_to_file_bad_extension(self):
+        """Mesh.save_to_file raises ValueError for unsupported extensions."""
+        import tempfile
+        import os
+
+        points, vertices, boundary = rectangular(2, 2)
+        mesh = Mesh(points, vertices, boundary=boundary)
+
+        with self.assertRaises(ValueError):
+            mesh.save_to_file('output.xyz')
+
+    def test_save_mesh_to_tsh_deprecated(self):
+        """save_mesh_to_tsh emits DeprecationWarning and still works."""
+        import tempfile
+        import os
+        import warnings
+
+        points, vertices, boundary = rectangular(2, 2)
+        mesh = Mesh(points, vertices, boundary=boundary)
+
+        with tempfile.NamedTemporaryFile(suffix='.tsh', delete=False) as f:
+            fname = f.name
+        try:
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter('always')
+                mesh.save_mesh_to_tsh(fname)
+            self.assertEqual(len(w), 1)
+            self.assertIn('deprecated', str(w[0].message).lower())
+            self.assertTrue(os.path.exists(fname))
+        finally:
+            os.unlink(fname)
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_Mesh)

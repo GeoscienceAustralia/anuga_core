@@ -10,6 +10,7 @@ This is a very simple test of the parallel algorithm using the simplified parall
 #------------------------------------------------------------------------------
 # Import necessary modules
 #------------------------------------------------------------------------------
+import tempfile
 import unittest
 import os
 import sys
@@ -51,7 +52,7 @@ yieldstep = 0.25
 finaltime = 3.0
 nprocs = 4
 N = 29
-M = 29 
+M = 29
 verbose = False
 
 
@@ -61,7 +62,7 @@ new_parameters['ghost_layer_width'] = 2
 #---------------------------------
 # Setup Functions
 #---------------------------------
-def topography(x,y): 
+def topography(x,y):
     return -x/2.0
 
 ###########################################################################
@@ -74,37 +75,45 @@ def run_simulation(parallel=False, verbose=False):
     #--------------------------------------------------------------------------
     domain = rectangular_cross_domain(M, N)
     domain.set_name('odomain')                    # Set sww filename
-    domain.set_datadir('.')   
+    # All ranks must share the same datadir so distribute() settings assertions pass.
+    # Create the tmpdir on rank 0 and broadcast to all ranks.
+    if myid == 0:
+        _tmpdir = tempfile.mkdtemp()
+    else:
+        _tmpdir = None
+    from mpi4py import MPI
+    _tmpdir = MPI.COMM_WORLD.bcast(_tmpdir, root=0)
+    domain.set_datadir(_tmpdir)
     domain.set_quantity('elevation', topography) # Use function for elevation
-    domain.set_quantity('friction', 0.0)         # Constant friction 
+    domain.set_quantity('friction', 0.0)         # Constant friction
     domain.set_quantity('stage', expression='elevation') # Dry initial stage
-    
+
     domain.set_quantities_to_be_stored({'elevation': 2,'stage': 2,'xmomentum': 2,'ymomentum': 2})
     domain.set_store_vertices_uniquely(False)
     domain.set_flow_algorithm('DE1')
     georef = Geo_reference(zone=56,xllcorner=100000.0,yllcorner=200000.0)
     domain.set_georeference(georef)
-        
+
     #--------------------------------------------------------------------------
     # Create pickled partition
     #--------------------------------------------------------------------------
     if myid == 0:
         if verbose: print('DUMPING PARTITION DATA')
-        sequential_distribute_dump(domain, numprocs, verbose=verbose, parameters=new_parameters)    
+        sequential_distribute_dump(domain, numprocs, verbose=verbose, parameters=new_parameters)
 
     #--------------------------------------------------------------------------
     # Create the parallel domains
     #--------------------------------------------------------------------------
     if parallel:
-        
+
         if myid == 0 and verbose : print('DISTRIBUTING TO PARALLEL DOMAIN')
         pdomain = distribute(domain, verbose=verbose, parameters=new_parameters)
         pdomain.set_name('pdomain')
-        
+
         if myid == 0 and verbose : print('LOADING IN PARALLEL DOMAIN')
         sdomain = sequential_distribute_load(filename='odomain', verbose = verbose)
         sdomain.set_name('sdomain')
-        
+
         if myid == 0 and verbose : print('TESTING AGAINST SEQUENTIAL DOMAIN')
         assert domain.get_datadir() == pdomain.get_datadir()
         assert domain.get_store() == pdomain.get_store()
@@ -115,7 +124,7 @@ def run_simulation(parallel=False, verbose=False):
         assert domain.get_flow_algorithm() == pdomain.get_flow_algorithm()
         assert domain.get_minimum_allowed_height() == pdomain.get_minimum_allowed_height()
         assert domain.geo_reference == pdomain.geo_reference
-        
+
         assert domain.get_datadir() == sdomain.get_datadir()
         assert domain.get_store() == sdomain.get_store()
         assert domain.get_store_centroids() == sdomain.get_store_centroids()
@@ -128,7 +137,6 @@ def run_simulation(parallel=False, verbose=False):
 
         if myid == 0 and verbose : print('REMOVING DATA FILES')
         if myid == 0:
-            import os
             #os.remove('odomain.sww')
             #os.remove('pdomain.sww')
             #os.remove('sdomain.sww')
@@ -139,11 +147,11 @@ def run_simulation(parallel=False, verbose=False):
                 os.remove('odomain_P4_3.pickle')
                 import glob
                 [ os.remove(fl) for fl in glob.glob('*.npy') ]
-            except OSError: 
+            except OSError:
                 if verbose: print('remove files failed')
 
         if myid == 0 and verbose : print('FINISHED')
-    
+
 
 # Test an nprocs-way run of the shallow water equations
 # against the sequential code.
@@ -169,7 +177,7 @@ def assert_(condition, msg="Assertion Failed"):
         raise (AssertionError, msg)
 
 if __name__=="__main__":
-    if numprocs == 1: 
+    if numprocs == 1:
         if verbose: print('SEQUENTIAL START')
         runner = unittest.TextTestRunner()
         suite = unittest.TestLoader().loadTestsFromTestCase(Test_parallel_sw_flow)
@@ -188,7 +196,7 @@ if __name__=="__main__":
         sys.excepthook = global_except_hook
 
         run_simulation(parallel=True, verbose=verbose)
-        
+
         finalize()
 
 

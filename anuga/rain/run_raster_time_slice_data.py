@@ -40,7 +40,7 @@ l0 = [5100.0, 100000.0]
 l1 = [5100.0, 103900.0]
 l2 = [3400., 103400.]
 l3 = [6000., 103400.]
-locations = [l0,l1,l2,l3] 
+locations = [l0,l1,l2,l3]
 
 
 
@@ -52,8 +52,8 @@ pl.figure(1)
 print(rain.get_extent())
 rain.accumulate_data_stats()
 
-print('time_step ',rain.time_step)     
-    
+print('time_step ',rain.time_step)
+
 import time
 
 plot_vmax = np.max(rain.data_slices)
@@ -62,25 +62,25 @@ print('plot_vmax', plot_vmax)
 for tid in range(len(rain.times)):
     rain.plot_data(tid, plot_vmax=plot_vmax, save=False, show=True)
     time.sleep(0.1)
-    #ipdb.set_trace() 
-    
-pdb.set_trace()     
+    #ipdb.set_trace()
+
+pdb.set_trace()
 
 rain.plot_accumulated_data()
 
 #pl.ioff()
 pl.show()
-    
 
-rain.plot_time_hist_locations(locations) 
+
+rain.plot_time_hist_locations(locations)
 
 p_indices = rain.grid_indices_inside_polygon()
 
 
 
 pdb.set_trace()
-    
-    
-    
-     
+
+
+
+
 

@@ -1,0 +1,7 @@
+# Generated model-output artifacts (georef rasters, basemap renders, etc.)
+MODEL_OUTPUTS/
+
+# Profiling reports (nsys / ncu) written into the case dir during perf work
+*.nsys-rep
+*.ncu-rep
+*.sqlite

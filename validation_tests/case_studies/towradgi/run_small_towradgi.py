@@ -12,10 +12,11 @@ Updated script By Petar Milevski 2022
 from project import *
 from anuga import distribute, myid, numprocs, finalize, barrier
 from anuga import Rate_operator
+from anuga import Inlet_operator
 from anuga import Boyd_box_operator
 from anuga import Boyd_pipe_operator
 from anuga import Domain
-from anuga import create_mesh_from_regions
+from anuga import create_pmesh_from_regions
 from anuga import create_domain_from_regions
 from anuga import read_polygon
 from anuga import Polygon_function
@@ -29,6 +30,22 @@ import os
 import numpy
 import time
 import anuga
+
+# -sc/--scale is added to the standard parser here, rather than inside anuga
+# itself, so that it travels with this script: in a containerised run the
+# script comes from the staged input directory while anuga comes from the
+# image, which may be older.  type=float (not arithmetic_float) for the same
+# reason.
+parser = anuga.create_standard_parser()
+parser.add_argument('-sc', '--scale', type=float, default=1.0,
+                    help='mesh refinement scale, smaller is finer: '
+                         '10 = coarse (135237 triangles), '
+                         '1 = fine (256688, default), '
+                         '0.1 = super fine (~1.6 million)')
+args = parser.parse_args()
+alg = args.alg
+verbose = args.verbose
+debug = args.debug   # -d/--debug: in-depth mesh generation reporting
 
 # ------------------------------------------------------------------------------
 # TEST FUNCTION AND DICTIONARY
@@ -46,7 +63,9 @@ def read_polygon_list(poly_list):
 # ------------------------------------------------------------------------------
                             
 if myid == 0:
-    print('ABOUT to Start Simulation:- Importing Modules')
+    verbose and print('ABOUT to Start Simulation:- Importing Modules')
+
+anuga.set_logfile('run_small_towradgi.log')
 
 if myid == 0 and not os.path.isdir('DEM_bridges'):
     msg = """
@@ -61,29 +80,42 @@ if myid == 0 and not os.path.isdir('DEM_bridges'):
 """
     raise Exception(msg)
 
-args = anuga.get_args()
-alg = args.alg
-verbose = args.verbose
 
 # --------------------------------------------------------------------------
-# Setup parameters
+# Setup parameters  (CLI flags override these defaults)
 # --------------------------------------------------------------------------
 
-verbose = False
-yieldstep=10. # yield evolve loop every 10 seconds
-outputstep=60. # update sww files every 60 seconds
-finaltime=140. #83700.
+yieldstep  = getattr(args, 'yieldstep',  120.)          # -ys / --yieldstep
+finaltime  = getattr(args, 'finaltime',  3600.)          # -ft / --finaltime
+outputstep = getattr(args, 'outputstep', yieldstep)      # -os / --outputstep
 
-scale = 1 # For coarse mesh set to 10 (135237 triangles), fine mesh set to 1 (256688 triangles)
+scale = args.scale  # -sc/--scale; see the parser above for the mesh sizes
 maximum_triangle_area = 1000 # This doesn't make much difference for this mesh
 
-# Choices are 1 (openmp) 2 (cupy)
-multiprocessor_mode = 1
+# Choices are 1 (legacy CPU OpenMP) 2 (unified gpu_ext kernels).
+# -mpm; None => keep the domain's env-based default (ANUGA_DEFAULT_COMPUTE_MODE).
+multiprocessor_mode = getattr(args, 'multiprocessor_mode', None)
+reorder_method = args.reorder            # 'none', 'hilbert', 'morton', 'metis', 'rcm', ...
+partition_scheme = args.partition_scheme  # 'metis', 'hilbert', 'morton', 'rcm'
+
+# --------------------------------------------------------------------------
+# Process-wide OpenMP / GPU offload settings (CLI overrides).
+# Apply early: OMP thread count affects the OpenMP-heavy domain setup, and the
+# GPU offload choice must be set before the unified gpu_ext domain is built
+# (set_multiprocessor_mode(2), below). Both are process-level, not per-domain.
+# --------------------------------------------------------------------------
+omp_num_threads = getattr(args, 'omp_num_threads', None)  # -nt / --omp_num_threads
+if omp_num_threads is not None:
+    anuga.set_omp_num_threads(omp_num_threads, verbose=(myid == 0))
+
+gpu_offload = getattr(args, 'gpu_offload', None)  # -go/--gpu_offload / --no-gpu_offload
+if gpu_offload is not None:
+    anuga.set_gpu_offload(gpu_offload, verbose=(myid == 0))
 
 checkpoint_time = max(600/scale, 60)
 checkpoint_dir = 'CHECKPOINTS'
 
-useCulverts = False # Use this to turn off culverts
+useCulverts = True # Use this to turn off culverts
 useCheckpointing = False
 
 
@@ -125,6 +157,8 @@ func = file_function(join('Forcing', 'Tide', 'Pioneer.tms'), quantities='rainfal
 # remember to turn on checkpointing via
 # domain.set_checkpointing(checkpoint_time = checkpoint_time)
 # ------------------------------------------------------------------------------
+creek_inlet = None  # Initialize in case loaded from checkpoint
+
 try:
     from anuga import load_checkpoint_file
 
@@ -138,14 +172,14 @@ run, you need to delete the files from the
 checkpoint directory {checkpoint_dir}
 =================================================
 """
-        print(msg)
+        verbose and print(msg)
 
     domain = load_checkpoint_file(domain_name=domain_name,
                                   checkpoint_dir=checkpoint_dir)
 
     if myid == 0:
-        print('Checkpoint File Loaded')
-        domain.write_time()
+        verbose and print('Checkpoint File Loaded')
+        verbose and domain.write_time()
 
 except:
 
@@ -157,7 +191,7 @@ No checkpoint file found.
 Creating domain from scratch.
 =================================================
 """
-        print(msg)
+        verbose and print(msg)
                          
     # ------------------------------------------------------------------------------
     #  ADD CATCHMENT INFORMATION HERE
@@ -369,14 +403,14 @@ Creating domain from scratch.
         interior_regions = read_polygon_list(CatchmentList)
     
         # Make the domain
-        mesh = create_mesh_from_regions(bounding_polygon,
+        mesh = create_pmesh_from_regions(bounding_polygon,
                                  boundary_tags={'south': [0], 'east': [
                                      1], 'north': [2], 'west': [3]},
                                  maximum_triangle_area=maximum_triangle_area,
                                  interior_regions=interior_regions,
                                  breaklines=riverWalls.values(),
                                  use_cache=False,
-                                 verbose=False)
+                                 verbose=debug)
 
         domain = Domain(mesh)
     
@@ -396,14 +430,15 @@ Creating domain from scratch.
         except:
             pass
         domain.set_name(domain_name)
-    
-        print(domain.statistics())
+        domain.set_epsg(epsg)
+
+        verbose and print(domain.statistics())
     
         # ------------------------------------------------------------------------------
         # APPLY MANNING'S ROUGHNESSES
         # ------------------------------------------------------------------------------
     
-        print('FITTING polygon_function for friction')
+        verbose and print('FITTING polygon_function for friction')
         friction_list = read_polygon_list(ManningList)
     
         domain.set_quantity('friction', Polygon_function(
@@ -413,22 +448,22 @@ Creating domain from scratch.
         domain.set_quantity('stage', 0)
     
         
-        print('TRYING TO READ %s' % basename+'.npy')
+        verbose and print('TRYING TO READ %s' % basename+'.npy')
         try:
             elev_xyz = numpy.load(basename+'.npy')
         except:
-            print('TRYING TO READ %s' % basename+'.csv')
+            verbose and print('TRYING TO READ %s' % basename+'.csv')
             elev_xyz = numpy.genfromtxt(fname=basename+'.csv', delimiter=',')
-            print('SAVING %s' % basename+'.npy')
+            verbose and print('SAVING %s' % basename+'.npy')
             numpy.save(basename+'.npy', elev_xyz)
     
         # Use nearest-neighbour interpolation of elevation
-        print('CREATING nearest neighbour interpolator')
+        verbose and print('CREATING nearest neighbour interpolator')
         from anuga.utilities.quantity_setting_functions import make_nearestNeighbour_quantity_function
         elev_fun_wrapper = make_nearestNeighbour_quantity_function(
             elev_xyz, domain)
     
-        print('FITTING to domain')
+        verbose and print('FITTING to domain')
         domain.set_quantity('elevation', elev_fun_wrapper, location='centroids')
     
         
@@ -447,9 +482,10 @@ Creating domain from scratch.
     barrier()
     
     if myid == 0 and verbose:
-        print('DISTRIBUTING DOMAIN')
+        verbose and print('DISTRIBUTING DOMAIN')
     
-    domain = distribute(domain, verbose=verbose)
+    domain = distribute(domain, verbose=verbose,
+                        parameters={'partition_scheme': partition_scheme})
     
     barrier()
 
@@ -468,17 +504,23 @@ Creating domain from scratch.
                                       'stage': 2,
                                       'xmomentum': 2,
                                       'ymomentum': 2}
-    
+
+    if reorder_method != 'none':
+        reorder_nprocs = getattr(args, 'reorder_nprocs', None)
+        if myid == 0:
+            verbose and print(f'REORDERING DOMAIN using {reorder_method}')
+        anuga.reorder_domain(domain, method=reorder_method, n_procs=reorder_nprocs, verbose=(myid == 0))
+
     if myid == 0:
-        print('CREATING RIVERWALLS')
-    
-    domain.create_riverwalls(riverWalls)
+        verbose and print('CREATING RIVERWALLS')
+
+    domain.create_riverwalls(riverWalls, verbose=verbose)
     
     
     barrier()
 
     if myid == 0:
-        print('CREATING INLETS')
+        verbose and print('CREATING CULVERTS')
        
     #------------------------------------------------------------------------------
     # ENTER CULVERT DATA
@@ -488,7 +530,7 @@ Creating domain from scratch.
 
         smoothTS=30. # Smoothing timescale for bridges
 
-        if myid == 0: print ('Creating Boyd_pipe_operator at Branch_2_Brooker_St_Culvert') 
+        if myid == 0 and verbose: print ('Creating Boyd_pipe_operator at Branch_2_Brooker_St_Culvert') 
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305772.982,6193988.557] , [305772.378,6193987.823]])
         el1 = numpy.array([[305794.592,6193983.907] , [305793.988,6193983.173]])
@@ -509,7 +551,7 @@ Creating domain from scratch.
                                     label='Branch_2_Brooker_St_Culvert',
                                     verbose=False)    
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_2_Meadow_St_Culvert')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_2_Meadow_St_Culvert')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305886.333,6193929.052] , [305883.172,6193922.986]])
         el1 = numpy.array([[305906.553,6193910.461] , [305903.393,6193904.395]])  
@@ -528,7 +570,7 @@ Creating domain from scratch.
                                     label='Branch_2_Meadow_St_Culvert',
                                     verbose=False)    
         
-        if myid == 0: print ('Creating Boyd_pipe_operator at Branch_2_Williams_St_Culvert') 
+        if myid == 0 and verbose: print ('Creating Boyd_pipe_operator at Branch_2_Williams_St_Culvert') 
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305945.955,6193836.293] , [305945.125,6193835.387]])
         el1 = numpy.array([[306040.565,6193827.573] , [306039.735,6193826.667]])
@@ -545,7 +587,7 @@ Creating domain from scratch.
                                     label='Branch_2_Williams_St_Culvert',
                                     verbose=False)     
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Meadow_St_Culvert')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_Towradgi_Meadow_St_Culvert')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305812.113,6193591.972] , [305809.390,6193588.820]])
         el1 = numpy.array([[305834.913,6193588.382] , [305832.190,6193585.230]])  
@@ -564,7 +606,7 @@ Creating domain from scratch.
                                     label='Branch_Towradgi_Meadow_St_Culvert',
                                     verbose=False)  
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_5_Collins_St_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_5_Collins_St_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[306330.608,6194817.116] , [306320.768,6194805.884]])
         el1 = numpy.array([[306369.483,6194811.616] , [306359.643,6194800.384]])   
@@ -583,7 +625,7 @@ Creating domain from scratch.
                                     label='Branch_5_Collins_St_Culverts',
                                     verbose=False)                                     
 
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_5_Northern_Distributor_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_5_Northern_Distributor_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[306956.242,6194465.589] , [306950.446,6194457.411]])
         el1 = numpy.array([[307003.711,6194446.089] , [306997.916,6194437.911]])   
@@ -602,7 +644,7 @@ Creating domain from scratch.
                                     label='Branch_5_Northern_Distributor_Culverts',
                                     verbose=False)                                      
 
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_5_Coke_Works_Culverts')                                   
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_5_Coke_Works_Culverts')                                   
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[307142.161,6194181.3065] , [307138.519,6194174.394]])
         el1 = numpy.array([[307160.521,6194164.8165] , [307156.879,6194157.904]])   
@@ -621,7 +663,7 @@ Creating domain from scratch.
                                     label='Branch_5_Coke_Works_Culverts',
                                     verbose=False)                                      
 
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_6_Northern_Distributor_Culverts')            
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_6_Northern_Distributor_Culverts')            
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[306950.758,6193454.717] , [306947.804,6193453.283]])
         el1 = numpy.array([[306988.633,6193474.217] , [306985.679,6193472.783]])  
@@ -640,7 +682,7 @@ Creating domain from scratch.
                                     label='Branch_6_Northern_Distributor_Culverts',
                                     verbose=False)                                      
 
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_6_Railway_Culverts')                                
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_6_Railway_Culverts')                                
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[307139.134,6193474.458] , [307138.492,6193473.542]])
         el1 = numpy.array([[307150.884,6193469.458] , [307150.242,6193468.542]])
@@ -659,7 +701,7 @@ Creating domain from scratch.
                                     label='Branch_6_Railway_Culverts',
                                     verbose=False) 
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_6_Colgong_St_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_6_Colgong_St_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[307200.610,6193476.765] , [307199.140,6193475.235]])
         el1 = numpy.array([[307224.610,6193475.765] , [307223.140,6193474.235]])
@@ -678,7 +720,7 @@ Creating domain from scratch.
                                     label='Branch_6_Colgong_St_Culverts',
                                     verbose=False)   
                                             
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_3_Basin_Outlet_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_3_Basin_Outlet_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305629.639,6194408.883] , [305626.521,6194400.457]])
         el1 = numpy.array([[305665.889,6194347.183] , [305662.771,6194338.757]])
@@ -697,7 +739,7 @@ Creating domain from scratch.
                                     label='Branch_3_Basin_Outlet_Culverts',
                                     verbose=False)                                      
 
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_3_Bellambi_Rd_Culverts')                                    
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_3_Bellambi_Rd_Culverts')                                    
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305777.182,6194305.377] , [305776.444,6194304.623]])
         el1 = numpy.array([[305873.807,6194303.377] , [305873.069,6194302.623]])
@@ -716,7 +758,7 @@ Creating domain from scratch.
                                     label='Branch_3_Bellambi_Rd_Culverts',
                                     verbose=False)    
         
-        if myid == 0: print ('Creating Boyd_pipe_operator at Branch_3_Meadow_St_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_pipe_operator at Branch_3_Meadow_St_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305914.649,6194322.375] , [305913.477,6194321.625]])
         el1 = numpy.array([[305950.711,6194335.375] , [305949.539,6194334.625]])
@@ -734,7 +776,7 @@ Creating domain from scratch.
                                     label='Branch_3_Meadow_St_Culverts',
                                     verbose=False)     
         
-        if myid == 0: print ('Creating Boyd_pipe_operator at Branch_3_13_Meadow_St_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_pipe_operator at Branch_3_13_Meadow_St_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[305911.280,6194359.203] , [305910.260,6194358.017]])
         el1 = numpy.array([[305946.090,6194353.573] , [305945.070,6194352.387]])
@@ -752,7 +794,7 @@ Creating domain from scratch.
                                     label='Branch_3_13_Meadow_St_Culverts', 
                                     verbose=False)     
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_3_41_Angel_St_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_3_41_Angel_St_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[306196.779,6194028.193] , [306192.221,6194010.807]])
         el1 = numpy.array([[306200.154,6194018.693] , [306195.596,6194001.307]])
@@ -772,7 +814,7 @@ Creating domain from scratch.
                                     label='Branch_3_41_Angel_St_Culverts',
                                     verbose=False)        
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_7_Carroll_St_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_7_Carroll_St_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[308002.045,6193820.163] , [308001.215,6193819.197]])
         el1 = numpy.array([[308021.965,6193816.883] , [308021.135,6193815.917]])
@@ -792,7 +834,7 @@ Creating domain from scratch.
                                     label='Branch_7_Carroll_St_Culverts',
                                     verbose=False)           
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_7_Parker_Rd_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_7_Parker_Rd_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[308105.832,6193803.622] , [308103.648,6193801.118]])
         el1 = numpy.array([[308126.782,6193800.552] , [308124.598,6193798.048]])
@@ -812,7 +854,7 @@ Creating domain from scratch.
                                     label='Branch_7_Parker_Rd_Culverts',
                                     verbose=False)     
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_7_Lake_Pde_Culverts')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_7_Lake_Pde_Culverts')
         losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
         el0 = numpy.array([[308251.257,6193614.658] , [308248.343,6193618.]])
         el1 = numpy.array([[308232.,6193593.] , [308225.,6193596.]])   
@@ -831,7 +873,7 @@ Creating domain from scratch.
                                     label='Branch_7_Lake_Pde_Culverts',
                                     verbose=False)                                                                      
 
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Princes_Hwy_Bridge')							
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_Towradgi_Princes_Hwy_Bridge')							
         losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
         el0 = numpy.array([[306607.274,6193707.421] , [306602.635,6193695.720]]) 
         el1 = numpy.array([[306626.205,6193694.358] , [306622.068,6193683.138]])
@@ -850,7 +892,7 @@ Creating domain from scratch.
                                     label='Branch_Towradgi_Princes_Hwy_Bridge',
                                     verbose=False)  
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Pioneer_Rd_Bridge')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_Towradgi_Pioneer_Rd_Bridge')
         losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
         el0 = numpy.array([[307623.,6193610.] , [307622.,6193607.]])
         el1 = numpy.array([[307610.,6193619.] , [307609., 6193616.]])  
@@ -869,7 +911,7 @@ Creating domain from scratch.
                                     label='Branch_Towradgi_Pioneer_Rd_Bridge',
                                     verbose=False)                           
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Northern_Distributor_Bridge')
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_Towradgi_Northern_Distributor_Bridge')
         losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
         el0 = numpy.array([[306985.,6193749.] , [306985.,6193736.]])
         el1 = numpy.array([[306950.,6193745.] , [306950.,6193732.]])
@@ -888,7 +930,7 @@ Creating domain from scratch.
                                     label='Branch_Towradgi_Northern_Distributor_Bridge',
                                     verbose=False)    
         
-        if myid == 0: print ('Creating Boyd_box_operator at Branch_Towradgi_Railway_Bridge') 
+        if myid == 0 and verbose: print ('Creating Boyd_box_operator at Branch_Towradgi_Railway_Bridge') 
         losses = {'inlet':0.0, 'outlet':0.0, 'bend':0.0, 'grate':0.0, 'pier': 1.0, 'other': 0.0}
         el0 = numpy.array([[307236.,6193737.] , [307235.,6193733.]])
         el1 = numpy.array([[307223.,6193738.] , [307222.,6193734.]]) 
@@ -910,12 +952,12 @@ Creating domain from scratch.
     # ----------------------------------------------------------------------------------------------------------------------------------------------------
     # APPLY RAINFALL
     # ----------------------------------------------------------------------------------------------------------------------------------------------------
-    if myid == 0 and verbose:
-        print('CREATING RAINFALL POLYGONS')
+    if myid == 0:
+        verbose and print('CREATING RAINFALL POLYGONS')
     
     Rainfall_Gauge_directory = join('Forcing', 'Rainfall', 'Gauge')
     ops = []
-    for filename in os.listdir(Rainfall_Gauge_directory):
+    for filename in sorted(os.listdir(Rainfall_Gauge_directory)):  # sorted for MPI determinism
         Gaugefile = join(Rainfall_Gauge_directory, filename)
         Rainfile = join('Forcing', 'Rainfall', 'Hort', filename[0:-4]+'.tms')
         #print(Gaugefile)
@@ -924,54 +966,110 @@ Creating domain from scratch.
         rainfall = anuga.file_function(Rainfile, quantities='rate')
         ops.append(Rate_operator(domain, rate=rainfall, factor=1.0e-3,
                             polygon=polygon, default_rate=0.0))
-    
+
+    # ----------------------------------------------------------------------------------------------------------------------------------------------------
+    # ADD INLET OPERATOR (for GPU testing)
+    # ----------------------------------------------------------------------------------------------------------------------------------------------------
+    if myid == 0:
+        verbose and print('CREATING INLET OPERATOR')
+
+    # Inlet line in the western (upstream) part of the domain
+    # Simulates creek inflow at 20 m³/s
+    inlet_line = [[304000.0, 6194200.0], [304000.0, 6194600.0]]
+    inlet_Q = 20.0  # m³/s constant inflow
+    creek_inlet = Inlet_operator(domain, inlet_line, inlet_Q,
+                                  label='Creek_Inlet_West',
+                                  verbose=False)
+
     barrier()
     
     # ------------------------------------------------------------------------------
     # BOUNDARY CONDITIONS
     # ------------------------------------------------------------------------------
     
-    print(f'Available boundary tags on process {myid} ', domain.get_boundary_tags())
+    verbose and print(f'Available boundary tags on process {myid} ', domain.get_boundary_tags())
     
     Bd = anuga.Dirichlet_boundary([0, 0, 0])
     Bw = anuga.Time_boundary(domain=domain, function=lambda t: [
                              func(t)[0], 0.0, 0.0])
     Br = anuga.Reflective_boundary(domain)
-    
+    # Transmissive normal momentum, zero tangential momentum, stage held at 0 on
+    # the east. GPU-native variant (in mode-2 GPU_BOUNDARY_TYPES) so it evaluates
+    # on the device rather than via a per-step host fallback.
+    Bts = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(
+        domain=domain, function=lambda t: 0.0)
+
     #domain.set_boundary({'west': Bd, 'south': Bd, 'north': Bd, 'east': Bw})
-    domain.set_boundary({'west': Br, 'south': Br, 'north': Br, 'east': Br})
+    domain.set_boundary({'west': Br, 'south': Br, 'north': Br, 'east': Bts})
     
     if myid == 0:
-        print('Start Evolve')
+        verbose and print('Start Evolve')
 
 
 
-domain.set_multiprocessor_mode(multiprocessor_mode)
+# Honor the domain's env-based default compute mode; -mpm overrides it.
+if multiprocessor_mode is not None:
+    domain.set_multiprocessor_mode(multiprocessor_mode)
 
 # ------------------------------------------------------------------------------
 # EVOLVE SYSTEM THROUGH TIME
 # ------------------------------------------------------------------------------
 barrier()
 t0 = time.time()
+import cProfile
+import pstats
+#profiler = cProfile.Profile()
+#profiler.enable()
 
 
 for t in domain.evolve(yieldstep=yieldstep, outputstep=outputstep, finaltime=finaltime):
 
-    domain.print_timestepping_statistics()
+    #domain.print_timestepping_statistics()
+    #domain.report_water_volume_statistics()
+    if myid == 0 and verbose:
+        verbose and domain.write_time()
+
     #domain.print_operator_timestepping_statistics()
-    domain.report_water_volume_statistics()
     #domain.report_cells_with_small_local_timestep()
 
-barrier()
+    # Report inlet statistics
+    #if myid == 0 and creek_inlet is not None:
+    #    print(f"  Inlet applied volume: {creek_inlet.total_applied_volume:.2f} m³")
 
+    # Report statistics for GPU testing (like CDAC script)
+    #stage = domain.quantities['stage']
+    #max_stage = stage.get_maximum_value()
+    #wet_indices = domain.get_wet_elements()
+    #wet_count = len(wet_indices)
+    max_stage = domain.get_global_max_stage()
+    wet_count = domain.get_global_wet_element_count()
+    water_vol = domain.get_water_volume()
+    if myid == 0:
+        print(f"  Max stage: {max_stage:.4f} m, Wet elements: {wet_count}, Volume: {water_vol:.2f} m³")
+
+barrier()
+#profiler.disable()
+
+# Print profiling results
+#if myid == 0:
+#    print("\n" + "="*80)
+#    print("PROFILING RESULTS - Top 40 by cumulative time")
+#    print("="*80)
+#    stats = pstats.Stats(profiler)
+#    stats.sort_stats('cumulative')
+#    stats.print_stats(40)
+#
+#    # Also save to file for detailed analysis
+#    profiler.dump_stats('profile.prof')
+#    print(f"\nProfile saved to profile.prof - view with: python -m pstats profile.prof")
 for p in range(numprocs):
     if myid == p:
-        print('Processor %g ' % myid)
-        print('That took %.2f seconds' % (time.time()-t0))
-        print('Communication time %.2f seconds' % domain.communication_time)
-        print('Reduction Communication time %.2f seconds'
+        verbose and print('Processor %g ' % myid)
+        verbose and print('That took %.2f seconds' % (time.time()-t0))
+        verbose and print('Communication time %.2f seconds' % domain.communication_time)
+        verbose and print('Reduction Communication time %.2f seconds'
               % domain.communication_reduce_time)
-        print('Broadcast time %.2f seconds' %
+        verbose and print('Broadcast time %.2f seconds' %
               domain.communication_broadcast_time)
     else:
         pass

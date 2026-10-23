@@ -21,7 +21,7 @@ import random
 
 from anuga.load_mesh.loadASCII import export_boundary_file
 from anuga.geospatial_data.geospatial_data import Geospatial_data
-from anuga.utilities import log 
+from anuga.utilities import log
 
 import numpy as num
 
@@ -36,7 +36,7 @@ EPSILON = 1.0e-12
 def alpha_shape_via_files(point_file, boundary_file, alpha= None):
     """
     Load a point file and return the alpha shape boundary as a boundary file.
-    
+
     Inputs:
     point_file: File location of the input file, points format (.csv or .pts)
     boundary_file: File location of the generated output file
@@ -45,20 +45,20 @@ def alpha_shape_via_files(point_file, boundary_file, alpha= None):
     """
     geospatial = Geospatial_data(point_file)
     points = geospatial.get_data_points(absolute=False)
-    
+
     AS = Alpha_Shape(points, alpha)
     AS.write_boundary(boundary_file)
-    
 
-class Alpha_Shape(object):
+
+class Alpha_Shape:
 
     def __init__(self, points, alpha = None):
         """
         An Alpha_Shape requires input of a set of points. Other class routines
         return the alpha shape boundary.
-        
-        Inputs:       
-          points: List of coordinate pairs [[x1, y1],[x2, y2]..] 
+
+        Inputs:
+          points: List of coordinate pairs [[x1, y1],[x2, y2]..]
           alpha: The alpha value can be optionally specified.  If it is
           not specified the optimum alpha value will be used.
         """
@@ -68,8 +68,8 @@ class Alpha_Shape(object):
     def _set_points(self, points):
         """
         Create self.points array, do Error checking
-        Inputs:       
-          points: List of coordinate pairs [[x1, y1],[x2, y2]..] 
+        Inputs:
+          points: List of coordinate pairs [[x1, y1],[x2, y2]..]
         """
         if len (points) <= 2:
             raise PointError("Too few points to find an alpha shape")
@@ -83,18 +83,18 @@ class Alpha_Shape(object):
             crossprod = x01*y12 - x12*y01
             if crossprod==0:
                 raise PointError("Three points on a straight line")
-        
+
         #Convert input to numeric arrays
         self.points = num.array(points, float)
 
-    
+
     def write_boundary(self,file_name):
         """
         Write the boundary to a file
         """
         export_boundary_file(file_name, self.get_boundary(),
                              OUTPUT_FILE_TITLE, delimiter = ',')
-    
+
     def get_boundary(self):
         """
         Return a list of tuples.
@@ -112,16 +112,16 @@ class Alpha_Shape(object):
         """
         Use the flags to set constraints on the boundary:
         raw_boundary    Return raw boundary i.e. the regular edges of the
-                        alpha shape. 
+                        alpha shape.
         remove_holes    filter to remove small holes
-                        (small is defined by  boundary_points_fraction ) 
+                        (small is defined by  boundary_points_fraction )
         smooth_indents  remove sharp triangular indents in boundary
-        expand_pinch    test for pinch-off and correct 
+        expand_pinch    test for pinch-off and correct
                            i.e. a boundary vertex with more than two edges.
         """
 
         if raw_boundary:
-            # reset alpha shape boundary 
+            # reset alpha shape boundary
             reg_edge = self.get_regular_edges(self.alpha)
             self.boundary = [self.edge[k] for k in reg_edge]
             self._init_boundary_triangles()
@@ -134,7 +134,7 @@ class Alpha_Shape(object):
         if expand_pinch:
             #deal with pinch-off
             self.boundary = self._expand_pinch()
-        
+
 
     def get_delaunay(self):
         """
@@ -154,20 +154,20 @@ class Alpha_Shape(object):
 
     def set_alpha(self,alpha):
         """
-        Set alpha and update alpha-boundary. 
+        Set alpha and update alpha-boundary.
         """
         self.alpha = alpha
-        reg_edge = self.get_regular_edges(alpha)    
+        reg_edge = self.get_regular_edges(alpha)
         self.boundary = [self.edge[k] for k in reg_edge]
         self._init_boundary_triangles()
-    
-            
+
+
     def _alpha_shape_algorithm(self, alpha=None):
         """
         Given a set of points (self.points) and an optional alpha value
         determines the alpha shape boundary (stored in self.boundary,
         accessed by get_boundary).
-        
+
         Inputs:
           alpha: The alpha value can be optionally specified.  If it is
           not specified the optimum alpha value will be used.
@@ -185,13 +185,13 @@ class Alpha_Shape(object):
         segattlist = []
 
         points = [(pt[0], pt[1]) for pt in self.points]
-        pointattlist = [ [] for i in range(len(points)) ] 
+        pointattlist = [ [] for i in range(len(points)) ]
         mode = "Qzcn"
         tridata = generate_mesh(points,seglist,holelist,regionlist,
                                  pointattlist,segattlist,mode)
         self.deltri = tridata['generatedtrianglelist']
         self.deltrinbr = tridata['generatedtriangleneighborlist']
-        self.hulledges = tridata['generatedsegmentlist'] 
+        self.hulledges = tridata['generatedsegmentlist']
 
         ## Build Alpha table
         ## the following routines determine alpha thresholds for the
@@ -203,7 +203,7 @@ class Alpha_Shape(object):
         if alpha==None:
             # Find optimum alpha
             # Ken Clarkson's hull program uses smallest alpha so that
-            # every vertex is non-singular so... 
+            # every vertex is non-singular so...
             self.optimum_alpha = max([iv[0] for iv in self.vertexinterval \
                                       if iv!=[] ])
             alpha = self.optimum_alpha
@@ -211,14 +211,14 @@ class Alpha_Shape(object):
         reg_edge = self.get_regular_edges(self.alpha)
         self.boundary = [self.edge[k] for k in reg_edge]
         self._init_boundary_triangles()
-        
+
         return
 
     def _tri_circumradius(self):
         """
         Compute circumradii of the delaunay triangles
         """
-        
+
         x = self.points[:,0]
         y = self.points[:,1]
         ind1 = [self.deltri[j][0] for j in range(len(self.deltri))]
@@ -242,18 +242,18 @@ class Alpha_Shape(object):
 
         denom = x21*y31 - x31*y21
 
-        # dx/2, dy/2 give circumcenter relative to x1,y1. 
+        # dx/2, dy/2 give circumcenter relative to x1,y1.
         # dx = (y31*dist21 - y21*dist31)/denom
         # dy = (x21*dist31 - x31*dist21)/denom
-        # first need to check for near-zero values of denom 
+        # first need to check for near-zero values of denom
         delta = 0.00000001
         zeroind = [k for k in range(len(denom)) if \
                    (denom[k]< EPSILON and  denom[k] > -EPSILON)]
         # if some denom values are close to zero,
-        # we perturb the associated vertices and recalculate 
+        # we perturb the associated vertices and recalculate
         while zeroind!=[]:
             random.seed()
-            log.critical("Warning: degenerate triangles found in alpha_shape.py, results may be inaccurate.")
+            log.warning("Warning: degenerate triangles found in alpha_shape.py, results may be inaccurate.")
             for d in zeroind:
                 x1[d] = x1[d]+delta*(random.random()-0.5)
                 x2[d] = x2[d]+delta*(random.random()-0.5)
@@ -284,9 +284,9 @@ class Alpha_Shape(object):
          for each edge, find triples
          (length/2, min_adj_triradius, max_adj_triradius) if unattached
          (min_adj_triradius, min_adj_triradius, max_adj_triradius) if attached.
-         An edge is attached if it is opposite an obtuse angle 
+         An edge is attached if it is opposite an obtuse angle
         """
-        
+
         # It should be possible to rewrite this routine in an array-friendly
         # form like _tri_circumradius()  if we need to speed things up.
         # Hard to do though.
@@ -305,7 +305,7 @@ class Alpha_Shape(object):
             # really only need sign - not angle value:
             anglesign = num.array([(-dx[(i+1)%3]*dx[(i+2)%3]-
                                     dy[(i+1)%3]*dy[(i+2)%3]) for i in [0,1,2]])
-            
+
             for i in [0,1,2]:
                 j = (i+1)%3
                 k = (i+2)%3
@@ -321,9 +321,9 @@ class Alpha_Shape(object):
                           max(self.triradius[t],self.triradius[trinbr[i]]) ])
                 else:
                     continue
-                if anglesign[i] < 0: 
+                if anglesign[i] < 0:
                     edgeinterval[-1][0] = edgeinterval[-1][1]
-                    
+
         self.edge = edges
         self.edgenbr = edgenbrs
         self.edgeinterval = edgeinterval
@@ -335,14 +335,14 @@ class Alpha_Shape(object):
         """
         nv = len(self.points)
         vertexnbrs = [ [] for i in range(nv)]
-        vertexinterval = [ [] for i in range(nv)] 
+        vertexinterval = [ [] for i in range(nv)]
         for t in range(len(self.deltri)):
             for j in self.deltri[t]:
                 vertexnbrs[int(j)].append(t)
         for h in range(len(self.hulledges)):
             for j in self.hulledges[h]:
                 vertexnbrs[int(j)].append(-1)
-        
+
         for i in range(nv):
             radii = [ self.triradius[t] for t in vertexnbrs[i] if t>=0 ]
             try:
@@ -354,7 +354,7 @@ class Alpha_Shape(object):
 
         self.vertexnbr = vertexnbrs
         self.vertexinterval = vertexinterval
-        
+
     def get_alpha_triangles(self,alpha):
         """
         Given an alpha value,
@@ -385,7 +385,7 @@ class Alpha_Shape(object):
             return self.vertexinterval[k][0]<=alpha and \
                    self.vertexinterval[k][1]>alpha
 
-        return list(filter(exp_vert, list(range(len(self.vertexinterval)))))        
+        return list(filter(exp_vert, list(range(len(self.vertexinterval)))))
 
     def _vertices_from_edges(self,elist):
         """
@@ -410,7 +410,7 @@ class Alpha_Shape(object):
         extrind = list(filter(tri_rad_gta, list(range(len(self.triradius)))))
 
         bv = self._vertices_from_edges(self.boundary)
-        
+
         btri = []
         for et in extrind:
             v0 = self.deltri[et][0]
@@ -420,22 +420,22 @@ class Alpha_Shape(object):
                 btri.append(et)
 
         self.boundarytriangle = btri
-  
-       
+
+
     def _remove_holes(self,small):
         """
         Given the edges in self.boundary, finds the largest components.
-        The routine does this by implementing a union-find algorithm. 
+        The routine does this by implementing a union-find algorithm.
         """
 
         bdry = self.boundary
-        
+
         def findroot(i):
             if vptr[i] < 0:
                 return i
             k = findroot(vptr[i])
             vptr[i] = k    # this produces "path compression" in the
-                           # union-find tree. 
+                           # union-find tree.
             return k
 
 
@@ -448,8 +448,8 @@ class Alpha_Shape(object):
         # if vptr[i] = j > 0, then j verts[j] is the parent of verts[i].
         # if vptr[i] = n < 0, then verts[i] is a root vertex and
         #                       represents a connected component of n vertices.
-        
-        #initialise vptr to negative number outside range 
+
+        #initialise vptr to negative number outside range
         EMPTY = -max(verts)-len(verts)
         vptr = [EMPTY for k in range(len(verts))]
 
@@ -479,12 +479,12 @@ class Alpha_Shape(object):
                         else:
                             vptr[rvl] = vptr[rvl] + vptr[rvr]
                             vptr[rvr] = rvl
-                            vptr[vr] = rvl 
+                            vptr[vr] = rvl
         # end edge loop
 
         if vptr.count(EMPTY):
             raise FlagError("We didn't hit all the vertices in the boundary")
-        
+
         # discard the edges in the little components
         # (i.e. those components with less than 'small' fraction of bdry points)
         cutoff = round(small*len(verts))
@@ -492,15 +492,15 @@ class Alpha_Shape(object):
         if cutoff > largest_component:
             cutoff = round((1-small)*largest_component)
 
-        # littleind has root indices for small components 
+        # littleind has root indices for small components
         littleind = [k for k in range(len(vptr)) if \
-                     (vptr[k]<0 and vptr[k]>-cutoff)] 
+                     (vptr[k]<0 and vptr[k]>-cutoff)]
         if littleind:
             # littlecomp has all vptr indices in the small components
             littlecomp = [k for k in range(len(vptr)) if \
                           findroot(k) in littleind]
-            # vdiscard has the vertex indices corresponding to vptr indices  
-            vdiscard = [verts[k] for k in littlecomp] 
+            # vdiscard has the vertex indices corresponding to vptr indices
+            vdiscard = [verts[k] for k in littlecomp]
             newbdry = [e for e in bdry if \
                        not((e[0] in vdiscard) and (e[1] in vdiscard))]
 
@@ -514,10 +514,10 @@ class Alpha_Shape(object):
                 if (v0 in newverts or v1 in newverts or v2 in newverts):
                     newbt.append(bt)
 
-            self.boundarytriangle = newbt           
+            self.boundarytriangle = newbt
         else:
             newbdry = bdry
-    
+
         return newbdry
 
 
@@ -526,12 +526,12 @@ class Alpha_Shape(object):
         Given edges in bdry, test for acute-angle triangular indents
         and remove them.
         """
-        
+
         bdry = self.boundary
         bdrytri = self.boundarytriangle
-        
+
         # find boundary triangles that have two edges in bdry
-        # v2ind has the place index relative to the triangle deltri[ind]  
+        # v2ind has the place index relative to the triangle deltri[ind]
         # for the bdry vertex where the two edges meet.
 
         verts = self._vertices_from_edges(bdry)
@@ -549,11 +549,11 @@ class Alpha_Shape(object):
             if bect==2:
                 b2etri.append((ind,v2ind[0]))
 
-        # test the bdrytri triangles for acute angles 
+        # test the bdrytri triangles for acute angles
         acutetri = []
         for tind in b2etri:
             tri = self.deltri[tind[0]]
-            
+
             dx = num.array([self.points[tri[(i+1)%3],0] - \
                            self.points[tri[(i+2)%3],0] for i in [0,1,2]])
             dy = num.array([self.points[tri[(i+1)%3],1] - \
@@ -568,7 +568,7 @@ class Alpha_Shape(object):
         # adjust the bdry edges and triangles by adding
         #in the acutetri triangles
         for pind in acutetri:
-            bdrytri.remove(pind) 
+            bdrytri.remove(pind)
             tri = self.deltri[pind]
             for i in [0,1,2]:
                 bdry.append((tri[(i+1)%3], tri[(i+2)%3]))
@@ -578,7 +578,7 @@ class Alpha_Shape(object):
             numed = bdry.count(ed)+bdry.count((ed[1],ed[0]))
             if numed%2 == 1:
                 newbdry.append(ed)
-        
+
         return newbdry
 
     def _expand_pinch(self):
@@ -589,7 +589,7 @@ class Alpha_Shape(object):
 
         bdry = self.boundary
         bdrytri = self.boundarytriangle
-        
+
         v1 = [bdry[k][0] for k in range(len(bdry))]
         v2 = [bdry[k][1] for k in range(len(bdry))]
         v = v1+v2
@@ -609,7 +609,7 @@ class Alpha_Shape(object):
 
         # "add in" the problem triangles
         for pind in probtri:
-            bdrytri.remove(pind) 
+            bdrytri.remove(pind)
             tri = self.deltri[pind]
             for i in [0,1,2]:
                 bdry.append((tri[(i+1)%3], tri[(i+2)%3]))
@@ -619,7 +619,7 @@ class Alpha_Shape(object):
             numed = bdry.count(ed)+bdry.count((ed[1],ed[0]))
             if numed%2 == 1:
                 newbdry.append(ed)
-        
+
         return newbdry
 
 
@@ -631,11 +631,12 @@ if __name__ == "__main__":
     Save the boundary to a file.
 
     usage: alpha_shape.py point_file.csv boundary_file.bnd [alpha]
-    
+
     The alpha value is optional.
     """
-    
-    import os, sys
+
+    import os
+    import sys
     usage = "usage: %s point_file.csv boundary_file.bnd [alpha]"%os.path.basename(sys.argv[0])
     if len(sys.argv) < 3:
         print(usage)
@@ -649,4 +650,4 @@ if __name__ == "__main__":
 
         #print "about to call alpha shape routine \n"
         alpha_shape_via_files(point_file, boundary_file, alpha)
-        
+

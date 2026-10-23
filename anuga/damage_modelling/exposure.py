@@ -17,7 +17,7 @@ Y_TITLE = 'y'
 def cmp_0(a, b):
     return (a > b) - (a < b)
 
-class Exposure(object):
+class Exposure:
     """Class for National Exposure Database storage (NEXIS).
     Returns a csv file handle
     """

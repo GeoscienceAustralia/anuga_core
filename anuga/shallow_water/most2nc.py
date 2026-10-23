@@ -3,7 +3,7 @@ It reads a bathymetry ascii file and creates a NetCDF (nc) file similar to
 MOSTs output.
 
  $Author: Peter Row
- 
+
 """
 
 import sys
@@ -33,10 +33,10 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
         up = +1.
 
     # read data from the MOST file
-    in_file = open(input_file, 'r')
+    in_file = open(input_file)
 
     if verbose:
-        log.critical('reading header')
+        log.info('reading header')
 
     nx_ny_str = in_file.readline()
     nx_str, ny_str = nx_ny_str.split()
@@ -53,7 +53,7 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     h2_list.reverse()
 
     if verbose:
-        log.critical('reading depths')
+        log.info('reading depths')
 
     in_depth_list = in_file.readlines()
     in_file.close()
@@ -61,7 +61,7 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
     out_depth_list = [[]]
 
     if verbose:
-        log.critical('processing depths')
+        log.info('processing depths')
 
     k = 1
     for in_line in in_depth_list:
@@ -80,7 +80,7 @@ def most2nc(input_file, output_file, inverted_bathymetry=False, verbose=True):
 
     # write the NetCDF file
     if verbose:
-        log.critical('writing results')
+        log.info('writing results')
 
     out_file = NetCDFFile(output_file, netcdf_mode_w)
 

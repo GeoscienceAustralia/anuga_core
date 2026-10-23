@@ -4,7 +4,7 @@ boundary.py - Classes for implementing boundary conditions
 """
 from warnings import warn
 
-from anuga.utilities.numerical_tools import NAN    
+from anuga.utilities.numerical_tools import NAN
 from anuga.fit_interpolate.interpolate import Modeltime_too_late
 from anuga.fit_interpolate.interpolate import Modeltime_too_early
 import anuga.utilities.log as log
@@ -12,7 +12,7 @@ import anuga.utilities.log as log
 import numpy as num
 
 
-class Boundary(object):
+class Boundary:
     """Base class for boundary conditions.
        Specific boundary conditions must provide values for
        the conserved_quantities
@@ -25,7 +25,7 @@ class Boundary(object):
         self.verbose = True
         self.default_boundary = None
         self.default_boundary_invoked = False
-        
+
 
     def evaluate(self, vol_id=None, edge_id=None):
         msg = 'Generic class Boundary must be subclassed'
@@ -36,7 +36,7 @@ class Boundary(object):
         """
         Evaluate boundary condition at edges of a domain in a list
         defined by segment_edges
-        
+
         segment_edges are a sublist of the list of edges definded by the
         arrays domain.boundary_cells  and domain.boundary_edges
 
@@ -56,7 +56,7 @@ class Boundary(object):
             return
         if domain is None:
             return
-        
+
         for i in segment_edges:
             vol_id  = domain.boundary_cells[i]
             edge_id = domain.boundary_edges[i]
@@ -90,7 +90,7 @@ class Boundary(object):
 
         return self.domain.get_time()
 
-        
+
     def get_boundary_values(self, t=None):
 
         if t is None:
@@ -108,20 +108,20 @@ class Boundary(object):
                 res = self.default_boundary
 
                 # Ensure that result cannot be manipulated
-                # This is a real danger in case the 
-                # default_boundary is a Dirichlet type 
+                # This is a real danger in case the
+                # default_boundary is a Dirichlet type
                 # for instance.
-                from copy import deepcopy 
-                res = deepcopy(res) 
+                from copy import deepcopy
+                res = deepcopy(res)
 
                 if self.default_boundary_invoked is False:
-                    if self.verbose:                
+                    if self.verbose:
                         # Issue warning the first time
                         msg = '%s' %str(e)
                         msg += 'Instead I will use the default boundary value: %s\n'\
-                            %str(self.default_boundary) 
+                            %str(self.default_boundary)
                         msg += 'Note: Further warnings will be suppressed'
-                        log.critical(msg)
+                        log.info(msg)
 
                     # FIXME (Ole): Replace this crude flag with
                     # Python's ability to print warnings only once.
@@ -295,15 +295,15 @@ class Time_boundary(Boundary):
     conserved quantities as a function of time.
     Must specify domain to get access to model time and a function of t
     which must return conserved quantities as a function time.
-    
+
     Example:
-      B = Time_boundary(domain, 
+      B = Time_boundary(domain,
                         function=lambda t: [(60<t<3660)*2, 0, 0])
-      
+
       This will produce a boundary condition with is a 2m high square wave
       starting 60 seconds into the simulation and lasting one hour.
       Momentum applied will be 0 at all times.
-                        
+
     """
 
     def __init__(self, domain=None,
@@ -320,11 +320,11 @@ class Time_boundary(Boundary):
 
         if domain is None:
             raise Exception('You must specify a domain to Time_boundary')
-            
+
         if function is None:
             raise Exception('You must specify a function to Time_boundary')
-            
-        
+
+
         try:
             q = function(0.0)
         except Exception as e:
@@ -405,7 +405,7 @@ class Time_boundary(Boundary):
         for j, name in enumerate(quantities):
             Q = domain.quantities[name]
             Q.boundary_values[ids] = q_bdry[j]
-            
+
 
 
 
@@ -417,15 +417,15 @@ class Time_space_boundary(Boundary):
     conserved quantities as a function of time and space.
     Must specify domain to get access to model time and a function of t,x,y
     which must return conserved quantities at specified time and location.
-    
+
     Example:
-      B = Time_space_boundary(domain, 
+      B = Time_space_boundary(domain,
                               function=lambda t,x,y: [(60<t<3660)*2, 0, 0])
-      
+
       This will produce a boundary condition with is a 2m high square wave
       starting 60 seconds into the simulation and lasting one hour.
       Momentum applied will be 0 at all times.
-                        
+
     """
 
 
@@ -440,10 +440,10 @@ class Time_space_boundary(Boundary):
         self.domain = domain
         self.verbose = verbose
 
-        
+
         if function is None:
             raise Exception('You must specify a function to Time_space_boundary')
-            
+
         try:
             q = function(0.0, 0.0, 0.0)
         except Exception as e:
@@ -488,22 +488,22 @@ class Time_space_boundary(Boundary):
             else:
                 # Pass control to default boundary
                 res = self.default_boundary.evaluate(vol_id, edge_id)
-                
+
                 # Ensure that result cannot be manipulated
-                # This is a real danger in case the 
-                # default_boundary is a Dirichlet type 
-                # for instance. 
-                res = res.copy() 
-                
+                # This is a real danger in case the
+                # default_boundary is a Dirichlet type
+                # for instance.
+                res = res.copy()
+
                 if self.default_boundary_invoked is False:
-                    if self.verbose:                
+                    if self.verbose:
                         # Issue warning the first time
                         msg = '%s' %str(e)
                         msg += 'Instead I will use the default boundary: %s\n'\
-                            %str(self.default_boundary) 
+                            %str(self.default_boundary)
                         msg += 'Note: Further warnings will be supressed'
-                        log.critical(msg)
-               
+                        log.info(msg)
+
                     # FIXME (Ole): Replace this crude flag with
                     # Python's ability to print warnings only once.
                     # See http://docs.python.org/lib/warning-filter.html
@@ -530,24 +530,24 @@ class File_boundary(Boundary):
 
     Note that the resulting solution history is not exactly the same as if
     the models were coupled as there is no feedback into the source model.
-    
-    Optional keyword argument default_boundary must be either None or 
+
+    Optional keyword argument default_boundary must be either None or
     an instance of class descending from class Boundary.
-    This will be used in case model time exceeds that available in the 
+    This will be used in case model time exceeds that available in the
     underlying data.
-       
+
     """
 
     # FIXME (Ole): I kind of like the name Spatio_Temporal_boundary for this
     # rather than File_boundary
 
-    def __init__(self, filename, domain, 
-                 time_thinning=1, 
+    def __init__(self, filename, domain,
+                 time_thinning=1,
                  time_limit=None,
-                 boundary_polygon=None,    
+                 boundary_polygon=None,
                  default_boundary=None,
-                 use_cache=False, 
-                 verbose=False): 
+                 use_cache=False,
+                 verbose=False):
 
         import time
         from anuga.config import time_format
@@ -564,13 +564,13 @@ class File_boundary(Boundary):
         # be attached to
         # any tagged boundary later on.
 
-        if verbose: log.critical('Find midpoint coordinates of entire boundary')
+        if verbose: log.info('Find midpoint coordinates of entire boundary')
         self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), float)
         boundary_keys = list(domain.boundary.keys())
 
         xllcorner = domain.geo_reference.get_xllcorner()
-        yllcorner = domain.geo_reference.get_yllcorner()        
-        
+        yllcorner = domain.geo_reference.get_yllcorner()
+
 
         # Make ordering unique #FIXME: should this happen in domain.py?
         boundary_keys.sort()
@@ -579,25 +579,25 @@ class File_boundary(Boundary):
         self.boundary_indices = {}
         for i, (vol_id, edge_id) in enumerate(boundary_keys):
 
-            self.midpoint_coordinates[i,:] = domain.get_edge_midpoint_coordinate(vol_id, edge_id, 
+            self.midpoint_coordinates[i,:] = domain.get_edge_midpoint_coordinate(vol_id, edge_id,
                                                                                  absolute=True)
 
             # Register index of this boundary edge for use with evaluate
             self.boundary_indices[(vol_id, edge_id)] = i
 
-            
-            
-        if verbose: log.critical('Initialise file_function')
+
+
+        if verbose: log.info('Initialise file_function')
         self.F = file_function(filename,
                                domain,
                                quantities=domain.conserved_quantities,
 	                           interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
                                time_limit=time_limit,
-                               use_cache=use_cache, 
+                               use_cache=use_cache,
                                verbose=verbose,
                                boundary_polygon=boundary_polygon)
-                             
+
         # Check and store default_boundary
         msg = 'Keyword argument default_boundary must be either None '
         msg += 'or a boundary object.\n I got %s' %(str(default_boundary))
@@ -616,7 +616,7 @@ class File_boundary(Boundary):
         # November 2007
         # We won't make it an error as it is conceivable that
         # only part of mesh boundary is actually used with a given
-        # file boundary sww file. 
+        # file boundary sww file.
         if hasattr(self.F, 'indices_outside_mesh') and\
                len(self.F.indices_outside_mesh) > 0:
             msg = 'WARNING: File_boundary has points outside the mesh '
@@ -626,8 +626,8 @@ class File_boundary(Boundary):
             msg += 'verbose is True).\n'
             msg += 'This is perfectly OK as long as the points that are '
             msg += 'outside aren\'t used on the actual boundary segment.'
-            if verbose is True:            
-                log.critical(msg)
+            if verbose is True:
+                log.info(msg)
             #raise Exception(msg)
 
         # Test that file function can be called
@@ -648,10 +648,10 @@ class File_boundary(Boundary):
         """
 
         t = self.domain.get_time()
-        
+
         if vol_id is not None and edge_id is not None:
             i = self.boundary_indices[ vol_id, edge_id ]
-            
+
             try:
                 res = self.F(t, point_id=i)
             except Modeltime_too_early as e:
@@ -662,27 +662,27 @@ class File_boundary(Boundary):
                 else:
                     # Pass control to default boundary
                     res = self.default_boundary.evaluate(vol_id, edge_id)
-                    
+
                     # Ensure that result cannot be manipulated
-                    # This is a real danger in case the 
-                    # default_boundary is a Dirichlet type 
-                    # for instance. 
-                    res = res.copy() 
-                    
+                    # This is a real danger in case the
+                    # default_boundary is a Dirichlet type
+                    # for instance.
+                    res = res.copy()
+
                     if self.default_boundary_invoked is False:
                         # Issue warning the first time
                         if self.verbose:
                             msg = '%s' %str(e)
                             msg += 'Instead I will use the default boundary: %s\n'\
-                                %str(self.default_boundary) 
+                                %str(self.default_boundary)
                             msg += 'Note: Further warnings will be supressed'
-                            log.critical(msg)
-                   
+                            log.info(msg)
+
                         # FIXME (Ole): Replace this crude flag with
                         # Python's ability to print warnings only once.
                         # See http://docs.python.org/lib/warning-filter.html
                         self.default_boundary_invoked = True
-            
+
             if num.any(res == NAN):
                 x,y=self.midpoint_coordinates[i,:]
                 msg = 'NAN value found in file_boundary at '
@@ -705,8 +705,8 @@ class File_boundary(Boundary):
                         msg += 'the file %s.\n' %self.F.filename
                         msg += 'Check this file for NANs.'
                 raise Exception(msg)
-            
-            return res 
+
+            return res
         else:
             msg = 'Boundary call without point_id not implemented.\n'
             msg += 'vol_id=%s, edge_id=%s' %(str(vol_id), str(edge_id))
@@ -735,7 +735,7 @@ class AWI_boundary(Boundary):
     This was added by Nils Goseberg et al in April 2009
     """
 
-    def __init__(self, filename, domain, time_thinning=1, 
+    def __init__(self, filename, domain, time_thinning=1,
                  use_cache=False, verbose=False):
         import time
         from anuga.config import time_format
@@ -752,12 +752,12 @@ class AWI_boundary(Boundary):
         # be attached to
         # any tagged boundary later on.
 
-        if verbose: log.critical('Find midpoint coordinates of entire boundary')
+        if verbose: log.info('Find midpoint coordinates of entire boundary')
         self.midpoint_coordinates = num.zeros((len(domain.boundary), 2), float)
         boundary_keys = list(domain.boundary.keys())
 
         xllcorner = domain.geo_reference.get_xllcorner()
-        yllcorner = domain.geo_reference.get_yllcorner()        
+        yllcorner = domain.geo_reference.get_yllcorner()
 
         # Make ordering unique #FIXME: should this happen in domain.py?
         boundary_keys.sort()
@@ -769,7 +769,7 @@ class AWI_boundary(Boundary):
             x0, y0 = V[base_index, :]
             x1, y1 = V[base_index+1, :]
             x2, y2 = V[base_index+2, :]
-            
+
             # Compute midpoints
             if edge_id == 0: m = num.array([(x1 + x2)/2, (y1 + y2)/2])
             if edge_id == 1: m = num.array([(x0 + x2)/2, (y0 + y2)/2])
@@ -778,7 +778,7 @@ class AWI_boundary(Boundary):
             # Convert to absolute UTM coordinates
             m[0] += xllcorner
             m[1] += yllcorner
-            
+
             # Register point and index
             self.midpoint_coordinates[i,:] = m
 
@@ -786,11 +786,11 @@ class AWI_boundary(Boundary):
             self.boundary_indices[(vol_id, edge_id)] = i
 
 
-        if verbose: log.critical('Initialise file_function')
+        if verbose: log.info('Initialise file_function')
         self.F = file_function(filename, domain,
 	                           interpolation_points=self.midpoint_coordinates,
                                time_thinning=time_thinning,
-                               use_cache=use_cache, 
+                               use_cache=use_cache,
                                verbose=verbose)
         self.domain = domain
 
@@ -801,7 +801,7 @@ class AWI_boundary(Boundary):
         # November 2007
         # We won't make it an error as it is conceivable that
         # only part of mesh boundary is actually used with a given
-        # file boundary sww file. 
+        # file boundary sww file.
         if (hasattr(self.F, 'indices_outside_mesh') and
                len(self.F.indices_outside_mesh)) > 0:
             msg = 'WARNING: File_boundary has points outside the mesh '
@@ -811,8 +811,8 @@ class AWI_boundary(Boundary):
             msg += 'verbose is True).\n'
             msg += 'This is perfectly OK as long as the points that are '
             msg += 'outside aren\'t used on the actual boundary segment.'
-            if verbose is True:            
-                log.critical(msg)
+            if verbose is True:
+                log.info(msg)
             #raise Exception(msg)
 
         q = self.F(0, point_id=0)
@@ -860,10 +860,10 @@ class AWI_boundary(Boundary):
                         msg += 'the file %s.\n' % self.F.filename
                         msg += 'Check this file for NANs.'
                 raise Exception(msg)
-            
+
             q[0] = res[0] # Take stage, leave momentum alone
             return q
-            #return res 
+            #return res
         else:
             # raise 'Boundary call without point_id not implemented'
             # FIXME: What should the semantics be?

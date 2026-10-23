@@ -1,6 +1,6 @@
 """
 Generic implementation of update_timestep and update_ghosts for
-parallel domains (eg shallow_water or advection) 
+parallel domains (eg shallow_water or advection)
 
 Ole Nielsen, Stephen Roberts, Duncan Gray, Christopher Zoppou
 Geoscience Australia, 2004-2010
@@ -68,9 +68,9 @@ def communicate_flux_timestep(domain, yieldstep, finaltime):
     t0 = time.time()
 
     domain.communication_broadcast_time += time.time()-t0
-    
+
     domain.flux_timestep = domain.global_timestep[0]
-    
+
 
 def communicate_ghosts_blocking(domain, quantities=None):
 
@@ -158,7 +158,7 @@ def communicate_ghosts_non_blocking(domain, quantities=None):
 
     sendDict = domain.full_send_dict
     recvDict = domain.ghost_recv_dict
-    
+
     if quantities is None:
         quantities = domain.conserved_quantities
 
@@ -178,7 +178,7 @@ def communicate_ghosts_non_blocking(domain, quantities=None):
             Xout[:,i] = num.take(Q_cv, Idf)
 
     #--------------------------------------------
-    # Do all the comuunication using isend/irecv 
+    # Do all the comuunication using isend/irecv
     # via the buffers in the
     # full_send_dict and ghost_recv_dict
     #--------------------------------------------
@@ -210,7 +210,7 @@ def communicate_ghosts_non_blocking(domain, quantities=None):
 
     #-----------------------------------------
     # Now complete communication.
-    # We could put some computation between the 
+    # We could put some computation between the
     # communication calls above and this call.
     # Question: Do we need to wait for the sends to complete as well?
     # Answer: Yes, we should wait for the sends to complete as well, otherwise
@@ -232,6 +232,88 @@ def communicate_ghosts_non_blocking(domain, quantities=None):
 
     domain.communication_time += time.time()-t0
 
+    # Tracers are not Quantity objects, so the loop above cannot see them.
+    communicate_tracer_ghosts(domain)
+
+
+
+def communicate_tracer_ghosts(domain):
+    """Exchange generic tracer values for ghost cells (legacy / mode 1).
+
+    The hydro exchange above iterates ``domain.conserved_quantities`` and reads
+    ``domain.quantities[q].centroid_values``. Tracers are raw ``(ns, n)`` arrays
+    on the Domain rather than Quantity objects, so they are invisible to it and
+    a partitioned run silently transports them with stale ghost values. The
+    symptom is subtle: total water volume stays exactly conserved while a
+    uniform tracer -- which must satisfy m == h exactly -- drifts away from it.
+
+    This cannot reuse the hydro buffers: ``full_send_dict[proc][2]`` is
+    allocated at distribute time with width ``len(conserved_quantities)``. So we
+    keep our own, allocated lazily and cached on the domain, and use a distinct
+    MPI tag.
+
+    Only the CONSERVED m = h*c is exchanged, matching both the hydro path and
+    gpu_halo.c: c is re-derived from m for ghost cells in extrapolation Step 1,
+    exactly as height is re-derived from stage.
+    """
+    import numpy as num
+    import time
+    import mpi4py
+
+    ns = getattr(domain, 'number_of_tracers', 0)
+    if ns == 0:
+        return
+
+    t0 = time.time()
+
+    sendDict = domain.full_send_dict
+    recvDict = domain.ghost_recv_dict
+    m = domain.tracer_conserved_values
+
+    # Cache the buffers, but key the cache on ns: add_tracer() reallocates the
+    # tracer arrays at a new width, and a stale buffer would silently exchange
+    # the wrong number of slots.
+    cache = getattr(domain, '_tracer_halo_buffers', None)
+    if cache is None or cache.get('ns') != ns:
+        cache = {'ns': ns, 'send': {}, 'recv': {}}
+        for proc in sendDict:
+            cache['send'][proc] = num.zeros((len(sendDict[proc][0]), ns),
+                                            dtype=num.float64)
+        for proc in recvDict:
+            cache['recv'][proc] = num.zeros((len(recvDict[proc][0]), ns),
+                                            dtype=num.float64)
+        domain._tracer_halo_buffers = cache
+
+    # Pack owned cells
+    for send_proc in sendDict:
+        Idf = sendDict[send_proc][0]
+        Xout = cache['send'][send_proc]
+        for s in range(ns):
+            Xout[:, s] = num.take(m[s], Idf)
+
+    # Tag 124: the hydro exchange above uses 123 on the same communicator and
+    # the two must not be matched against each other.
+    recv_requests = []
+    for recv_proc in recvDict:
+        recv_requests.append(
+            pypar.comm.Irecv(cache['recv'][recv_proc], recv_proc, 124))
+
+    send_requests = []
+    for send_proc in sendDict:
+        send_requests.append(
+            pypar.comm.Isend(cache['send'][send_proc], send_proc, 124))
+
+    mpi4py.MPI.Request.Waitall(recv_requests + send_requests)
+
+    # Unpack into ghost cells
+    for recv_proc in recvDict:
+        Idg = recvDict[recv_proc][0]
+        X = cache['recv'][recv_proc]
+        for s in range(ns):
+            num.put(m[s], Idg, X[:, s])
+
+    domain.communication_time += time.time() - t0
+
 
 def communicate_ghosts_asynchronous(domain, quantities=None):
 
@@ -244,7 +326,7 @@ def communicate_ghosts_asynchronous(domain, quantities=None):
     import numpy as num
     import time
     t0 = time.time()
-    
+
     if quantities is None:
         quantities = domain.conserved_quantities
 

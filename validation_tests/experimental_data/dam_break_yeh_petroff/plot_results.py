@@ -1,6 +1,10 @@
 """
     Quick plot of the Yeh-Petroff dam break outputs
 """
+import setup_diagram
+
+setup_diagram.setup('Yeh_Petroff.png')
+
 #---------------
 # Import Modules
 #---------------
@@ -35,7 +39,7 @@ for r in range(len(table)):
             #else:
             #    print "table[r][c]=",table[r][c]
     else:
-        STOP
+        raise ValueError('unexpected row length %d in table row %d' % (len(table[r]), r))
         
 t = zeros(len(tF))        
 F = zeros(len(tF))

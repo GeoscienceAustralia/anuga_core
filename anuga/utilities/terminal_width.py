@@ -4,9 +4,12 @@
 
 ######
 # This code was found at http://code.activestate.com/recipes/440694/
-# 
+#
 # Any errors here are mine, as the code below changed the code found above.
 ######
+
+import os
+
 
 def terminal_width():
     """Get the current terminal width.
@@ -40,12 +43,14 @@ def terminal_width():
     except Exception:
         width = 0
         try:
-            import struct, fcntl, termios
+            import struct
+            import fcntl
+            import termios
 
             s = struct.pack('HHHH', 0, 0, 0, 0)
             x = fcntl.ioctl(1, termios.TIOCGWINSZ, s)
             width = struct.unpack('HHHH', x)[1]
-        except (IOError, ImportError):
+        except (OSError, ImportError):
             pass
         if width <= 0:
             try:

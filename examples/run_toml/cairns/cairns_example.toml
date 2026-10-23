@@ -1,0 +1,535 @@
+# ANUGA simulation configuration — Cairns example
+#
+# Plain-text replacement for the Excel (.xls) interface.
+# Run with:
+#   anuga_toml_run.py cairns_example.toml
+# or in parallel:
+#   mpirun -np 6 anuga_toml_run.py cairns_example.toml
+
+
+# =============================================================================
+# Project settings
+# =============================================================================
+[project]
+
+# Name used for the output SWW file and output directory prefix
+scenario = "cairns"
+
+# Base directory where per-run output subdirectories are created
+output_base_directory = "OUTPUT/"
+
+# Interval between SWW output writes [seconds]
+yieldstep = 120.0
+
+# SWW output interval [seconds].  Must be an integer multiple of yieldstep.
+# Omit to write SWW output every yieldstep (the default).
+# outputstep = 600.0
+
+# Total simulation duration [seconds]
+finaltime = 21600.0
+
+# Coordinate reference system. One of:
+#   Integer       — UTM zone (negative = southern hemisphere), e.g. -55
+#   "EPSG:<code>" — an EPSG code, e.g. "EPSG:32755"
+#   String        — a full proj4 string for other projections
+projection_information = "EPSG:32755"   # UTM zone 55 south (= -55)
+
+# Numerical flow algorithm.
+# "DE0" = first-order (faster), "DE1" = second-order (more accurate)
+flow_algorithm = "DE0"
+
+# Enable local extrapolation and flux updating (improves stability near wet/dry fronts)
+use_local_extrapolation_and_flux_updating = false
+
+# Grid cell size [m] for output GeoTiff rasters
+output_tif_cellsize = 50.0
+
+# Polygon CSV to clip output GeoTiffs; leave empty to use the full domain extent
+output_tif_bounding_polygon = ""
+
+# How often (every N timesteps) to update tracked maximum quantities
+max_quantity_update_frequency = 1
+
+# Time from which maximum-quantity tracking begins [seconds]; must be < finaltime
+max_quantity_collection_starttime = 0.0
+
+# Store each triangle's three vertex values separately (larger files; needed for
+# some visualisation workflows — normally leave false)
+store_vertices_uniquely = false
+
+# Re-write elevation at every yieldstep (only needed if elevation changes during
+# the run, e.g. erosion operators)
+store_elevation_every_timestep = false
+
+# Directory for text-format copies of spatial inputs (used for QC)
+spatial_text_output_dir = "SPATIAL_TEXT"
+
+# Diagnostics printed at each yieldstep
+report_mass_conservation_statistics      = false
+report_peak_velocity_statistics          = false
+report_smallest_edge_timestep_statistics = false
+# Print rainfall/inlet discharge at each yieldstep (requires user_functions.py)
+report_operator_statistics               = false
+
+# Number of OpenMP threads for the flow solver.
+# Omit (or set to 1) to use a single thread; reads OMP_NUM_THREADS env var if present.
+# omp_num_threads = 4
+
+# Compute path: "legacy" (CPU OpenMP, default) or "unified" (shared CPU/GPU kernels)
+compute_mode = "legacy"
+
+
+
+
+# =============================================================================
+# Mesh
+# =============================================================================
+[mesh]
+
+# Set true to reuse a previously built partitioned mesh (skips mesh generation)
+use_existing_mesh_pickle = false
+
+# Domain boundary file.  Two formats are supported:
+#
+#   Shapefile (.shp) — each line feature carries a tag attribute; the name of
+#     that attribute is set in boundary_conditions.boundary_tags_attribute_name.
+#
+#   Plain CSV (.csv) — a simple x,y polygon.  In this case you must also
+#     provide [[mesh.boundary_tags]] entries (see below) that map edge indices
+#     to tag names.  Edge indices are 0-based and refer to the segments between
+#     consecutive polygon vertices.
+bounding_polygon = "cairns_mesh/cairnsextent.shp"
+
+# [[mesh.boundary_tags]] — required only when bounding_polygon is a CSV file.
+# List every tag and the edge indices that carry it.  All edges must be covered.
+# Example (uncomment and adjust edge indices to match your polygon):
+#
+# [[mesh.boundary_tags]]
+# tag   = "north"
+# edges = [0]
+
+# [[mesh.boundary_tags]]
+# tag   = "ocean_east"
+# edges = [1]
+
+# [[mesh.boundary_tags]]
+# tag   = "south"
+# edges = [2]
+
+# [[mesh.boundary_tags]]
+# tag   = "onshore"
+# edges = [3]
+
+
+# [[mesh.interior_holes]] -- polygons cut OUT of the mesh entirely, leaving a
+# void rather than a refined region. Use for anything water should neither
+# enter nor flow through: building footprints, tank pads, solid structures.
+#
+# Different from interior_regions above, which keeps the triangles and only
+# changes their size -- so no resolution is given here.
+#
+# 'tag' is optional and names the hole's edges so a boundary condition can be
+# bound to them. If you set it, you MUST add a matching
+# [[boundary_conditions.boundaries]] entry, or the run fails with
+# 'Tag "..." has not been bound to a boundary object'. Omit it and the mesh
+# generator applies its own 'interior' default instead.
+#
+# [[mesh.interior_holes]]
+# polygon = "cairns_mesh/buildings.csv"
+# tag     = "building"
+
+
+# Default maximum triangle area [m²] across the whole domain
+default_res = 1000000.0
+
+# Breakline files — polylines that force triangle edges in the mesh.
+# Glob patterns are expanded (e.g. "cairns_mesh/breaklines_*.csv").
+# Leave empty if not used.
+breakline_files = []
+
+# Riverwall CSV files — like breaklines but with an elevation column used to
+# set riverwall heights. Leave empty if not used.
+riverwall_csv_files = []
+
+# Distance (m) within which intersecting breakline / bounding-polygon points
+# are snapped together. Set to "ignore" to skip intersection processing.
+breakline_intersection_threshold = 0.1
+
+# Point-based resolution file — CSV with columns x, y, resolution.
+# The resolution column is interpreted as a triangle area or edge length;
+# see region_areas_type below.
+# Leave empty to use mesh.interior_regions instead (the two methods are mutually exclusive).
+region_areas_file = ""
+
+# Whether resolution values in region_areas_file are triangle areas or edge lengths.
+# "area"   — values are maximum triangle areas [m²]
+# "length" — values are approximate maximum edge lengths [m] (converted to area internally)
+# Ignored when region_areas_file is empty.
+region_areas_type = "area"
+
+# Interior regions — polygons with refined resolution.
+# Use these OR breaklines/region_areas_file, not both.
+# resolution: maximum triangle area [m²] inside this polygon.
+# [[mesh.interior_regions]]
+# polygon    = "cairns_mesh/inner_region.csv"
+# resolution = 10000.0
+
+
+# =============================================================================
+# Boundary conditions
+# =============================================================================
+[boundary_conditions]
+
+# Shapefile attribute name that labels each boundary segment.
+# Must match the attribute used in mesh.bounding_polygon.
+boundary_tags_attribute_name = "Boundary"
+
+# One entry per boundary tag.  Every tag present in the bounding polygon must
+# appear here or the run will raise an error.
+#
+# type options:
+#   "Reflective"    — zero-flux wall; no extra fields needed
+#   "Stage"         — transmissive boundary with prescribed stage timeseries
+#   "Flather_Stage" — Flather radiation boundary with prescribed stage timeseries
+#
+# file:       CSV with columns [time_s, stage_m]; required for Stage / Flather_Stage
+# start_time: subtracted from CSV times so that t=0 in the model matches the
+#             desired point in the boundary forcing [seconds]
+
+[[boundary_conditions.boundaries]]
+tag        = "East"
+type       = "Flather_Stage"
+file       = "cairns_boundarycond/sine_30m.csv"
+start_time = 0.0
+
+[[boundary_conditions.boundaries]]
+tag  = "NorthWet"
+type = "Flather_Stage"
+file = "cairns_boundarycond/msl_boundary.csv"
+start_time = 0.0
+
+[[boundary_conditions.boundaries]]
+tag  = "SouthWet"
+type = "Flather_Stage"
+file = "cairns_boundarycond/msl_boundary.csv"
+start_time = 0.0
+
+[[boundary_conditions.boundaries]]
+tag  = "Land"
+type = "Reflective"
+
+
+# =============================================================================
+# Initial conditions
+# =============================================================================
+# Each quantity is set from an ordered list of [polygon, value] entries.
+# Earlier entries take priority over later ones.
+#
+# polygon options:
+#   path to a .shp or .csv polygon file
+#   "Extent" — apply over the full extent of a raster value (rasters only)
+#   "All"    — apply everywhere; typically the final catch-all entry
+#   "None"   — skip this entry
+#
+# value options:
+#   a constant number
+#   path to a GDAL-compatible raster (.asc, .tif, ...)
+#   path to a CSV/TXT file with columns x, y, z
+#
+# clip_min / clip_max: clamp output to this range; use +/-inf for no clipping
+#
+# spatial_average (optional): if set, the quantity is spatially averaged on a
+#   regular grid at this spacing [m] before being applied to the mesh.
+#   Useful for smoothing noisy DEMs. Omit the key to disable averaging.
+
+[initial_conditions]
+
+# Elevation — loaded from a DEM raster; fallback to 0.0 outside raster extent
+# elevation_spatial_average = 100.0  # uncomment to smooth at 100 m scale
+[[initial_conditions.elevation]]
+polygon  = "Extent"
+value    = "../../data/cairns/cairns.asc"
+clip_min = -inf
+clip_max = inf
+
+[[initial_conditions.elevation]]
+polygon  = "All"
+value    = 0.0
+clip_min = -inf
+clip_max = inf
+
+# Friction (Manning's n) — spatially uniform starting point
+# friction_spatial_average = 50.0  # uncomment to smooth friction field
+[[initial_conditions.friction]]
+polygon  = "All"
+value    = 0.03
+clip_min = 0.01
+clip_max = 0.5
+
+# Stage — initialise domain dry (stage equal to bed elevation where bed > 0,
+# or 0.0 elsewhere)
+[[initial_conditions.stage]]
+polygon  = "All"
+value    = 0.0
+clip_min = -inf
+clip_max = inf
+
+# X-momentum (u * depth) — start at rest
+[[initial_conditions.xmomentum]]
+polygon  = "All"
+value    = 0.0
+clip_min = -inf
+clip_max = inf
+
+# Y-momentum (v * depth) — start at rest
+[[initial_conditions.ymomentum]]
+polygon  = "All"
+value    = 0.0
+clip_min = -inf
+clip_max = inf
+
+
+# =============================================================================
+# Initial condition additions
+# =============================================================================
+# Same structure as initial_conditions, but values are *added on top of*
+# whatever was set above.  Useful for local offsets (e.g. a pre-dredged
+# channel, a localised initial flood pool, or a small friction adjustment).
+# Leave sections empty if no additions are needed.
+
+[initial_condition_additions]
+
+# Example: lower bed elevation by 2 m inside a dredged channel polygon
+# [[initial_condition_additions.elevation]]
+# polygon  = "cairns_mesh/dredge_channel.csv"
+# value    = -2.0
+# clip_min = -inf
+# clip_max = inf
+
+
+# =============================================================================
+# Erosion / scour operators
+# =============================================================================
+# Each entry attaches a scour operator to a region of the domain.
+#
+# type      simple     | bed_shear | flat_slice | flat_fill | sand_dune
+# region    either polygon = "file.csv", OR center = [x, y] with radius = 50.0
+#           (raw triangle indices are deliberately not supported here — they
+#           cannot survive a re-mesh, so they have no stable meaning in a config)
+# threshold bed shear below which no scour occurs (default 0.0 = scour at once)
+# base      minimum bed RL; scour does not cut below this (default 0.0)
+# label     optional; names this operator's log file when logging = true
+#
+# Type-specific — supplying one on the wrong type is an error, not ignored:
+#   shear_factor   bed_shear only    (default 75000.0; higher = slower breach)
+#   elevation      flat_slice / flat_fill only
+#   Ra             sand_dune only    (default 34.0; angle of repose, degrees)
+#
+# NOTE: erosion changes elevation as the run proceeds, but ANUGA stores
+# elevation once at t=0 by default — so the eroded bed will not appear in the
+# .sww or any raster derived from it. Set store_elevation_every_timestep = true
+# in [project]; a warning is issued if you define erosion without it.
+#
+# [[erosion]]
+# type         = "bed_shear"
+# polygon      = "erosion/breach.csv"
+# threshold    = 0.0
+# base         = -5.0
+# shear_factor = 75000.0
+# label        = "breach"
+
+
+# =============================================================================
+# Inlets  (line sources / sinks of discharge)
+# =============================================================================
+# Each inlet injects (or extracts) water across a cross-section line.
+# timeseries_file: CSV with columns [time_s, discharge_m3s]
+#   Positive discharge = water added; negative = water removed.
+# start_time: subtracted from CSV times [seconds]
+
+# [[inlets]]
+# name            = "river_inflow"
+# line_file       = "cairns_mesh/river_line.csv"
+# timeseries_file = "cairns_boundarycond/river_flow.csv"
+# start_time      = 0.0
+
+
+# =============================================================================
+# Rainfall
+# =============================================================================
+# Each entry drives a spatially uniform rainfall rate over a region.
+# timeseries_file: CSV with columns [time_s, rate_mm_per_hr]
+# start_time: subtracted from CSV times [seconds]
+# interpolation_type: "linear" or "nearest" (passed to scipy.interpolate.interp1d)
+# polygon: path to a polygon CSV, or "All" for the whole domain
+# multiplier: scale factor applied to the timeseries (default 1.0)
+
+# [[rainfall]]
+# timeseries_file    = "cairns_boundarycond/rainfall.csv"
+# start_time         = 0.0
+# interpolation_type = "linear"
+# polygon            = "All"
+# multiplier         = 1.0
+
+
+# =============================================================================
+# Bridges  (HEC-RAS rating-curve internal boundary)
+# =============================================================================
+# Set enabled = false to disable a bridge without removing its definition.
+#
+# deck_file:      polygon CSV for the bridge deck structure; triangles within
+#                 this polygon have their bed elevation forced to deck_elevation.
+# exchange_line_0/1: polylines defining the upstream and downstream exchange
+#                 zones used by the internal boundary operator.
+# enquiry_gap:    distance (m) from exchange lines to enquiry points.
+# internal_boundary_curve_file: HEC-RAS output file providing the Q(Δh) curve.
+# vertical_datum_offset: added to curve elevations to align with model datum [m].
+# smoothing_timescale: exponential smoothing time constant for discharge [seconds].
+
+[[bridges]]
+enabled                      = false
+label                        = "bridge_1"
+deck_file                    = "cairns_mesh/bridge1_deck.csv"
+deck_elevation               = 4.5
+exchange_line_0              = "cairns_mesh/bridge1_exchange_up.csv"
+exchange_line_1              = "cairns_mesh/bridge1_exchange_down.csv"
+enquiry_gap                  = 2.0
+internal_boundary_curve_file = "cairns_mesh/bridge1_rating_curve.csv"
+vertical_datum_offset        = 0.0
+smoothing_timescale          = 20.0
+
+
+# =============================================================================
+# Culverts  (Boyd box culverts and Boyd pipe culverts)
+# =============================================================================
+# Set enabled = false to disable a culvert without removing its definition.
+#
+# type:   "boyd_box"  — rectangular barrel (requires width; height defaults to width)
+#         "boyd_pipe" — circular barrel    (requires diameter)
+#
+# Geometry — choose ONE of:
+#   exchange_line_0 / exchange_line_1:
+#       Paths to CSV polyline files defining the upstream / downstream
+#       exchange zones.  This is the preferred approach for field models
+#       because the exchange zone widths govern how much of the mesh
+#       perimeter is coupled to the culvert.
+#   end_point_0 / end_point_1:
+#       [x, y] coordinate pairs for the two barrel ends.  ANUGA derives
+#       short perpendicular exchange lines automatically.
+#
+# losses:      head-loss coefficient(s); scalar, list (summed), or dict.
+#              Typical: 0.5 sharp-edge inlet, 1.0 re-entrant inlet.
+# barrels:     number of parallel identical barrels.
+# blockage:    fractional cross-section blockage [0,1]; 0.0 = fully open.
+# z1 / z2:    batter slopes (rise/run) at each end; used when inferring
+#              invert elevations from the DEM.
+# apron:       flat apron width [m] at each end; extends the exchange zone.
+# manning:     Manning's n for barrel friction.
+# enquiry_gap: distance [m] from exchange line to headwater enquiry point.
+# invert_elevations: [upstream_m, downstream_m] invert elevations.
+#              Omit to have ANUGA sample them from the DEM.
+# smoothing_timescale: exponential smoothing time constant [seconds].
+# use_momentum_jet / use_velocity_head: toggle momentum and velocity-head
+#              terms in the discharge formula (normally leave true).
+
+[[culverts]]
+enabled              = false
+type                 = "boyd_box"
+label                = "culvert_box_1"
+width                = 0.9
+height               = 0.6
+exchange_line_0      = "cairns_mesh/culvert1_exchange_up.csv"
+exchange_line_1      = "cairns_mesh/culvert1_exchange_down.csv"
+enquiry_gap          = 0.2
+losses               = 0.5
+barrels              = 1.0
+blockage             = 0.0
+z1                   = 0.0
+z2                   = 0.0
+apron                = 0.1
+manning              = 0.013
+smoothing_timescale  = 0.0
+use_momentum_jet     = true
+use_velocity_head    = true
+# invert_elevations  = [1.0, 0.8]   # optional; sampled from DEM if omitted
+
+[[culverts]]
+enabled              = false
+type                 = "boyd_pipe"
+label                = "culvert_pipe_1"
+diameter             = 0.9
+exchange_line_0      = "cairns_mesh/culvert_pipe1_exchange_up.csv"
+exchange_line_1      = "cairns_mesh/culvert_pipe1_exchange_down.csv"
+enquiry_gap          = 0.2
+losses               = 0.5
+barrels              = 1.0
+blockage             = 0.0
+z1                   = 0.0
+z2                   = 0.0
+apron                = 0.1
+manning              = 0.013
+smoothing_timescale  = 0.0
+use_momentum_jet     = true
+use_velocity_head    = true
+# invert_elevations  = [1.0, 0.8]   # optional; sampled from DEM if omitted
+
+
+# =============================================================================
+# Weirs  (weir / orifice with trapezoidal cross-section)
+# =============================================================================
+# Set enabled = false to disable a weir without removing its definition.
+#
+# width:  bottom width [m] of the trapezoidal cross-section.
+# height: height [m] of the section; defaults to width if omitted.
+#
+# All other parameters (exchange lines, losses, barrels, …) follow the same
+# conventions as [[culverts]] above.
+
+[[weirs]]
+enabled              = false
+label                = "weir_1"
+width                = 3.0
+height               = 1.2
+exchange_line_0      = "cairns_mesh/weir1_exchange_up.csv"
+exchange_line_1      = "cairns_mesh/weir1_exchange_down.csv"
+enquiry_gap          = 0.0
+losses               = 0.5
+barrels              = 1.0
+blockage             = 0.0
+z1                   = 0.0
+z2                   = 0.0
+apron                = 0.1
+manning              = 0.013
+smoothing_timescale  = 0.0
+use_momentum_jet     = true
+use_velocity_head    = true
+# invert_elevations  = [1.0, 0.8]   # optional; sampled from DEM if omitted
+
+
+# =============================================================================
+# Pumping stations
+# =============================================================================
+# Set enabled = false to disable a station without removing its definition.
+#
+# basin_polygon_file: polygon for the pump wet-well; bed elevation inside is
+#                 set to basin_elevation.
+# exchange_line_0: line on the wet-well (suction) side.
+# exchange_line_1: line on the discharge side.
+# hw_to_start/stop_pumping: headwater depths [m] that switch the pump on/off.
+# pump_capacity:  maximum pump flow rate [m³/s].
+# pump_rate_of_increase/decrease: ramp rates [m³/s per second].
+# smoothing_timescale: exponential smoothing time constant [seconds].
+
+[[pumping_stations]]
+enabled               = false
+label                 = "pump_1"
+pump_capacity         = 2.0
+pump_rate_of_increase = 0.5
+pump_rate_of_decrease = 0.5
+hw_to_start_pumping   = 0.3
+hw_to_stop_pumping    = 0.1
+basin_polygon_file    = "cairns_mesh/pump1_basin.csv"
+basin_elevation       = -1.0
+exchange_line_0       = "cairns_mesh/pump1_wet_well_line.csv"
+exchange_line_1       = "cairns_mesh/pump1_discharge_line.csv"
+smoothing_timescale   = 30.0

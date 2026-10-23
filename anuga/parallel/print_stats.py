@@ -48,7 +48,7 @@ def build_full_flag(domain, ghost_recv_dict):
     for i in list(ghost_recv_dict.keys()):
         for id in ghost_recv_dict[i][0]:
             tri_full_flag[id] = 0
-        
+
 
     return tri_full_flag
 
@@ -72,7 +72,7 @@ def print_l1_stats(full_edge):
 
     numprocs = pypar.size()
     myid = pypar.rank()
-    
+
     tri_norm = zeros(3, float64)
     recv_norm = zeros(3, float64)
     tri_norm[0] = l1_norm(full_edge[:, 0])
@@ -109,7 +109,7 @@ def print_l2_stats(full_edge):
 
     numprocs = pypar.size()
     myid = pypar.rank()
-    
+
     tri_norm = zeros(3, float64)
     recv_norm = zeros(3, float64)
     tri_norm[0] = pow(l2_norm(full_edge[:, 0]), 2)
@@ -147,10 +147,10 @@ def print_linf_stats(full_edge):
 
     numprocs = pypar.size()
     myid = pypar.rank()
-    
+
     tri_norm = zeros(3, float64)
     recv_norm = zeros(3, float64)
-        
+
     tri_norm[0] = linf_norm(full_edge[:, 0])
     tri_norm[1] = linf_norm(full_edge[:, 1])
     tri_norm[2] = linf_norm(full_edge[:, 2])
@@ -164,7 +164,7 @@ def print_linf_stats(full_edge):
     else:
         pypar.send(tri_norm, 0)
 
-       
+
 #########################################################
 #
 # Print the norms of the quantites assigned to the domain

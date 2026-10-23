@@ -1,10 +1,11 @@
 
+import tempfile
 import unittest
 import copy
 import os
 import numpy as num
 
-from anuga.coordinate_transforms.geo_reference import Geo_reference 
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.geometry.polygon import is_inside_polygon
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
@@ -18,18 +19,18 @@ from anuga.abstract_2d_finite_volumes.generic_boundary_conditions\
             Time_boundary, File_boundary, AWI_boundary
 
 from anuga.file.sww import get_mesh_and_quantities_from_file
-            
+
 from anuga.shallow_water.shallow_water_domain import Domain
 
 from anuga.abstract_2d_finite_volumes.mesh_factory \
         import rectangular_cross, rectangular
-        
+
 from anuga.shallow_water.sww_interrogate import get_maximum_inundation_elevation, \
             get_maximum_inundation_location, get_maximum_inundation_data, \
             get_flow_through_cross_section, get_energy_through_cross_section
-            
-            
-                
+
+
+
 
 class Test_sww_Interrogate(unittest.TestCase):
 
@@ -41,8 +42,8 @@ class Test_sww_Interrogate(unittest.TestCase):
             try:
                 os.remove(file)
             except OSError:
-                pass     
-    
+                pass
+
 
     def test_get_maximum_inundation_de0(self):
         """Test that sww information can be converted correctly to maximum
@@ -52,9 +53,9 @@ class Test_sww_Interrogate(unittest.TestCase):
         and levels out to the boundary condition (1m) at about 30s.
         """
 
-        import time, os
+        import time
         from anuga.file.netcdf import NetCDFFile
-        
+
         verbose = False
         #Setup
 
@@ -65,6 +66,11 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         # Create shallow water domain
         domain = Domain(points, vertices, boundary)
+        # Runup/location asserts are against legacy-recorded reference values;
+        # mode-2 ('unified') diverges at the ~1e-6 level from a different
+        # reduction/eval order. Pin legacy so this test is deterministic under
+        # any ANUGA_DEFAULT_COMPUTE_MODE.
+        domain.set_compute_mode('legacy')
 
         domain.set_flow_algorithm('DE0')
         domain.set_low_froude(0)
@@ -72,9 +78,9 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         filename = 'runup_test_3'
         domain.set_name(filename)
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
 
@@ -82,14 +88,14 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Look at sww file and see what happens when
         # domain.tight_slope_limiters = 1
         domain.tight_slope_limiters = 0
-        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)        
-        
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+
         Br = Reflective_boundary(domain)
         Bd = Dirichlet_boundary([1.0,0,0])
 
 
         #---------- First run without geo referencing
-        
+
         domain.set_quantity('elevation', lambda x,y: -0.2*x + 14) # Slope
         domain.set_quantity('stage', -6)
         domain.set_boundary( {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
@@ -101,20 +107,20 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup, location, max_time = get_maximum_inundation_data(swwfile, return_time=True)
         if verbose:
             print('Runup, location', runup, location, max_time)
-        
+
         assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332, 43.333332]) 
+        assert num.allclose(location, [53.333332, 43.333332])
         assert num.allclose(max_time, 10.0)
-               
+
         # Check runup in restricted time interval
         runup, location, max_time = get_maximum_inundation_data(swwfile, time_interval=[0,9], return_time=True)
         if verbose:
             print('Runup, location:',runup, location, max_time)
-        
+
         assert num.allclose(runup, 2.66666674614)
         assert num.allclose(location, [56.666668, 16.666666])
         assert num.allclose(max_time, 9.0)
-        
+
         # Check final runup
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
         if verbose:
@@ -134,21 +140,21 @@ class Test_sww_Interrogate(unittest.TestCase):
         #location = get_maximum_inundation_location(swwfile, polygon=p)
         #print runup, location, max_time
 
-        assert num.allclose(runup, 3.33333325386) 
-        assert num.allclose(location, [53.333332, 33.333332])  
-        #assert num.allclose(max_time, 11.0)                      
+        assert num.allclose(runup, 3.33333325386)
+        assert num.allclose(location, [53.333332, 33.333332])
+        #assert num.allclose(max_time, 11.0)
 
         # Check that mimimum_storable_height works
         fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
-        
+
         stage = fid.variables['stage_c'][:]
         z = fid.variables['elevation_c'][:]
         xmomentum = fid.variables['xmomentum_c'][:]
         ymomentum = fid.variables['ymomentum_c'][:]
-        
+
         for i in range(stage.shape[0]):
             h = stage[i]-z # depth vector at time step i
-            
+
             # Check every node location
             for j in range(stage.shape[1]):
                 # Depth being either exactly zero implies
@@ -157,15 +163,15 @@ class Test_sww_Interrogate(unittest.TestCase):
                 # the minimal storable height
                 if h[j] == 0.0:
                     assert xmomentum[i,j] == 0.0
-                    assert ymomentum[i,j] == 0.0                
+                    assert ymomentum[i,j] == 0.0
                 else:
                     assert h[j] >= 0.0
-        
+
         fid.close()
 
         # Cleanup
         os.remove(swwfile)
-        
+
         #------------- Now the same with georeferencing
 
         domain.set_time(0.0)
@@ -181,22 +187,22 @@ class Test_sww_Interrogate(unittest.TestCase):
         for t in domain.evolve(yieldstep=1, finaltime = 50):
             pass
 
-        # Check maximal runup        
+        # Check maximal runup
         runup, location = get_maximum_inundation_data(swwfile)
         if verbose:
             print('Runup, location:',runup, location, max_time)
         #print 'Runup, location', runup, location, max_time
-        
+
         assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332+E, 43.333332+N]) 
+        assert num.allclose(location, [53.333332+E, 43.333332+N])
         #assert num.allclose(max_time, 10.0)
-               
+
         # Check runup in restricted time interval
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[0,9])
         if verbose:
             print('Runup, location:',runup, location, max_time)
         #print 'Runup, location:',runup, location, max_time
-        
+
         assert num.allclose(runup, 2.66666674614)
         assert num.allclose(location, [56.666668+E, 16.666666+N])
         #assert num.allclose(max_time, 9.0)
@@ -204,13 +210,13 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check final runup
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
         if verbose:
-            print('Runup, location:',runup, location, max_time)        
+            print('Runup, location:',runup, location, max_time)
         #print 'Runup, location:',runup, location, max_time
 
         assert num.allclose(runup, 3.33333325386)
         assert num.allclose(location, [53.333332+E, 33.333332+N])
         #assert num.allclose(max_time, 45.0)
-        
+
         # Check runup restricted to a polygon
         p = num.array([[50,1], [99,1], [99,40], [50,40]], int) + num.array([E, N], int)
         runup, location = get_maximum_inundation_data(swwfile, polygon=p)
@@ -218,10 +224,10 @@ class Test_sww_Interrogate(unittest.TestCase):
             print('Runup, location:',runup, location, max_time)
         #print runup, location, max_time
 
-        assert num.allclose(runup, 3.33333325386) 
-        assert num.allclose(location, [53.333332+E, 33.333332+N])  
-        #assert num.allclose(max_time, 11.0)     
-            
+        assert num.allclose(runup, 3.33333325386)
+        assert num.allclose(location, [53.333332+E, 33.333332+N])
+        #assert num.allclose(max_time, 11.0)
+
         # Cleanup
         os.remove(swwfile)
 
@@ -234,7 +240,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         and levels out to the boundary condition (1m) at about 30s.
         """
 
-        import time, os
+        import time
         from anuga.file.netcdf import NetCDFFile
 
         #Setup
@@ -252,9 +258,9 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         filename = 'runup_test_3'
         domain.set_name(filename)
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
 
@@ -262,14 +268,14 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Look at sww file and see what happens when
         # domain.tight_slope_limiters = 1
         domain.tight_slope_limiters = 0
-        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)        
-        
+        domain.use_centroid_velocities = 0 # Backwards compatibility (7/5/8)
+
         Br = Reflective_boundary(domain)
         Bd = Dirichlet_boundary([1.0,0,0])
 
 
         #---------- First run without geo referencing
-        
+
         domain.set_quantity('elevation', lambda x,y: -0.2*x + 14) # Slope
         domain.set_quantity('stage', -6)
         domain.set_boundary( {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
@@ -289,7 +295,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
-        
+
         assert num.allclose(runup, 3.3333333)
         assert num.allclose(location[0], 53.333332)
 
@@ -300,21 +306,21 @@ class Test_sww_Interrogate(unittest.TestCase):
         #print runup, location
 
         assert num.allclose(runup, 3.33333)
-        assert num.allclose(location[0], 53.33333)                
+        assert num.allclose(location[0], 53.33333)
 
         # Check that mimimum_storable_height works
         fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
-        
+
         stage = fid.variables['stage'][:]
         z = fid.variables['elevation'][:]
         xmomentum = fid.variables['xmomentum'][:]
-        ymomentum = fid.variables['ymomentum'][:]        
+        ymomentum = fid.variables['ymomentum'][:]
 
-        
-        
+
+
         for i in range(stage.shape[0]):
             h = stage[i]-z # depth vector at time step i
-            
+
             # Check every node location
             for j in range(stage.shape[1]):
                 # Depth being either exactly zero implies
@@ -323,15 +329,15 @@ class Test_sww_Interrogate(unittest.TestCase):
                 # the minimal storable height
                 if h[j] == 0.0:
                     assert xmomentum[i,j] == 0.0
-                    assert ymomentum[i,j] == 0.0                
+                    assert ymomentum[i,j] == 0.0
                 else:
                     assert h[j] >= domain.minimum_storable_height
-        
+
         fid.close()
 
         # Cleanup
         os.remove(swwfile)
-        
+
 
 
         #------------- Now the same with georeferencing
@@ -370,7 +376,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile, polygon=p)
         location = get_maximum_inundation_location(swwfile, polygon=p)
 
-        #print('Runup, location', runup, location)        
+        #print('Runup, location', runup, location)
 
         assert num.allclose(runup, 3.33333)
         assert num.allclose(location[0], 308553.34)
@@ -386,7 +392,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         Test that the total flow through a cross section can be
         correctly obtained from an sww file.
-        
+
         This test creates a flat bed with a known flow through it and tests
         that the function correctly returns the expected flow.
 
@@ -397,11 +403,11 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         q = u*h*w = 6 m^3/s
 
-        #---------- First run without geo referencing        
-        
+        #---------- First run without geo referencing
+
         """
 
-        import time, os
+        import time
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
@@ -420,9 +426,9 @@ class Test_sww_Interrogate(unittest.TestCase):
         domain.set_minimum_storable_height(0.01)
 
         domain.set_name('flowtest')
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
 
@@ -431,10 +437,10 @@ class Test_sww_Interrogate(unittest.TestCase):
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 3 m inlet: 
+        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 3 m inlet:
 
 
-        
+
         domain.set_quantity('elevation', 0.0)
         domain.set_quantity('stage', h)
         domain.set_quantity('xmomentum', uh)
@@ -448,7 +454,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         I = [[0, width/2.],
              [length/2., width/2.],
              [length, width/2.]]
-        
+
         f = file_function(swwfile,
                           quantities=['stage', 'xmomentum', 'ymomentum'],
                           interpolation_points=I,
@@ -456,7 +462,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         for t in range(t_end+1):
             for i in range(3):
                 assert num.allclose(f(t, i), [1, 2, 0], atol=1.0e-6)
-            
+
 
         # Check flows through the middle
         for i in range(5):
@@ -469,13 +475,13 @@ class Test_sww_Interrogate(unittest.TestCase):
             assert num.allclose(Q, uh*width)
 
 
-       
+
         # Try the same with partial lines
         x = length/2.
         for i in range(5):
             start_point = [length/2., i*width/5.]
             #print start_point
-                            
+
             cross_section = [start_point, [length/2., width]]
             time, Q = get_flow_through_cross_section(swwfile,
                                                      cross_section,
@@ -492,7 +498,7 @@ class Test_sww_Interrogate(unittest.TestCase):
                                                  verbose=False)
 
         #print i, Q
-        assert num.allclose(Q, 0, atol=1.0e-5)        
+        assert num.allclose(Q, 0, atol=1.0e-5)
 
 
         # Try with lines on an angle (all flow still runs through here)
@@ -501,8 +507,8 @@ class Test_sww_Interrogate(unittest.TestCase):
                                                  cross_section,
                                                  verbose=False)
 
-        assert num.allclose(Q, uh*width)        
-        
+        assert num.allclose(Q, uh*width)
+
 
 
     def test_get_flow_through_cross_section_stored_uniquely(self):
@@ -510,7 +516,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         Test that the total flow through a cross section can be
         correctly obtained from an sww file.
-        
+
         This test creates a flat bed with a known flow through it and tests
         that the function correctly returns the expected flow.
 
@@ -520,11 +526,11 @@ class Test_sww_Interrogate(unittest.TestCase):
         w = 3 m (width of channel)
 
         q = u*h*w = 6 m^3/s
-       
-        
+
+
         """
 
-        import time, os
+        import time
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
@@ -543,11 +549,10 @@ class Test_sww_Interrogate(unittest.TestCase):
         domain.set_minimum_storable_height(0.01)
 
         domain.set_name('flowtest_uniquely')
-        swwfile = domain.get_name() + '.sww'
-
         domain.set_store_vertices_uniquely()
-        
-        domain.set_datadir('.')
+
+        domain.set_datadir(tempfile.mkdtemp())
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
 
@@ -556,10 +561,10 @@ class Test_sww_Interrogate(unittest.TestCase):
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 3 m inlet: 
+        Bd = Dirichlet_boundary([h, uh, 0])  # 2 m/s across the 3 m inlet:
 
 
-        
+
         domain.set_quantity('elevation', 0.0)
         domain.set_quantity('stage', h)
         domain.set_quantity('xmomentum', uh)
@@ -573,7 +578,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         I = [[0, width/2.],
              [length/2., width/2.],
              [length, width/2.]]
-        
+
         f = file_function(swwfile,
                           quantities=['stage', 'xmomentum', 'ymomentum'],
                           interpolation_points=I,
@@ -581,7 +586,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         for t in range(t_end+1):
             for i in range(3):
                 assert num.allclose(f(t, i), [1, 2, 0], atol=1.0e-6)
-            
+
 
         # Check flows through the middle
         for i in range(5):
@@ -594,13 +599,13 @@ class Test_sww_Interrogate(unittest.TestCase):
             assert num.allclose(Q, uh*width)
 
 
-       
+
         # Try the same with partial lines
         x = length/2.
         for i in range(5):
             start_point = [length/2., i*width/5.]
             #print start_point
-                            
+
             cross_section = [start_point, [length/2., width]]
             time, Q = get_flow_through_cross_section(swwfile,
                                                      cross_section,
@@ -617,7 +622,7 @@ class Test_sww_Interrogate(unittest.TestCase):
                                                  verbose=False)
 
         #print i, Q
-        assert num.allclose(Q, 0, atol=1.0e-5)        
+        assert num.allclose(Q, 0, atol=1.0e-5)
 
 
         # Try with lines on an angle (all flow still runs through here)
@@ -626,17 +631,17 @@ class Test_sww_Interrogate(unittest.TestCase):
                                                  cross_section,
                                                  verbose=False)
 
-        assert num.allclose(Q, uh*width)        
-        
+        assert num.allclose(Q, uh*width)
 
 
-                                      
+
+
     def test_get_flow_through_cross_section_with_geo(self):
         """test_get_flow_through_cross_section(self):
 
         Test that the total flow through a cross section can be
         correctly obtained from an sww file.
-        
+
         This test creates a flat bed with a known flow through it and tests
         that the function correctly returns the expected flow.
 
@@ -649,10 +654,10 @@ class Test_sww_Interrogate(unittest.TestCase):
 
 
         This run tries it with georeferencing and with elevation = -1
-        
+
         """
 
-        import time, os
+        import time
         from anuga.file.netcdf import NetCDFFile
 
         # Setup
@@ -673,9 +678,9 @@ class Test_sww_Interrogate(unittest.TestCase):
         domain.set_minimum_storable_height(0.01)
 
         domain.set_name('flowtest')
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.smooth = True
 
@@ -686,11 +691,11 @@ class Test_sww_Interrogate(unittest.TestCase):
         uh = u*h
 
         Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet:
 
 
 
-        
+
         domain.set_quantity('elevation', e)
         domain.set_quantity('stage', w)
         domain.set_quantity('xmomentum', uh)
@@ -704,107 +709,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         I = [[0, width/2.],
              [length/2., width/2.],
              [length, width/2.]]
-        
-        I = domain.geo_reference.get_absolute(I)
-        f = file_function(swwfile,
-                          quantities=['stage', 'xmomentum', 'ymomentum'],
-                          interpolation_points=I,
-                          verbose=False)
 
-        for t in range(t_end+1):
-            for i in range(3):
-                #print i, t, f(t, i)            
-                assert num.allclose(f(t, i), [w, uh, 0], atol=1.0e-6)
-            
-
-        # Check flows through the middle
-        for i in range(5):
-            x = length/2. + i*0.23674563 # Arbitrary
-            cross_section = [[x, 0], [x, width]]
-
-            cross_section = domain.geo_reference.get_absolute(cross_section)            
-            time, Q = get_flow_through_cross_section(swwfile,
-                                                     cross_section,
-                                                     verbose=False)
-
-            assert num.allclose(Q, uh*width)
-
-
-            
-    def test_get_energy_through_cross_section(self):
-        """test_get_energy_through_cross_section(self):
-
-        Test that the specific and total energy through a cross section can be
-        correctly obtained from an sww file.
-        
-        This test creates a flat bed with a known flow through it and tests
-        that the function correctly returns the expected energies.
-
-        The specifics are
-        u = 2 m/s
-        h = 1 m
-        w = 3 m (width of channel)
-
-        q = u*h*w = 6 m^3/s
-        Es = h + 0.5*v*v/g  # Specific energy head [m]
-        Et = w + 0.5*v*v/g  # Total energy head [m]        
-
-
-        This test uses georeferencing
-        
-        """
-
-        import time, os
-        from anuga.file.netcdf import NetCDFFile
-
-        # Setup
-        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
-
-        # Create basic mesh (20m x 3m)
-        width = 3
-        length = 20
-        t_end = 1
-        points, vertices, boundary = rectangular(length, width,
-                                                 length, width)
-
-        # Create shallow water domain
-        domain = Domain(points, vertices, boundary,
-                        geo_reference = Geo_reference(56,308500,6189000))
-
-        domain.default_order = 2
-        domain.set_minimum_storable_height(0.01)
-
-        domain.set_name('flowtest')
-        swwfile = domain.get_name() + '.sww'
-
-        domain.set_datadir('.')
-        domain.format = 'sww'
-        domain.smooth = True
-
-        e = -1.0
-        w = 1.0
-        h = w-e
-        u = 2.0
-        uh = u*h
-
-        Br = Reflective_boundary(domain)     # Side walls
-        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet: 
-
-        
-        domain.set_quantity('elevation', e)
-        domain.set_quantity('stage', w)
-        domain.set_quantity('xmomentum', uh)
-        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
-
-        for t in domain.evolve(yieldstep=1, finaltime = t_end):
-            pass
-
-        # Check that momentum is as it should be in the interior
-
-        I = [[0, width/2.],
-             [length/2., width/2.],
-             [length, width/2.]]
-        
         I = domain.geo_reference.get_absolute(I)
         f = file_function(swwfile,
                           quantities=['stage', 'xmomentum', 'ymomentum'],
@@ -815,26 +720,126 @@ class Test_sww_Interrogate(unittest.TestCase):
             for i in range(3):
                 #print i, t, f(t, i)
                 assert num.allclose(f(t, i), [w, uh, 0], atol=1.0e-6)
-            
+
+
+        # Check flows through the middle
+        for i in range(5):
+            x = length/2. + i*0.23674563 # Arbitrary
+            cross_section = [[x, 0], [x, width]]
+
+            cross_section = domain.geo_reference.get_absolute(cross_section)
+            time, Q = get_flow_through_cross_section(swwfile,
+                                                     cross_section,
+                                                     verbose=False)
+
+            assert num.allclose(Q, uh*width)
+
+
+
+    def test_get_energy_through_cross_section(self):
+        """test_get_energy_through_cross_section(self):
+
+        Test that the specific and total energy through a cross section can be
+        correctly obtained from an sww file.
+
+        This test creates a flat bed with a known flow through it and tests
+        that the function correctly returns the expected energies.
+
+        The specifics are
+        u = 2 m/s
+        h = 1 m
+        w = 3 m (width of channel)
+
+        q = u*h*w = 6 m^3/s
+        Es = h + 0.5*v*v/g  # Specific energy head [m]
+        Et = w + 0.5*v*v/g  # Total energy head [m]
+
+
+        This test uses georeferencing
+
+        """
+
+        import time
+        from anuga.file.netcdf import NetCDFFile
+
+        # Setup
+        #from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+
+        # Create basic mesh (20m x 3m)
+        width = 3
+        length = 20
+        t_end = 1
+        points, vertices, boundary = rectangular(length, width,
+                                                 length, width)
+
+        # Create shallow water domain
+        domain = Domain(points, vertices, boundary,
+                        geo_reference = Geo_reference(56,308500,6189000))
+
+        domain.default_order = 2
+        domain.set_minimum_storable_height(0.01)
+
+        domain.set_name('flowtest')
+        domain.set_datadir(tempfile.mkdtemp())
+
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
+        domain.format = 'sww'
+        domain.smooth = True
+
+        e = -1.0
+        w = 1.0
+        h = w-e
+        u = 2.0
+        uh = u*h
+
+        Br = Reflective_boundary(domain)     # Side walls
+        Bd = Dirichlet_boundary([w, uh, 0])  # 2 m/s across the 3 m inlet:
+
+
+        domain.set_quantity('elevation', e)
+        domain.set_quantity('stage', w)
+        domain.set_quantity('xmomentum', uh)
+        domain.set_boundary( {'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
+
+        for t in domain.evolve(yieldstep=1, finaltime = t_end):
+            pass
+
+        # Check that momentum is as it should be in the interior
+
+        I = [[0, width/2.],
+             [length/2., width/2.],
+             [length, width/2.]]
+
+        I = domain.geo_reference.get_absolute(I)
+        f = file_function(swwfile,
+                          quantities=['stage', 'xmomentum', 'ymomentum'],
+                          interpolation_points=I,
+                          verbose=False)
+
+        for t in range(t_end+1):
+            for i in range(3):
+                #print i, t, f(t, i)
+                assert num.allclose(f(t, i), [w, uh, 0], atol=1.0e-6)
+
 
         # Check energies through the middle
         for i in range(5):
             x = length/2. + i*0.23674563 # Arbitrary
             cross_section = [[x, 0], [x, width]]
 
-            cross_section = domain.geo_reference.get_absolute(cross_section)            
-            
+            cross_section = domain.geo_reference.get_absolute(cross_section)
+
             time, Es = get_energy_through_cross_section(swwfile,
                                                        cross_section,
                                                        kind='specific',
                                                        verbose=False)
             assert num.allclose(Es, h + 0.5*u*u/g)
-            
+
             time, Et = get_energy_through_cross_section(swwfile,
                                                         cross_section,
                                                         kind='total',
                                                         verbose=False)
-            assert num.allclose(Et, w + 0.5*u*u/g)            
+            assert num.allclose(Et, w + 0.5*u*u/g)
 
 
 
@@ -846,7 +851,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         Test of get_maximum_inundation_elevation()
         and get_maximum_inundation_location().
-   
+
         This is based on test_get_maximum_inundation_3(self) but works with the
         stored results instead of with the internal data structure.
 
@@ -855,7 +860,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         verbose = False
         from anuga.config import minimum_storable_height
-        
+
         initial_runup_height = -0.4
         final_runup_height = -0.3
         filename = 'runup_test_2'
@@ -962,7 +967,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         #--------------------------------------------------------------
         # Evolve system through time
         #--------------------------------------------------------------
-        
+
         for t in domain.evolve(yieldstep = 0.1, finaltime = 3.0,
                                skip_initial_step = True):
             q = domain.get_maximum_inundation_elevation(minimum_height=minimum_storable_height)
@@ -973,7 +978,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
             if q > q_max:
                 q_max = q
-                
+
 
         #--------------------------------------------------------------
         # Test inundation height again
@@ -997,8 +1002,8 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         q = get_maximum_inundation_elevation(filename+'.sww',verbose = verbose)
         loc = get_maximum_inundation_location(filename+'.sww')
-        
-        
+
+
         msg = 'We got %f, should have been %f' % (q, q_max)
         assert num.allclose(q, q_max, rtol=1.0/N), msg
         assert num.allclose(-loc[0]/2, q)    # From topography formula
@@ -1050,16 +1055,16 @@ class Test_sww_Interrogate(unittest.TestCase):
         # Cleanup
         try:
             pass
-            #os.remove(domain.get_name() + '.sww')
+            #os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
         except OSError:
             pass
             #FIXME(Ole): Windows won't allow removal of this
 
- 
- 
- 
+
+
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_sww_Interrogate)
     runner = unittest.TextTestRunner() #verbosity=2)
     runner.run(suite)
-               
+

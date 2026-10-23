@@ -54,12 +54,12 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
     #Read DEM data
     datafile = open(name_in)
 
-    if verbose: log.critical('Reading DEM from %s' % (name_in))
+    if verbose: log.info('Reading DEM from %s' % (name_in))
 
     lines = datafile.readlines()
     datafile.close()
 
-    if verbose: log.critical('Got %d lines' % len(lines))
+    if verbose: log.info('Got %d lines' % len(lines))
 
     ncols = int(lines[0].split()[1].strip())
     nrows = int(lines[1].split()[1].strip())
@@ -69,7 +69,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
 
     xref = lines[2].split()
     if xref[0].strip() == 'xllcorner':
-        xllcorner = float(xref[1].strip()) 
+        xllcorner = float(xref[1].strip())
     elif xref[0].strip() == 'xllcenter':
         xllcorner = float(xref[1].strip()) # - 0.5*cellsize # Correct offset
     else:
@@ -78,7 +78,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
 
     yref = lines[3].split()
     if yref[0].strip() == 'yllcorner':
-        yllcorner = float(yref[1].strip()) 
+        yllcorner = float(yref[1].strip())
     elif yref[0].strip() == 'yllcenter':
         yllcorner = float(yref[1].strip()) # - 0.5*cellsize # Correct offset
     else:
@@ -111,7 +111,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
     xx = xx.flatten()
     yy = yy.flatten()
     dem = dem_elevation[:].flatten()
-    
+
     # ====================
     # remove NODATA points
     # ====================
@@ -152,7 +152,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
     else:
         netcdfname = name_out + '.pts'
 
-    if verbose: log.critical('Store to NetCDF file %s' % netcdfname)
+    if verbose: log.info('Store to NetCDF file %s' % netcdfname)
 
     # NetCDF file definition
     outfile = NetCDFFile(netcdfname, netcdf_mode_w)
@@ -167,7 +167,7 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
     outfile.zone = zone
     outfile.xllcorner = xllcorner # Easting of lower left corner
     outfile.yllcorner = yllcorner # Northing of lower left corner
-    
+
     # Default settings
     outfile.false_easting = 500000.0
     outfile.false_northing = 10000000.0
@@ -183,8 +183,8 @@ def _convert_dem_from_llasc2pts(name_in, name_out = None,
 
 
     if verbose:
-        log.critical('There are %d values in the elevation' % totalnopoints)
-        log.critical('There are %d NODATA_values in the clipped elevation' % nn)
+        log.info('There are %d values in the elevation' % totalnopoints)
+        log.info('There are %d NODATA_values in the clipped elevation' % nn)
 
     outfile.createDimension('number_of_points', nopoints)
     outfile.createDimension('number_of_dimensions', 2) #This is 2d data

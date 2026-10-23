@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 """
 
 Set rainfall
@@ -11,8 +10,8 @@ Gareth Davies, Geoscience Australia 2014+
 
 import numpy
 import anuga
-import scipy.interpolate
 from anuga.utilities import spatialInputUtil as su
+from anuga.scenario.timeseries import make_timeseries_function
 
 
 def setup_rainfall(domain, project):
@@ -37,6 +36,17 @@ def setup_rainfall(domain, project):
         else:
             multiplier = 1.0
 
+        # ANUGA timeseries files (.tms) hold a 'rate' quantity that is read with
+        # anuga.file_function rather than parsed as CSV. In this case the
+        # multiplier is applied as the Rate_operator unit factor (e.g. 1e-3 for
+        # mm-based .tms), matching the classic gauge-rainfall workflow.
+        if str(timeseries_file).lower().endswith('.tms'):
+            rate_fun = anuga.file_function(timeseries_file, quantities='rate')
+            anuga.operators.rate_operators.Rate_operator(
+                domain, rate=rate_fun, factor=multiplier, polygon=polygon,
+                default_rate=0.0, label=timeseries_file)
+            continue
+
         rain_timeseries = numpy.genfromtxt(
             timeseries_file, delimiter=',', skip_header=1)
 
@@ -51,9 +61,10 @@ def setup_rainfall(domain, project):
 
         # Make interpolation function and add to ANUGA as operator
         if rain_timeseries[:, 1].max() >= 0.:
-            myrain = scipy.interpolate.interp1d(
+            # No rain before the series starts (as for .tms files)
+            myrain = make_timeseries_function(
                 rain_timeseries[:, 0], rain_timeseries[:, 1],
-                kind=interpolation_type)
+                kind=interpolation_type, before=0.0)
             anuga.operators.rate_operators.Rate_operator(
                 domain, rate=myrain, polygon=polygon, label=timeseries_file)
 

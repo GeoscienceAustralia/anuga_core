@@ -6,7 +6,7 @@ import anuga.utilities.log as log
 import numpy as num
 
 from anuga.utilities.file_utils import get_all_swwfiles
-from anuga.coordinate_transforms.geo_reference import Geo_reference 
+from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.util import file_function
 from anuga.geometry.polygon import is_inside_polygon
 from anuga.file.sww import get_mesh_and_quantities_from_file
@@ -52,7 +52,7 @@ def get_interpolated_quantities_at_polyline_midpoints(filename,
 
     # Interpolate
     if verbose:
-        log.critical('Interpolating - total number of interpolation points = %d'
+        log.info('Interpolating - total number of interpolation points = %d'
                      % len(interpolation_points))
 
     I = Interpolation_function(time,
@@ -77,9 +77,9 @@ def get_flow_through_cross_section(filename, polyline, verbose=False):
     verbose   True if this function is to be verbose
 
     Return (time, Q)
-    where time is a list of all stored times in SWW file
-      and Q is a hydrograph of total flow across given segments for all
-            stored times.
+    where time is a 1D array of all stored times in SWW file
+      and Q is a 1D array hydrograph of total flow across given segments
+            for all stored times.
 
     The normal flow is computed for each triangle intersected by the polyline
     and added up.  Multiple segments at different angles are specified the
@@ -89,45 +89,44 @@ def get_flow_through_cross_section(filename, polyline, verbose=False):
     and the polyline would then be a cross section perpendicular to the flow.
     """
 
-    quantity_names =['elevation',
-                     'stage',
-                     'xmomentum',
-                     'ymomentum']
+    # Get mesh and quantities from sww file.
+    # Only xmomentum and ymomentum are needed for flow; elevation/stage are
+    # loaded by get_mesh_and_quantities_from_file unconditionally but unused.
+    X = get_mesh_and_quantities_from_file(filename, verbose=verbose)
+    mesh, quantities, time = X
 
-    # Get values for quantities at each midpoint of poly line from sww file
-    X = get_interpolated_quantities_at_polyline_midpoints(filename,
-                                                          quantity_names=\
-                                                              quantity_names,
-                                                          polyline=polyline,
-                                                          verbose=verbose)
-    segments, interpolation_function = X
+    # Find all intersections and associated triangles.
+    segments = mesh.get_intersecting_segments(polyline, verbose=verbose)
 
-    # Get vectors for time and interpolation_points
-    time = interpolation_function.time
-    interpolation_points = interpolation_function.interpolation_points
+    if verbose: log.info('Computing hydrograph')
 
-    if verbose: log.critical('Computing hydrograph')
+    # Pre-extract per-segment geometry as arrays for vectorised computation
+    tri_ids = num.array([seg.triangle_id for seg in segments])  # (S,)
+    normals = num.array([seg.normal for seg in segments])        # (S, 2)
+    lengths = num.array([seg.length for seg in segments])        # (S,)
 
-    # Compute hydrograph
-    Q = []
-    for t in time:
-        total_flow = 0
-        for i in range(len(interpolation_points)):
-            elevation, stage, uh, vh = interpolation_function(t, point_id=i)
-            normal = segments[i].normal
+    # Obtain momentum values at the intersected triangle centroids.
+    # SWW files store quantities either as (T, N_nodes) when smoothed, or as
+    # (T, 3*N_tri) when stored per-vertex-per-triangle (non-smooth).  In the
+    # latter case triangle i occupies positions [3*i, 3*i+1, 3*i+2].
+    xmom_raw = quantities['xmomentum']
+    ymom_raw = quantities['ymomentum']
+    N_tri = len(mesh.triangles)
+    T = xmom_raw.shape[0]
 
-            # Inner product of momentum vector with segment normal [m^2/s]
-            normal_momentum = uh*normal[0] + vh*normal[1]
+    if xmom_raw.shape[1] == N_tri * 3:
+        # Non-smooth: reshape (T, 3*N_tri) -> (T, N_tri, 3), average vertices
+        uh = xmom_raw.reshape(T, N_tri, 3)[:, tri_ids, :].mean(axis=2)  # (T, S)
+        vh = ymom_raw.reshape(T, N_tri, 3)[:, tri_ids, :].mean(axis=2)  # (T, S)
+    else:
+        # Smooth: (T, N_nodes) — average the 3 node values per triangle
+        node_ids = mesh.triangles[tri_ids]  # (S, 3)
+        uh = xmom_raw[:, node_ids].mean(axis=2)  # (T, S)
+        vh = ymom_raw[:, node_ids].mean(axis=2)  # (T, S)
 
-            # Flow across this segment [m^3/s]
-            segment_flow = normal_momentum * segments[i].length
-
-            # Accumulate
-            total_flow += segment_flow
-
-        # Store flow at this timestep
-        Q.append(total_flow)
-
+    # Vectorised hydrograph: dot momentum with segment normals, sum over segments
+    normal_mom = uh * normals[:, 0] + vh * normals[:, 1]  # (T, S)
+    Q = (normal_mom * lengths).sum(axis=1)                 # (T,)
 
     return time, Q
 
@@ -172,7 +171,7 @@ def get_flow_through_multiple_cross_sections(filename, polylines, verbose=False)
     time = interpolation_function.time
     interpolation_points = interpolation_function.interpolation_points
 
-    if verbose: log.critical('Computing hydrographs')
+    if verbose: log.info('Computing hydrographs')
 
     # Compute hydrograph
     mult_Q = []
@@ -196,17 +195,17 @@ def get_flow_through_multiple_cross_sections(filename, polylines, verbose=False)
 
                 # Accumulate
                 total_flow += segment_flow
-                
+
                 i=i+1
 
             # Store flow at this timestep
             Q.append(total_flow)
-            
+
         base_id = base_id + len(segments)
         mult_Q.append(Q)
 
     if verbose: print()
-    
+
     return time, mult_Q
 
 def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
@@ -218,7 +217,7 @@ def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
     filename        path to file to read
     quantity_names  quantity names to get
     polylines       representation of desired cross-sections
-                    may contain multiple cross sections with multiple 
+                    may contain multiple cross sections with multiple
                     sections allowing complex shapes
                     assume UTM coordinates
     verbose         True if this function is to be verbose
@@ -254,14 +253,14 @@ def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
         mid_points = segment_midpoints(segments)
         #print mid_points
         interpolation_points = interpolation_points + mid_points
-     
 
-    if verbose: 
+
+    if verbose:
         print('len interpolating points ', len(interpolation_points))
 
     # Interpolate
     if verbose:
-        log.critical('Interpolating - total number of interpolation points = %d'
+        log.info('Interpolating - total number of interpolation points = %d'
                      % len(interpolation_points))
 
     I = Interpolation_function(time,
@@ -274,7 +273,7 @@ def get_interpolated_quantities_at_multiple_polyline_midpoints(filename,
 
     #if verbose:
     #    print mult_segments
-        
+
     return mult_segments, I
 
 
@@ -326,7 +325,7 @@ def get_energy_through_cross_section(filename,
     time = interpolation_function.time
     interpolation_points = interpolation_function.interpolation_points
 
-    if verbose: log.critical('Computing %s energy' % kind)
+    if verbose: log.info('Computing %s energy' % kind)
 
     # Compute total length of polyline for use with weighted averages
     total_line_length = 0.0
@@ -443,7 +442,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                          assumed absolute coordinates and in same zone as
                          domain
     time_interval        if specified resrict to within the period specified
-    use_centroid_values 
+    use_centroid_values
     verbose              True if this function is to be verbose
 
     Returns (maximal_runup, maximal_runup_location).
@@ -477,9 +476,9 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
     iterate_over = [ filename[:-4] ]
     if verbose:
         print(iterate_over)
-        
+
     # Read sww file
-    if verbose: log.critical('Reading from %s' % filename)
+    if verbose: log.info('Reading from %s' % filename)
     # FIXME: Use general swwstats (when done)
 
     maximal_runup = None
@@ -491,7 +490,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         # Read sww file
         filename = os.path.join(dir, swwfile+'.sww')
 
-        if verbose: log.critical('Reading from %s' % filename)
+        if verbose: log.info('Reading from %s' % filename)
         # FIXME: Use general swwstats (when done)
 
         fid = NetCDFFile(filename)
@@ -525,7 +524,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             print('found c values ', found_c_values)
             print('stage.shape ',stage.shape)
             print('elevation.shape ',elevation.shape)
-            
+
         # Here's where one could convert nodal information to centroid
         # information but is probably something we need to write in C.
         # Here's a Python thought which is NOT finished!!!
@@ -533,7 +532,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
             vols0=volumes[:,0]
             vols1=volumes[:,1]
             vols2=volumes[:,2]
-            # Then use these to compute centroid location 
+            # Then use these to compute centroid location
             x=(x[vols0]+x[vols1]+x[vols2])/3.0
             y=(y[vols0]+y[vols1]+y[vols2])/3.0
 
@@ -572,7 +571,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         if verbose:
             print(time)
         all_timeindices = num.arange(len(time))
-        
+
         if time_interval is not None:
             msg = 'time_interval must be a sequence of length 2.'
             assert len(time_interval) == 2, msg
@@ -599,7 +598,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         else:
             # Take them all
             timesteps = all_timeindices
-        
+
         #print timesteps
 
         fid.close()
@@ -643,7 +642,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                 if verbose:
                     pass
                     #print wet_elevation
-                    
+
                 runup_index = num.argmax(wet_elevation)
                 runup = max(wet_elevation)
                 if verbose:
@@ -668,7 +667,7 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
                                           wet_y[runup_index]]
             else:
                 pass
-            
+
             if verbose:
                 print(i, runup)
 
@@ -676,5 +675,5 @@ def get_maximum_inundation_data(filename, polygon=None, time_interval=None,
         return maximal_runup, maximal_runup_location, maximal_time
     else:
         return maximal_runup, maximal_runup_location
-        
+
 

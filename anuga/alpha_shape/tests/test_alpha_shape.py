@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 #TEST
+import os
 import sys
 import unittest
 
@@ -8,7 +9,7 @@ import numpy as num
 
 try:
     from anuga.alpha_shape.alpha_shape import *
-except ImportError:  
+except ImportError:
     from alpha_shape import *
 
 class TestCase(unittest.TestCase):
@@ -16,7 +17,7 @@ class TestCase(unittest.TestCase):
     def setUp(self):
         pass
 
-         
+
     def tearDown(self):
         pass
 
@@ -32,7 +33,7 @@ class TestCase(unittest.TestCase):
         alpha = Alpha_Shape([a,b,c,d,e,f])
         result = alpha.get_delaunay()
         answer = [(0, 1, 5), (5, 1, 4), (4, 2, 3), (2, 4, 1)]
-        assert num.allclose(answer, result) 
+        assert num.allclose(answer, result)
 
     def test_3_points_on_line(self):
         #print "test_delaunay"
@@ -51,7 +52,7 @@ class TestCase(unittest.TestCase):
 
 
     def test_alpha_1(self):
-        #print "test_alpha" 
+        #print "test_alpha"
         a = [0.0, 0.0]
         b = [1.0, 0.0]
         c = [2.0, 0.0]
@@ -63,11 +64,11 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(5, 0), (0, 1), (4, 5), (2, 3), (3, 4), (1, 2)]
-        assert num.allclose(answer, result) 
+        assert num.allclose(answer, result)
 
 
     def test_alpha_2(self):
-        #print "test_alpha" 
+        #print "test_alpha"
         a = [0.0, 0.0]
         b = [2.0, 0.0]
         c = [4.0, 0.0]
@@ -80,11 +81,11 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(0, 3), (3, 6), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]
-        assert num.allclose(answer, result) 
+        assert num.allclose(answer, result)
 
 
     def test_alpha_3(self):
-        #print "test_alpha" 
+        #print "test_alpha"
         a = [0.0, 0.0]
         b = [1.0, 0.0]
         c = [2.0, 0.0]
@@ -97,7 +98,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(5, 0), (0, 1), (4, 5), (2, 3), (3, 4), (1, 2)]
-        assert num.allclose(answer, result) 
+        assert num.allclose(answer, result)
 
 
     def test_boundary_1(self):
@@ -114,8 +115,8 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(0, 3), (3, 6), (0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6)]
-        assert num.allclose(answer, result) 
-   
+        assert num.allclose(answer, result)
+
 
 
     def test_boundary_2(self):
@@ -132,7 +133,7 @@ class TestCase(unittest.TestCase):
         result = alpha.get_boundary()
         #print "result",result
         answer = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 0)]
-        assert num.allclose(answer, result) 
+        assert num.allclose(answer, result)
 
 
     def test_boundary_3(self):
@@ -151,7 +152,7 @@ class TestCase(unittest.TestCase):
         assert num.allclose(answer, result)
 
 
-        
+
     def test_not_enough_points(self):
         #print "test_not_enought_points"
         a = [0.0, 0.0]
@@ -170,10 +171,10 @@ class TestCase(unittest.TestCase):
 # was running it. issue - not running the test in this directory
     def FIXtest_alpha_stand_alone(self):
         #print "test_alpha_stand_alone"
-        import os
         import tempfile
 
-        fileName = tempfile.mktemp(".csv")
+        fd, fileName = tempfile.mkstemp(".csv")
+        os.close(fd)
         file = open(fileName,"w")
         file.write("x,y\n\
 0.0, 0.0\n\
@@ -184,24 +185,25 @@ class TestCase(unittest.TestCase):
 0.0, 2.0\n")
         file.close()
 
-        output_file_name = tempfile.mktemp(".bnd")
+        fd, output_file_name = tempfile.mkstemp(".bnd")
+        os.close(fd)
         #(ho, output_file_name) = tempfile.mkstemp(".bnd")
         command = sys.executable  + 'alpha_shape'+ os.sep +'alpha_shape.py ' \
                   + fileName  + ' ' + output_file_name
         #print "command", command
         os.system(command)
         os.remove(fileName)
-        
-        file = open(output_file_name,"r")
+
+        file = open(output_file_name)
         lFile = file.read().split('\n')
         file.close()
         os.remove(output_file_name)
         self.assertTrue(lFile[1] == "5,0" and
-                        lFile[2] == "0,1" and 
-                        lFile[3] == "4,5" and 
-                        lFile[4] == "2,3" and 
-                        lFile[5] == "3,4" and 
-                        lFile[6] == "1,2" and 
+                        lFile[2] == "0,1" and
+                        lFile[3] == "4,5" and
+                        lFile[4] == "2,3" and
+                        lFile[5] == "3,4" and
+                        lFile[6] == "1,2" and
                         lFile[7] == ""
                         ,
                         'boundary file is wrong')
@@ -223,7 +225,7 @@ class TestCase(unittest.TestCase):
         #print "result",result
         answer = [(1, 0), (4, 3), (0, 4), (3, 1)]
         assert num.allclose(answer, result)
-  
+
     def test_sharp_indents(self):
         a = [3.0, 1.0]
         b = [5.0, 3.0]
@@ -241,7 +243,7 @@ class TestCase(unittest.TestCase):
         answer = [(3, 4), (2, 3), (0, 1), (1, 2), (4, 0)]
         assert num.allclose(answer, result)
 
-        
+
     def test_small_islands(self):
         """
         I couldn't find a small data set that could test this feature...
@@ -392,7 +394,78 @@ class TestCase(unittest.TestCase):
                   (69, 114), (57, 56), (56, 55), (58, 57), (64, 63), \
                   (61, 62), (62, 63), (59, 60), (58, 59), (60, 61), \
                   (46, 45)]
-        assert num.allclose(answer, result)    
+        assert num.allclose(answer, result)
+
+class TestCase_extra(unittest.TestCase):
+    """Cover previously uncovered methods in alpha_shape.py."""
+
+    _POINTS = [(0, 0), (10, 0), (10, 10), (0, 10),
+               (5, 0), (10, 5), (5, 10), (0, 5), (5, 5)]
+
+    def _make_shape(self, alpha=None):
+        return Alpha_Shape(self._POINTS, alpha=alpha)
+
+    def test_get_optimum_alpha(self):
+        """get_optimum_alpha covers line 147."""
+        a = self._make_shape()
+        result = a.get_optimum_alpha()
+        self.assertIsNotNone(result)
+
+    def test_get_alpha(self):
+        """get_alpha covers line 153."""
+        a = self._make_shape(alpha=5.0)
+        self.assertEqual(a.get_alpha(), 5.0)
+
+    def test_set_alpha(self):
+        """set_alpha covers lines 159-162."""
+        a = self._make_shape()
+        a.set_alpha(6.0)
+        self.assertEqual(a.get_alpha(), 6.0)
+
+    def test_get_alpha_triangles(self):
+        """get_alpha_triangles covers lines 363-366."""
+        a = self._make_shape()
+        result = a.get_alpha_triangles(a.alpha)
+        self.assertIsInstance(result, list)
+
+    def test_get_exposed_vertices(self):
+        """get_exposed_vertices covers lines 384-388."""
+        a = self._make_shape()
+        result = a.get_exposed_vertices(a.alpha)
+        self.assertIsInstance(result, list)
+
+    def test_write_boundary(self):
+        """write_boundary covers line 95."""
+        import tempfile
+        a = self._make_shape()
+        fd, path = tempfile.mkstemp(suffix='.bnd')
+        os.close(fd)
+        try:
+            a.write_boundary(path)
+            self.assertTrue(os.path.exists(path))
+        finally:
+            if os.path.exists(path):
+                os.unlink(path)
+
+    def test_alpha_shape_via_files(self):
+        """alpha_shape_via_files covers lines 46-50."""
+        import tempfile
+        # write a csv file (x,y,z) — Geospatial_data accepts this
+        csv_content = '\n'.join('%f,%f,0' % (x, y) for x, y in self._POINTS)
+        fd_in, csv_path = tempfile.mkstemp(suffix='.csv')
+        fd_out, bnd_path = tempfile.mkstemp(suffix='.bnd')
+        os.close(fd_in)
+        os.close(fd_out)
+        try:
+            with open(csv_path, 'w') as f:
+                f.write(csv_content)
+            alpha_shape_via_files(csv_path, bnd_path)
+            self.assertTrue(os.path.exists(bnd_path))
+        finally:
+            for p in (csv_path, bnd_path):
+                if os.path.exists(p):
+                    os.unlink(p)
+
 
 #-------------------------------------------------------------
 

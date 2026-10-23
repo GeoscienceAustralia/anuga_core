@@ -51,7 +51,7 @@ for is_fit in is_fit_list:
         for use_file_type in use_file_type_list:
             for num_of_points in num_of_points_list:
                 for max_points_per_cell in max_points_per_cell_list:
-    
+
                     time, mem, num_tri, one_t, more_t, quad_t = ben.trial(
                         num_of_points=num_of_points
                         ,maxArea=maxArea
@@ -76,4 +76,4 @@ for is_fit in is_fit_list:
                              str(quad_t) + delimiter +
                              str(mem)  + delimiter +
                              str(time) + delimiter + "\n")
-fd.close()                         
+fd.close()

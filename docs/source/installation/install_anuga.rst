@@ -9,9 +9,9 @@ version of ANUGA from `conda-forge` (if you have an Anaconda or Miniforge instal
 or via `pip` if you have a standard python install. 
 
 .. note::
-    If you want the most recent update of ANUGA or intend to develop ANUGA code you 
-    should install ANUGA from source 
-    (see `Install ANUGA for Developers <install_anuga_developers.html>`_).
+    If you want the most recent update of ANUGA or intend to develop ANUGA code you
+    should install ANUGA from source
+    (see :doc:`install_anuga_developers`).
     
 
 Anaconda or Miniforge
@@ -36,14 +36,43 @@ version of `mpi` you are using.
 This has set up and activated a ``conda`` environment ``anuga_env`` using Python 3.12.
 ANUGA supports Python 3.10 – 3.14.
 
-We are now ready to use ANUGA. 
+We are now ready to use ANUGA.
 
+
+pip
+---
+
+If you are using a standard (non-``conda``) Python environment, ANUGA can be
+installed from PyPI:
+
+.. code-block:: bash
+
+    pip install anuga
+
+.. note::
+
+    The ``conda-forge`` route above is recommended. ANUGA depends on compiled
+    libraries (GDAL, NetCDF, MPI) whose ``pip`` wheels can be harder to get
+    working — especially on Windows. If a ``pip install`` cannot build these,
+    use the ``conda`` path instead.
 
 
 Test ANUGA
 ----------
 
-You can test your ANUGA installation by running the unit tests via:
+A quick check that ANUGA imports and reports its version:
+
+.. code-block:: bash
+
+    python -c "import anuga; print(anuga.__version__)"
+
+To run the fast test suite (skips the slow/parallel tests, ~40 s):
+
+.. code-block:: bash
+
+    pytest --pyargs anuga --run-fast
+
+or the full suite (~1600 tests, a few minutes):
 
 .. code-block:: bash
 
@@ -60,5 +89,5 @@ You can test your ANUGA installation by running the unit tests via:
     If you are using `conda` you use the `conda activate anuga_env` command to activate 
     the environment.
 
-    You can add these activate command to your `.bashrc` or `.bash_profile` file to
+    You can add the activate command to your `.bashrc` or `.bash_profile` file to
     automatically activate the environment when you open a terminal.

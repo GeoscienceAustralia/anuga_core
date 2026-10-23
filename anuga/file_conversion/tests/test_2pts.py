@@ -5,7 +5,7 @@ import shutil
 import numpy as num
 
 # ANUGA modules
-from anuga.shallow_water.shallow_water_domain import Domain 
+from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file.sww import Write_sww, SWW_file
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
@@ -22,13 +22,14 @@ from pprint import pprint
 
 class Test_2Pts(unittest.TestCase):
     """ Test files that convert to pts format. """
-    
+
     def test_hecras_cross_sections2pts(self):
         """Test conversion from HECRAS cross sections in ascii format
         to native NetCDF pts format
         """
 
-        import time, os
+        import time
+        import os
         from anuga.file.netcdf import NetCDFFile
 
         #Write test asc file
@@ -156,7 +157,8 @@ END CROSS-SECTIONS:
         - in this case, the centroids.
         """
 
-        import time, os
+        import time
+        import os
         from anuga.file.netcdf import NetCDFFile
         # Used for points that lie outside mesh
         NODATA_value = 1758323
@@ -172,10 +174,10 @@ END CROSS-SECTIONS:
 
         domain.set_name('datatest_de0')
 
-        ptsfile = domain.get_name() + '_elevation.pts'
-        swwfile = domain.get_name() + '.sww'
+        domain.set_datadir(tempfile.mkdtemp())
+        ptsfile = os.path.join(domain.get_datadir(), domain.get_name() + '_elevation.pts')
 
-        domain.set_datadir('.')
+        swwfile = os.path.join(domain.get_datadir(), domain.get_name() + '.sww')
         domain.format = 'sww'
         domain.set_quantity('elevation', lambda x,y: -x-y)
 
@@ -202,36 +204,36 @@ END CROSS-SECTIONS:
         volumes = fid.variables['volumes'][:]
 
 
-        # Invoke interpolation for vertex points       
+        # Invoke interpolation for vertex points
         points = num.concatenate( (x[:,num.newaxis],y[:,num.newaxis]), axis=1 )
         points = num.ascontiguousarray(points)
-        sww2pts(domain.get_name() + '.sww',
+        sww2pts(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value)
         ref_point_values = elevation
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
-        #print 'Ref', ref_point_values        
-        assert num.allclose(point_values, ref_point_values)        
+        #print 'Ref', ref_point_values
+        assert num.allclose(point_values, ref_point_values)
 
 
 
         # Invoke interpolation for centroids
         points = domain.get_centroid_coordinates()
         #print points
-        sww2pts(domain.get_name() + '.sww',
+        sww2pts(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'),
                 quantity = 'elevation',
                 data_points = points,
                 NODATA_value = NODATA_value)
         #ref_point_values = [-0.5, -0.5, -1, -1, -1, -1, -1.5, -1.5]   #At centroids
 
-        ref_point_values = [-0.77777777, -0.77777777, -0.99999998, -0.99999998, 
+        ref_point_values = [-0.77777777, -0.77777777, -0.99999998, -0.99999998,
                              -0.99999998, -0.99999998, -1.22222221, -1.22222221]
         point_values = Geospatial_data(ptsfile).get_attributes()
         #print 'P', point_values
-        #print 'Ref', ref_point_values        
-        assert num.allclose(point_values, ref_point_values)        
+        #print 'Ref', ref_point_values
+        assert num.allclose(point_values, ref_point_values)
 
         fid.close()
 
@@ -241,7 +243,35 @@ END CROSS-SECTIONS:
 
 #-------------------------------------------------------------
 
+class Test_xya2pts(unittest.TestCase):
+    """Tests for anuga.file_conversion.xya2pts."""
+
+    def test_xya2pts_basic(self):
+        """xya2pts converts a .xya CSV file to a .pts NetCDF file."""
+        import os
+        import tempfile
+        from anuga.file_conversion.xya2pts import xya2pts
+
+        # Write a small .xya file (header + 3 data rows)
+        fd, xya_path = tempfile.mkstemp(suffix='.xya')
+        pts_path = xya_path[:-4] + '.pts'
+        try:
+            with os.fdopen(fd, 'w') as f:
+                f.write('x,y,z\n')
+                f.write('0.0,0.0,1.0\n')
+                f.write('1.0,0.0,2.0\n')
+                f.write('0.5,1.0,3.0\n')
+            xya2pts(xya_path)
+            self.assertTrue(os.path.exists(pts_path))
+        finally:
+            for p in [xya_path, pts_path]:
+                try:
+                    os.unlink(p)
+                except OSError:
+                    pass
+
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_2Pts)
     runner = unittest.TextTestRunner() #verbosity=2)
-    runner.run(suite)    
+    runner.run(suite)

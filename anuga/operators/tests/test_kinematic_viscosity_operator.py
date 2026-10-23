@@ -14,7 +14,7 @@ import unittest
 import os
 
 class Test_kinematic_viscosity(unittest.TestCase):
-    
+
     def setUp(self):
         pass
 
@@ -24,7 +24,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         except OSError:
             pass
 
-        
+
     #First test operator class (1 triangle)
     def operator1(self):
         points = num.array([[0.0,0.0],[1.0,0.0],[0.0,1.0]])
@@ -53,7 +53,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
 
         #print domain.quantities['stage'].boundary_values
-        
+
         return Kinematic_viscosity_operator(domain)
 
     #Second test operator class (2 triangles)
@@ -118,7 +118,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         a = Quantity(operator.domain)
         a.set_values(1.0)
         a.set_boundary_values(1.0)
-        
+
         operator.update_elliptic_matrix(a)
 
         A = operator.elliptic_matrix
@@ -127,11 +127,11 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         a.set_values(10.0)
         a.set_boundary_values(10.0)
-        
+
         operator.update_elliptic_matrix(a)
 
         assert num.allclose(A.todense(), 10*num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)]))
-    
+
 
     def test_elliptic_matrix_two_triangles(self):
 
@@ -147,7 +147,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         A = operator.elliptic_matrix
 
-    
+
         A0 = num.array([[-3.0,3.0,0.0,0.0,0.0,0.0],
                         [0.0,-6.0/sqrt(5.0),0.0,0.0,6.0/sqrt(5.0),0.0]])
         A1 = num.array([[-6.0/sqrt(5.0),0.0,6.0/sqrt(5.0),0.0,0.0,0.0],\
@@ -163,7 +163,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         operator.update_elliptic_matrix(a)
 
         A = operator.elliptic_matrix
-        
+
 
         assert num.allclose(A.todense()[0,:], 1.5*A0[0,:]+1.5*A1[0,:]+1.5*A2[0,:])
         assert num.allclose(A.todense()[1,:], A0[1,:]+1.5*A1[1,:]+A2[1,:])
@@ -190,14 +190,14 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         operator.update_elliptic_matrix()
 
-        
+
 
         q_in = Quantity(operator.domain)
         q_in.set_values(1.0)
         q_in.set_boundary_values(1.0)
-        
+
         n = operator.n
-        
+
         A = num.array([-6.0-12.0/sqrt(5), 6.0,  6.0/sqrt(5), 6.0/sqrt(5)])
 
 
@@ -224,7 +224,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         q_1 = operator.elliptic_multiply(q_in)
 
         assert num.allclose( [-6.0-12.0/sqrt(5)], q_1.centroid_values )
-        
+
     def test_elliptic_multiply_exclude_boundary_one_triangle(self):
         operator = self.operator1()
         operator.set_triangle_areas(False)
@@ -255,7 +255,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         q_in = Quantity(operator.domain)
         q_in.set_values(1.0)
         q_in.set_boundary_values(1.0)
-        
+
         operator.update_elliptic_matrix()
 
 
@@ -341,14 +341,14 @@ class Test_kinematic_viscosity(unittest.TestCase):
         U1 = num.array([[2.0],[0.0],[0.0],[0.0]])
 
         q_out = operator * u
-        
+
         assert num.allclose(q_out.centroid_values, 2*num.array(A@U1).reshape(1,))
 
     def test_elliptic_solve_one_triangle(self):
 
         operator = self.operator1()
         n = operator.n
-        
+
         U = num.array([2.0,2.0,1.0,1.0])
 
         u_in = Quantity(operator.domain)
@@ -383,7 +383,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         operator = self.operator2()
         n = operator.n
-        
+
         U = num.array([2.0,3.0,1.0,1.0,4.0,3.0])
 
         u_in = Quantity(operator.domain)
@@ -446,7 +446,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         tot_len = operator.tot_len
 
         u_out = operator.elliptic_solve(u, b, a, iprint=1)
-    
+
         assert num.allclose(u_out.centroid_values, num.ones_like(u_out.centroid_values))
         assert num.allclose(u_out.boundary_values, num.ones_like(u_out.boundary_values))
 
@@ -719,7 +719,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         domain.set_quantity('xmomentum', expression='2*x+3*y')
         domain.set_quantity('ymomentum', expression='5*x+7*y')
 
- 
+
         w = domain.quantities['stage']
 
         #print w.centroid_values
@@ -729,7 +729,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         #print w.centroid_values
         #print w.boundary_values
-        
+
         B = Reflective_boundary(domain)
         domain.set_boundary( {'left': B, 'right': B, 'top': B, 'bottom': B})
 
@@ -750,7 +750,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         #print 'h'
         #print h.centroid_values
         #print h.boundary_values
-        
+
         # Quantity to solve
         u = domain.quantities['xvelocity']
         u.set_boundary_values(1.0)
@@ -781,57 +781,57 @@ class Test_kinematic_viscosity(unittest.TestCase):
         kv.parabolic_solve(v, v, h, u_out=v, update_matrix=False, iprint=1, use_dt_tol=False)
 
 
-        
-        u_expected = \
-        num.array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.88049303,  0.85774725,  0.63198513,  0.        ,
-        0.60127309,  0.74335638,  0.56726693,  0.        ,  0.5619257 ,
-        0.72367268,  0.56292098,  0.        ,  0.56846364,  0.74395284,
-        0.60155678,  0.        ,  0.63250083,  0.8583354 ,  0.88103078,
-        0.91424291,  0.98161599,  0.9681383 ,  0.92489827,  0.83150189,
-        0.90499771,  0.92610594,  0.88016105,  0.81330027,  0.87520116,
-        0.9137613 ,  0.87524587,  0.83194825,  0.88028462,  0.92624037,
-        0.90532118,  0.91457731,  0.92521631,  0.96831727,  0.98169171,
-        0.98017988,  0.99638864,  0.99691038,  0.98420946,  0.95322667,
-        0.97923645,  0.99234935,  0.97272033,  0.94496518,  0.97116962,
-        0.99081552,  0.97116479,  0.95330259,  0.97272909,  0.99236019,
-        0.979296  ,  0.9803074 ,  0.98428114,  0.99692939,  0.9964171 ])
 
-        
-        
+        u_expected = \
+        num.array([0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.88051011, 0.85759662, 0.63146825, 0.        ,
+        0.60055831, 0.74322744, 0.56738423, 0.        , 0.56210217,
+        0.72383446, 0.56263919, 0.        , 0.56806497, 0.74381313,
+        0.60178695, 0.        , 0.63274351, 0.8584527 , 0.88113339,
+        0.91406584, 0.98156869, 0.96812449, 0.92492439, 0.83156625,
+        0.90515153, 0.92622509, 0.88020853, 0.81331079, 0.87522874,
+        0.91379098, 0.87528502, 0.83197238, 0.88030424, 0.92626317,
+        0.90531547, 0.91463733, 0.92515349, 0.96830084, 0.98169611,
+        0.98022082, 0.99638284, 0.99692489, 0.98425657, 0.95331904,
+        0.97926214, 0.99232553, 0.97273391, 0.94495699, 0.97116274,
+        0.99082222, 0.97121228, 0.95334097, 0.97275822, 0.99236297,
+        0.97925945, 0.98031574, 0.98427672, 0.99692816, 0.99644101])
+
+
+
         assert num.allclose(u.centroid_values, u_expected, rtol=1.0e-4)
         assert num.allclose(u.boundary_values, num.ones_like(u.boundary_values))
-        
-        
+
+
         v_expected = \
-        num.array([ 0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  0.        ,  0.        ,  0.        ,  0.        ,
-        0.        ,  1.76107875,  1.71571872,  1.26450977,  0.        ,
-        1.20323049,  1.48723907,  1.13511687,  0.        ,  1.12443699,
-        1.44790348,  1.12678546,  0.        ,  1.1379396 ,  1.488628  ,
-        1.20388888,  0.        ,  1.26569807,  1.71709086,  1.76232374,
-        1.82867872,  1.96328928,  1.93637645,  1.84998653,  1.66337269,
-        1.81022916,  1.85243013,  1.76063685,  1.62705824,  1.75073279,
-        1.82775908,  1.75083189,  1.66440859,  1.76091792,  1.85274102,
-        1.81097589,  1.82944675,  1.85071618,  1.93678282,  1.96345914,
-        1.96043069,  1.99279212,  1.99383543,  1.96848768,  1.90661323,
-        1.95855951,  1.98473153,  1.94554555,  1.89009256,  1.9424436 ,
-        1.98166495,  1.94242902,  1.90678928,  1.94556252,  1.98475631,
-        1.95869882,  1.96072166,  1.96865435,  1.99387965,  1.99285742])
-        
+        num.array([0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 0.        , 0.        , 0.        , 0.        ,
+        0.        , 1.76111146, 1.71534508, 1.26330255, 0.        ,
+        1.20156951, 1.48694065, 1.13539367, 0.        , 1.12484586,
+        1.44827557, 1.12610651, 0.        , 1.13698069, 1.4882967 ,
+        1.20444744, 0.        , 1.26628547, 1.71735613, 1.76257072,
+        1.82824601, 1.96316828, 1.93632445, 1.85003937, 1.6635252 ,
+        1.81058865, 1.8527085 , 1.76074055, 1.62707677, 1.75079094,
+        1.82784275, 1.75092382, 1.66446511, 1.76095943, 1.8527924 ,
+        1.81096963, 1.82958329, 1.85057478, 1.93674417, 1.96346885,
+        1.96051312, 1.99277599, 1.99386861, 1.96858825, 1.90683109,
+        1.95861571, 1.98467844, 1.94558831, 1.89008986, 1.94243828,
+        1.98168739, 1.94255614, 1.90687902, 1.94564264, 1.98476484,
+        1.95861148, 1.96073796, 1.96864023, 1.99387242, 1.99290949])
+
 
         assert num.allclose(v.centroid_values, v_expected, rtol=1.0e-4)
         assert num.allclose(v.boundary_values, 2.0*num.ones_like(v.boundary_values))
@@ -840,7 +840,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
         domain.update_centroids_of_momentum_from_velocity()
 
         domain.distribute_to_vertices_and_edges()
-        
+
         uh = domain.quantities['xmomentum']
         vh = domain.quantities['ymomentum']
 
@@ -977,7 +977,7 @@ class Test_kinematic_viscosity(unittest.TestCase):
 
         assert num.allclose(w.centroid_values, wc, rtol=2.0e-3)
 
-        
+
     def test_kinematic_operator_quantity(self):
 
         from anuga import rectangular_cross_domain
@@ -1394,6 +1394,6 @@ class Test_kinematic_viscosity(unittest.TestCase):
 ################################################################################
 
 if __name__ == "__main__":
-    suite = unittest.TestLoader().loadTestsFromTestCase(Test_kinematic_viscocity)
+    suite = unittest.TestLoader().loadTestsFromTestCase(Test_kinematic_viscosity)
     runner = unittest.TextTestRunner()
     runner.run(suite)

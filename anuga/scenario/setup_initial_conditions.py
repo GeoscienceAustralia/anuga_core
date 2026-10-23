@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 
 """
 
@@ -53,7 +52,7 @@ def setup_initial_conditions(domain, project):
     # 1) A constant
     # 2) A 3-column numpy array with x,y,z (then nearest neighbour
     # interpolation is used)
-    # 3) A gdal-compatible raster (pixel-lookup is used)
+    # 3) A rasterio-compatible raster (pixel-lookup is used)
     # 4) A comma separated variable file with x,y,z data. The file MUST have a
     # .csv or .txt extension
     # 5) Any function f(x,y). Note the function must act on 'ANUGA-transformed'

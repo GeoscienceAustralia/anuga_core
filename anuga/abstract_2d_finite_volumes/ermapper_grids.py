@@ -101,7 +101,7 @@ def write_ermapper_header(ofile, header=None):
         Y_Class = 'Northings'
 
     # open the header file for writing to
-    fid = open(ofile,'wt')
+    fid = open(ofile,'w')
 
     # Begin writing the header
     fid.write('DatasetHeader Begin\n')
@@ -152,7 +152,7 @@ def read_ermapper_header(ifile):
     # function for reading an ERMapper header from file
     header = {}
 
-    fid = open(ifile,'rt')
+    fid = open(ifile)
     header_string = fid.readlines()
     fid.close()
 

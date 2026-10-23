@@ -20,6 +20,16 @@ where a detailed description of the problem is also available.
 Run \verb|create_okushiri.py| to process the boundary condition and build the
 mesh before running the script \verb|run_okushiri.py|.
 
+\subsection{Boundary Condition}
+
+The wave boundary uses a transmissive set-stage boundary condition
+(\verb|Transmissive_n_momentum_zero_t_momentum_set_stage_boundary|).
+The ghost-cell stage is set directly to the measured wavemaker time series,
+normal momentum is transmissive (copied from the interior edge), and
+tangential momentum is zeroed.  This condition models the physical
+servo-controlled wavemaker in the laboratory experiment, which directly
+prescribes the water surface elevation at the boundary.
+
 \subsection{Results}
 
 \anuga{} should produce results that match the stage values at a number of gauge locations

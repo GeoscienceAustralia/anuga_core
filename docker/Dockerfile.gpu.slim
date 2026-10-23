@@ -1,0 +1,96 @@
+# ANUGA — GPU image, SLIM multi-stage build.
+#
+# Cuts the single-stage image (Dockerfile.gpu, whole NVHPC devel SDK, ~50 GB /
+# ~16.7 GB compressed) down by shipping only:
+#   * a CUDA *runtime* base,
+#   * the NVHPC *redistributable* runtime libs the nvc-compiled .so need
+#     (REDIST/compilers/lib), and
+#   * the built venv (anuga + deps).
+# Smaller image => cheaper storage and much faster AWS cold-start pulls.
+#
+# Validated on the RTX 5070 (cc120) laptop, Aug 2026: builds, `import anuga`
+# works in the runtime stage, and a real GPU-offload evolve runs (compute mode
+# 'unified', device 0). On the CUDA -base image the result is 2.15 GB / 459 MB
+# compressed — ~37x smaller to pull than the devel-based image (~16.7 GB).
+#
+# Build + smoke test:
+#   docker build -f docker/Dockerfile.gpu.slim --build-arg GPU_ARCH=cc120 -t anuga:gpu-slim .
+#   docker run --rm --gpus all -e ANUGA_DEFAULT_COMPUTE_MODE=unified \
+#     anuga:gpu-slim python -c "import anuga; print(anuga.gpu_offload_enabled())"
+# If import ever fails with a missing .so, read the `ldd sw_domain_gpu_ext`
+# block in the build log and widen the REDIST copy glob below.
+#
+# Further shrink (not yet done): trim REDIST to just the ldd-listed libs.
+
+ARG NVHPC_TAG=25.9-devel-cuda_multi-ubuntu24.04
+# CUDA *-base* (not -runtime): OpenMP-target offload needs only libnvomp (from
+# the NVHPC REDIST copied below) plus the host driver injected by --gpus, NOT
+# libcudart. -base drops the image to 2.15 GB / 459 MB compressed (vs 5.73 GB /
+# 1.9 GB on -runtime). If a future feature links libcudart, switch to -runtime.
+ARG CUDA_RUNTIME_TAG=12.6.2-base-ubuntu24.04
+
+# ---- builder: compile anuga with nvc (as in Dockerfile.gpu) -----------------
+FROM nvcr.io/nvidia/nvhpc:${NVHPC_TAG} AS builder
+# cuda12.9 is deliberate, and must come first.  The cuda_multi base bundles
+# CUDA 12.9 and 13.0 and defaults to 13.0, whose libnvvm dropped Volta:
+# cc70 then fails with "-arch=compute_70 is an unsupported option".  CUDA 12.9
+# still supports Volta and already supports Blackwell (sm_120, added in 12.8),
+# so selecting it is what lets ONE fat binary span V100 (cc70) through the
+# RTX 50-series (cc120) — no separate V100 image needed.
+ARG GPU_ARCH=cuda12.9,cc70,cc75,cc80,cc86,cc89,cc90,cc120
+ARG ANUGA_VERSION=
+SHELL ["/bin/bash", "-lc"]
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-venv python3-dev python3-pip git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+WORKDIR /opt/anuga
+COPY . .
+# CFLAGS=-tp=haswell: nvc otherwise targets the build host's CPU and the
+# extensions SIGILL ("Illegal instruction") on any host lacking that ISA — e.g.
+# AWS g5 (AMD Zen2, no AVX-512). haswell (AVX2) runs on every AWS GPU host.
+# C only: CC=nvc but CXX is left as g++, which rejects -tp (and needs no such
+# flag — meson.build deliberately avoids -march=native, so g++ is portable).
+RUN set -euo pipefail && \
+    NVC="$(command -v nvc)" && \
+    pip install --no-cache-dir -U pip && \
+    pip install --no-cache-dir "numpy>=2.0" cython "meson>=1.4" meson-python ninja pybind11 && \
+    ANUGA_VERSION="${ANUGA_VERSION}" CC="$NVC" \
+    CFLAGS="-tp=haswell" \
+    pip install --no-cache-dir --no-build-isolation \
+        -Csetup-args=-Dgpu_offload=true -Csetup-args=-Dgpu_arch="${GPU_ARCH}" ".[data]" && \
+    pip install --no-cache-dir awscli && \
+    install -m 0755 docker/anuga-entrypoint.sh /opt/anuga-entrypoint
+# Collect the NVHPC redistributable runtime libs (libnvomp / libnvc / libacc* /
+# libnvhpcatm / libnvcpumath ...) the compiled extensions link against. REDIST
+# holds exactly the redistributable subset. Widen this glob if a lib is missing.
+#
+# Diagnostic: print the shared-library dependencies of the compiled GPU
+# extension (sw_domain_gpu_ext*.so). Anything under hpc_sdk/.../compilers/lib
+# is what the runtime stage must provide — read this in the build log if
+# `import anuga` fails at runtime with a missing .so.
+RUN set -euo pipefail && \
+    GPU_EXT="$(find "$VIRTUAL_ENV" -name 'sw_domain_gpu_ext*.so' | head -1)" && \
+    echo "GPU extension: ${GPU_EXT:-<not found>}" && \
+    if [ -n "$GPU_EXT" ]; then echo '--- ldd sw_domain_gpu_ext ---'; ldd "$GPU_EXT" || true; fi && \
+    mkdir -p /opt/nvhpc-redist && \
+    cp -aL /opt/nvidia/hpc_sdk/Linux_x86_64/*/REDIST/compilers/lib/*.so* /opt/nvhpc-redist/ 2>/dev/null || true && \
+    du -sh /opt/nvhpc-redist && ls -1 /opt/nvhpc-redist | sed 's/^/  redist: /'
+
+# ---- runtime: small CUDA-runtime base + venv + NVHPC redist libs ------------
+FROM nvidia/cuda:${CUDA_RUNTIME_TAG}
+# python3 must match the builder's minor (both ubuntu24.04 => 3.12). libgomp1
+# for the mode-1 CPU kernels; ca-certificates for aws/TLS.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 libgomp1 ca-certificates && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/venv          /opt/venv
+COPY --from=builder /opt/nvhpc-redist  /opt/nvhpc-redist
+COPY --from=builder /opt/anuga-entrypoint /usr/local/bin/anuga-entrypoint
+ENV PATH="/opt/venv/bin:$PATH" \
+    LD_LIBRARY_PATH="/opt/nvhpc-redist:${LD_LIBRARY_PATH}" \
+    ANUGA_WORKDIR=/work HOME=/tmp MPLCONFIGDIR=/tmp
+RUN python -c "import anuga; print('slim ANUGA', anuga.__version__, 'imports OK')"
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/anuga-entrypoint"]

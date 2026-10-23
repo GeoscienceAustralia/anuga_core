@@ -303,7 +303,8 @@ class Test_pmesh_to_mesh_larger(unittest.TestCase):
         import tempfile
         from anuga.pmesh.mesh_interface import create_pmesh_from_regions
 
-        self.tsh = tempfile.mktemp(suffix='.tsh')
+        fd, self.tsh = tempfile.mkstemp(suffix='.tsh')
+        os.close(fd)
         bounding_polygon = [[0.0, 0.0], [1.0, 0.0],
                             [1.0, 1.0], [0.0, 1.0]]
         boundary_tags = {'bottom': [0], 'right': [1],

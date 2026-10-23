@@ -19,13 +19,13 @@ class Test_dem2array(unittest.TestCase):
         These tests are quite coarse-grained: converting a file
         and checking that its headers and some of its contents
         are correct.
-    """ 
- 
+    """
+
     def test_dem2array(self):
         """Test conversion from dem to array
         """
 
-        import time, os
+        import time
 
 
         #Write test asc file
@@ -63,10 +63,10 @@ NODATA_value  -9999
 
         #print 'sending pts', ref_points
         #print 'sending elev', ref_elevation
-        
+
         Z_ex = num.array(ref_elevation,float).reshape(12,11)
         Z_ex = num.fliplr(Z_ex.T)
-        
+
         #Write prj file with metadata
         metafilename = root+'.prj'
         fid = open(metafilename, 'w')
@@ -85,21 +85,21 @@ Parameters
         fid.close()
 
         #Convert to NetCDF dem
-        
+
         asc2dem(filename)
 
 
         x,y, Z = dem2array(root+'.dem')
-        
+
 #         print x
 #         print xvec
 #         print y
-#         print yvec        
+#         print yvec
         assert num.allclose(Z,Z_ex)
         assert num.allclose(x,xvec)
         assert num.allclose(y,yvec)
 
-               
+
         #assert num.allclose(x,)
 
         try:

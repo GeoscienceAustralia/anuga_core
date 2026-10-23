@@ -139,18 +139,7 @@ Levels in order of decreasing severity:
      - ``log.DEBUG``    (10) — detail (default file threshold)
 
 
-API reference
--------------
+.. seealso::
 
-.. autofunction:: anuga.set_logfile
-
-.. autoclass:: anuga.utilities.log.TeeStream
-   :members: write, flush, close
-
-.. autofunction:: anuga.utilities.log.file_only
-
-.. autofunction:: anuga.utilities.log.verbose
-.. autofunction:: anuga.utilities.log.info
-.. autofunction:: anuga.utilities.log.warning
-.. autofunction:: anuga.utilities.log.debug
-.. autofunction:: anuga.utilities.log.critical
+   :ref:`api_logging` — full API of ``set_logfile`` and the
+   ``anuga.utilities.log`` helpers.

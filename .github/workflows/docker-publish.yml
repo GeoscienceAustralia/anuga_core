@@ -1,0 +1,186 @@
+# Build and publish ANUGA container images to GitHub Container Registry (GHCR).
+#
+# BOTH images are manual (workflow_dispatch). The CPU image used to build
+# automatically on a GitHub Release, but that races the PyPI upload: both fire
+# on `release: published`, and the CPU image installs ANUGA *from PyPI*, so the
+# new version is not there yet. On the 4.0.0 release this produced an image
+# tagged 4.0.0-cpu containing anuga 3.3.10; only an unrelated build failure
+# stopped it being pushed. Run this workflow after PyPI has the release, and
+# pass anuga_version so the pin is explicit and verified inside the build.
+#
+# - GPU image: additionally opt-in via build_gpu=true, because the NVHPC base
+#   is ~15 GB and the multi-arch build is heavy for free runners.
+#
+# See issue #248.
+#
+# Images: ghcr.io/<owner>/anuga:<tag>-cpu  and  ...:<tag>-gpu
+name: Build and Publish Docker images
+
+on:
+  workflow_dispatch:
+    inputs:
+      anuga_version:
+        description: 'ANUGA version to install from PyPI, e.g. 4.0.0. Empty = whatever PyPI serves as latest (not recommended for a release).'
+        default: ''
+      image_tag:
+        description: 'Tag for the image, e.g. 4.0.0. Empty = derive from the ref.'
+        default: ''
+      mark_latest:
+        description: 'Also tag this image as latest'
+        type: boolean
+        default: false
+      build_gpu:
+        description: 'Also build & push the (large) GPU image'
+        type: boolean
+        default: false
+      gpu_dockerfile:
+        description: 'Which GPU image to build. slim = multi-stage on a CUDA base (same cc70..cc120 coverage, a fraction of the size); mpi = slim plus CUDA-aware HPC-X for multi-GPU; gpu = the original single-stage devel image.'
+        type: choice
+        default: 'docker/Dockerfile.gpu.mpi'
+        options:
+          - docker/Dockerfile.gpu.mpi
+          - docker/Dockerfile.gpu.slim
+          - docker/Dockerfile.gpu
+      nvhpc_tag:
+        description: 'nvcr.io/nvidia/nvhpc devel tag for the GPU image'
+        default: '25.9-devel-cuda_multi-ubuntu24.04'
+      gpu_arch:
+        description: 'nvc -gpu arch list. Empty = whatever the Dockerfile defaults to, which is the right answer unless you are deliberately narrowing it for a fast test build.'
+        default: ''
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  IMAGE: ghcr.io/${{ github.repository_owner }}/anuga
+
+jobs:
+  cpu:
+    name: CPU image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tags for CPU image
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: |
+            suffix=-cpu,onlatest=true
+          tags: |
+            type=ref,event=tag
+            type=raw,value=${{ inputs.image_tag }},enable=${{ inputs.image_tag != '' }}
+            type=raw,value=latest,enable=${{ inputs.mark_latest }}
+
+      - name: Refuse to build a release image before PyPI has that version
+        if: inputs.anuga_version != ''
+        run: |
+          v='${{ inputs.anuga_version }}'
+          if ! curl -sf "https://pypi.org/pypi/anuga/$v/json" > /dev/null; then
+            echo "::error::anuga $v is not on PyPI yet - wait for the publish workflow to finish."
+            exit 1
+          fi
+          echo "anuga $v is on PyPI, proceeding."
+
+      - name: Build & push CPU image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: docker/Dockerfile.cpu
+          push: true
+          build-args: |
+            ANUGA_VERSION=${{ inputs.anuga_version }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  gpu:
+    name: GPU image (opt-in)
+    if: inputs.build_gpu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free up disk space (NVHPC base is large)
+        run: |
+          echo "before:"; df -h / | tail -1
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android \
+                      /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" \
+                      /usr/local/.ghcup /opt/hostedtoolcache/CodeQL \
+                      /usr/share/swift /usr/local/share/powershell || true
+          sudo docker image prune --all --force || true
+          echo "after:"; df -h / | tail -1
+
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0  # full history + tags so _git_version.py can describe
+
+      - name: Compute ANUGA version (PEP 440)
+        id: ver
+        # Prefer the explicit input: `git describe` on a branch a few commits
+        # past the tag yields 4.0.0.devN+gSHA, which reads as a pre-release even
+        # when the solver source is identical to the tag.
+        run: |
+          v='${{ inputs.anuga_version }}'
+          [ -n "$v" ] || v=$(python _git_version.py)
+          echo "v=$v" >> "$GITHUB_OUTPUT"
+          echo "building ANUGA $v"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Tags for GPU image
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.IMAGE }}
+          flavor: |
+            suffix=-gpu,onlatest=true
+          tags: |
+            # branch name (e.g. develop-gpu) — the pre-release channel
+            type=ref,event=branch
+            # immutable commit tag (e.g. sha-abc1234-gpu)
+            type=sha
+            # release version (e.g. 4.0.0-gpu) and latest-gpu, both explicit.
+            # These were previously gated on `github.event_name == 'release'`,
+            # which has been permanently false since the release trigger was
+            # removed — so latest-gpu was unreachable.
+            type=raw,value=${{ inputs.image_tag }},enable=${{ inputs.image_tag != '' }}
+            type=raw,value=latest,enable=${{ inputs.mark_latest }}
+
+      - name: Report the GPU arch list actually being used
+        run: |
+          want=$(grep -m1 '^ARG GPU_ARCH=' "${{ inputs.gpu_dockerfile || 'docker/Dockerfile.gpu.mpi' }}" | sed 's/^ARG GPU_ARCH=//')
+          got='${{ inputs.gpu_arch }}'
+          if [ -z "$got" ]; then
+            echo "GPU_ARCH not overridden; Dockerfile default applies: $want"
+          else
+            echo "::warning::GPU_ARCH overridden to '$got'; the Dockerfile default is '$want'. A published image should normally use the Dockerfile default -- docker/README.md tells users the image spans cc70-cc120."
+          fi
+
+      - name: Build & push GPU image
+        id: build
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: ${{ inputs.gpu_dockerfile || 'docker/Dockerfile.gpu.mpi' }}
+          push: true
+          # GPU_ARCH is passed only when the input is non-empty: an empty
+          # build-arg would override the Dockerfile's ARG default with an empty
+          # string rather than falling back to it.
+          build-args: |
+            NVHPC_TAG=${{ inputs.nvhpc_tag }}
+            ${{ inputs.gpu_arch != '' && format('GPU_ARCH={0}', inputs.gpu_arch) || '' }}
+            ANUGA_VERSION=${{ steps.ver.outputs.v }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

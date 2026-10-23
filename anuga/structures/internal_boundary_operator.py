@@ -13,20 +13,23 @@ import scipy.optimize as sco
 
 
 class Internal_boundary_operator(anuga.Structure_operator):
-    """
-       The internal_boundary_function must accept 2 input arguments (hw, tw). It 
-       returns Q:
-       - hw will always be the stage (or energy) at the enquiry_point[0]
-       - tw will always be the stage (or energy) at the enquiry_point[1]
-       - If flow is from hw to tw, then Q should be positive, otherwise Q
-         should be negative
+    """Internal boundary operator driven by a user-supplied discharge function.
 
-       def internal_boundary_function(hw, tw):
-           # Compute Q here from headwater hw and tailwater hw
-           return(Q)
+    The ``internal_boundary_function`` must accept 2 input arguments ``(hw, tw)``
+    and return ``Q``:
 
-       smoothing_timescale>0. can be used to make Q vary more slowly
+    - ``hw`` is the stage (or energy) at ``enquiry_point[0]``
+    - ``tw`` is the stage (or energy) at ``enquiry_point[1]``
+    - if flow is from ``hw`` to ``tw``, ``Q`` should be positive, otherwise
+      negative
 
+    ::
+
+        def internal_boundary_function(hw, tw):
+            # Compute Q here from headwater hw and tailwater tw
+            return Q
+
+    ``smoothing_timescale > 0`` can be used to make ``Q`` vary more slowly.
     """
 
 
@@ -124,7 +127,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
         cases). The latter will have less communication in parallel, and
         for some simple internal_boundary_functions there is no benefit to
         the implicit approach
-            
+
         """
         if self.compute_discharge_implicitly:
             Q, barrel_velocity, outlet_culvert_depth = self.discharge_routine_implicit()
@@ -158,7 +161,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
         else:
             self.inlet0_energy = self.inlets[0].get_enquiry_stage()
             self.inlet1_energy = self.inlets[1].get_enquiry_stage()
-        
+
         # Store these variables for anuga's structure output
         self.driving_energy = max(self.inlet0_energy, self.inlet1_energy)
         self.delta_total_energy = self.inlet0_energy - self.inlet1_energy
@@ -219,20 +222,20 @@ class Internal_boundary_operator(anuga.Structure_operator):
 
 
     def discharge_routine_implicit(self):
-        """Uses semi-implicit discharge estimation:
-          Discharge = (1-theta)*Q(H0, T0) + theta*Q(H0 + delta_H, T0+delta_T))
-        where H0 = headwater stage, T0 = tailwater stage, delta_H = change in
-        headwater stage over a timestep, delta_T = change in tailwater stage over a
-        timestep, and Q is the discharge function, and theta is a constant in
-        [0,1] determining the degree of implicitness (currently hard-coded).
+        """Estimate discharge semi-implicitly.
 
-        Note this is effectively assuming:
-        1) Q is a function of stage, not energy (so we can relate mass change directly to delta_H, delta_T). We
-           could generalise it to the energy case ok.
-        2) The stage is computed on the exchange line (or the change in
-            stage at the enquiry point is effectively the same as that on the exchange
-            line)
+        ``Discharge = (1-theta)*Q(H0, T0) + theta*Q(H0 + delta_H, T0 + delta_T)``
+        where H0 = headwater stage, T0 = tailwater stage, delta_H / delta_T are the
+        changes in headwater / tailwater stage over a timestep, Q is the discharge
+        function, and theta is a constant in [0, 1] setting the degree of
+        implicitness (currently hard-coded).
 
+        This effectively assumes:
+
+        1. Q is a function of stage, not energy (so mass change relates directly to
+           delta_H, delta_T). This could be generalised to the energy case.
+        2. The stage is computed on the exchange line (or the change in stage at the
+           enquiry point is effectively the same as on the exchange line).
         """
 
         # Compute energy head or stage at inlets 0 and 1
@@ -242,7 +245,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
         else:
             self.inlet0_energy = self.inlets[0].get_enquiry_stage()
             self.inlet1_energy = self.inlets[1].get_enquiry_stage()
-        
+
         # Store these variables for anuga's structure output
         self.driving_energy = max(self.inlet0_energy, self.inlet1_energy)
         self.delta_total_energy = self.inlet0_energy - self.inlet1_energy
@@ -266,7 +269,7 @@ class Internal_boundary_operator(anuga.Structure_operator):
                 discharge = (1.0-theta)*Q0 + theta*Q1
                 # We need to find 'sol' such that 'output' is [0., 0.]
                 output = sol*areas - discharge*dt*numpy.array([-1., 1.])
-                return(output) 
+                return(output)
 
             final_sol = sco.root(F_to_solve, sol, method='lm').x
             Q1 =  self.internal_boundary_function(E0 + final_sol[0], E1 + final_sol[1])
@@ -305,4 +308,4 @@ class Internal_boundary_operator(anuga.Structure_operator):
         barrel_velocity = numpy.nan
         outlet_culvert_depth = numpy.nan
 
-        return Q, barrel_velocity, outlet_culvert_depth 
+        return Q, barrel_velocity, outlet_culvert_depth

@@ -10,7 +10,7 @@ numerical vector named conserved_quantities.
 
 
 ######################
-# Module imports 
+# Module imports
 #
 
 from anuga.shallow_water import Domain,\
@@ -28,12 +28,12 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 
 N = 12
 
-log.critical('Creating domain')
+log.info('Creating domain')
 #Create basic mesh
 points, vertices, boundary = rectangular(N, N//2, len1=1.2,len2=0.6,
                                          origin=(-0.07, 0))
 
-log.critical('Number of elements=%d' % len(vertices))
+log.info('Number of elements=%d' % len(vertices))
 #Create shallow water domain
 domain = Domain(points, vertices, boundary)
 domain.smooth = False
@@ -47,7 +47,7 @@ inflow_stage = 0.1
 manning = 0.1
 Z = Weir(inflow_stage)
 
-log.critical('Field values')
+log.info('Field values')
 domain.set_quantity('elevation', Z)
 domain.set_quantity('friction', manning)
 
@@ -55,7 +55,7 @@ domain.set_quantity('friction', manning)
 ######################
 # Boundary conditions
 #
-log.critical('Boundaries')
+log.info('Boundaries')
 Br = Reflective_boundary(domain)
 Bt = Transmissive_boundary(domain)
 
@@ -71,12 +71,12 @@ Bw = Time_boundary(domain=domain,
 #Set boundary conditions
 domain.set_boundary({'left': Bd, 'right': Br, 'bottom': Br, 'top': Br})
 
-                    
+
 
 ######################
 #Initial condition
 #
-log.critical('Initial condition')
+log.info('Initial condition')
 domain.set_quantity('stage', Z)
 
 #Evolve
@@ -84,6 +84,6 @@ for t in domain.evolve(yieldstep = 0.1, finaltime = 30):
     domain.write_time(track_speeds=True)
     domain.write_boundary_statistics(['stage'],'left')
 
-log.critical('Done')
-    
+log.info('Done')
+
 

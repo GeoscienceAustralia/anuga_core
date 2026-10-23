@@ -11,8 +11,6 @@ Values will be interpolated across the surface of the mesh. Holes in the mesh
 have an undefined value.
 
 """
-from six import string_types
-
 import numpy as num
 
 from anuga.geospatial_data.geospatial_data import ensure_absolute
@@ -38,9 +36,9 @@ def file_function(filename,
     a callable object.
 
     Input variables:
-    
+
     filename - Name of sww, tms or sts file
-       
+
        If the file has extension 'sww' then it is assumed to be spatio-temporal
        or temporal and the callable object will have the form f(t,x,y) or f(t)
        depending on whether the file contains spatial data
@@ -51,12 +49,12 @@ def file_function(filename,
        Either form will return interpolated values based on the input file
        using the underlying interpolation_function.
 
-    domain - Associated domain object   
+    domain - Associated domain object
        If domain is specified, model time (domain.starttime)
        will be checked and possibly modified.
-    
+
        All times are assumed to be in UTC
-       
+
        All spatial information is assumed to be in absolute UTM coordinates.
 
     quantities - the name of the quantity to be interpolated or a
@@ -64,45 +62,36 @@ def file_function(filename,
                  a tuple of values - one for each quantity
                  If quantities are None, the default quantities are
                  ['stage', 'xmomentum', 'ymomentum']
-                 
+
 
     interpolation_points - list of absolute UTM coordinates for points (N x 2)
     or geospatial object or points file name at which values are sought
 
-    use_relative_time - 
+    use_relative_time -
 
-    time_thinning - 
+    time_thinning -
 
-    verbose - 
+    verbose -
 
     use_cache: True means that caching of intermediate result of
                Interpolation_function is attempted
 
-    boundary_polygon - 
+    boundary_polygon -
 
-    
+
     See Interpolation function in anuga.fit_interpolate.interpolation for
     further documentation
     """
-
-    # FIXME (OLE): Should check origin of domain against that of file
-    # In fact, this is where origin should be converted to that of domain
-    # Also, check that file covers domain fully.
-
-    # Take into account:
-    # - domain's georef
-    # - sww file's georef
-    # - interpolation points as absolute UTM coordinates
 
     if quantities is None:
         if verbose:
             msg = 'Quantities specified in file_function are None,'
             msg += ' so using stage, xmomentum, and ymomentum in that order'
-            log.critical(msg)
+            log.info(msg)
         quantities = ['stage', 'xmomentum', 'ymomentum']
 
     # Use domain's startime if available
-    if domain is not None:    
+    if domain is not None:
         domain_starttime = domain.get_starttime()
     else:
         domain_starttime = None
@@ -110,16 +99,15 @@ def file_function(filename,
     # Build arguments and keyword arguments for use with caching or apply.
     args = (filename,)
 
-    # FIXME (Ole): Caching this function will not work well
-    # if domain is passed in as instances change hash code.
-    # Instead we pass in those attributes that are needed (and return them
-    # if modified)
+    # domain is not passed to the cache key directly because instance hash
+    # codes change; only the scalar attributes needed (domain_starttime) are
+    # extracted above so the cache key stays stable.
     kwargs = {'quantities': quantities,
               'interpolation_points': interpolation_points,
               'domain_starttime': domain_starttime,
               'use_relative_time': use_relative_time,
-              'time_thinning': time_thinning,      
-              'time_limit': time_limit,                                 
+              'time_thinning': time_thinning,
+              'time_limit': time_limit,
               'verbose': verbose,
               'boundary_polygon': boundary_polygon,
               'output_centroids': output_centroids}
@@ -136,17 +124,14 @@ def file_function(filename,
         f, starttime = cache(_file_function,
                              args, kwargs,
                              dependencies=[filename],
-                             compression=False,                  
+                             compression=False,
                              verbose=verbose)
     else:
         f, starttime = _file_function(*args, **kwargs)
 
-    #FIXME (Ole): Pass cache arguments, such as compression, in some sort of
-    #structure
-
     f.starttime = starttime
     f.filename = filename
-    
+
     if domain is not None:
         #Update domain.startime if it is *earlier* than starttime from file
         if starttime > domain.starttime:
@@ -155,12 +140,12 @@ def file_function(filename,
             msg += ' is earlier than the starttime of file %s (%f).' \
                      % (filename, starttime)
             msg += ' Modifying domain starttime accordingly.'
-            
-            if verbose: log.critical(msg)
+
+            if verbose: log.info(msg)
 
             domain.set_starttime(starttime) #Modifying model time
 
-            if verbose: log.critical('Domain starttime is now set to %f'
+            if verbose: log.info('Domain starttime is now set to %f'
                                      % domain.starttime)
     return f
 
@@ -176,23 +161,13 @@ def _file_function(filename,
                    boundary_polygon=None,
                    output_centroids=False):
     """Internal function
-    
+
     See file_function for documentatiton
     """
 
-    assert isinstance(filename,string_types) or isinstance(filename, str),\
+    assert isinstance(filename, str),\
                'First argument to File_function must be a string'
 
-    #try:
-    #    fid = open(filename)
-    #except IOError, e:
-    #    msg = 'File "%s" could not be opened: Error="%s"' % (filename, e)
-    #    raise IOError(msg)
-    
-    # read first line of file, guess file type
-    #line = fid.readline()
-    #fid.close()
-        
     import os
     ext = os.path.splitext(filename)[1]
     msg = 'Extension should be csv  sww, tms or sts '
@@ -210,23 +185,17 @@ def _file_function(filename,
                                         verbose=verbose,
                                         boundary_polygon=boundary_polygon,
                                         output_centroids=output_centroids)
-    elif ext in [".csv"]:
-        # FIXME (Ole): Could add csv file here to address Ted Rigby's
-        # suggestion about reading hydrographs.
-        # This may also deal with the gist of ticket:289
-        raise Exception('Must be a NetCDF File') 
     else:
-
-        raise Exception('Must be a NetCDF File')
+        raise Exception('file_function requires a .sww, .tms or .sts file, got %s' % ext)
 
 
 def get_netcdf_file_function(filename,
                              quantity_names=None,
                              interpolation_points=None,
                              domain_starttime=None,
-                             use_relative_time=False,                            
-                             time_thinning=1,                 
-                             time_limit=None,            
+                             use_relative_time=False,
+                             time_thinning=1,
+                             time_limit=None,
                              verbose=False,
                              boundary_polygon=None,
                              output_centroids=False):
@@ -236,34 +205,34 @@ def get_netcdf_file_function(filename,
 
     Model time (domain_starttime)
     will be checked, possibly modified and returned
-    
+
     All times are assumed to be in UTC
 
     See Interpolation function for further documentation
     """
 
-    # FIXME: Check that model origin is the same as file's origin
-    # (both in UTM coordinates)
-    # If not - modify those from file to match domain
-    # (origin should be passed in)
-    # Take this code from e.g. dem2pts in data_manager.py
-    # FIXME: Use geo_reference to read and write xllcorner...
+    # Origin reconciliation: interpolation_points are supplied as absolute UTM
+    # coordinates and are shifted by (xllcorner, yllcorner) below to match the
+    # file's local coordinate frame.  A full zone-consistency check between
+    # domain and file would require passing domain.geo_reference through the
+    # call chain — left for a future enhancement.
 
-    import time, calendar
+    import time
+    import calendar
     from anuga.config import time_format
 
     # Open NetCDF file
-    if verbose: log.critical('Reading %s' % filename)
+    if verbose: log.info('Reading %s' % filename)
 
     fid = NetCDFFile(filename, netcdf_mode_r)
 
-    if isinstance(quantity_names, string_types):
-        quantity_names = [quantity_names]        
+    if isinstance(quantity_names, str):
+        quantity_names = [quantity_names]
 
     if quantity_names is None or len(quantity_names) < 1:
         msg = 'No quantities are specified in file_function'
         raise Exception(msg)
- 
+
     if interpolation_points is not None:
 
         #interpolation_points = num.array(interpolation_points, float)
@@ -272,7 +241,7 @@ def get_netcdf_file_function(filename,
         assert interpolation_points.shape[1] == 2, msg
 
     # Now assert that requested quantitites (and the independent ones)
-    # are present in file 
+    # are present in file
     missing = []
     for quantity in ['time'] + quantity_names:
         if quantity not in fid.variables:
@@ -295,19 +264,13 @@ def get_netcdf_file_function(filename,
         raise Exception(msg)
 
     if filename[-3:] == 'sww' and spatial is False:
-        msg = 'Files of type SWW must contain spatial information'        
+        msg = 'Files of type SWW must contain spatial information'
         raise Exception(msg)
 
     if filename[-3:] == 'sts' and spatial is False:
         #What if mux file only contains one point
-        msg = 'Files of type STS must contain spatial information'        
+        msg = 'Files of type STS must contain spatial information'
         raise Exception(msg)
-
-    # JJ REMOVED
-    #if filename[-3:] == 'sts' and boundary_polygon is None:
-    #    #What if mux file only contains one point
-    #    msg = 'Files of type sts require boundary polygon'        
-    #    raise Exception(msg)
 
     # Get first timestep
     try:
@@ -318,19 +281,20 @@ def get_netcdf_file_function(filename,
 
 
     # Get variables
-    # if verbose: log.critical('Get variables'    )
+    # if verbose: log.info('Get variables'    )
     time = fid.variables['time'][:]
 
     if not use_relative_time:
         time = time + starttime
 
-    # FIXME(Ole): Is time monotoneous?
+    msg = 'Time vector in %s is not monotonically increasing' % filename
+    assert num.all(num.diff(time) > 0), msg
 
     # Apply time limit if requested
-    upper_time_index = len(time)    
+    upper_time_index = len(time)
     msg = 'Time vector obtained from file %s has length 0' % filename
     assert upper_time_index > 0, msg
-    
+
     if time_limit is not None:
         # Adjust given time limit to given start time
         time_limit = time_limit - starttime
@@ -341,29 +305,28 @@ def get_netcdf_file_function(filename,
             if t > time_limit:
                 upper_time_index = i
                 break
-                
+
         msg = 'Time vector is zero. Requested time limit is %f' % time_limit
         assert upper_time_index > 0, msg
 
         if time_limit < time[-1] and verbose is True:
-            log.critical('Limited time vector from %.2fs to %.2fs'
+            log.info('Limited time vector from %.2fs to %.2fs'
                          % (time[-1], time_limit))
 
     time = time[:upper_time_index]
 
 
-    
-    
+
+
     # Get time independent stuff
     if spatial:
-        # Get origin
-        #xllcorner = fid.xllcorner[0]
-        #yllcorner = fid.yllcorner[0]
-        #zone = fid.zone[0]
-
-        xllcorner = fid.xllcorner
-        yllcorner = fid.yllcorner
-        zone = fid.zone
+        # Get origin — use Geo_reference so zone, hemisphere and EPSG are
+        # read consistently (same as sww_merge, SWW_file, etc.)
+        from anuga.coordinate_transforms.geo_reference import Geo_reference
+        geo_ref = Geo_reference(NetCDFObject=fid)
+        xllcorner = geo_ref.get_xllcorner()
+        yllcorner = geo_ref.get_yllcorner()
+        zone = geo_ref.zone
 
         x = fid.variables['x'][:]
         y = fid.variables['y'][:]
@@ -375,13 +338,9 @@ def get_netcdf_file_function(filename,
         vertex_coordinates = num.concatenate((x, y), axis=1) #m x 2 array
 
         if boundary_polygon is not None:
-            # Remove sts points that do not lie on boundary
-            # FIXME(Ole): Why don't we just remove such points from the list of
-            # points and associated data?
-            # I am actually convinced we can get rid of neighbour_gauge_id
-            # altogether as the sts file is produced using the ordering file.
-            # All sts points are therefore always present in the boundary.
-            # In fact, they *define* parts of the boundary.
+            # Restrict to STS points that lie on the boundary polygon.
+            # STS points are produced using an ordering file so all should
+            # be present, but we filter defensively.
             boundary_polygon=ensure_numeric(boundary_polygon)
             boundary_polygon[:, 0] -= xllcorner
             boundary_polygon[:, 1] -= yllcorner
@@ -392,10 +351,9 @@ def get_netcdf_file_function(filename,
                 for j in range(len(x)):
                     if num.allclose(vertex_coordinates[j],
                                     boundary_polygon[i], rtol=1e-4, atol=1e-4):
-                        #FIXME:
-                        #currently gauges lat and long is stored as float and
-                        #then cast to double. This cuases slight repositioning
-                        #of vertex_coordinates.
+                        # Loose tolerance because gauge lat/lon stored as
+                        # float32 in STS files, causing slight coordinate drift
+                        # when cast to float64.
                         temp.append(boundary_polygon[i])
                         gauge_id.append(j)
                         boundary_id.append(i)
@@ -413,7 +371,7 @@ def get_netcdf_file_function(filename,
                 gauge_neighbour_id.append(-1)
             gauge_neighbour_id=ensure_numeric(gauge_neighbour_id)
 
-            
+
             if len(num.compress(gauge_neighbour_id>=0, gauge_neighbour_id)) \
                != len(temp)-1:
                 msg='incorrect number of segments'
@@ -428,31 +386,25 @@ def get_netcdf_file_function(filename,
         if interpolation_points is not None:
             # Adjust for georef
             interpolation_points[:, 0] -= xllcorner
-            interpolation_points[:, 1] -= yllcorner        
+            interpolation_points[:, 1] -= yllcorner
     else:
         gauge_neighbour_id=None
-        
+
     if domain_starttime is not None:
         # If domain_startime is *later* than starttime,
         # move time back - relative to domain's time
         if domain_starttime > starttime:
             time = time - domain_starttime + starttime
 
-        # FIXME Use method in geo to reconcile
-        # if spatial:
-        # assert domain.geo_reference.xllcorner == xllcorner
-        # assert domain.geo_reference.yllcorner == yllcorner
-        # assert domain.geo_reference.zone == zone        
-        
     if verbose:
-        log.critical('File_function data obtained from: %s' % filename)
-        log.critical('  References:')
+        log.info('File_function data obtained from: %s' % filename)
+        log.info('  References:')
         if spatial:
-            log.critical('    Lower left corner: [%f, %f]'
+            log.info('    Lower left corner: [%f, %f]'
                          % (xllcorner, yllcorner))
-        log.critical('    Start time:   %f' % starttime)
-        
-    
+        log.info('    Start time:   %f' % starttime)
+
+
     # Produce values for desired data points at
     # each timestep for each quantity
     quantities = {}
@@ -461,8 +413,8 @@ def get_netcdf_file_function(filename,
         if boundary_polygon is not None:
             #removes sts points that do not lie on boundary
             quantities[name] = num.take(quantities[name], gauge_id, axis=1)
-            
-    # Close sww, tms or sts netcdf file         
+
+    # Close sww, tms or sts netcdf file
     fid.close()
 
     from anuga.fit_interpolate.interpolate import Interpolation_function
@@ -474,8 +426,8 @@ def get_netcdf_file_function(filename,
         #vertex coordinates is position of urs gauges
 
     if verbose:
-        log.critical('Calling interpolation function')
-        
+        log.info('Calling interpolation function')
+
     # Return Interpolation_function instance as well as
     # starttime for use to possible modify that of domain
     return (Interpolation_function(time,
@@ -489,6 +441,3 @@ def get_netcdf_file_function(filename,
                                    gauge_neighbour_id=gauge_neighbour_id,
                                    output_centroids=output_centroids),
             starttime)
-
-    # NOTE (Ole): Caching Interpolation function is too slow as
-    # the very long parameters need to be hashed.

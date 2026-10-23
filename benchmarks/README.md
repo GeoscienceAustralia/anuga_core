@@ -22,6 +22,32 @@ python benchmarks/compare_benchmarks.py benchmarks/results/before.json \
                                         benchmarks/results/after.json
 ```
 
+## Per-kernel microbenchmarks
+
+`run_benchmarks.py` gives one throughput number per evolve. To see *which*
+kernel changed, `run_kernel_benchmarks.py` times the kernels of one timestep
+individually (extrapolate, fluxes, friction, protect, update, backup, saxpy)
+in either compute mode:
+
+```bash
+python benchmarks/run_kernel_benchmarks.py                         # legacy + unified
+python benchmarks/run_kernel_benchmarks.py --modes unified --nx 300 --repeats 50
+python benchmarks/run_kernel_benchmarks.py --output /tmp/before.json
+# ... change something ...
+python benchmarks/run_kernel_benchmarks.py --output /tmp/after.json
+python benchmarks/run_kernel_benchmarks.py --compare /tmp/before.json /tmp/after.json
+```
+
+`--threads N` sets the OpenMP thread count before the domain is built; without
+it the count is `OMP_NUM_THREADS`, or ANUGA's default of 1 when that is unset.
+The count actually used is printed and recorded in the JSON, and `--compare`
+warns when the two files were run with different counts.
+
+`--compare` prints the per-kernel change and exits non-zero if any kernel
+slowed by more than `--threshold` (default 10%), so it can gate a CI job. The
+few-microsecond kernels are noisy at the default size; use a larger `--nx`
+and more `--repeats` before trusting a small difference.
+
 ## Scenarios
 
 | Name   | Triangles | finaltime | Typical wall (mode 0) |

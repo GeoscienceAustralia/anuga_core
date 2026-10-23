@@ -18,7 +18,6 @@ import sys, os
 
 try:
     import pylab
-    pylab.hold(False)  # Check if this command can be issued
 except:
     print('Could not import pylab')
     plotting = False
@@ -90,8 +89,7 @@ def plot_timeseries(timevector,
     if True:
         # Generate plots
         #pylab.ion() # No plotting on screen
-        pylab.hold(False)
-    
+        pylab.clf()
         pylab.plot(timevector, timeseries, 'r-')
 
         pylab.title('Gauge %s' % name)

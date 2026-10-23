@@ -6,14 +6,14 @@ def load_ungenerate(ofile):
     [poly]
     poly format:
     First line:  <# of vertices> <x centroid> <y centroid>
-    Following lines: <x> <y> 
+    Following lines: <x> <y>
     last line:  "END"
 
     Note: These are clockwise.
-    
+
     Returns a dict containing "points", "segments", and "polygons".
     """
-    with open(ofile, 'r') as fd:
+    with open(ofile) as fd:
         Dict = readUngenerateFile(fd)
     return Dict
 
@@ -24,16 +24,16 @@ def readUngenerateFile(fd):
     [poly]
     poly format:
     First line:  <# of polynomial> <x centroid> <y centroid>
-    Following lines: <x> <y> 
+    Following lines: <x> <y>
     last line:  "END"
     """
-    
+
     END_DELIMITER = 'END'
-    
+
     points = []
     segments = []
     polygons = []
-    
+
     isEnd = False
     line = fd.readline() #not used <# of polynomial> <x> <y>
     while not isEnd:
@@ -46,9 +46,9 @@ def readUngenerateFile(fd):
         poly.append([x,y])
         PreviousVertIndex = len(points)-1
         firstVertIndex = PreviousVertIndex
-        
+
         line = fd.readline() #Read the next line
-        while not line.startswith(END_DELIMITER): 
+        while not line.startswith(END_DELIMITER):
             #print "line >" + line + "<"
             fragments = line.split()
             x = float(fragments.pop(0))
@@ -74,15 +74,15 @@ def readUngenerateFile(fd):
             poly.pop()
             thisVertIndex = len(points)-1
         segments.append([thisVertIndex, firstVertIndex])
-        
+
         line = fd.readline() # read <# of polynomial> <x> <y> OR END
         #print "line >>" + line + "<<"
         # do poly stuff here
         polygons.append(poly)
         if line.startswith(END_DELIMITER):
             isEnd = True
-    
-    #print "points", points       
+
+    #print "points", points
     #print "segments", segments
     ungenerated_dict = {}
     ungenerated_dict['points'] = points

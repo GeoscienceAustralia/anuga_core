@@ -19,7 +19,7 @@ class Test_ERMapper(unittest.TestCase):
     def test_write_grid(self):
         header_filename = 'test_write_ermapper_grid.ers'
         data_filename = 'test_write_ermapper_grid'
-        
+
         original_grid = num.array([[0.0, 0.1, 1.0], [2.0, 3.0, 4.0]])
 
         # Check that the function works when passing the filename without
@@ -37,7 +37,7 @@ class Test_ERMapper(unittest.TestCase):
         # Clean up created files
         remove(data_filename)
         remove(header_filename)
-        
+
     def test_basic_single_line_grid(self):
         # Setup test data
         filename = 'test_write_ermapper_grid'
@@ -54,7 +54,7 @@ class Test_ERMapper(unittest.TestCase):
 
         # Clean up created files
         remove(filename)
-        
+
     def test_basic_single_line_grid_default_format(self):
         # Setup test data
         filename = 'test_write_ermapper_grid'
@@ -71,7 +71,7 @@ class Test_ERMapper(unittest.TestCase):
 
         # Clean up created files
         remove(filename)
-        
+
     def test_write_default_header(self):
         data_filename = 'test_write_ermapper_grid'
 
@@ -80,14 +80,14 @@ class Test_ERMapper(unittest.TestCase):
         # Write test data
         ermapper_grids.write_ermapper_data(original_grid, data_filename)
         # Write test header using all default values
-        header_filename = data_filename + '.ers'                              
+        header_filename = data_filename + '.ers'
         ermapper_grids.write_ermapper_header(header_filename)
 
         # Check that the read in values match the default values
         header = ermapper_grids.read_ermapper_header(header_filename)
 
         assert header['datum'] == '"GDA94"'
-        assert header['projection'] == '"GEOGRAPHIC"'  
+        assert header['projection'] == '"GEOGRAPHIC"'
         assert header['coordinatetype'] == 'LL'
         assert header['rotation'] == '0:0:0.0'
         assert header['celltype'] == 'IEEE4ByteReal'
@@ -106,7 +106,7 @@ class Test_ERMapper(unittest.TestCase):
         # Clean up created files
         remove(data_filename)
         remove(header_filename)
-        
+
     def test_header_creation(self):
         header = {}
         # have some values that aren't defaults
@@ -118,7 +118,7 @@ class Test_ERMapper(unittest.TestCase):
 
         # default values
         assert header['datum'] == '"GDA94"'
-        assert header['projection'] == '"GEOGRAPHIC"'  
+        assert header['projection'] == '"GEOGRAPHIC"'
         assert header['coordinatetype'] == 'LL'
         assert header['rotation'] == '0:0:0.0'
         assert header['celltype'] == 'IEEE4ByteReal'
@@ -145,8 +145,8 @@ class Test_ERMapper(unittest.TestCase):
         # have some values that aren't defaults
         header['nroflines'] = '2'
         header['nrofcellsperline'] = '3'
-        
-        # Write test header using non-default values                           
+
+        # Write test header using non-default values
         ermapper_grids.write_ermapper_header(header_filename, header)
 
         # Check that the read in values match the default values
@@ -154,7 +154,7 @@ class Test_ERMapper(unittest.TestCase):
 
         # default values
         assert header['datum'] == '"GDA94"'
-        assert header['projection'] == '"GEOGRAPHIC"'  
+        assert header['projection'] == '"GEOGRAPHIC"'
         assert header['coordinatetype'] == 'LL'
         assert header['rotation'] == '0:0:0.0'
         assert header['celltype'] == 'IEEE4ByteReal'
@@ -173,14 +173,14 @@ class Test_ERMapper(unittest.TestCase):
         assert header['registrationcelly'] == '1'
 
         # Clean up created files
-        remove(header_filename)        
+        remove(header_filename)
 
 
 # def test_default_filenames
 # def test_write_header
 # def test_multi_band_grid
 
-       
+
 #-------------------------------------------------------------
 
 if __name__ == "__main__":

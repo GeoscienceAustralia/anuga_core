@@ -15,7 +15,6 @@ import copy
 
 from anuga.file.netcdf import NetCDFFile
 import numpy as num
-from numpy.random import randint, seed
 
 from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.coordinate_transforms.geo_reference import Geo_reference, \
@@ -32,7 +31,7 @@ import anuga.utilities.log as log
 DEFAULT_ATTRIBUTE = 'elevation'
 
 
-class Geospatial_data(object):
+class Geospatial_data:
 
     def __init__(self,
                  data_points=None,  # this can also be a points file name
@@ -82,7 +81,7 @@ class Geospatial_data(object):
 
         file_name: Name of input netCDF file or  text file (.xya, .txt). An netCDF file must
         have dimensions "points" etc.
-        
+
         Text file is a comma seperated file with x, y and attribute
         data.
 
@@ -160,7 +159,7 @@ class Geospatial_data(object):
 
             if verbose is True:
                 if file_name is not None:
-                    log.critical('Geospatial_data: Loading Geospatial data from file: %s'
+                    log.info('Geospatial_data: Loading Geospatial data from file: %s'
                                  % file_name)
 
             self.import_points_file(file_name, verbose=verbose)
@@ -172,10 +171,10 @@ class Geospatial_data(object):
 
         if verbose is True:
             if file_name is not None:
-                log.critical('Geospatial_data: Created from file: %s'
+                log.info('Geospatial_data: Created from file: %s'
                              % file_name)
                 if load_file_now is False:
-                    log.critical('Data will be loaded blockwise on demand')
+                    log.info('Data will be loaded blockwise on demand')
 
                     if file_name.endswith('csv') or file_name.endswith('txt'):
                         pass
@@ -357,7 +356,10 @@ class Geospatial_data(object):
             epsg = self.geo_reference.get_epsg()
             if epsg is None:
                 zone = self.geo_reference.get_zone()
-                epsg = 32700 + zone if isSouthHemisphere else 32600 + zone
+                if zone < 0:
+                    epsg = 32700 + abs(zone)
+                else:
+                    epsg = 32700 + zone if isSouthHemisphere else 32600 + zone
             lats, lons = epsg_to_ll(pts[:, 0], pts[:, 1], epsg)
             return list(zip(lats.tolist(), lons.tolist()))
 
@@ -384,9 +386,9 @@ class Geospatial_data(object):
                 # above line takes the first one from keys
 
         if self.verbose is True:
-            log.critical('Geospatial_data: Using attribute %s' %
+            log.info('Geospatial_data: Using attribute %s' %
                          attribute_name)
-            log.critical('Geospatial_data: Available attributes: %s' %
+            log.info('Geospatial_data: Available attributes: %s' %
                          (list(self.attributes.keys())))
 
         msg = 'Attribute name %s does not exist in data set' % attribute_name
@@ -481,25 +483,25 @@ class Geospatial_data(object):
 
         if access(file_name, F_OK) == 0:
             msg = 'File %s does not exist or is not accessible' % file_name
-            raise IOError(msg)
+            raise OSError(msg)
 
         attributes = {}
         if file_name[-4:] == ".pts":
             try:
                 data_points, attributes, geo_reference = \
                     _read_pts_file(file_name, verbose)
-            except IOError as e:
+            except OSError as e:
                 msg = 'Could not open file %s ' % file_name
-                raise IOError(msg)
+                raise OSError(msg)
         elif file_name[-4:] == ".txt" or file_name[-4:] == ".csv" or file_name[-4:] == ".xya":
             try:
                 data_points, attributes, geo_reference = \
                     _read_csv_file(file_name, verbose)
-            except IOError as e:
+            except OSError as e:
                 # This should only be if a file is not found
                 msg = ('Could not open file %s. Check the file location.'
                        % file_name)
-                raise IOError(msg)
+                raise OSError(msg)
             except SyntaxError as e:
                 # This should only be if there is a format error
                 msg = ('Problem with format of file %s.\n%s'
@@ -507,7 +509,7 @@ class Geospatial_data(object):
                 raise SyntaxError(msg)
         else:
             msg = 'Extension %s is unknown' % file_name[-4:]
-            raise IOError(msg)
+            raise OSError(msg)
 
         self.data_points = data_points
         self.attributes = attributes
@@ -562,7 +564,7 @@ class Geospatial_data(object):
                                                  isSouthHemisphere=isSouthHemisphere))
         else:
             msg = 'Unknown file type %s ' % file_name
-            raise IOError(msg)
+            raise OSError(msg)
 
     def get_sample(self, indices):
         """ Returns a object which is a subset of the original
@@ -616,14 +618,14 @@ class Geospatial_data(object):
 
         # Find unique random numbers
         if verbose:
-            log.critical("make unique random number list "
+            log.info("make unique random number list "
                          "and get indices")
 
         total = num.array(list(range(self_size)), int)  # array default#
         total_list = total.tolist()
 
         if verbose:
-            log.critical("total list len=%d" % len(total_list))
+            log.info("total list len=%d" % len(total_list))
 
         # There will be repeated random numbers however will not be a
         # problem as they are being 'pop'ed out of array so if there
@@ -631,17 +633,14 @@ class Geospatial_data(object):
         # still basically random
         # create list of non-unquie random numbers
         if verbose:
-            log.critical("create random numbers list %s long"
+            log.info("create random numbers list %s long"
                          % str(new_size))
 
         # Set seed if provided, mainly important for unit test!
         # plus recalcule seed when no seed provided.
-        if seed_num is not None:
-            seed(seed_num)
-        else:
-            seed()
+        rng = num.random.default_rng(seed_num)  # None gives a random seed
 
-        random_num = randint(0, self_size-1, (int(new_size),))
+        random_num = rng.integers(0, self_size - 1, (int(new_size),))
         random_num = random_num.tolist()
 
         # need to sort and reverse so the pop() works correctly
@@ -649,7 +648,7 @@ class Geospatial_data(object):
         random_num.reverse()
 
         if verbose:
-            log.critical("make random number list and get indices")
+            log.info("make random number list and get indices")
 
         j = 0
         k = 1
@@ -663,7 +662,7 @@ class Geospatial_data(object):
             j += 1
             # prints progress
             if verbose and round(random_num_len/10*k) == j:
-                log.critical('(%s/%s)' % (j, random_num_len))
+                log.info('(%s/%s)' % (j, random_num_len))
                 k += 1
 
         # FIXME: move to tests, it might take a long time
@@ -679,10 +678,10 @@ class Geospatial_data(object):
 
         # Get new samples
         if verbose:
-            log.critical("get values of indices for random list")
+            log.info("get values of indices for random list")
         G1 = self.get_sample(random_list)
         if verbose:
-            log.critical("get values of indices for "
+            log.info("get values of indices for "
                          "opposite of random list")
         G2 = self.get_sample(remainder_list)
 
@@ -704,7 +703,7 @@ class Geospatial_data(object):
 
         if self.file_name[-4:] == ".pts":
             # See if the file is there.  Throw a QUIET IO error if it isn't
-            fd = open(self.file_name, 'r')
+            fd = open(self.file_name)
             fd.close()
 
             # Throws prints to screen if file not present
@@ -725,10 +724,10 @@ class Geospatial_data(object):
             # smaller and won't be included in this estimate.
 
             if self.verbose is True:
-                log.critical('Geospatial_data: Reading %d points (in %d block(s)) from file %s. '
+                log.info('Geospatial_data: Reading %d points (in %d block(s)) from file %s. '
                              % (self.number_of_points, self.number_of_blocks+1,
                                 self.file_name))
-                log.critical('Geospatial_data: Each block consists of %d data points'
+                log.info('Geospatial_data: Each block consists of %d data points'
                              % self.max_read_lines)
         else:
             # Assume the file is a csv file
@@ -763,7 +762,7 @@ class Geospatial_data(object):
                 if (self.show_verbose >= self.start_row
                         and self.show_verbose < fin_row):
 
-                    log.critical('\nGeospatial_data: Reading block %d (points %d to %d) out of %d'
+                    log.info('\nGeospatial_data: Reading block %d (points %d to %d) out of %d'
                                  % (self.block_number, self.start_row,
                                     fin_row, self.number_of_blocks))
 
@@ -890,10 +889,10 @@ def _read_pts_file(file_name, verbose=False):
     """
 
     if verbose:
-        log.critical('Geospatial_data: Reading %s' % file_name)
+        log.info('Geospatial_data: Reading %s' % file_name)
 
     # See if the file is there.  Throw a QUIET IO error if it isn't
-    fd = open(file_name, 'r')
+    fd = open(file_name)
     fd.close()
 
     # Throws prints to screen if file not present
@@ -903,20 +902,20 @@ def _read_pts_file(file_name, verbose=False):
     keys = list(fid.variables.keys())
 
     if verbose:
-        log.critical('Geospatial_data: Got %d variables: %s' %
+        log.info('Geospatial_data: Got %d variables: %s' %
                      (len(keys), keys))
 
     try:
         keys.remove('points')
-    except IOError as e:
+    except OSError as e:
         fid.close()
         msg = "Expected keyword 'points' but could not find it"
-        raise IOError(msg)
+        raise OSError(msg)
 
     attributes = {}
     for key in keys:
         if verbose:
-            log.critical("Geospatial_data: Reading attribute '%s'" % key)
+            log.info("Geospatial_data: Reading attribute '%s'" % key)
 
         if not (key == 'points'):
             attributes[key] = fid.variables[key][:]
@@ -929,7 +928,7 @@ def _read_pts_file(file_name, verbose=False):
     fid.close()
 
     if verbose:
-        log.critical("Geospatial_data: %g data points" % len(pointlist))
+        log.info("Geospatial_data: %g data points" % len(pointlist))
 
     return pointlist, attributes, geo_reference
 
@@ -1068,13 +1067,13 @@ def _read_pts_file_header(fid, verbose=False):
     keys = list(fid.variables.keys())
     try:
         keys.remove('points')
-    except IOError as e:
+    except OSError as e:
         fid.close()
         msg = "Expected keyword 'points' but could not find it."
-        raise IOError(msg)
+        raise OSError(msg)
 
     if verbose:
-        log.critical('Got %d variables: %s' % (len(keys), keys))
+        log.info('Got %d variables: %s' % (len(keys), keys))
 
     try:
         geo_reference = Geo_reference(NetCDFObject=fid)
@@ -1407,7 +1406,7 @@ def find_optimal_smoothing_parameter(data_file,
 
     if mesh_file is None:
         if verbose:
-            log.critical("building mesh")
+            log.info("building mesh")
         mesh_file = 'temp.msh'
 
         if (north_boundary is None or south_boundary is None
@@ -1440,21 +1439,21 @@ def find_optimal_smoothing_parameter(data_file,
             "reading from file: %s" % mesh_file
         if access(mesh_file, F_OK) == 0:
             msg = "file %s doesn't exist!" % mesh_file
-            raise IOError(msg)
+            raise OSError(msg)
 
     # split topo data
     if verbose:
-        log.critical('Reading elevation file: %s' % data_file)
+        log.info('Reading elevation file: %s' % data_file)
     G = Geospatial_data(file_name=data_file)
     if verbose:
-        log.critical('Start split')
+        log.info('Start split')
     G_small, G_other = G.split(split_factor, seed_num, verbose=verbose)
     if verbose:
-        log.critical('Finish split')
+        log.info('Finish split')
     points = G_small.get_data_points()
 
     if verbose:
-        log.critical("Number of points in sample to compare: %d"
+        log.info("Number of points in sample to compare: %d"
                      % len(points))
 
     if alpha_list is None:
@@ -1481,17 +1480,17 @@ def find_optimal_smoothing_parameter(data_file,
     normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=float)
 
     if verbose:
-        log.critical('Setup computational domains with '
+        log.info('Setup computational domains with '
                      'different alphas')
 
     for i, alpha in enumerate(alphas):
         # add G_other data to domains with different alphas
         if verbose:
-            log.critical('Calculating domain and mesh for Alpha=%s'
+            log.info('Calculating domain and mesh for Alpha=%s'
                          % str(alpha))
         domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
         if verbose:
-            log.critical(domain.statistics())
+            log.info(domain.statistics())
         domain.set_quantity(attribute_smoothed,
                             geospatial_data=G_other,
                             use_cache=cache,
@@ -1504,7 +1503,7 @@ def find_optimal_smoothing_parameter(data_file,
         # returns the predicted elevation of the points that were "split" out
         # of the original data set for one particular alpha
         if verbose:
-            log.critical('Get predicted elevation for location '
+            log.info('Get predicted elevation for location '
                          'to be compared')
         elevation_predicted = \
             domain.quantities[attribute_smoothed].\
@@ -1518,9 +1517,9 @@ def find_optimal_smoothing_parameter(data_file,
         normal_cov[i, :] = [alpha, ele_cov/sample_cov]
 
         if verbose:
-            log.critical('Covariance for alpha %s=%s'
+            log.info('Covariance for alpha %s=%s'
                          % (normal_cov[i][0], normal_cov[i][1]))
-            log.critical('--------------------------------------------')
+            log.info('--------------------------------------------')
 
     normal_cov0 = normal_cov[:, 0]
     normal_cov_new = num.take(normal_cov, num.argsort(normal_cov0), axis=0)
@@ -1536,11 +1535,11 @@ def find_optimal_smoothing_parameter(data_file,
         remove(mesh_file)
 
     if verbose:
-        log.critical('Final results:')
+        log.info('Final results:')
         for i, alpha in enumerate(alphas):
-            log.critical('covariance for alpha %s = %s '
+            log.info('covariance for alpha %s = %s '
                          % (normal_cov[i][0], normal_cov[i][1]))
-        log.critical('Optimal alpha is: %s '
+        log.info('Optimal alpha is: %s '
                      % normal_cov_new[(num.argmin(normal_cov_new, axis=0))[1], 0])
 
     # covariance and optimal alpha
@@ -1640,19 +1639,19 @@ def old_find_optimal_smoothing_parameter(data_file,
         # test mesh file exists?
         if access(mesh_file, F_OK) == 0:
             msg = "file %s doesn't exist!" % mesh_file
-            raise IOError(msg)
+            raise OSError(msg)
 
     # split topo data
     G = Geospatial_data(file_name=data_file)
     if verbose:
-        log.critical('start split')
+        log.info('start split')
     G_small, G_other = G.split(split_factor, seed_num, verbose=verbose)
     if verbose:
-        log.critical('finish split')
+        log.info('finish split')
     points = G_small.get_data_points()
 
     if verbose:
-        log.critical("Number of points in sample to compare: %d"
+        log.info("Number of points in sample to compare: %d"
                      % len(points))
 
     if alpha_list is None:
@@ -1665,17 +1664,17 @@ def old_find_optimal_smoothing_parameter(data_file,
     domains = {}
 
     if verbose:
-        log.critical('Setup computational domains with '
+        log.info('Setup computational domains with '
                      'different alphas')
 
     for alpha in alphas:
         # add G_other data to domains with different alphas
         if verbose:
-            log.critical('Calculating domain and mesh for Alpha = %s' %
+            log.info('Calculating domain and mesh for Alpha = %s' %
                          str(alpha))
         domain = Domain(mesh_file, use_cache=cache, verbose=verbose)
         if verbose:
-            log.critical(domain.statistics())
+            log.info(domain.statistics())
         domain.set_quantity(attribute_smoothed,
                             geospatial_data=G_other,
                             use_cache=cache,
@@ -1700,7 +1699,7 @@ def old_find_optimal_smoothing_parameter(data_file,
     normal_cov = num.array(num.zeros([len(alphas), 2]), dtype=float)
 
     if verbose:
-        log.critical('Determine difference between predicted results '
+        log.info('Determine difference between predicted results '
                      'and actual data')
 
     for i, alpha in enumerate(domains):
@@ -1720,9 +1719,9 @@ def old_find_optimal_smoothing_parameter(data_file,
         sample_cov = cov(elevation_sample)
         ele_cov = cov(elevation_sample - elevation_predicted)
         normal_cov[i, :] = [alpha, ele_cov/sample_cov]
-        log.critical('memory usage during compare: %s' % str(mem_usage()))
+        log.info('memory usage during compare: %s' % str(mem_usage()))
         if verbose:
-            log.critical('cov %s = %s'
+            log.info('cov %s = %s'
                          % (normal_cov[i][0], normal_cov[i][1]))
 
     normal_cov0 = normal_cov[:, 0]

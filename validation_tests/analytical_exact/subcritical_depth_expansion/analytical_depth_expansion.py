@@ -33,7 +33,7 @@ def analytic_sol(x):
     h = zeros(len(x))
     for i in range(len(x)):
         zb = z[i]
-        h[i] = fsolve(find_hL, hx)
+        h[i] = fsolve(find_hL, hx)[0]
 
 
     return h,z

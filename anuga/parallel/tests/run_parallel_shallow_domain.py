@@ -1,9 +1,9 @@
 import os
-        
+
 #------------------------------------------
 # anuga imports
 #------------------------------------------
-import anuga 
+import anuga
 
 from anuga.utilities.system_tools import get_pathname_from_package
 
@@ -36,7 +36,7 @@ verbose = False
 # ----------------
 # Setup procedures
 # ----------------
-class Set_Stage(object):
+class Set_Stage:
     """Set an initial condition with constant water height, for x<x0
     """
 
@@ -54,10 +54,10 @@ domain.set_quantity('stage', Set_Stage(756000.0, 756500.0, 2.0))
 
 if numprocs > 1:
     if myid == 0 and verbose: print('PARALLEL EVOLVE')
-    domain.set_name('shallow_water_parallel')        
+    domain.set_name('shallow_water_parallel')
 else:
     if verbose: print('SEQUENTIAL EVOLVE')
-    domain.set_name('shallow_water_sequential')        
+    domain.set_name('shallow_water_sequential')
 
 
 # -----------------------------------

@@ -162,6 +162,8 @@ eastingmax = 382570.7715
 northingmin = 6354265.4322858
 northingmax = 6354681.40599876
 
-# zone
-zone = '56S'
+# zone: UTM zone 56, southern hemisphere (EPSG:32756).
+# set_zone() takes an int; a negative zone in [-60, -2] is the southern-
+# hemisphere shorthand (-56 -> zone 56, hemisphere 'southern').
+zone = -56
 

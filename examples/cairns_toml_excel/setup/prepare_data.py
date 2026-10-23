@@ -270,7 +270,7 @@ class PrepareData(ProjectData):
                 [self.config_filename]
 
             # If the runner script (sys.argv[0]) lives outside the scenario
-            # directory (e.g. anuga_run_toml installed in bindir), copy it too.
+            # directory (e.g. anuga_toml_run installed in bindir), copy it too.
             import sys as _sys
             runner = os.path.abspath(_sys.argv[0])
             if os.path.isfile(runner) and \

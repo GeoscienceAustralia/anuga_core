@@ -70,7 +70,6 @@ if myid == 0:
                                                       'bottom2': [7] },
                                        maximum_triangle_area = 0.5*l0*l0,
                                        minimum_triangle_angle = 28.0,
-                                       mesh_filename = 'channel_floodplain.msh',
                                        interior_regions = [ ],
                                        #interior_regions = [\
                                        #    [channel_polygon, 0.5*l0*l0] ],
@@ -149,7 +148,8 @@ def outflow_stage_boundary(t):
 # Note that the outflow boundary may be slightly incorrect for the trapezoidal channel case, 
 # or incorrect more generally if there are numerical problems. But, in the central regions of
 # the channel, this shouldn't prevent us reaching steady, uniform flow.
-Bout_tmss = anuga.Transmissive_momentum_set_stage_boundary(domain, function = outflow_stage_boundary) 
+Bout_tmss = anuga.Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(domain, function = outflow_stage_boundary) 
+
 
 domain.set_boundary({'left': Br, 
                      'right': Br, 

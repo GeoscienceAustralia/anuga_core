@@ -5,6 +5,8 @@ import math
 
 import numpy as num
 
+from anuga.structures.inlet_enquiry import warn_enquiry_point_in_inlet
+
 from . import parallel_inlet
 
 class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
@@ -12,7 +14,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
     """
 
     """
-    master_proc - index of the processor which coordinates all processors 
+    master_proc - index of the processor which coordinates all processors
     associated with this inlet operator.
     procs - list of all processors associated with this inlet operator
     enquiry_proc - processor containing inlet enquiry point
@@ -26,7 +28,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
                  enquiry_proc = -1,
                  verbose=False):
 
-   
+
         parallel_inlet.Parallel_Inlet.__init__(self, domain, polyline,
                                                 master_proc = master_proc, procs = procs, verbose=verbose)
 
@@ -54,27 +56,21 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
         point = self.enquiry_pt
         has_enq_point = False
 
+        k = -1
         try:
             k = self.domain.get_triangle_containing_point(point)
-                
-            if self.domain.tri_full_flag[k] == 1:
-                has_enq_point = True
-            else:
-                has_enq_point = False
+            has_enq_point = (self.domain.tri_full_flag[k] == 1)
         except Exception:
             has_enq_point = False
 
         if has_enq_point:
-            self.enquiry_index = self.domain.get_triangle_containing_point(self.enquiry_pt)
-   
+            self.enquiry_index = k
+
             if self.enquiry_index in self.triangle_indices:
-                msg = 'Enquiry point %s' % (self.enquiry_pt)
-                msg += 'is in an inlet triangle'
-                import warnings
-                warnings.warn(msg)
+                warn_enquiry_point_in_inlet(self.enquiry_pt, self.verbose)
 
 
-            if self.enquiry_proc >= 0: 
+            if self.enquiry_proc >= 0:
                 assert self.enquiry_proc == self.myid, "Specified enquiry proc does not match actual enquiry proc"
             self.enquiry_proc = self.myid
             assert self.enquiry_index >= 0, "Enquiry point inside polygon, but no triangle index found"

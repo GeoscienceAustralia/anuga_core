@@ -10,6 +10,7 @@
 // Ole Nielsen, GA 2004
 	
 #include "math.h"
+#include <float.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -81,9 +82,22 @@ anuga_int _gradient(const double x0, const double y0,
   which is solved using the standard determinant technique    
       
   */
-  double det;
+  double det, scale;
   
   det = (y2-y0)*(x1-x0) - (y1-y0)*(x2-x0);
+
+  /* det is twice the signed area of the triangle (x0,y0),(x1,y1),(x2,y2).
+     Compare it against the squared edge lengths so the test is scale
+     independent: coincident or collinear points give no plane to fit, and
+     dividing through would produce NaN or Inf that then propagates into the
+     friction and gravity terms. Fall back to a flat gradient and report it. */
+  scale = (x1-x0)*(x1-x0) + (y1-y0)*(y1-y0)
+        + (x2-x0)*(x2-x0) + (y2-y0)*(y2-y0);
+  if (fabs(det) <= DBL_EPSILON * scale) {
+    *a = 0.0;
+    *b = 0.0;
+    return -1;
+  }
 
   *a = (y2-y0)*(q1-q0) - (y1-y0)*(q2-q0);
   *a /= det;
@@ -143,7 +157,13 @@ anuga_int _gradient2(double x0, double y0,
   yy = y1-y0;
   qq = q1-q0;
     
-  det = xx*xx + yy*yy;  //FIXME  catch det == 0
+  det = xx*xx + yy*yy;
+  if (det == 0.0) {
+    /* Coincident points: no direction to extrapolate along. Flat gradient. */
+    *a = 0.0;
+    *b = 0.0;
+    return -1;
+  }
   *a = xx*qq/det;
   *b = yy*qq/det;
         

@@ -436,5 +436,466 @@ class Test_rectangular_cross_matches_python(unittest.TestCase):
         self.assertEqual(bnd_cy, bnd_py)
 
 
+class Test_rectangular(unittest.TestCase):
+    """rectangular() is a thin wrapper — verify it strips the neighbour arrays."""
+
+    def _call(self, m, n, **kw):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
+        return rectangular(m, n, **kw)
+
+    def test_returns_three_values(self):
+        result = self._call(2, 3)
+        self.assertEqual(len(result), 3)
+
+    def test_array_shapes(self):
+        m, n = 3, 4
+        points, elements, boundary = self._call(m, n)
+        self.assertEqual(points.shape,   ((m+1)*(n+1), 2))
+        self.assertEqual(elements.shape, (2*m*n, 3))
+
+    def test_matches_with_neighbours(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_with_neighbours
+        m, n = 3, 4
+        pts_r,  elems_r,  bnd_r  = self._call(m, n)
+        pts_rn, elems_rn, bnd_rn, _, _ = rectangular_with_neighbours(m, n)
+        num.testing.assert_array_equal(pts_r,   pts_rn)
+        num.testing.assert_array_equal(elems_r, elems_rn)
+        self.assertEqual(bnd_r, bnd_rn)
+
+    def test_origin_and_lengths(self):
+        points, _, _ = self._call(2, 2, len1=4.0, len2=6.0, origin=(1.0, 2.0))
+        num.testing.assert_allclose(points[0],  [1.0, 2.0], atol=1e-12)
+        num.testing.assert_allclose(points[-1], [5.0, 8.0], atol=1e-12)
+
+    def test_boundary_tag_counts(self):
+        m, n = 3, 4
+        _, _, boundary = self._call(m, n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'bottom'), m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'top'),    m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'left'),   n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'right'),  n)
+
+
+class Test_rectangular_cross(unittest.TestCase):
+    """rectangular_cross() is a thin wrapper — verify it strips the neighbour arrays."""
+
+    def _call(self, m, n, **kw):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
+        return rectangular_cross(m, n, **kw)
+
+    def test_returns_three_values(self):
+        result = self._call(2, 3)
+        self.assertEqual(len(result), 3)
+
+    def test_array_shapes(self):
+        m, n = 3, 4
+        points, elements, boundary = self._call(m, n)
+        self.assertEqual(points.shape,   ((m+1)*(n+1) + m*n, 2))
+        self.assertEqual(elements.shape, (4*m*n, 3))
+
+    def test_matches_with_neighbours(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross_with_neighbours
+        m, n = 3, 4
+        pts_r,  elems_r,  bnd_r  = self._call(m, n)
+        pts_rn, elems_rn, bnd_rn, _, _ = rectangular_cross_with_neighbours(m, n)
+        num.testing.assert_array_equal(pts_r,   pts_rn)
+        num.testing.assert_array_equal(elems_r, elems_rn)
+        self.assertEqual(bnd_r, bnd_rn)
+
+    def test_boundary_tag_counts(self):
+        m, n = 3, 4
+        _, _, boundary = self._call(m, n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'bottom'), m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'top'),    m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'left'),   n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'right'),  n)
+
+
+class Test_rectangular_cross_slit(unittest.TestCase):
+    """rectangular_cross_slit — same topology as rectangular_cross_python."""
+
+    def _call(self, m, n, **kw):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross_slit
+        return rectangular_cross_slit(m, n, **kw)
+
+    def test_returns_three_values(self):
+        result = self._call(2, 3)
+        self.assertEqual(len(result), 3)
+
+    def test_point_count(self):
+        m, n = 3, 4
+        points, _, _ = self._call(m, n)
+        # (m+1)*(n+1) grid vertices + m*n centre points
+        self.assertEqual(len(points), (m+1)*(n+1) + m*n)
+
+    def test_element_count(self):
+        m, n = 3, 4
+        _, elements, _ = self._call(m, n)
+        self.assertEqual(len(elements), 4*m*n)
+
+    def test_boundary_tag_counts(self):
+        m, n = 3, 4
+        _, _, boundary = self._call(m, n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'bottom'), m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'top'),    m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'left'),   n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'right'),  n)
+
+    def test_matches_rectangular_cross_python(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross_python
+        m, n = 3, 4
+        pts_s, elems_s, bnd_s = self._call(m, n)
+        pts_p, elems_p, bnd_p = rectangular_cross_python(m, n)
+        num.testing.assert_allclose(pts_s,   pts_p, rtol=1e-12)
+        num.testing.assert_array_equal(elems_s, elems_p)
+        self.assertEqual(bnd_s, bnd_p)
+
+    def test_origin_and_lengths(self):
+        m, n = 2, 2
+        points, _, _ = self._call(m, n, len1=4.0, len2=6.0, origin=(1.0, 2.0))
+        num.testing.assert_allclose(points[0], [1.0, 2.0], atol=1e-12)
+
+    def test_no_degenerate_elements(self):
+        m, n = 3, 4
+        _, elements, _ = self._call(m, n)
+        for k, tri in enumerate(elements):
+            self.assertEqual(len(set(tri)), 3, f"Degenerate element {k}: {tri}")
+
+
+class Test_rectangular_periodic(unittest.TestCase):
+
+    def _call(self, m, n, **kw):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_periodic
+        return rectangular_periodic(m, n, **kw)
+
+    def test_returns_five_values(self):
+        result = self._call(4, 3)
+        self.assertEqual(len(result), 5)
+
+    def test_point_and_element_count(self):
+        m, n = 4, 3
+        points, elements, _, _, _ = self._call(m, n)
+        # Internally uses m_low=-1, m_high=m+1, so local m_ext = m+2
+        m_ext = m + 2
+        self.assertEqual(points.shape[0], (m_ext+1)*(n+1))
+        self.assertEqual(elements.shape[0], 2*m_ext*n)
+
+    def test_boundary_has_left_right_bottom_top(self):
+        m, n = 4, 3
+        _, _, boundary, _, _ = self._call(m, n)
+        tags = set(boundary.values())
+        # Should have at least left, right, bottom, top (ghost may also appear)
+        self.assertTrue({'left', 'right', 'bottom', 'top'}.issubset(tags | {'ghost'}))
+
+    def test_full_send_dict_and_ghost_recv_dict_present(self):
+        m, n = 4, 3
+        _, _, _, full_send_dict, ghost_recv_dict = self._call(m, n)
+        self.assertIsInstance(full_send_dict,  dict)
+        self.assertIsInstance(ghost_recv_dict, dict)
+        # Key 0 (processor index) must be present
+        self.assertIn(0, full_send_dict)
+        self.assertIn(0, ghost_recv_dict)
+
+    def test_send_recv_arrays_non_empty(self):
+        m, n = 4, 3
+        _, _, _, full_send_dict, ghost_recv_dict = self._call(m, n)
+        send_ids = full_send_dict[0][0]
+        recv_ids = ghost_recv_dict[0][0]
+        self.assertGreater(len(send_ids), 0)
+        self.assertGreater(len(recv_ids), 0)
+
+    def test_origin_offset(self):
+        m, n = 4, 3
+        points, _, _, _, _ = self._call(m, n, origin_g=(5.0, 10.0))
+        # All y-coordinates should be >= 10.0 (origin_g[1])
+        self.assertTrue(num.all(points[:, 1] >= 10.0 - 1e-12))
+
+
+class Test_oblique(unittest.TestCase):
+
+    def _call(self, m, n, **kw):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import oblique
+        return oblique(m, n, **kw)
+
+    def test_returns_three_values(self):
+        result = self._call(4, 3)
+        self.assertEqual(len(result), 3)
+
+    def test_point_count(self):
+        m, n = 4, 3
+        points, _, _ = self._call(m, n)
+        self.assertEqual(len(points), (m+1)*(n+1))
+
+    def test_element_count(self):
+        m, n = 4, 3
+        _, elements, _ = self._call(m, n)
+        self.assertEqual(len(elements), 2*m*n)
+
+    def test_boundary_tag_counts(self):
+        m, n = 4, 3
+        _, _, boundary = self._call(m, n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'bottom'), m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'top'),    m)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'left'),   n)
+        self.assertEqual(sum(1 for v in boundary.values() if v == 'right'),  n)
+
+    def test_no_degenerate_elements(self):
+        m, n = 4, 3
+        points, elements, _ = self._call(m, n)
+        for k, tri in enumerate(elements):
+            self.assertEqual(len(set(tri)), 3, f"Degenerate element {k}: {tri}")
+            # Non-zero area
+            x0, y0 = points[tri[0]]
+            x1, y1 = points[tri[1]]
+            x2, y2 = points[tri[2]]
+            area = abs((x1-x0)*(y2-y0) - (x2-x0)*(y1-y0)) / 2.0
+            self.assertGreater(area, 0, f"Zero-area element {k}")
+
+    def test_element_vertex_indices_in_range(self):
+        m, n = 4, 3
+        points, elements, _ = self._call(m, n)
+        Np = len(points)
+        self.assertTrue(num.all(num.array(elements) >= 0))
+        self.assertTrue(num.all(num.array(elements) < Np))
+
+    def test_default_and_custom_theta(self):
+        m, n = 4, 3
+        pts_default, _, _ = self._call(m, n)
+        pts_zero,    _, _ = self._call(m, n, theta=0.0)
+        # theta=0 gives a flat (non-oblique) mesh, different from the default
+        self.assertFalse(num.allclose(pts_default, pts_zero))
+
+
+class Test_circular(unittest.TestCase):
+
+    def _call(self, m, n, **kw):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import circular
+        return circular(m, n, **kw)
+
+    def test_returns_two_values(self):
+        result = self._call(3, 6)
+        self.assertEqual(len(result), 2)
+
+    def test_point_count(self):
+        m, n = 3, 6
+        points, _ = self._call(m, n)
+        # 1 centre + n radial lines * m points each
+        self.assertEqual(len(points), 1 + n*m)
+
+    def test_element_count(self):
+        m, n = 3, 6
+        _, elements = self._call(m, n)
+        # n*(m-1) cells * 2 triangles + n centre triangles
+        self.assertEqual(len(elements), n*(m-1)*2 + n)
+
+    def test_centre_point_is_origin(self):
+        m, n = 3, 6
+        points, _ = self._call(m, n)
+        num.testing.assert_allclose(points[0], [0.0, 0.0], atol=1e-12)
+
+    def test_outermost_ring_at_radius(self):
+        m, n = 3, 6
+        radius = 2.0
+        points, _ = self._call(m, n, radius=radius)
+        # Outermost ring: vertices[i, m] for i in range(n)
+        # They are at indices 1 + i*m + (m-1) = i*m + m = (i+1)*m for i in range(n)
+        # Actually vertices[i,j] = 1 + i*m + (j-1) for j=1..m → vertices[i,m] = i*m + m
+        for i in range(n):
+            idx = 1 + i*m + (m-1)
+            r = num.sqrt(points[idx][0]**2 + points[idx][1]**2)
+            self.assertAlmostEqual(r, radius, places=10,
+                                   msg=f"Outer vertex {idx} not at radius {radius}")
+
+    def test_custom_center(self):
+        m, n = 3, 6
+        cx, cy = 3.0, 4.0
+        points, _ = self._call(m, n, center=(cx, cy))
+        # circular() doesn't offset by center — verify centre is at origin (0,0)
+        # (current implementation ignores center parameter)
+        num.testing.assert_allclose(points[0], [0.0, 0.0], atol=1e-12)
+
+    def test_no_degenerate_elements(self):
+        m, n = 4, 8
+        points, elements = self._call(m, n)
+        pts = num.array(points)
+        for k, tri in enumerate(elements):
+            self.assertEqual(len(set(tri)), 3, f"Degenerate element {k}: {tri}")
+
+    def test_element_vertex_indices_in_range(self):
+        m, n = 3, 6
+        points, elements = self._call(m, n)
+        Np = len(points)
+        for k, tri in enumerate(elements):
+            for v in tri:
+                self.assertGreaterEqual(v, 0)
+                self.assertLess(v, Np, f"Element {k} vertex {v} >= Np={Np}")
+
+    def test_1_ring(self):
+        # m=1: only centre triangles (no concentric ring loop runs)
+        m, n = 1, 6
+        points, elements = self._call(m, n)
+        self.assertEqual(len(points),   1 + n*m)
+        self.assertEqual(len(elements), n)
+
+
+class Test_from_polyfile(unittest.TestCase):
+
+    def _write_poly(self, path, points, triangles):
+        """Write a minimal .poly file to *path*."""
+        with open(path, 'w') as f:
+            f.write('POINTS\n')
+            for idx, (x, y, z) in enumerate(points, start=1):
+                f.write(f'{idx}: {x} {y} {z}\n')
+            f.write('POLYS\n')
+            for idx, (i0, i1, i2) in enumerate(triangles, start=1):
+                f.write(f'{idx}: {i0} {i1} {i2}\n')
+            f.write('END\n')
+
+    def test_reads_points_and_triangles(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import from_polyfile
+        import tempfile
+        import os
+        pts = [(0.0, 0.0, 0.0), (4.0, 0.0, 1.0), (0.0, 3.0, 2.0),
+               (4.0, 3.0, 3.0)]
+        tris = [(1, 2, 3), (2, 4, 3)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # from_polyfile always appends .poly since ext check uses 'poly' not '.poly'
+            fname = os.path.join(tmpdir, 'test.poly')
+            self._write_poly(fname, pts, tris)
+            base = os.path.join(tmpdir, 'test')
+            points, triangles, values = from_polyfile(base)
+        self.assertEqual(len(points), 4)
+        self.assertEqual(len(values), 4)
+        self.assertGreater(len(triangles), 0)
+
+    def test_degenerate_triangles_excluded(self):
+        """Triangles with zero area should be removed."""
+        from anuga.abstract_2d_finite_volumes.mesh_factory import from_polyfile
+        import tempfile
+        import os
+        # First three points collinear => zero area for first triangle
+        pts = [(0.0, 0.0, 0.0), (1.0, 0.0, 0.0), (2.0, 0.0, 0.0),
+               (0.0, 3.0, 0.0)]
+        # First tri is degenerate (collinear), second is valid
+        tris = [(1, 2, 3), (1, 3, 4)]
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fname = os.path.join(tmpdir, 'degenerate.poly')
+            self._write_poly(fname, pts, tris)
+            base = os.path.join(tmpdir, 'degenerate')
+            points, triangles, values = from_polyfile(base)
+        self.assertEqual(len(triangles), 1)
+
+
+class Test_contracting_channel(unittest.TestCase):
+
+    def test_returns_three_values(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel
+        result = contracting_channel(4, 4)
+        self.assertEqual(len(result), 3)
+
+    def test_point_and_element_counts(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel
+        points, elements, boundary = contracting_channel(4, 4)
+        self.assertGreater(len(points), 0)
+        self.assertGreater(len(elements), 0)
+
+    def test_boundary_has_standard_tags(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel
+        _, _, boundary = contracting_channel(4, 4)
+        tags = set(boundary.values())
+        self.assertTrue(tags.issuperset({'left', 'right', 'bottom', 'top'}))
+
+    def test_custom_dimensions(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel
+        points, elements, boundary = contracting_channel(
+            6, 4, W_upstream=2.0, W_downstream=1.0, L_1=3.0, L_2=1.0, L_3=5.0)
+        self.assertGreater(len(elements), 0)
+
+    def test_no_degenerate_elements(self):
+        import numpy as num
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel
+        points, elements, _ = contracting_channel(4, 4)
+        pts = num.array(points)
+        for tri in elements:
+            x0, y0 = pts[tri[0]]
+            x1, y1 = pts[tri[1]]
+            x2, y2 = pts[tri[2]]
+            area = abs((x1-x0)*(y2-y0) - (x2-x0)*(y1-y0)) / 2
+            self.assertGreater(area, 0)
+
+
+class Test_contracting_channel_cross(unittest.TestCase):
+
+    def test_returns_three_values(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel_cross
+        result = contracting_channel_cross(4, 4)
+        self.assertEqual(len(result), 3)
+
+    def test_point_and_element_counts(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel_cross
+        points, elements, boundary = contracting_channel_cross(4, 4)
+        self.assertGreater(len(points), 0)
+        self.assertGreater(len(elements), 0)
+
+    def test_boundary_has_standard_tags(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import contracting_channel_cross
+        _, _, boundary = contracting_channel_cross(4, 4)
+        tags = set(boundary.values())
+        self.assertTrue(tags.issuperset({'left', 'right', 'bottom', 'top'}))
+
+
+class Test_oblique_cross(unittest.TestCase):
+
+    def test_returns_three_values(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import oblique_cross
+        result = oblique_cross(3, 3)
+        self.assertEqual(len(result), 3)
+
+    def test_point_and_element_counts(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import oblique_cross
+        points, elements, boundary = oblique_cross(3, 3)
+        self.assertGreater(len(points), 0)
+        self.assertGreater(len(elements), 0)
+
+    def test_boundary_tags_present(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import oblique_cross
+        _, _, boundary = oblique_cross(3, 3)
+        self.assertGreater(len(boundary), 0)
+
+    def test_custom_theta_and_origin(self):
+        from anuga.abstract_2d_finite_volumes.mesh_factory import oblique_cross
+        points, elements, _ = oblique_cross(2, 2, theta=15.0, origin=(1.0, 2.0))
+        self.assertGreater(len(elements), 0)
+
+
+class Test_from_polyfile_clockwise(unittest.TestCase):
+    """Cover the clockwise-swap branch (lines 714-716) in from_polyfile."""
+
+    def _write_poly(self, path, points, triangles):
+        with open(path, 'w') as f:
+            f.write('POINTS\n')
+            for idx, (x, y, z) in enumerate(points, start=1):
+                f.write(f'{idx}: {x} {y} {z}\n')
+            f.write('POLYS\n')
+            for idx, (i0, i1, i2) in enumerate(triangles, start=1):
+                f.write(f'{idx}: {i0} {i1} {i2}\n')
+            f.write('END\n')
+
+    def test_clockwise_vertices_are_swapped(self):
+        """A CW-oriented triangle should hit the vertex-swap else branch."""
+        from anuga.abstract_2d_finite_volumes.mesh_factory import from_polyfile
+        import tempfile
+        import os
+        # Right triangle: (0,0), (3,0), (0,4). CW listing: node1=0,0  node2=0,4  node3=3,0
+        pts = [(0.0, 0.0, 0.0), (0.0, 4.0, 1.0), (3.0, 0.0, 2.0)]
+        tris = [(1, 2, 3)]  # listed CW
+        with tempfile.TemporaryDirectory() as tmpdir:
+            fname = os.path.join(tmpdir, 'cw.poly')
+            self._write_poly(fname, pts, tris)
+            base = os.path.join(tmpdir, 'cw')
+            points, triangles, values = from_polyfile(base)
+        self.assertEqual(len(triangles), 1)
+
+
 if __name__ == '__main__':
     unittest.main()

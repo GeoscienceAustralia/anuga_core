@@ -33,7 +33,8 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 """
 
 from tkinter import *
-import sys, string
+import sys
+import string
 import Pmw
 
 try:

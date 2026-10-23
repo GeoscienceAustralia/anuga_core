@@ -13,7 +13,7 @@ def read_csv_file(filename, key_col, data_col):
 
     # Start reading the CSV file
     data = []
-    fd = open(filename, 'r')
+    fd = open(filename)
     csv_reader = csv.reader(fd)
 
     # Get header row, calculate required column indices

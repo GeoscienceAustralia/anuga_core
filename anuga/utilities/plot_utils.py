@@ -5,10 +5,10 @@
 
     plot_utils.get_outputs -- read the data from a single sww file
     into a single object
-    
+
     plot_utils.combine_outputs -- read the data from a list of sww
     files into a single object
-    
+
     plot_utils.near_transect -- for finding the indices of points
                           'near' to a given line, and
                           assigning these points a
@@ -27,10 +27,10 @@
 
     plot_utils.water_volume -- compute the water volume at every
                          time step in an sww file (needs both
-                         vertex and centroid value input). 
+                         vertex and centroid value input).
 
     plot_utils.Make_Geotif -- convert sww centroids to a georeferenced tiff
- 
+
     Here is an example ipython session which uses some of these functions:
 
     > from anuga import plot_utils
@@ -50,20 +50,19 @@
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
-import matplotlib.cm
 
-class combine_outputs(object):
+class combine_outputs:
     """
     Read in a list of filenames, and combine all their outputs into a single object.
     e.g.:
 
     p = util.combine_outputs(['file1.sww', 'file1_time_10000.sww', 'file1_time_20000.sww'], 0.01)
-    
+
     will make an object p which has components p.x,p.y,p.time,p.stage, .... etc,
     where the values of stage / momentum / velocity from the sww files are concatenated as appropriate.
 
     This is nice for interactive interrogation of model outputs, or for sticking together outputs in scripts
-   
+
     WARNING: It is easy to use lots of memory, if the sww files are large.
 
     Note: If you want the centroid values, then you could subsequently use:
@@ -98,7 +97,7 @@ class combine_outputs(object):
                 p1.xvel = numpy.append(p1.xvel, p_tmp.xvel, axis=0)
                 p1.yvel = numpy.append(p1.yvel, p_tmp.yvel, axis=0)
                 p1.vel = numpy.append(p1.vel, p_tmp.vel, axis=0)
-        
+
         self.x, self.y, self.time, self.vols, self.stage, \
                 self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
@@ -106,7 +105,7 @@ class combine_outputs(object):
                 p1.x, p1.y, p1.time, p1.vols, p1.stage, \
                 p1.height, p1.elev, p1.friction, p1.xmom, p1.ymom, \
                 p1.xvel, p1.yvel, p1.vel, p1.minimum_allowed_height,\
-                p1.xllcorner, p1.yllcorner, p1.timeSlices 
+                p1.xllcorner, p1.yllcorner, p1.timeSlices
 
         self.filename = p1.filename
         self.verbose = p1.verbose
@@ -115,47 +114,48 @@ class combine_outputs(object):
 ####################
 
 def sort_sww_filenames(sww_wildcard):
-    # Function to take a 'wildcard' sww filename, 
+    # Function to take a 'wildcard' sww filename,
     # and return a list of all filenames of this type,
     # sorted by their time.
     # This can then be used efficiently in 'combine_outputs'
     # if you have many filenames starting with the same pattern
     import glob
     filenames=glob.glob(sww_wildcard)
-    
+
     # Extract time from filenames
     file_time=list(range(len(filenames))) # Predefine
-     
+
     for i,filename in enumerate(filenames):
         filesplit=filename.rsplit('_time_')
         if(len(filesplit)>1):
             file_time[i]=int(filesplit[1].split('_0.sww')[0])
         else:
-            file_time[i]=0         
-    
+            file_time[i]=0
+
     name_and_time=list(zip(file_time,filenames))
     name_and_time.sort() # Sort by file_time
-    
+
     output_times, output_names = list(zip(*name_and_time))
-    
+
     return list(output_names)
 
 #####################################################################
 
 # FIXME (Ole): We should move this to e.g. the module sww.py as it has nothing to do with plotting ;-)
-class get_output(object):
+class get_output:
     """Read in data from an .sww file in a convenient form
-       e.g. 
+       e.g.
         p = plot_utils.get_output('channel3.sww', minimum_allowed_height=0.01)
-        
-       p then contains most relevant information as e.g., p.stage, p.elev, p.xmom, etc 
+
+       p then contains most relevant information as e.g., p.stage, p.elev, p.xmom, etc
     """
     def __init__(self, filename, minimum_allowed_height=1.0e-03, timeSlices='all', verbose=False):
                 # FIXME: verbose is not used
         self.x, self.y, self.time, self.vols, self.stage, \
                 self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
-                self.xllcorner, self.yllcorner, self.timeSlices, self.starttime = \
+                self.xllcorner, self.yllcorner, self.timeSlices, self.starttime, \
+                self.tracers = \
                 _read_output(filename, minimum_allowed_height, copy.copy(timeSlices))
         self.filename = filename
         self.verbose = verbose
@@ -166,13 +166,13 @@ def getInds(varIn, timeSlices, absMax=False):
      Convenience function to get the indices we want in an array.
      There are a number of special cases that make this worthwhile
      having in its own function
-    
+
      INPUT: varIn -- numpy array, either 1D (variables in space) or 2D
             (variables in time+space)
             timeSlices -- times that we want the variable, see read_output or get_output
             absMax -- if TRUE and timeSlices is 'max', then get max-absolute-values
      OUTPUT:
-           
+
     """
     #import pdb
     #pdb.set_trace()
@@ -200,27 +200,85 @@ def getInds(varIn, timeSlices, absMax=False):
     else:
         # There is 1 time slice only
         var = varIn[:]
-    
+
     return var
 
 ############################################################################
 
+# Quantities whose centroid variable is <name>_c but which are NOT tracers.
+# Only consulted for sww files written before the tracer_names attribute
+# existed; a current file states its tracers outright.
+_NON_TRACER_C_VARIABLES = frozenset((
+    'stage', 'elevation', 'friction', 'xmomentum', 'ymomentum',
+    'height', 'xvelocity', 'yvelocity', 'velocity',
+    'max_stage', 'max_depth', 'max_speed', 'max_uh',
+))
+
+
+def get_tracer_names(filename):
+    """Names of the tracers stored in an sww file, in the order written.
+
+    Tracers -- and therefore suspended sediment classes, which are tracers
+    with settling parameters -- are stored as one dynamic centroid variable
+    `<name>_c` each. That looks exactly like `stage_c`, so the writer records
+    which ones they are as a global `tracer_names` attribute and this reads it.
+
+    Files written before that attribute existed fall back to "every `<name>_c`
+    variable whose base is not a known quantity", which is right for every
+    such file but cannot stay right as quantities are added -- hence the
+    attribute.
+    """
+    fid = NetCDFFile(filename)
+    try:
+        return _tracer_names_from(fid)
+    finally:
+        fid.close()
+
+
+def _tracer_names_from(fid):
+    """As get_tracer_names, on an already-open file."""
+    names = getattr(fid, 'tracer_names', None)
+    if names is not None:
+        # Written by every current file, '' when there are no tracers.
+        if isinstance(names, bytes):
+            names = names.decode()
+        return [n for n in str(names).split() if n]
+
+    # Older file: infer, and accept that a quantity added after this list was
+    # written would be misread as a tracer.
+    found = []
+    for v in fid.variables.keys():
+        if v.endswith('_c') and v[:-2] not in _NON_TRACER_C_VARIABLES:
+            found.append(v[:-2])
+    return sorted(found)
+
+
+def _read_tracers(fid, inds):
+    """{name: array} of the tracer concentrations at the given time slices."""
+    tracers = {}
+    for name in _tracer_names_from(fid):
+        var = name + '_c'
+        if var in fid.variables:
+            tracers[name] = getInds(fid.variables[var], timeSlices=inds)
+    return tracers
+
+
 def _read_output(filename, minimum_allowed_height, timeSlices):
     """
-     Purpose: To read the sww file, and output a number of variables as arrays that 
-              we can then e.g. plot, interrogate 
+     Purpose: To read the sww file, and output a number of variables as arrays that
+              we can then e.g. plot, interrogate
 
               See get_output for the typical interface, and get_centroids for
                 working with centroids directly
-    
+
      Input: filename -- The name of an .sww file to read data from,
                         e.g. read_sww('channel3.sww')
             minimum_allowed_height -- zero velocity when height < this
             timeSlices -- List of time indices to read (e.g. [100] or [0, 10, 21]), or 'all' or 'last' or 'max'
                           If 'max', the time-max of each variable will be computed. For xmom/ymom/xvel/yvel, the
                            one with maximum magnitude is reported
-    
-    
+
+
      Output: x, y, time, stage, height, elev, xmom, ymom, xvel, yvel, vel
              x,y are only stored at one time
              elevation may be stored at one or multiple times
@@ -229,7 +287,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
 
     # Open ncdf connection
     fid=NetCDFFile(filename)
-    
+
     time=fid.variables['time'][:]
 
     # Treat specification of timeSlices
@@ -270,7 +328,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
 
     # Friction if it exists
     if('friction' in fid.variables):
-        friction=getInds(fid.variables['friction'], timeSlices=inds) 
+        friction=getInds(fid.variables['friction'], timeSlices=inds)
     else:
         # Set friction to nan if it is not stored
         friction = elev * 0. + numpy.nan
@@ -279,7 +337,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     inds2 = copy.copy(inds)
     if inds == 'max':
         inds2 = list(range(len(fid.variables['time'])))
-    
+
     # Get height
     if('height' in fid.variables):
         height = fid.variables['height'][inds2]
@@ -305,7 +363,7 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
     for i in range(len(inds2)):
         xmom[i,:] = fid.variables['xmomentum'][inds2[i]]
         ymom[i,:] = fid.variables['ymomentum'][inds2[i]]
-    
+
     # Get vel
     h_inv = 1.0/(height+1.0e-12)
     hWet = (height > minimum_allowed_height)
@@ -321,40 +379,48 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         xmom = getInds(xmom, timeSlices=inds,absMax=True)
         ymom = getInds(ymom, timeSlices=inds,absMax=True)
 
+    tracers = _read_tracers(fid, inds)
+
     fid.close()
 
     return x, y, time, vols, stage, height, elev, friction, xmom, ymom,\
-           xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner, inds, starttime
+           xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner, inds, starttime,\
+           tracers
 
 ######################################################################################
 
-class get_centroids(object):
+class get_centroids:
     """
     Extract centroid values from the output of get_output, OR from a
-        filename  
+        filename
     See _read_output or _get_centroid_values for further explanation of
         arguments
     e.g.
         # Case 1 -- get vertex values first, then centroids
-        p = plot_utils.get_output('my_sww.sww', minimum_allowed_height=0.01) 
-        pc=util.get_centroids(p, velocity_extrapolation=True) 
+        p = plot_utils.get_output('my_sww.sww', minimum_allowed_height=0.01)
+        pc=util.get_centroids(p, velocity_extrapolation=True)
 
         # Case 2 -- get centroids directly
-        pc=plot_utils.get_centroids('my_sww.sww', velocity_extrapolation=True) 
+        pc=plot_utils.get_centroids('my_sww.sww', velocity_extrapolation=True)
 
     NOTE: elevation is only stored once in the output, even if it was
           stored every timestep.
           Lots of existing plotting code assumes elevation is a 1D
-          array. 
-          But as a hack for the time being the elevation from the file 
+          array.
+          But as a hack for the time being the elevation from the file
           is available via elev_orig
+
+    Tracers -- and suspended sediment classes, which are tracers -- are in
+    the `tracers` dict, keyed by name, e.g. pc.tracers['salinity']. A dict
+    rather than attributes so a tracer cannot shadow `stage` or `vel`.
     """
     def __init__(self, p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
-        
+
         self.time, self.x, self.y, self.stage, self.xmom,\
             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
-            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
+            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices,\
+            self.tracers = \
                 _get_centroid_values(p, velocity_extrapolation,\
                                      timeSlices=copy.copy(timeSlices),\
                                      minimum_allowed_height=minimum_allowed_height,\
@@ -420,38 +486,38 @@ def _getCentVar(fid, varkey_c, time_indices, absMax=False,  vols = None, space_i
 
     return var_cent
 
-                                 
-def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices, 
+
+def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
                          minimum_allowed_height):
     """
-    Function to get centroid information -- main interface is through 
-        get_centroids. 
+    Function to get centroid information -- main interface is through
+        get_centroids.
         See get_centroids for usage examples, and read_output or get_output for further relevant info
-     Input: 
+     Input:
            p --  EITHER:
-                  The result of e.g. p=util.get_output('mysww.sww'). 
-                  See the get_output class defined above. 
+                  The result of e.g. p=util.get_output('mysww.sww').
+                  See the get_output class defined above.
                  OR:
                   Alternatively, the name of an sww file
-    
+
            velocity_extrapolation -- If true, and centroid values are not
             in the file, then compute centroid velocities from vertex velocities, and
             centroid momenta from centroid velocities. If false, and centroid values
             are not in the file, then compute centroid momenta from vertex momenta,
             and centroid velocities from centroid momenta
-    
+
            timeSlices = list of integer indices when we want output for, or
                         'all' or 'last' or 'max'. See _read_output
-    
+
            minimum_allowed_height = height at which velocities are zeroed. See _read_output
-    
+
      Output: Values of x, y, Stage, xmom, ymom, elev, xvel, yvel, vel etc at centroids
     """
 
     # Figure out if p is a string (filename) or the output of get_output
     pIsFile = isinstance(p, str)
-    if(pIsFile): 
-        fid = NetCDFFile(p) 
+    if(pIsFile):
+        fid = NetCDFFile(p)
     else:
         fid = NetCDFFile(p.filename)
 
@@ -464,16 +530,16 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
     vols0 = vols[:,0]
     vols1 = vols[:,1]
     vols2 = vols[:,2]
-    
+
     # Get lower-left offset
     xllcorner = fid.xllcorner
     yllcorner = fid.yllcorner
-   
-    #@ Get timeSlices 
+
+    #@ Get timeSlices
     # It will be either a list of integers, or 'max'
     l = len(vols)
     time = fid.variables['time'][:]
-    nts = len(time) # number of time slices in the file 
+    nts = len(time) # number of time slices in the file
     if(timeSlices is None):
         if(pIsFile):
             # Assume all timeSlices
@@ -526,7 +592,7 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
 
     # Hack to allow refernece to time varying elevation
     elev_cent_orig = elev_cent
-    
+
     if(len(elev_cent.shape) == 2):
         # Coerce to 1D array, since lots of our code assumes it is
         elev_cent = elev_cent[0,:]
@@ -536,12 +602,12 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         friction_cent = _getCentVar(fid, 'friction_c', time_indices=inds, vols=vols)
     except Exception:
         friction_cent = elev_cent*0.+numpy.nan
-    
+
     # Trick to treat the case where inds == 'max'
     inds2 = copy.copy(inds)
     if inds == 'max':
         inds2 = list(range(len(fid.variables['time'])))
-   
+
     # height
     height_cent = stage_cent + 0.
     for i in range(stage_cent.shape[0]):
@@ -592,9 +658,9 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
             for i in range(stage_v.shape[0]):
                 height_v[i,:] = stage_v[i,:] - elev_v
 
-        # Height at centroids        
+        # Height at centroids
         height_c_tmp = (height_v[:, vols0] + height_v[:,vols1] + height_v[:,vols2])/3.0
-       
+
         # Compute xmom/xvel/ymom/yvel
         if velocity_extrapolation:
 
@@ -639,14 +705,23 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         xvel_cent = getInds(xvel_cent, timeSlices=inds, absMax=True)
         yvel_cent = getInds(yvel_cent, timeSlices=inds, absMax=True)
 
+    # Tracers are centroid quantities to begin with -- there is no vertex
+    # variable to fall back on -- so this is the path that matters for them.
+    tracers_cent = {}
+    for _tname in _tracer_names_from(fid):
+        if _tname + '_c' in fid.variables:
+            tracers_cent[_tname] = _getCentVar(fid, _tname + '_c',
+                                               time_indices=inds, vols=vols)
+
     fid.close()
-    
+
     return time, x_cent, y_cent, stage_cent, xmom_cent,\
              ymom_cent, height_cent, elev_cent, elev_cent_orig, friction_cent,\
-             xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds
+             xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds,\
+             tracers_cent
 
 
-def animate_1D(time, var, x, ylab=' '): 
+def animate_1D(time, var, x, ylab=' '):
     """Animate a 2d array with a sequence of 1d plots
 
      Input: time = one-dimensional time vector;
@@ -654,11 +729,11 @@ def animate_1D(time, var, x, ylab=' '):
             x = (optional) vector width dimension equal to var.shape[1];
             ylab = ylabel for plot
     """
-    
+
     import pylab
     import numpy
-   
-    
+
+
 
     pylab.close()
     pylab.ion()
@@ -676,7 +751,7 @@ def animate_1D(time, var, x, ylab=' '):
         pylab.xlabel('x')
         pylab.ylabel(ylab)
         pylab.title('time = ' + str(time[i]))
-    
+
     return
 
 def near_transect(p, point1, point2, tol=1.):
@@ -692,13 +767,13 @@ def near_transect(p, point1, point2, tol=1.):
     # #xxx=transect_interpolate.near_transect(p,[95., 85.], [120.,68.],tol=2.)
     # xxx=util.near_transect(p,[95., 85.], [120.,68.],tol=2.)
     # pyplot.scatter(xxx[1],p.vel[140,xxx[0]],color='red')
-    
+
     x1=point1[0]
     y1=point1[1]
-    
+
     x2=point2[0]
     y2=point2[1]
-    
+
     # Find line equation a*x + b*y + c = 0
     # based on y=gradient*x +intercept
     if x1!=x2:
@@ -711,52 +786,52 @@ def near_transect(p, point1, point2, tol=1.):
     else:
         a=1.
         b=0.
-        c=-x2 
-    
+        c=-x2
+
     # Distance formula
     inv_denom = 1./(a**2 + b**2)**0.5
     distp = abs(p.x*a + p.y*b + c)*inv_denom
-    
+
     near_points = (distp<tol).nonzero()[0]
-    
+
     # Now find a 'local' coordinate for the point, projected onto the line
     # g1 = unit vector parallel to the line
     # g2 = vector joining (x1,y1) and (p.x,p.y)
-    g1x = x2-x1 
+    g1x = x2-x1
     g1y = y2-y1
     g1_norm = (g1x**2 + g1y**2)**0.5
     g1x = g1x / g1_norm
     g1y = g1y / g1_norm
-    
+
     g2x = p.x[near_points] - x1
     g2y = p.y[near_points] - y1
-    
+
     # Dot product = projected distance == a local coordinate
     local_coord = g1x*g2x + g1y*g2y
-    
+
     # only keep coordinates between zero and the distance along the line
     dl=((x1-x2)**2+(y1-y2)**2)**0.5
     keepers=(local_coord<=dl)*(local_coord>=0.)
     keepers=keepers.nonzero()
-    
+
     return near_points[keepers], local_coord[keepers]
 
 
 def triangle_areas(p, subset=None):
     # Compute areas of triangles in p -- assumes p contains vertex information
-    # subset = vector of centroid indices to include in the computation. 
+    # subset = vector of centroid indices to include in the computation.
 
     if(subset is None):
         subset=list(range(len(p.vols[:,0])))
-    
+
     x0=p.x[p.vols[subset,0]]
     x1=p.x[p.vols[subset,1]]
     x2=p.x[p.vols[subset,2]]
-    
+
     y0=p.y[p.vols[subset,0]]
     y1=p.y[p.vols[subset,1]]
     y2=p.y[p.vols[subset,2]]
-    
+
     # Vectors for cross-product
     v1_x=x0-x1
     v1_y=y0-y1
@@ -777,27 +852,27 @@ def water_volume(p, p2, per_unit_area=False, subset=None):
 
     l=len(p2.time)
     area=triangle_areas(p, subset=subset)
-    
+
     total_area=area.sum()
     volume=p2.time*0.
-   
-    # This accounts for how volume is measured in ANUGA 
+
+    # This accounts for how volume is measured in ANUGA
     # Compute in 2 steps to reduce precision error from limited SWW precision
     # FIXME: Is this really needed?
     for i in range(l):
         #volume[i]=((p2.stage[i,subset]-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
         volume[i]=((p2.stage[i,subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
         volume[i]=volume[i]+((-p2.elev[subset])*(p2.stage[i,subset]>p2.elev[subset])*area).sum()
-    
+
     if(per_unit_area):
         volume = volume / total_area
-    
+
     return volume
 
 
 def get_triangle_containing_point(p, point, search_order=None):
     """
-    Function to get the index of a triangle containing a point. 
+    Function to get the index of a triangle containing a point.
     It loops over all points in the mesh until it finds on that contains the point.
     The search order (i.e. order in which triangles defined by p.vols are searched) can
     be provided. If it is not, it is estimated by computing the distance
@@ -840,28 +915,28 @@ def get_triangle_containing_point(p, point, search_order=None):
 
 def get_triangle_near_point(p, point, tolerance=1.0e20):
     """
-    Function to get the index of a triangle nearest to a point (as measured by distance to 
+    Function to get the index of a triangle nearest to a point (as measured by distance to
     centroid of the triangle).
 
     @param p Object containing mesh vertex information (e.g. from plot_utils.get_output)
     @param point A single point (absolute units)
     @param tolerance Raise an exception if "nearest" point is further that tolerance from the domain
-    
+
     @return The index of the triangle "nearest" to point.
     """
 
     import numpy
 
     pc = get_centroids(p)
-    
+
     xll_corner = p.xllcorner
     yll_corner = p.yllcorner
 
     X = pc.x[:] + xll_corner
     Y = pc.y[:] + yll_corner
-    
+
     distance2 = (X - point[0])**2 + (Y - point[1])**2
-    
+
     tid = numpy.argmin(distance2)
 
     if distance2[tid] > tolerance**2:
@@ -914,7 +989,7 @@ def get_extent(p):
 
 
 
-def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None, 
+def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
                creation_options=[]):
     """
         Convert data,lats,lons to a georeferenced raster tif
@@ -922,9 +997,9 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
                lats -- 1d array with 'latitude' or 'y' range
                lons -- 1D array with 'longitude' or 'x' range
                fileName -- name of file to write to
-               EPSG_CODE -- Integer code with projection information in EPSG format 
+               EPSG_CODE -- Integer code with projection information in EPSG format
                proj4string -- proj4string with projection information
-               creation_options -- list of tif creation options for gdal (e.g. ["COMPRESS=DEFLATE"])
+               creation_options -- list of tif creation options for rasterio (e.g. ["COMPRESS=DEFLATE"])
 
         NOTE: proj4string is used in preference to EPSG_CODE if available
     """
@@ -979,11 +1054,11 @@ def make_grid(data, lats, lons, fileName, EPSG_CODE=None, proj4string=None,
 
 ##################################################################################
 
-def Make_Geotif(swwFile=None, 
+def Make_Geotif(swwFile=None,
              output_quantities=['depth'],
-             myTimeStep=0, CellSize=100.0, 
+             myTimeStep=0, CellSize=100.0,
              lower_left=None, upper_right=None,
-             EPSG_CODE=None, 
+             EPSG_CODE=None,
              proj4string=None,
              velocity_extrapolation=True,
              min_allowed_height=1.0e-05,
@@ -1008,17 +1083,17 @@ def Make_Geotif(swwFile=None,
                 CellSize -- approximate pixel size for output raster [adapted to fit lower_left / upper_right]
                 lower_left -- [x0,y0] of lower left corner. If None, use extent of swwFile.
                 upper_right -- [x1,y1] of upper right corner. If None, use extent of swwFile.
-                EPSG_CODE -- Projection information as an integer EPSG code (e.g. 3123 for PRS92 Zone 3, 32756 for UTM Zone 56 S, etc). 
+                EPSG_CODE -- Projection information as an integer EPSG code (e.g. 3123 for PRS92 Zone 3, 32756 for UTM Zone 56 S, etc).
                              Google for info on EPSG Codes
                 proj4string -- Projection information as a proj4string (e.g. '+init=epsg:3123')
-                             Google for info on proj4strings. 
+                             Google for info on proj4strings.
                 velocity_extrapolation -- Compute velocity assuming the code extrapolates with velocity (instead of momentum)?
                 min_allowed_height -- Minimum allowed height from ANUGA
                 output_dir -- Write outputs to this directory
                 bounding_polygon -- polygon (e.g. from read_polygon) If present, only set values of raster cells inside the bounding_polygon
                 internal_holes -- a list of polygons. If present, do not set values of raster cells inside these polygons.
                 k_nearest_neighbours -- how many neighbours to use in interpolation. If k>1, inverse-distance-weighted interpolation is used
-                creation_options -- list of tif creation options for gdal, e.g. ['COMPRESS=DEFLATE']
+                creation_options -- list of tif creation options for rasterio, e.g. ['COMPRESS=DEFLATE']
     """
 
     import scipy.io
@@ -1026,7 +1101,7 @@ def Make_Geotif(swwFile=None,
     import scipy.spatial
     import anuga
     import os
-    
+
     try:
         import rasterio
     except ImportError as e:
@@ -1035,10 +1110,18 @@ def Make_Geotif(swwFile=None,
         raise ImportError(msg)
 
     # Check whether swwFile is an array, and if so, redefine various inputs to
-    # make the code work
-    if(type(swwFile) == numpy.ndarray):
+    # make the code work. Use isinstance (not type(...) == ...) so that ndarray
+    # subclasses are recognised too — in particular numpy.ma.MaskedArray, which
+    # is what NetCDF reads return (e.g. the elevation/friction point arrays built
+    # by raster_outputs.make_me_some_tifs). An exact-type check missed those and
+    # mis-routed the array down the "swwFile is a filename" path.
+    if isinstance(swwFile, numpy.ndarray):
         import copy
-        xyzPoints = copy.copy(swwFile)
+        if numpy.ma.isMaskedArray(swwFile):
+            # Fill masked cells with nan so they are skipped by the interpolation
+            xyzPoints = numpy.ma.filled(swwFile.astype(float), numpy.nan)
+        else:
+            xyzPoints = copy.copy(swwFile)
         swwFile = None
 
     if(((EPSG_CODE is None) & (proj4string is None) )|
@@ -1054,7 +1137,7 @@ def Make_Geotif(swwFile=None,
 
     if(swwFile is not None):
         # Read in ANUGA outputs
-            
+
         if(verbose):
             print('Reading sww File ...')
         p2 = get_centroids(swwFile, velocity_extrapolation, timeSlices=myTimeStep,
@@ -1123,7 +1206,7 @@ def Make_Geotif(swwFile=None,
         #from pprint import pprint
         #print(72*"=")
         #pprint(gridqInd)
-        
+
         # Function to do the interpolation
         def myInterpFun(quantity):
             return quantity[gridqInd]
@@ -1146,7 +1229,7 @@ def Make_Geotif(swwFile=None,
         # Find points to exclude (i.e. outside the bounding polygon)
         from anuga.geometry.polygon import outside_polygon
         cut_points = outside_polygon(gridXY_array, bounding_polygon)
-        
+
     hole_points_list = []
     if internal_holes is not None:
         # Find points to exclude (i.e. inside the internal_holes)
@@ -1184,7 +1267,7 @@ def Make_Geotif(swwFile=None,
                     gridq = myInterpFun(swwDIVel)
                 if(output_quantity == 'elevation'):
                     gridq = myInterpFun(p2.elev)
-    
+
                 if(myTSi == 'max'):
                     timestepString = 'max'
                 else:
@@ -1213,17 +1296,17 @@ def Make_Geotif(swwFile=None,
             if(verbose):
                 print('Making raster ...')
 
-            gridq.shape = (len(desiredY),len(desiredX))
-            make_grid(numpy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE, 
+            gridq = gridq.reshape(len(desiredY),len(desiredX))
+            make_grid(numpy.flipud(gridq), desiredY, desiredX, output_name, EPSG_CODE=EPSG_CODE,
                       proj4string=proj4string, creation_options=creation_options)
 
     return
 
-def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib.cm.jet, edgecolors='k'):
+def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=None, edgecolors='k'):
     """ Add mesh triangles to a pyplot plot
-        
+
        @param p = object holding sww vertex information (from util.get_output)
-       @param adjustLowerLeft = if TRUE, use spatial coordinates, otherwise use ANUGA internal coordinates     
+       @param adjustLowerLeft = if TRUE, use spatial coordinates, otherwise use ANUGA internal coordinates
        @param values = list or array of length(p.vols), or None. All triangles are assigned this value (for face plotting colors).
        @param values_cmap = colormap for faces [e.g. values_cmap = matplotlib.cm.get_cmap('spectral')]
        @param edgecolors = edge color for polygons (using matplotlib.colors notation). Use 'none' for no color
@@ -1232,8 +1315,15 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
     from matplotlib import pyplot as pyplot
     from matplotlib.collections import PolyCollection
 
+    # Resolved here rather than as a default argument: importing matplotlib at
+    # module level made it a hard requirement of `import anuga`, which meant a
+    # solver or MPI run could not start when a PLOTTING library was missing or
+    # broken. None keeps the same colormap without that coupling.
+    if values_cmap is None:
+        values_cmap = matplotlib.cm.jet
+
     x0=p.xllcorner
-    y0=p.yllcorner 
+    y0=p.yllcorner
 
     # Make vertices for PolyCollection Object
     vertices = []
@@ -1248,10 +1338,10 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
             tri_coords[:,1] = tri_coords[:,1] + y0
 
         vertices.append(tri_coords)
-     
-    # Make PolyCollection 
-    if values is None: 
-        all_poly = PolyCollection( vertices, array = numpy.zeros(len(vertices)), 
+
+    # Make PolyCollection
+    if values is None:
+        all_poly = PolyCollection( vertices, array = numpy.zeros(len(vertices)),
             edgecolors=edgecolors)
         all_poly.set_facecolor('none')
     else:
@@ -1263,7 +1353,7 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
 
         msg = 'len(values) must be the same as len(p.vols) (or values can be a constant)'
         assert lv==len(p.vols), msg
-        all_poly = PolyCollection( vertices, array = values, cmap = values_cmap, 
+        all_poly = PolyCollection( vertices, array = values, cmap = values_cmap,
             edgecolors=edgecolors)
 
     # Add to plot
@@ -1272,12 +1362,12 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
     pyplot.gca().add_collection(all_poly)
 
 def find_neighbours(p,ind):
-    """ 
+    """
         Find the triangles neighbouring triangle 'ind'
         p is an object from get_output containing mesh vertices
     """
     ind_nei=p.vols[ind]
-    
+
     shared_nei0=p.vols[:,1]*0.0
     shared_nei1=p.vols[:,1]*0.0
     shared_nei2=p.vols[:,1]*0.0
@@ -1286,13 +1376,13 @@ def find_neighbours(p,ind):
     for i in range(3):
         shared_nei0+=1*(p.x[p.vols[:,i]]==p.x[ind_nei[0]])*\
             1*(p.y[p.vols[:,i]]==p.y[ind_nei[0]])
-        
+
         shared_nei1+=1*(p.x[p.vols[:,i]]==p.x[ind_nei[1]])*\
             1*(p.y[p.vols[:,i]]==p.y[ind_nei[1]])
-        
+
         shared_nei2+=1*(p.x[p.vols[:,i]]==p.x[ind_nei[2]])*\
             1*(p.y[p.vols[:,i]]==p.y[ind_nei[2]])
-    
+
     out=(shared_nei2 + shared_nei1 + shared_nei0)
     return((out==2).nonzero())
 
@@ -1305,12 +1395,12 @@ def calc_edge_elevations(p):
     pe_y=p.y*0.
     pe_el=p.elev*0.
 
-   
-    # Compute coordinates + elevations 
+
+    # Compute coordinates + elevations
     pe_x[p.vols[:,0]] = 0.5*(p.x[p.vols[:,1]] + p.x[p.vols[:,2]])
     pe_y[p.vols[:,0]] = 0.5*(p.y[p.vols[:,1]] + p.y[p.vols[:,2]])
     pe_el[p.vols[:,0]] = 0.5*(p.elev[p.vols[:,1]] + p.elev[p.vols[:,2]])
-    
+
     pe_x[p.vols[:,1]] = 0.5*(p.x[p.vols[:,0]] + p.x[p.vols[:,2]])
     pe_y[p.vols[:,1]] = 0.5*(p.y[p.vols[:,0]] + p.y[p.vols[:,2]])
     pe_el[p.vols[:,1]] = 0.5*(p.elev[p.vols[:,0]] + p.elev[p.vols[:,2]])

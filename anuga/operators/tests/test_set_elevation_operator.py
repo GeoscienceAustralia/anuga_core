@@ -1,7 +1,8 @@
 """  Test set operators - stage elevation erosion.
 """
 
-import unittest, os
+import unittest
+import os
 import anuga
 from anuga import Domain
 from anuga import Reflective_boundary
@@ -73,7 +74,7 @@ class Test_set_elevation_operator(unittest.TestCase):
 
 
         operator = Set_elevation_operator(domain, elevation=elev, indices=indices)
-        
+
         # Apply Operator
         domain.timestep = 2.0
         operator()
@@ -86,7 +87,7 @@ class Test_set_elevation_operator(unittest.TestCase):
 
         stage_ex = [ 4.,  4.,  1.,  4.]
         elev_ex = [ 3.,  3.,  0.,  3.]
-        
+
 
         #pprint( domain.quantities['elevation'].centroid_values )
         #pprint( domain.quantities['stage'].centroid_values )
@@ -96,7 +97,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)        
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
     def test_set_elevation_operator_negative_de0(self):
         from anuga.config import rho_a, rho_w, eta_w
@@ -153,12 +154,12 @@ class Test_set_elevation_operator(unittest.TestCase):
         # Apply Operator
         domain.timestep = 2.0
         operator()
-        
+
         height_c = stage_c - elev_c
         integral1 = num.sum(height_c)
         assert integral0 == integral1
 
-        
+
         elev_ex = [-5.        , -5.        , -5.33333333, -5.        ]
         stage_ex = [-2.66666667, -1.33333333,  1.        , -2.66666667]
 
@@ -171,7 +172,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)        
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
 
     def test_set_elevation_operator_small_function_de0(self):
@@ -242,7 +243,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         domain.set_time(15.0)
         operator()
 
-        elev_ex = [ 7.,  7.,  0.,  7.] 
+        elev_ex = [ 7.,  7.,  0.,  7.]
         stage_ex = [ 8.,  8.,  1.,  8.]
 
         #pprint( domain.quantities['elevation'].centroid_values )
@@ -253,7 +254,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         assert num.allclose(domain.quantities['elevation'].centroid_values, elev_ex)
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
-        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)        
+        assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
 
 
@@ -346,7 +347,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         8.,  8.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  8.,  8.,  8.,
         8.,  8.,  8.,  8.,  8.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
         1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
-        
+
 #        pprint (domain.quantities['elevation'].centroid_values)
 #        pprint (domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
@@ -413,14 +414,14 @@ class Test_set_elevation_operator(unittest.TestCase):
         5.,  5.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  5.,  5.,  5.,
         5.,  5.,  5.,  5.,  5.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]
-        
+
 
         stage_ex = [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
         1.,  1.,  1.,  1.,  1.,  1.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,
         6.,  6.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  6.,  6.,  6.,
         6.,  6.,  6.,  6.,  6.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
         1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
-        
+
 
 #        pprint (domain.quantities['elevation'].centroid_values)
 #        pprint (domain.quantities['stage'].centroid_values)
@@ -449,15 +450,15 @@ class Test_set_elevation_operator(unittest.TestCase):
         7.,  7.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  7.,  7.,  7.,
         7.,  7.,  7.,  7.,  7.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.]
-        
+
 
         stage_ex = [ 1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
         1.,  1.,  1.,  1.,  1.,  1.,  1.,  8.,  8.,  8.,  8.,  8.,  8.,
         8.,  8.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  8.,  8.,  8.,
         8.,  8.,  8.,  8.,  8.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,
         1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.,  1.]
-        
-            
+
+
 #        pprint (domain.quantities['elevation'].centroid_values)
 #        pprint (domain.quantities['stage'].centroid_values)
 #        print domain.quantities['xmomentum'].centroid_values
@@ -518,13 +519,13 @@ class Test_set_elevation_operator(unittest.TestCase):
         5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  0.,  0.,  5.,
         5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  5.,  0.,  0.]
 
-        
+
         stage_ex = [ 1.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,
         6.,  6.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,
         6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,
         6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,  1.,  6.,
         6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,  1.]
-        
+
 
 
 #        pprint (domain.quantities['elevation'].centroid_values)
@@ -550,13 +551,13 @@ class Test_set_elevation_operator(unittest.TestCase):
         7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  0.,  0.,  7.,
         7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  7.,  0.,  0.]
 
-        
+
         stage_ex = [ 1.,  1.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,
         8.,  8.,  1.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,
         8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,
         8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,  1.,  8.,
         8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,  1.]
-        
+
 #        pprint (domain.quantities['elevation'].centroid_values)
 #        pprint (domain.quantities['stage'].centroid_values)
 #        pprint (domain.quantities['xmomentum'].centroid_values)
@@ -618,7 +619,7 @@ class Test_set_elevation_operator(unittest.TestCase):
 
 
         #pprint(domain.quantities['stage'].centroid_values)
-        
+
         stage_ex = [ 1.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  1.,
         6.,  6.,  1.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,
         6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,  6.,
@@ -659,7 +660,7 @@ class Test_set_elevation_operator(unittest.TestCase):
         8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,
         8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,  1.,  8.,
         8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  8.,  1.,  1.]
-        
+
 
 #        from pprint import pprint
 #        pprint (domain.quantities['elevation'].centroid_values)
@@ -676,7 +677,7 @@ class Test_set_elevation_operator(unittest.TestCase):
 
 
         #print operator.value_type
-        
+
         operator()
 
         #from pprint import pprint
@@ -713,7 +714,7 @@ class Test_set_elevation_operator(unittest.TestCase):
          1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
          1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,
          1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.,   1.]
-        
+
 
 #        from pprint import pprint
 #        pprint (domain.quantities['elevation'].centroid_values)
@@ -726,7 +727,35 @@ class Test_set_elevation_operator(unittest.TestCase):
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
 
-            
+
+class Test_set_elevation_operator_extra(unittest.TestCase):
+    """Additional tests for Set_elevation_operator methods."""
+
+    def _make_op(self):
+        from anuga.operators.set_elevation_operator import Set_elevation_operator
+        domain = rectangular_cross_domain(2, 2)
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 1.0)
+        return Set_elevation_operator(domain, elevation=0.1)
+
+    def test_parallel_safe(self):
+        """parallel_safe returns True (line 64)."""
+        op = self._make_op()
+        self.assertTrue(op.parallel_safe())
+
+    def test_statistics(self):
+        """statistics returns a string (lines 68-70)."""
+        op = self._make_op()
+        msg = op.statistics()
+        self.assertIsInstance(msg, str)
+
+    def test_timestepping_statistics(self):
+        """timestepping_statistics returns a string (line 78)."""
+        op = self._make_op()
+        msg = op.timestepping_statistics()
+        self.assertIsInstance(msg, str)
+
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_set_elevation_operator)
     runner = unittest.TextTestRunner(verbosity=1)

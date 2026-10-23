@@ -1,0 +1,101 @@
+# ANUGA — GPU image (built from source with the NVIDIA HPC SDK / nvc).
+#
+# There are no GPU wheels on PyPI: the GPU offload extension is OpenMP-target
+# code that must be compiled by nvc. This builds ANUGA from the repo checkout
+# against nvc with gpu_offload=true for a multi-arch fat binary that runs on
+# both AWS datacenter GPUs and a local Blackwell laptop.
+#
+#   GPU_ARCH default cc75,cc80,cc86,cc89,cc90,cc120 covers:
+#     cc75 T4 (g4dn)   cc80 A100 (p4d)  cc86 A10G (g5)
+#     cc89 L4 (g6)     cc90 H100 (p5)   cc120 RTX 50-series (laptop)
+#   cc70 (V100 / p3) is intentionally excluded: NVHPC 25.9 defaults to CUDA 13,
+#   which dropped Volta (sm_70), so it can't share a fat binary with Blackwell
+#   (cc120). For V100 build a separate image with an older CUDA/NVHPC and
+#   --build-arg GPU_ARCH=cc70.
+#
+# NVHPC_TAG must be an nvcr.io/nvidia/nvhpc *devel* tag that exists AND whose
+# nvc supports every arch in GPU_ARCH (Blackwell/cc120 needs NVHPC >= 25.1).
+# Verify a tag before the (long) build:
+#   docker pull nvcr.io/nvidia/nvhpc:25.9-devel-cuda_multi-ubuntu24.04
+# Tag list: https://catalog.ngc.nvidia.com/orgs/nvidia/containers/nvhpc/tags
+#
+# Build (context = repo root):
+#   docker build -f docker/Dockerfile.gpu -t anuga:gpu .
+#   docker build -f docker/Dockerfile.gpu \
+#     --build-arg NVHPC_TAG=26.3-devel-cuda_multi-ubuntu24.04 \
+#     --build-arg GPU_ARCH=cc120 -t anuga:gpu-local .        # laptop-only, smaller
+#
+# Run (GPU visible via the NVIDIA Container Toolkit; opt into offload per run):
+#   docker run --rm --gpus all -e ANUGA_DEFAULT_COMPUTE_MODE=unified \
+#     -v "$PWD/data:/work" anuga:gpu python /work/my_run.py -alg DE0
+ARG NVHPC_TAG=25.9-devel-cuda_multi-ubuntu24.04
+FROM nvcr.io/nvidia/nvhpc:${NVHPC_TAG}
+
+# cuda12.9 first: the cuda_multi base bundles CUDA 12.9 and 13.0 and defaults
+# to 13.0, whose libnvvm dropped Volta ("-arch=compute_70 is an unsupported
+# option").  12.9 supports Volta AND Blackwell (sm_120, added in 12.8), so one
+# fat binary covers cc70 (V100) through cc120 (RTX 50-series).
+ARG GPU_ARCH=cuda12.9,cc70,cc75,cc80,cc86,cc89,cc90,cc120
+# PEP 440 version to stamp into the build (.git is excluded from the context, so
+# `git describe` can't run inside the image). Pass what it would have produced:
+#   --build-arg ANUGA_VERSION="$(python _git_version.py)"
+# Left empty => anuga.__version__ is 0.0.0+unknown (cosmetic).
+ARG ANUGA_VERSION=
+
+LABEL org.opencontainers.image.title="ANUGA (GPU, nvc)" \
+      org.opencontainers.image.source="https://github.com/anuga-community/anuga_core" \
+      org.opencontainers.image.version="${ANUGA_VERSION}"
+
+SHELL ["/bin/bash", "-lc"]
+
+# Python + build tooling. (The NVHPC image ships nvc/CUDA but not a build-ready
+# Python.) A venv avoids Debian/Ubuntu PEP 668 "externally managed" errors.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 python3-venv python3-dev python3-pip git ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV VIRTUAL_ENV=/opt/venv
+RUN python3 -m venv "$VIRTUAL_ENV"
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+WORKDIR /opt/anuga
+COPY . .
+
+# Build every extension with nvc (CC=nvc), GPU offload on, multi-arch.
+# --no-build-isolation so the pinned build deps + CC=nvc are the ones meson uses.
+# CFLAGS=-tp=haswell: nvc defaults to the *build host* CPU, which bakes
+# in that CPU's ISA (e.g. AVX-512) and SIGILLs ("Illegal instruction") on any
+# host lacking it — notably AWS g5 (AMD Zen2, no AVX-512). haswell (AVX2) is the
+# portable baseline every AWS GPU host and the dev laptops support.
+# C only: CC=nvc but CXX is left as g++, which rejects -tp (and needs no such
+# flag — meson.build deliberately avoids -march=native, so g++ is portable).
+RUN set -euo pipefail && \
+    NVC="$(command -v nvc || true)"; \
+    if [ -z "$NVC" ]; then echo "ERROR: nvc not found on PATH in this NVHPC image" >&2; exit 1; fi && \
+    echo "Using nvc: $NVC ($($NVC --version | head -1))" && \
+    pip install --no-cache-dir -U pip && \
+    pip install --no-cache-dir "numpy>=2.0" cython "meson>=1.4" meson-python ninja pybind11 && \
+    ANUGA_VERSION="${ANUGA_VERSION}" CC="$NVC" \
+      CFLAGS="-tp=haswell" \
+      pip install --no-cache-dir --no-build-isolation -v \
+        -Csetup-args=-Dgpu_offload=true \
+        -Csetup-args=-Dgpu_arch="${GPU_ARCH}" \
+        ".[data]" && \
+    pip install --no-cache-dir awscli && \
+    install -m 0755 docker/anuga-entrypoint.sh /usr/local/bin/anuga-entrypoint && \
+    cd / && \
+    python -c "import anuga; print('ANUGA', anuga.__version__, 'built + imported OK')" && \
+    rm -rf /opt/anuga
+# The import test runs from / (not /opt/anuga) so it imports the installed
+# package, not the source tree (which lacks the generated _version.py / .so).
+# The source tree is then removed: it is not needed at runtime and its presence
+# would shadow the installed package for anyone who cd'd into it.
+# Note: gpu_offload_supported() is False here (build has no GPU); verify offload
+# at runtime with `--gpus all` (see docker/README.md).
+
+ENV ANUGA_WORKDIR=/work
+# Writable HOME/config so `docker run --user $(id -u):$(id -g)` works (host-owned
+# output, no root-owned files) without a home dir for the arbitrary uid.
+ENV HOME=/tmp MPLCONFIGDIR=/tmp
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/anuga-entrypoint"]

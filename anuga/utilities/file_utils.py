@@ -68,9 +68,9 @@ def check_dir(path, verbose=None):
                 pass  # FIXME: What about access rights under Windows?
 
             if verbose:
-                log.critical('MESSAGE: Directory %s created.' % path)
+                log.info('MESSAGE: Directory %s created.' % path)
         except OSError:
-            log.critical('WARNING: Directory %s could not be created.' % path)
+            log.warning('WARNING: Directory %s could not be created.' % path)
             if unix:
                 try:
                     path = os.environ['TMPDIR']
@@ -79,7 +79,7 @@ def check_dir(path, verbose=None):
             else:
                 path = 'C:' + os.sep
 
-            log.critical("Using directory '%s' instead" % path)
+            log.info("Using directory '%s' instead" % path)
 
     return path
 
@@ -98,7 +98,7 @@ def del_dir(path):
                 try:
                     os.remove(X)
                 except OSError:
-                    log.critical("Could not remove file %s" % X)
+                    log.warning("Could not remove file %s" % X)
 
         os.rmdir(path)
 
@@ -109,10 +109,10 @@ def rmgeneric(path, func, verbose=False):
     try:
         func(path)
         if verbose:
-            log.critical('Removed %s' % path)
+            log.info('Removed %s' % path)
     except OSError as xxx_todo_changeme:
         (errno, strerror) = xxx_todo_changeme.args
-        log.critical(ERROR_STR % {'path': path, 'error': strerror})
+        log.warning(ERROR_STR % {'path': path, 'error': strerror})
 
 
 def removeall(path, verbose=False):
@@ -190,10 +190,10 @@ def get_all_directories_with_name(look_in_dir='', base_name='', verbose=False):
 
     if len(iterate_over) == 0:
         msg = 'No files of the base name %s' % base_name
-        raise IOError(msg)
+        raise OSError(msg)
 
     if verbose:
-        log.critical('iterate over %s' % iterate_over)
+        log.info('iterate over %s' % iterate_over)
 
     return iterate_over
 
@@ -218,7 +218,7 @@ def get_all_swwfiles(look_in_dir='', base_name='', verbose=False):
 
     if extension != '' and extension != '.sww':
         msg = 'file %s%s must be a NetCDF sww file!' % (base_name, extension)
-        raise IOError(msg)
+        raise OSError(msg)
 
     if look_in_dir == "":
         look_in_dir = "."                                   # Unix compatibility
@@ -227,10 +227,10 @@ def get_all_swwfiles(look_in_dir='', base_name='', verbose=False):
     iterate_over = [x[:-4] for x in dir_ls if name in x and x[-4:] == '.sww']
     if len(iterate_over) == 0:
         msg = 'No files of the base name %s' % name
-        raise IOError(msg)
+        raise OSError(msg)
 
     if verbose:
-        log.critical('iterate over %s' % iterate_over)
+        log.info('iterate over %s' % iterate_over)
 
     return iterate_over
 
@@ -258,7 +258,7 @@ def get_all_files_with_extension(look_in_dir='',
     if ext != '' and ext != extension:
         msg = 'base_name %s must be a file with %s extension!' \
               % (base_name, extension)
-        raise IOError(msg)
+        raise OSError(msg)
 
     if look_in_dir == "":
         look_in_dir = "."                               # Unix compatibility
@@ -269,10 +269,10 @@ def get_all_files_with_extension(look_in_dir='',
 
     if len(iterate_over) == 0:
         msg = 'No files of the base name %s in %s' % (name, look_in_dir)
-        raise IOError(msg)
+        raise OSError(msg)
 
     if verbose:
-        log.critical('iterate over %s' % iterate_over)
+        log.info('iterate over %s' % iterate_over)
 
     return iterate_over
 
@@ -290,25 +290,25 @@ def copy_code_files(dir_name, filename1, filename2=None, verbose=False):
         if isinstance(file, str):
             shutil.copy(file, dir_name)
             if verbose:
-                log.critical('File %s copied' % file)
+                log.info('File %s copied' % file)
         elif isinstance(file, (tuple, list)):
             for f in file:
                 copy_file_or_sequence(dest, f)
         else:
             raise Exception('Unknow argument for file: %s', file)
-        
+
 
 
     # check we have a destination directory, create if necessary
     if not os.path.isdir(dir_name):
         if verbose:
-            log.critical('Make directory %s' % dir_name)
+            log.info('Make directory %s' % dir_name)
         os.mkdir(dir_name, 0o777)
 
     if verbose:
-        log.critical('Output directory: %s' % dir_name)
+        log.info('Output directory: %s' % dir_name)
 
     copy_file_or_sequence(dir_name, filename1)
 
-    if not filename2 is None:
+    if filename2 is not None:
         copy_file_or_sequence(dir_name, filename2)

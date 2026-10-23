@@ -1,5 +1,4 @@
 #!/usr/bin/python
-# -*- coding: utf-8 -*-
 ############################################################
 
 # Get the modules we need
@@ -38,54 +37,66 @@ def make_resampled_elevation(
     tif_output_dir,
 ):
     """
-    Call gdalwarp to get the resampled elevation data
+    Resample elevation_raster to the given extent/resolution and burn a
+    clip-polygon mask into a copy of the result.
+
+    Replaces the former gdalwarp + gdal_rasterize CLI calls with
+    rasterio.warp.reproject and rasterio.features.rasterize.
     """
-
-    import platform
-    ostype = platform.system()
-
-    if ostype == 'Linux':
-        gdalwarp = 'gdalwarp'
-        gdal_rasterize = 'gdal_rasterize'
-    elif ostype == 'Windows':
-        gdalwarp = 'gdalwarp.exe'
-        gdalwarp = 'gdal_rasterize.exe'
-    else:
-        raise Exception('Unrecognized OS')
+    import shutil
+    import rasterio
+    from rasterio.warp import reproject, Resampling
+    from rasterio.transform import from_bounds
+    from rasterio.features import rasterize as _rasterize
+    import fiona
 
     rast_xmin = raster_extent[0]
     rast_xmax = raster_extent[1]
     rast_ymin = raster_extent[2]
     rast_ymax = raster_extent[3]
-    xres = cell_size
-    yres = cell_size
 
-    # allSRS='EPSG:'+str(EPSG_CODE)
+    ncols = int(round((rast_xmax - rast_xmin) / cell_size))
+    nrows = int(round((rast_ymax - rast_ymin) / cell_size))
+    dst_transform = from_bounds(rast_xmin, rast_ymin, rast_xmax, rast_ymax,
+                                ncols, nrows)
 
-    all_srs = proj4string
     new_dem = tif_output_dir + 'LIDAR_resampled.tif'
     new_mask = tif_output_dir + 'Mask_resampled.tif'
 
-    extent_info = ' -te ' + str(rast_xmin) + ' ' + str(rast_ymin) + ' ' \
-        + str(rast_xmax) + ' ' + str(rast_ymax)
-    res_info = ' -tr ' + str(xres) + ' ' + str(yres)
+    # ---- resample elevation raster to target extent/resolution ----
+    with rasterio.open(elevation_raster) as src:
+        data = numpy.empty((nrows, ncols), dtype=numpy.float32)
+        reproject(
+            source=rasterio.band(src, 1),
+            destination=data,
+            src_transform=src.transform,
+            src_crs=src.crs,
+            dst_transform=dst_transform,
+            dst_crs=proj4string,
+            resampling=Resampling.bilinear,
+        )
+        profile = {
+            'driver': 'GTiff',
+            'dtype': numpy.float32,
+            'width': ncols,
+            'height': nrows,
+            'count': 1,
+            'crs': proj4string,
+            'transform': dst_transform,
+        }
+        with rasterio.open(new_dem, 'w', **profile) as dst:
+            dst.write(data, 1)
 
-    # mkdir -p ElevationToPlot
-
-    gdalwarp_command = gdalwarp + ' -s_srs ' + all_srs + ' -t_srs ' \
-        + all_srs + extent_info + ' ' + res_info + ' ' \
-        + elevation_raster + ' ' + new_dem + ' -overwrite'
-
-    os.system(gdalwarp_command)
-
-    import shutil
+    # ---- burn clip polygon (value=1) into a copy of the DEM ----
     shutil.copyfile(new_dem, new_mask)
 
-    gdal_rasterize_command = gdal_rasterize + ' -a_srs ' + all_srs \
-        + ' -burn 1 -l ' + clip_polygon_layer + ' ' + extent_info + ' ' \
-        + res_info + ' ' + clip_polygon + ' ' + new_mask
-    print(gdal_rasterize_command)
-    os.system(gdal_rasterize_command)
+    with fiona.open(clip_polygon, layer=clip_polygon_layer) as shp:
+        shapes = [(feat['geometry'], 1) for feat in shp]
+
+    with rasterio.open(new_mask, 'r+') as dst:
+        out = dst.read(1)
+        _rasterize(shapes, out=out, transform=dst.transform)
+        dst.write(out, 1)
 
     return
 
@@ -100,25 +111,32 @@ def gdal_calc_command(
     depth_threshold,
 ):
     """
-    Call gdal_calc to compute depth by draping
-    stage over the high res elevation data
+    Compute high-res depth by draping stage over elevation data:
+        result = (stage - elevation) * (stage > elevation)
+                 * (depth > depth_threshold) * mask
+
+    Replaces the former gdal_calc.py CLI call with rasterio + numpy.
     """
+    import rasterio
 
-    gdal_calc = 'gdal_calc.py '
-    gdal_input = '-A ' + stage + ' -B ' + depth + ' -C ' + elevation \
-        + ' -D ' + mask
-    calc_command = " --calc '(A-C)*(A>C)*(B>" + str(depth_threshold) \
-        + ")*D' "
+    rast_out = os.path.dirname(depth) + '/HighRes_' + os.path.basename(depth)
 
-    # rastOut=$swwTifDir$swwBase'_depth_high_res.tif'
+    with rasterio.open(stage) as s, \
+         rasterio.open(depth) as d, \
+         rasterio.open(elevation) as e, \
+         rasterio.open(mask) as m:
 
-    rast_out = os.path.dirname(depth) + '/HighRes_' \
-        + os.path.basename(depth)
+        A = s.read(1).astype(numpy.float64)
+        B = d.read(1).astype(numpy.float64)
+        C = e.read(1).astype(numpy.float64)
+        D = m.read(1).astype(numpy.float64)
 
-    gdalcalc_command = gdal_calc + gdal_input + calc_command \
-        + '--outfile ' + rast_out
-    print(gdalcalc_command)
-    os.system(gdalcalc_command)
+        result = (A - C) * (A > C) * (B > depth_threshold) * D
+
+        profile = s.profile.copy()
+        profile.update(dtype=numpy.float32, count=1)
+        with rasterio.open(rast_out, 'w', **profile) as out:
+            out.write(result.astype(numpy.float32), 1)
 
     return
 
@@ -165,9 +183,9 @@ def make_me_some_tifs(
     - clipPolygon -- Polygon to clip 'high-res-drape' plot. Must be
       provided if make_highres_drape_plot==True (can use bounding polygon or
       another choice)
-    - clipPolygonLayer -- Layer for above as used by gdal (usually shapefile
-      name without .shp)
-    - creation_options -- list of gdal tif creation options
+    - clipPolygonLayer -- Layer name for above (usually shapefile name without
+      .shp), passed to fiona.open(layer=...)
+    - creation_options -- list of rasterio tif creation options
 
     ## OUTPUT
     Nothing is returned, but tifs are made in tif_output_subdir inside the
@@ -315,7 +333,7 @@ def make_me_some_tifs(
         depth = glob.glob(tif_output_dir + '*_depth_max.tif')[0]
         stage = glob.glob(tif_output_dir + '*_stage_max.tif')[0]
 
-    # Call gdal_calc
+    # Compute high-res depth by draping stage over elevation
 
     gdal_calc_command(stage, depth, elevation, mask, depth_threshold)
 

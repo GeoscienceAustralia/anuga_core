@@ -1,6 +1,25 @@
 # ANUGA Release Roadmap
 
-Last updated: 2026-03-26
+Last updated: 2026-07-08
+
+> **Branch policy (decided 2026-07-07):** `develop` will **not** be merged into
+> `main` until the team explicitly decides to cut **v4.0.0**. Until then, all
+> work and upstream syncs stay on `develop` (PR from the `stoiver` fork →
+> `anuga-community/anuga_core:develop`, admin-merged by PR number). `main` is
+> held at the current released line — do not open or merge develop→main PRs.
+
+> **Tagging convention (decided 2026-07-08):** release tags are bare version
+> numbers (e.g. `3.3.7`, **no** `v` prefix) and must be created as **annotated**
+> tags — `git tag -a 3.3.8 -m "ANUGA 3.3.8"` — not lightweight. The `3.x` tags to
+> date are lightweight, which is why a plain `git describe` skips them and falls
+> back to the old annotated `1.3.1`; the version machinery (`_git_version.py`)
+> still works because it uses `git describe --tags`, but annotating future tags
+> makes plain `git describe` (and any tooling that relies on it) correct too.
+
+> **Validation reports (decided 2026-10-01):** publishing a GitHub release
+> also builds the validation reports (DE0, DE1, DE_ader2), attaches them to the
+> release and, for final releases, opens a Zenodo draft to review and publish.
+> Setup and per-release steps: `claude/RELEASE_VALIDATION_REPORTS.md`.
 
 ---
 
@@ -13,7 +32,8 @@ Last updated: 2026-03-26
 1. Merge all active `develop_*` feature branches into `develop`
 2. Run full test suite: `pytest --pyargs anuga`
 3. Merge `develop` → `main`
-4. Tag `v3.3.0` on `main`
+4. Tag the release commit on `main` with an **annotated** tag (bare version, no
+   `v` prefix): `git tag -a 3.3.0 -m "ANUGA 3.3.0"` (see Tagging convention above)
 5. Publish to PyPI (triggered by tag via CI or manual `twine upload`)
 6. Submit conda-forge feedstock PR to bump version and hash
 
@@ -60,7 +80,11 @@ The `sp26` branch is a **research project** forming the basis of a paper submitt
    - **Phase 3** — deduplicate quantity kernels, consolidate parallel operators (coordinate with sp26 merge)
    - **Phase 2** — ruff linting, pre-commit hooks
    - **Phase 4** — lift coverage to 65%, automate validation tests
-4. Stabilise, then merge `develop` → `main`, tag `v4.0.0`
+4. **Only once the team decides to release 4.0.0:** stabilise, merge `develop` →
+   `main`, and add an **annotated** tag `git tag -a 4.0.0 -m "ANUGA 4.0.0"`
+   (bare version, no `v` prefix — see Tagging convention above). Until that
+   decision `main` stays put and `develop` is not merged into it (see the branch
+   policy at the top of this file).
 
 ### Coordination notes
 

@@ -23,7 +23,7 @@ class Set_stage(Set_quantity):
     Helper class to setup calculation of elevation
     associated with a region (defined by indices, polygon or center/radius
     """
-    
+
     set_elevation = Set_quantity.set_value
 
 
@@ -72,7 +72,7 @@ class Set_stage(Set_quantity):
         #print('init ', type(self.indices), self.indices)
 
         ids = self.indices
-        
+
         if ids is None:
             self.v_x = coord_v[:,0].reshape((-1,3))
             self.v_y = coord_v[:,1].reshape((-1,3))

@@ -20,7 +20,7 @@ from anuga.config import indent
 
 class Set_elevation_operator(Operator, Set_elevation):
 
-    
+
     def __init__(self,
                  domain,
                  elevation=None,
@@ -43,7 +43,7 @@ elevation can be a function of time.
         """
 
 
- 
+
 
         Set_elevation.__init__(self, domain, elevation, region, indices, polygon, center, radius)
 
@@ -53,7 +53,7 @@ elevation can be a function of time.
     # Use the __call__ method from Set_elevation
     # to set the elevation in this operator
     __call__ = Set_elevation.__call__
-    
+
 
 
 
@@ -143,7 +143,7 @@ class Polygonal_set_elevation_operator(Set_elevation_operator):
 
 
 
-        
+
 
 
 

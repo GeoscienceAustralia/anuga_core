@@ -12,9 +12,6 @@ abstraction
 """
 from math import pi, pow, sqrt
 import numpy as num
-from anuga.culvert_flows.culvert_routines import boyd_generalised_culvert_model
-from anuga.culvert_flows.culvert_class import Culvert_flow
-from anuga.shallow_water.forcing import Rainfall, Inflow
 from anuga import Domain
 from anuga import rectangular_cross_domain
 import anuga
@@ -139,30 +136,17 @@ print('DEFINING any Structures if Required')
 
 #  DEFINE CULVERT INLET AND OUTLETS
 
-"""
-culvert_rating = Culvert_flow(domain,
-                       culvert_description_filename='example_rating_curve.csv',
-                       end_point0=[40.0, 75.0], 
-                       end_point1=[50.0, 75.0],
-                       verbose=True)
-
-
-culvert_energy = Culvert_flow(domain,
-                       label='Culvert No. 1',
-                       description='This culvert is a test unit 1.2m Wide by 0.75m High',   
-                       end_point0=[40.0, 75.0], 
-                       end_point1=[50.0, 75.0],
-                       width=50.0,depth=5.0,
-                       culvert_routine=boyd_generalised_culvert_model,        
-                       number_of_barrels=1,
-                       #update_interval=0.25,
-                       log_file=True,
-                       discharge_hydrograph=True,
-                       use_velocity_head=False,
-                       verbose=True)
-
-domain.forcing_terms.append(culvert_energy)
-"""
+# To add a box culvert under the bridge, use Boyd_box_operator:
+#
+# culvert = anuga.Boyd_box_operator(domain,
+#                                   end_points=[[40.0, 75.0], [50.0, 75.0]],
+#                                   width=1.2,
+#                                   height=0.75,
+#                                   losses=1.5,
+#                                   manning=0.013,
+#                                   use_momentum_jet=True,
+#                                   use_velocity_head=False,
+#                                   verbose=True)
 
 # ------------------------------------------------------------------------------
 # Setup boundary conditions

@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 """
 
-Setup pumping stations (using internal boundary operator)  
+Setup pumping stations (using internal boundary operator)
 
 Gareth Davies, Geoscience Australia 2014+
 
@@ -17,9 +17,9 @@ from anuga.utilities import spatialInputUtil as su
 from anuga.parallel import myid, numprocs, barrier, finalize
 from anuga.parallel.parallel_api import pypar_available
 if pypar_available:
-    from anuga.parallel.parallel_operator_factory import Internal_boundary_operator 
+    from anuga.parallel.parallel_operator_factory import Internal_boundary_operator
 else:
-    from anuga.structures.internal_boundary_operator import Internal_boundary_operator 
+    from anuga.structures.internal_boundary_operator import Internal_boundary_operator
 from anuga.structures.internal_boundary_functions import pumping_station_function
 
 def setup_pumping_stations(domain, project):
@@ -62,7 +62,7 @@ def setup_pumping_stations(domain, project):
             pump_rate_of_increase=pump_rate_of_increase,
             pump_rate_of_decrease=pump_rate_of_decrease
             )
-        
+
         # Add operator as side-effect of this operation
         pumping_station = Internal_boundary_operator(
             domain,

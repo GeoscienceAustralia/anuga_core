@@ -1,0 +1,230 @@
+# Validation reports for a release: build the PDF report of the validation
+# suite for each flow algorithm from the tagged commit, attach the PDFs to the
+# GitHub release, and (for a final release) upload them to Zenodo as a DRAFT
+# new version of the "ANUGA validation reports" record.
+#
+# The nightly validation.yml checks the validate_*.py tolerances; this builds
+# the reports (produce_results.py in every case, then the LaTeX). It is a
+# release gate: if any case fails to produce its results, or a report does
+# not typeset, nothing is attached and nothing goes to Zenodo.
+#
+# Zenodo drafts are never published by this workflow -- a published record
+# cannot be deleted. See claude/RELEASE_VALIDATION_REPORTS.md for the one-off
+# setup (secrets, variables) and the publish step.
+
+name: Validation reports
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to build the reports for'
+        required: true
+        type: string
+      attach:
+        description: 'Attach the PDFs to the GitHub release for this tag'
+        type: boolean
+        default: true
+      zenodo:
+        description: 'Upload a Zenodo draft: none, sandbox (sandbox.zenodo.org) or production'
+        type: choice
+        options: [none, sandbox, production]
+        default: none
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+env:
+  TAG: ${{ github.event.release.tag_name || inputs.tag }}
+  PY: '3.12'
+
+jobs:
+  report:
+    name: report (${{ matrix.alg }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 345
+    strategy:
+      fail-fast: false
+      matrix:
+        alg: [DE0, DE1, DE_ader2]
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+          fetch-depth: 0   # git describe needs the tags for the version
+
+      - uses: conda-incubator/setup-miniconda@v4
+        with:
+          miniforge-version: latest
+          use-mamba: true
+          python-version: ${{ env.PY }}
+          auto-update-conda: true
+          conda-remove-defaults: true
+
+      # The same recipe as validation.yml
+      - name: Create the environment
+        shell: bash -el {0}
+        run: |
+          conda env create --name anuga_env --file "environments/environment_${PY}.yml"
+          conda install -c conda-forge -n anuga_env compilers libgomp openmpi mpi4py
+
+      - name: Install anuga
+        shell: bash -el {0}
+        run: |
+          conda activate anuga_env
+          pip install --no-build-isolation -v .
+          cd validation_tests
+          python -c "import anuga; print('anuga', anuga.__version__)"
+
+      # datatool, placeins and titlesec are in latex-extra; bibtex comes with base
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended
+
+      - name: Build the report
+        shell: bash -el {0}
+        env:
+          ALG: ${{ matrix.alg }}
+        run: |
+          conda activate anuga_env
+          cd validation_tests/reports
+          export OMP_NUM_THREADS=2
+          set -o pipefail
+          python validations_produce_results.py -alg "$ALG" -l 2>&1 | tee "produce_${ALG}.log"
+          mv "validations_report_alg_${ALG}.pdf" "anuga-${TAG}-validation-${ALG}.pdf"
+          # This algorithm's figures and case status, for the combined report
+          python validations_combine_algs.py collect -alg "$ALG"
+
+      - name: Keep the figures for the combined report
+        uses: actions/upload-artifact@v7
+        with:
+          name: validation-figures-${{ matrix.alg }}
+          path: validation_tests/reports/algs/
+          retention-days: 7
+
+      - name: Keep the report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: validation-report-${{ matrix.alg }}
+          path: |
+            validation_tests/reports/anuga-*-validation-*.pdf
+            validation_tests/reports/validations_report_alg_*.pdf
+            validation_tests/reports/produce_*.log
+            validation_tests/reports/validations_report.log
+          if-no-files-found: warn
+          retention-days: 90
+
+  # One report with every case once and each figure per algorithm side by
+  # side. Needs only LaTeX and the figures the report jobs collected.
+  combine:
+    name: Combined report
+    needs: [report]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+          sparse-checkout: validation_tests
+
+      - name: Install LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            texlive-latex-base texlive-latex-recommended texlive-latex-extra \
+            texlive-fonts-recommended
+
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: validation-figures-*
+          merge-multiple: true
+          path: validation_tests/reports/algs
+
+      - name: Build the combined report
+        run: |
+          set -euo pipefail
+          cd validation_tests/reports
+          python3 validations_combine_algs.py combine
+          mv validations_report_combined.pdf "anuga-${TAG}-validation-combined.pdf"
+
+      - name: Keep the combined report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: validation-report-combined
+          path: |
+            validation_tests/reports/anuga-*-validation-combined.pdf
+            validation_tests/reports/validations_report_combined.log
+          if-no-files-found: warn
+          retention-days: 90
+
+  attach:
+    name: Attach to the release
+    needs: [report, combine]
+    if: github.event_name == 'release' || inputs.attach
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: validation-report-*
+          merge-multiple: true
+      - name: Upload the PDFs
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          ls -l anuga-*-validation-*.pdf
+          gh release upload "$TAG" anuga-*-validation-*.pdf --clobber --repo "$GITHUB_REPOSITORY"
+
+  zenodo:
+    name: Zenodo draft
+    needs: [report, combine]
+    # Final releases only; release candidates get the GitHub assets alone.
+    # By hand: inputs.zenodo picks the sandbox or production.
+    if: >-
+      (github.event_name == 'release' && !github.event.release.prerelease) ||
+      (github.event_name == 'workflow_dispatch' && inputs.zenodo != 'none')
+    runs-on: ubuntu-latest
+    env:
+      TARGET: ${{ github.event_name == 'release' && 'production' || inputs.zenodo }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TAG }}
+          sparse-checkout: |
+            CITATION.cff
+            .github/scripts
+      - uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PY }}
+      - run: pip install requests pyyaml
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: validation-report-*
+          merge-multiple: true
+          path: reports
+      - name: Upload the draft
+        env:
+          ZENODO_TOKEN: ${{ env.TARGET == 'sandbox' && secrets.ZENODO_SANDBOX_TOKEN || secrets.ZENODO_TOKEN }}
+          CONCEPT: ${{ env.TARGET == 'sandbox' && vars.ZENODO_SANDBOX_CONCEPT_RECID || vars.ZENODO_CONCEPT_RECID }}
+          COMMUNITY: ${{ env.TARGET == 'sandbox' && vars.ZENODO_SANDBOX_COMMUNITY || vars.ZENODO_COMMUNITY }}
+          RELEASE_URL: ${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ env.TAG }}
+        run: |
+          set -euo pipefail
+          SANDBOX=""
+          if [ "$TARGET" = "sandbox" ]; then SANDBOX="--sandbox"; fi
+          python .github/scripts/zenodo_validation_reports.py $SANDBOX \
+            --tag "$TAG" --release-url "$RELEASE_URL" --concept-recid "$CONCEPT" \
+            --community "$COMMUNITY" \
+            reports/anuga-*-validation-*.pdf

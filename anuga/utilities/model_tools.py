@@ -1,8 +1,8 @@
 r"""
  FILE :  MODEL_BUILD_TOOLS_04.py
  DATE:  28/05/2013
- 
- Last Change:  Can now define directories by using underscore _ 
+
+ Last Change:  Can now define directories by using underscore _
  so mannings = 0_05
 
 
@@ -19,12 +19,12 @@ of polygons and attributes to:
 To ensure these functions operate it is important to use the
 STANDARD_MODEL_CREATE_SCRIPT that will create a set of standardised directories to store model data
 
-The concept is to populate this standard directory structure with the required 'csv' files 
+The concept is to populate this standard directory structure with the required 'csv' files
 describing the required polygons.
 
 MESH REFINE
 EG: c:\Model\Data\Mesh_Refine\10000 and c:\Model\Data\Mesh-Refine\1000
-Contain the polygons that describe the mesh refine for triangles no larger 
+Contain the polygons that describe the mesh refine for triangles no larger
 than 10,000m2 and 1,000m2
 
 BUILDINGS
@@ -41,11 +41,11 @@ will contain polygons top describe surface roughness in the model of 0.100 and 0
 RAINFALL
 EG: c:\Model\Data\Rainfall_Polys\Gauge_name_01 and c:\Model\Data\Rainfall_Polys\Gauge_name_02
 Will list the polygons that apply rainfall described by the raingauge files in the directory name
-options: Either the directory Name is the Raingauge file name, or the Raingauge file (with extension tms) 
+options: Either the directory Name is the Raingauge file name, or the Raingauge file (with extension tms)
 is located in the directory and associated with the polygons in the same directory.... or
 the raingauge is kept in another directory under FORCEFUNC and there is a pointer to it ???
 
-TO BE RESOLVED 
+TO BE RESOLVED
 
 METHOD OF CALLING:
 Identify the directory in which sub directories will appear that have names as numeric values
@@ -112,7 +112,7 @@ def get_polygon_from_single_file(Rfile):
 
 def get_polygons_from_Mid_Mif(Rfile):
     """Create List of Polygons from a Directory with a File containing Multiple-Polygons
-       
+
        User ANUGA Model SCRIPT
        Purpose:
        CALLS:
@@ -133,7 +133,7 @@ def get_polygons_from_Mid_Mif(Rfile):
     total_lines_in_file= len(lines)
     #print "total number of lines in the Polygons FILE is: ",total_lines_in_file
 
-    for i, line in enumerate(lines): 
+    for i, line in enumerate(lines):
         if line.strip().startswith('Region'):
             Poly_line_count=0
             check_pts_list=[]
@@ -149,7 +149,7 @@ def get_polygons_from_Mid_Mif(Rfile):
             #print 'Polygon #',Poly_count
             #poly_write_file="Poly_"+str(Poly_count)+".csv"
             #outfid = open(poly_write_file, 'w')
-            #raw_input('Check Output... -line 155')  
+            #raw_input('Check Output... -line 155')
             # Instead write to a List
         elif line.strip().startswith('    Pen'):
             pass
@@ -177,57 +177,57 @@ def get_polygons_from_Mid_Mif(Rfile):
     #print 'End For Loop....-line178'
     polylist.append(polygon)
     #print polylist
-    #outfid.close()          
-    return polylist          
+    #outfid.close()
+    return polylist
 
 
 def get_polygon_list_from_files(dir, verbose = False):
     """Read all polygons found in specified dir and return them in a list
-    
+
        Called by:
        get_polygon_dictionary
-    
+
        Purpose:
        To fill a list with all of the polygons read under a specified directory
-    
+
        Calls:
        anuga.utilities.polygon.read_polygon
     """
-    
+
     #print 'Reading polygon files from ' + dir
     #print 'This will check the file for Multiple Polygons or read mutiple files with a single polygon per file...' # Need to read files with multiple polys also....
     polylist = []
     for filename in os.listdir(dir):
         Rfile = dir +'/'+filename
         if verbose: print(Rfile)
-        
+
         if Rfile[-4:] == '.csv':
             polygon = get_polygon_from_single_file(Rfile)
         if Rfile[-4:] == '.mif':
             polygon = get_polygons_from_Mid_Mif(Rfile)
-        
+
         polylist = polylist + polygon
 
     return polylist
 
 
 def get_polygon_dictionary(dir):
-    """Create dictionary of polygons with directory names 
-       indicating associated attribute values 
-       
+    """Create dictionary of polygons with directory names
+       indicating associated attribute values
+
        Called by:
        get_polygon_value_list
-       
+
        Purpose:
-       To Fill a Dictionary with sets of poygons and attribute, from a list of polygons 
+       To Fill a Dictionary with sets of poygons and attribute, from a list of polygons
        and using the directory name as the attribute
        For Example used to read Mesh Size Directory 1500, using all polygons in the directory
        to create mesh refinement to 1500m2
-       
+
        Calls:
        get_polygon_list_from_files
     """
-    
+
     try:
         attribute_values = os.listdir(dir)  # Create the Attribute from the Directory Name
     except OSError:
@@ -244,7 +244,7 @@ def get_polygon_value_list(dir):
     """Create list of multiple Polygons attributed with a value
        Where the values are obtained from sub directory names based on number and decimal at underscore
        So: Passing Directory ROUGHNESS containing, subs, 0_015, and 0_06 for example
-       
+
        Called by:
        User ANUGA Model SCRIPT
        Purpose:
@@ -252,8 +252,8 @@ def get_polygon_value_list(dir):
        get_polygon_dictionary
     These lists can either be used as interior regions in mesh refinement or as input to Polygon_function
     """
-    
-    #print 'Read directories of polygons and attributing DIR NAME to polygon'    
+
+    #print 'Read directories of polygons and attributing DIR NAME to polygon'
     #print 'Naming convention uses the underscore as decimal point eg:0_015, 1000_0'
     D = get_polygon_dictionary(dir)
     polygon_value_list = []
@@ -276,20 +276,20 @@ def get_polygon_value_list(dir):
 def read_polygon_dir(weight_dict, directory, filepattern='*.csv'):
     """
     In a directory directory looks at all files matching filepattern
-    and returns a list of tuples consisting of polygon and a weight 
+    and returns a list of tuples consisting of polygon and a weight
     """
     pattern = os.path.join(directory, filepattern)
     files = glob.glob(pattern)
 
     # check that the dictionary contains *all* the files
-    
+
     errors = []
     for f in files:
         try:
             _ = weight_dict[f]
         except KeyError:
             errors.append(f)
-            
+
     if errors:
         msg = ''
         for f in errors:
@@ -308,7 +308,7 @@ def read_polygon_dir(weight_dict, directory, filepattern='*.csv'):
 def read_hole_dir_multi_files_with_single_poly(directory, filepattern='*.csv'):
     """
     Looks in a directory, and reads all .csv files as polygons
-    and returns a list of polygon 
+    and returns a list of polygon
     """
     pattern = os.path.join(directory, filepattern)
     files = glob.glob(pattern)
@@ -318,27 +318,27 @@ def read_hole_dir_multi_files_with_single_poly(directory, filepattern='*.csv'):
     for f in files:
         result.append(read_polygon(f))
     return result
-    
-    
-    
-    
-    
+
+
+
+
+
 # Define a function to read Single File with Multi-polygons
 def read_multi_poly_file(multi_P_file):
     """
-    Reads a file with multiple polygons, formatted as 
+    Reads a file with multiple polygons, formatted as
     x,y
     x,y
     x,y
-    
+
     x,y
     x,y
     x,y ...
-    
+
     I.e each poly is defined by x,y position of vertices. New polygon starts after
     a space.
-    
-    Returns a list of polygons 
+
+    Returns a list of polygons
     """
     delimiter = ','
     fid = open(multi_P_file)
@@ -354,13 +354,13 @@ def read_multi_poly_file(multi_P_file):
             # Found a line without correct data, assume this signifies the start of a new polygon
             polygons.append(polygon)
             polygon = []
-        
+
     # Pickup the last polygon
     polygons.append(polygon)
 
     #print len(polygons)
 
-    #print polygons    
+    #print polygons
     return polygons
 
 
@@ -370,7 +370,7 @@ def read_hole_dir_single_file_with_multi_poly(directory, filepattern='*.csv'):
     """
     Looks in a directory, and reads 1 .csv file
     containing muliple polygons
-    and returns a list of polygon 
+    and returns a list of polygon
     """
     pattern = os.path.join(directory, filepattern)
     files = glob.glob(pattern)
@@ -378,26 +378,26 @@ def read_hole_dir_single_file_with_multi_poly(directory, filepattern='*.csv'):
     # now get the result list
     result = []
     for f in files: # For the 1 file
-        result.append(read_multi_poly_file(multi_P_file)) # Get the multiple Polygons
+        result.append(read_multi_poly_file(f)) # Get the multiple Polygons
     return result
 
 
 # Define a function to read Single File with Multi-polygons and attribute a value
 def read_multi_poly_file_value(multi_P_file,attribute):
     """
-    Reads a file with multiple polygons, formatted as 
+    Reads a file with multiple polygons, formatted as
     x,y
     x,y
     x,y
-    
+
     x,y
     x,y
     x,y ...
-    
+
     I.e each poly is defined by x,y position of vertices. New polygon starts after
     a space.
-    
-    Returns a list of tuples (polygon, attribute) 
+
+    Returns a list of tuples (polygon, attribute)
     """
     delimiter = ','
     fid = open(multi_P_file)
@@ -420,7 +420,7 @@ def read_multi_poly_file_value(multi_P_file,attribute):
     polygon_value_list.append(pair)
     #print len(polygon_value_list)
     #print polygon_value_list
-    return polygon_value_list 
+    return polygon_value_list
 
 
 
@@ -442,7 +442,7 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file, verbose=False):
 
     Depending on the parameters provided, it will create either a Boyd_box_operator,
     Boyd_pipe_operator, or Weir_orifice_trapezoid_operator.
-   
+
     Called by:
     User ANUGA Model SCRIPT
     Purpose:
@@ -453,9 +453,9 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file, verbose=False):
     anuga.Weir_orifice_trapezoid_operator
     """
     #print culvert_bridge_file
-    local_vars = {}    
-    
-    with open(culvert_bridge_file, 'r') as f:
+    local_vars = {}
+
+    with open(culvert_bridge_file) as f:
         multiline_key = None
         multiline_value = ''
         for line in f:
@@ -485,7 +485,7 @@ def Create_culvert_bridge_Operator(domain,culvert_bridge_file, verbose=False):
                 continue
 
             local_vars[key] = eval(value)
-            
+
             # try:
             #     local_vars[key] = eval(value)
             # except Exception:
@@ -515,85 +515,85 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False, ve
     The Event is grouped 1,2,5= small, 10,20 = med, 50,100,pmp = large
     The Scenario can be a Design or Risk Management Outlook
     Based on these there are two arrays containng the Blockage Factor to be applied
-    
-    
+
+
     --------------------------------------------------------------------
     2017 - 02 - 03
-    
+
     Wollongong Blockage Factor Calculator
-    
+
     Author: Rudy Van Drie
-    
+
     --------------------------------------------------------------------
-    Class P1. 
-    Pipes 1.2 m internal diameter or smaller.  
-    
-    Class P2. 
+    Class P1.
+    Pipes 1.2 m internal diameter or smaller.
+
+    Class P2.
     Pipes  greater  than  1.2  m  internal  diameter.
-    
+
     Class B1
-    Box culverts or bridges with a diagonal opening less than 1.5 m,  
-    and a width or height less than 0.9 m. 
-    
-    Class B2. 
-    Box  culverts  or  bridges  with a diagonal opening of more than or equal to 1.5 m, less than 3 m 
-    and minimum dimension of 0.9 m for both width and height. 
+    Box culverts or bridges with a diagonal opening less than 1.5 m,
+    and a width or height less than 0.9 m.
+
+    Class B2.
+    Box  culverts  or  bridges  with a diagonal opening of more than or equal to 1.5 m, less than 3 m
+    and minimum dimension of 0.9 m for both width and height.
     >= 0.9m w and h
-    Class 3. 
-    Box culverts or bridges with a diagonal opening of more than or equal 
-    to  3  m,  less  than  6  m,  
-    and  a  minimum  dimension  of  1.2  m  for  both  width and height.   
-    
-    Class 4. 
-    Box culverts or bridges with a diagonal opening greater than or equal 
-    to 6 m, and a minimum dimension of 2.5 m for both width and height.   
-    
+    Class 3.
+    Box culverts or bridges with a diagonal opening of more than or equal
+    to  3  m,  less  than  6  m,
+    and  a  minimum  dimension  of  1.2  m  for  both  width and height.
+
+    Class 4.
+    Box culverts or bridges with a diagonal opening greater than or equal
+    to 6 m, and a minimum dimension of 2.5 m for both width and height.
+
         CLASSP1   Diam =< 1.2m
         CLASSP2   Diam > 1.2m
-    
-        CLASSB1:    diag < 1.5m and W or H < 0.9m 
-                    
+
+        CLASSB1:    diag < 1.5m and W or H < 0.9m
+
         CLASSB2:    diag >= 1.5m AND diag < 3.0m AND both W and H >= 0.9m
-                                    
-        CLASSB3:    diag >= 3.0m AND diag < 6.0m AND both W and H >= 1.2m 
-    
-        CLASSB4:    diag >= 6.0m AND W and H >= 2.5m 
-    
-    
+
+        CLASSB3:    diag >= 3.0m AND diag < 6.0m AND both W and H >= 1.2m
+
+        CLASSB4:    diag >= 6.0m AND W and H >= 2.5m
+
+
     DESIGN BLOCKAGE FACTORS
                       CLP1,CLP2
     event,            CLB1,CLB2,CLB3,CLB4
-    1,2,5,small,      0.35,0.25,0.15,0.00 
-    10,20,medium,     0.50,0.40,0.30,0.05 
-    50,100,pmp,large, 0.70,0.50,0.40,0.10 
-    
+    1,2,5,small,      0.35,0.25,0.15,0.00
+    10,20,medium,     0.50,0.40,0.30,0.05
+    50,100,pmp,large, 0.70,0.50,0.40,0.10
+
     RISK MANAGEMENT BLOCKAGE FACTORS
                       CLP1,CLP2
     event,            CLB1,CLB2,CLB3,CLB4
-    1,2,5,small,      0.60,0.50,0.35,0.05 
-    10,20,medium,     0.75,0.65,0.50,0.10 
-    50,100,pmp,large, 0.95,0.75,0.60,0.15    
-    
+    1,2,5,small,      0.60,0.50,0.35,0.05
+    10,20,medium,     0.75,0.65,0.50,0.10
+    50,100,pmp,large, 0.95,0.75,0.60,0.15
+
     """
-    
+
     # REQUIRED DATA FOR small,medium,large and class 1,2,3,4 for two Scenarios
     BF_DES = [[0.35,0.25,0.15,0.00],[0.50,0.40,0.30,0.05],[0.70,0.50,0.40,0.10]]
     BF_RMN = [[0.60,0.50,0.35,0.05],[0.75,0.65,0.50,0.10],[0.95,0.75,0.60,0.15]]
-    
-    
+
+
     if len(Structure) > 1:# ====== FOR BOX =================
         h = float(Structure[0])
         w = float(Structure[1])
         diag = (w**2+h**2)**0.5
-                
+
         if diag >= 6.00 and w >= 2.5 and h >= 2.5:
-            BF_clss = 'CLASS B4'                                    
+            BF_clss = 'CLASS B4'
             cclass = 3
         elif diag >= 3.0 and w >= 1.2 and h >= 1.2:
-            BF_clss = 'CLASS B3'            
+            BF_clss = 'CLASS B3'
             cclass = 2
         elif diag >= 1.5 and w >= 0.9 and h >= 0.9:
-            BF_clss = 'CLASS B2'            
+            BF_clss = 'CLASS B2'
             cclass = 1
         elif diag < 1.5 or w < 0.9 or h < 0.9:
             BF_clss = 'CLASS B1'
@@ -608,17 +608,17 @@ def get_WCC_2016_Blockage_factor(Structure,Event,Scenario, long_result=False, ve
             diag = d
             BF_clss =  'CLASS P2'
             cclass = 1
-            
-    if Event in [1,2,5]: 
+
+    if Event in [1,2,5]:
         Ev_Row = 0
         Ev_mag = 'Small'
-    elif Event in [10,20]: 
-        Ev_Row = 1 
+    elif Event in [10,20]:
+        Ev_Row = 1
         Ev_mag = 'Medium'
-    elif Event in [50,100,9999]: 
+    elif Event in [50,100,9999]:
         Ev_Row = 2
         Ev_mag = 'Large'
-    
+
     if Scenario == 'D':
         Scenario = 'DESIGN'
         BF = BF_DES[Ev_Row][cclass]
@@ -648,27 +648,27 @@ def get_WCC_2002_Blockage_factor(Structure, verbose=True):
 
     --------------------------------------------------------------------
     2017 - 06 - 22
-    
+
     Wollongong Blockage Factor Calculator for 2002 Blockage Policy
-    
+
     Author: Petar Milevski
-    
+
     --------------------------------------------------------------------
-    For all design storm events    
-     
+    For all design storm events
+
     if diag >= 6.0m, blockage factor = 0.25, otherwise blockage factor is 100%
 
     """
-    
+
     if len(Structure) > 1:# ====== FOR BOX =================
         h = float(Structure[0])
         w = float(Structure[1])
         diag = (w**2+h**2)**0.5
-                
+
     else:   # ====== FOR PIPE ================
         d = float(Structure[0])
         diag = d
-     
+
     if diag >= 6.0:
         BF = 0.25
     else:

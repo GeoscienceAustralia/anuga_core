@@ -2,6 +2,17 @@
 Helper script called by meson.build to produce a PEP 440-compliant version
 string from `git describe` output.
 
+Sources, in order:
+  1. ANUGA_VERSION in the environment (explicit override);
+  2. _version_static.txt next to this file, written into the source
+     distribution by `meson dist` (see the dist script below), so a build
+     from an unpacked sdist, which has no .git, still knows its version;
+  3. `git describe`;
+  4. the 0.0.0+unknown fallback.
+
+Run with --write-dist from a dist script: writes the version into
+$MESON_DIST_ROOT/_version_static.txt.
+
 git describe format:  TAG[-N-gSHA][-dirty]
 PEP 440 mapping:
   3.2.0                          -> 3.2.0
@@ -11,16 +22,37 @@ PEP 440 mapping:
   abcdef  (no tag reachable)     -> 0.0.0+gabcdef
 """
 
+import os
 import re
 import subprocess
 import sys
 
 
 def git_version():
-    result = subprocess.run(
-        ['git', 'describe', '--tags', '--dirty', '--always'],
-        capture_output=True, text=True
-    )
+    # Allow an explicit override (PEP 440 string) for builds where git metadata
+    # is unavailable — e.g. an sdist, or a Docker build whose context excludes
+    # .git. Set ANUGA_VERSION to what `git describe` would have produced.
+    override = os.environ.get('ANUGA_VERSION', '').strip()
+    if override:
+        return override
+
+    static = os.path.join(os.path.dirname(os.path.abspath(__file__)), '_version_static.txt')
+    if os.path.isfile(static):
+        with open(static) as f:
+            value = f.read().strip()
+        if value:
+            return value
+
+    # Ask git about the tree this script lives in, whatever the current
+    # directory is (meson runs dist scripts from the build directory).
+    try:
+        result = subprocess.run(
+            ['git', 'describe', '--tags', '--dirty', '--always'],
+            capture_output=True, text=True,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+    except OSError:          # git not installed at all
+        return '0.0.0+unknown'
     if result.returncode != 0:
         return '0.0.0+unknown'
 
@@ -52,5 +84,19 @@ def git_version():
     return version
 
 
+def write_dist_version():
+    """Dist-script entry point: bake the version into the staged sdist tree."""
+    dist_root = os.environ.get('MESON_DIST_ROOT')
+    if not dist_root:
+        sys.exit('--write-dist must be run by meson dist (MESON_DIST_ROOT is unset)')
+    version = git_version()
+    with open(os.path.join(dist_root, '_version_static.txt'), 'w') as f:
+        f.write(version + '\n')
+    print(f'_git_version.py: wrote {version} into the sdist')
+
+
 if __name__ == '__main__':
-    print(git_version())
+    if '--write-dist' in sys.argv[1:]:
+        write_dist_version()
+    else:
+        print(git_version())

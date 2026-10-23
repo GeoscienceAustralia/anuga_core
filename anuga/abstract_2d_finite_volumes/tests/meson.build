@@ -4,6 +4,7 @@
 # py3 = import('python').find_installation()
 
 python_sources = [
+    'test_basic_mesh.py',
     'test_ermapper.py',
     'test_gauge.py',
     'test_general_mesh.py',
@@ -17,6 +18,7 @@ python_sources = [
     'test_neighbour_mesh_reorder.py',
     'test_pmesh2domain.py',
     'test_quantity.py',
+    'test_quantity_openmp_ext.py',
     'test_region.py',
     'test_tag_region.py',
     'test_util.py',

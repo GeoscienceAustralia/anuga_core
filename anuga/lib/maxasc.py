@@ -25,16 +25,16 @@ SpacesPattern = re.compile(SpacesPatternString)
 def MaxAsc(out_file, in_files):
     """
     MaxAsc('output_filename', ['list', 'of', 'filenames'])
-    
+
     The output file is an ASC file with each element being the maximum of
     the corresponding element in all the input ASC files.  The output file
     has the same shape as the input file(s).
     """
-    
+
     # get all file data into memory
     file_data = []
     for f in in_files:
-        fd = open(f, 'r')
+        fd = open(f)
         data = fd.readlines()
         file_data.append(data)
         fd.close()
@@ -45,7 +45,7 @@ def MaxAsc(out_file, in_files):
         if len(d) != num_lines:
             raise RuntimeError("File %s has the wrong number of lines "
                    "(%d, expected %d)." % (in_files[i], len(d), num_lines))
-    
+
     # open the output file
     out_fd = open(out_file, 'w')
 
@@ -89,6 +89,6 @@ def MaxAsc(out_file, in_files):
                     maximum = d[i]
             outline += ' %10.4e ' % maximum
         out_fd.write('%s\n' % outline)
-        
+
     # close the output file
     out_fd.close()

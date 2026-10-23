@@ -31,7 +31,7 @@ def analytic_sol(x):
 
     def find_hM(hM): #to find the water height at the maxima of the bump
         return h_d**3 + (-q0**2/(2*g*hM**2)-hM-zM)*h_d**2 + q0**2/(2*g)
-    hM = fsolve(find_hM, 0.5)
+    hM = fsolve(find_hM, 0.5)[0]
 
     def find_h(h): #to find the water height at every spatial point after hM is found
         return h**3 + (zb-q0**2/(2*g*hM**2)-hM-zM)*h**2 + q0**2/(2*g)
@@ -40,9 +40,9 @@ def analytic_sol(x):
         zb = z[i]
         #h[i] = fsolve(find_h, 1.0)
         if x[i] < 10:
-            h[i] = fsolve(find_h, 1.0)
+            h[i] = fsolve(find_h, 1.0)[0]
         else:
-            h[i] = fsolve(find_h, 0.4)
+            h[i] = fsolve(find_h, 0.4)[0]
     return h, z
 
 ##N = 401

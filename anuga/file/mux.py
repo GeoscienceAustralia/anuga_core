@@ -2,8 +2,8 @@
     Read a mux2 file.
 """
 from anuga.utilities.numerical_tools import ensure_numeric
-import numpy as num     
-        
+import numpy as num
+
 ################################################################################
 # READ MUX2 FILES line of points
 ################################################################################

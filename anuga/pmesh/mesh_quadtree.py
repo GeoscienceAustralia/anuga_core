@@ -66,7 +66,7 @@ class MeshQuadtree(Cell):
     def add_quad_tree(self):
 
         V = self.mesh.get_vertex_coordinates(absolute=True)
-        
+
         self.set_extents()
         #print self.extents
         self.root = fitsmooth.build_quad_tree(self.mesh.triangles, V, self.extents)

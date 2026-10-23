@@ -25,15 +25,11 @@ struct tgs
    int32_t ista;
    float geolat,geolon; /* location and water depth in geographic coordinates -180/180/-90/90 */
    int32_t   ilat,ilon;     /* grid point location */
-
    float z;             /* water depth at this location */
-
    float center_lat, center_lon;	/**** center of this array *****/
    float offset,az,baz;			/* for arrays this is the distance in km from center of array */
-
    float dt;		/* sampling rate for this site */
    int32_t nt;		/* number of points */
-
    char id[16];         /* identifier */
    };
 

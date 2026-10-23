@@ -16,7 +16,7 @@ from anuga.structures.internal_boundary_functions import hecras_internal_boundar
 args = anuga.get_args()
 alg = args.alg
 verbose = args.verbose
-
+debug = args.debug
 
 
 #------------------------------------------------------------------------------
@@ -82,7 +82,7 @@ regionPtAreas=[ [0.01, 0.01, 0.5*l0*l0*4], # lower-left
 
 if(myid==0):
     # Define domain with appropriate boundary conditions
-    anuga.create_mesh_from_regions(boundary_polygon, 
+    anuga.create_pmesh_from_regions(boundary_polygon, 
                                    boundary_tags={'left': [0],
                                                   'top1': [1],
                                                   'chan_out': [2],
@@ -97,7 +97,7 @@ if(myid==0):
                                    interior_regions = [ ],
                                    breaklines=breakLines.values(),
                                    regionPtArea=regionPtAreas,
-                                   verbose=True)
+                                   verbose=debug)
     domain=anuga.create_domain_from_file('channel_floodplain1.msh')
     domain.set_name('channel_floodplain1') # Output name
     domain.set_flow_algorithm(alg)
@@ -244,7 +244,8 @@ for t in domain.evolve(yieldstep=10.0, finaltime=dtQdata * (len(Qdata) - 2)):
     if(myid == 0 and verbose):
         print(domain.timestepping_statistics())
 
-    vol = domain.report_water_volume_statistics()
+    if verbose:
+       vol = domain.report_water_volume_statistics()
 
 barrier()
 

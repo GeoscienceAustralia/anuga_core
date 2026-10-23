@@ -94,13 +94,13 @@ class Mesh(General_mesh):
                               use_inscribed_circle=use_inscribed_circle,
                               verbose=verbose)
 
-        if verbose: log.critical('Mesh: Initialising')
+        if verbose: log.info('Mesh: Initialising')
 
         N = len(self) #Number_of_triangles
 
         # Allocate arrays for neighbour data
 
-        if verbose: log.critical('Mesh: Allocating neighbour arrays')
+        if verbose: log.info('Mesh: Allocating neighbour arrays')
 
         self.neighbours = -1*num.ones((N, 3), int)
         self.neighbour_edges = -1*num.ones((N, 3), int)
@@ -112,23 +112,23 @@ class Mesh(General_mesh):
 
 
         # Build neighbour structure
-        if verbose: log.critical('Mesh: Building neighbour structure')
+        if verbose: log.info('Mesh: Building neighbour structure')
         self.build_neighbour_structure(triangle_neighbours=triangle_neighbours,
                                        triangle_neighbour_edges=triangle_neighbour_edges)
 
         # Build surrogate neighbour structure
-        if verbose: log.critical('Mesh: Building surrogate neighbour structure')
+        if verbose: log.info('Mesh: Building surrogate neighbour structure')
         self.build_surrogate_neighbour_structure()
 
         # Build boundary dictionary mapping (id, edge) to symbolic tags
-        if verbose: log.critical('Mesh: Building boundary dictionary')
+        if verbose: log.info('Mesh: Building boundary dictionary')
         self.build_boundary_dictionary(boundary)
 
         # Update boundary_enumeration
         self.build_boundary_neighbours()
 
         # Build tagged element dictionary mapping (tag) to array of elements
-        if verbose: log.critical('Mesh: Building tagged elements dictionary')
+        if verbose: log.info('Mesh: Building tagged elements dictionary')
         self.build_tagged_elements_dictionary(tagged_elements)
 
         # Build a list of vertices that are not connected to any triangles
@@ -146,7 +146,7 @@ class Mesh(General_mesh):
 
 
         #FIXME check integrity?
-        if verbose: log.critical('Mesh: Done')
+        if verbose: log.info('Mesh: Done')
         if verbose: log.timingInfo("finishMesh, '%s'" % log.CurrentDateTime())
         if verbose: log.resource_usage_timing(log.logging.INFO, "finishMesh_")
 
@@ -158,14 +158,14 @@ class Mesh(General_mesh):
     def set_to_inscribed_circle(self,safety_factor = 1):
         #FIXME phase out eventually
         N = self.number_of_triangles
-        V = self.vertex_coordinates
+        V = self.vertex_coordinates  # shape (3*N, 2): rows 3*i, 3*i+1, 3*i+2 for triangle i
 
         #initialising min and max ratio
         i=0
         old_rad = self.radii[i]
-        x0 = V[i, 0]; y0 = V[i, 1]
-        x1 = V[i, 2]; y1 = V[i, 3]
-        x2 = V[i, 4]; y2 = V[i, 5]
+        x0 = V[3*i, 0]; y0 = V[3*i, 1]
+        x1 = V[3*i+1, 0]; y1 = V[3*i+1, 1]
+        x2 = V[3*i+2, 0]; y2 = V[3*i+2, 1]
         a = num.sqrt((x0-x1)**2+(y0-y1)**2)
         b = num.sqrt((x1-x2)**2+(y1-y2)**2)
         c = num.sqrt((x2-x0)**2+(y2-y0)**2)
@@ -175,9 +175,9 @@ class Mesh(General_mesh):
 
         for i in range(N):
             old_rad = self.radii[i]
-            x0 = V[i, 0]; y0 = V[i, 1]
-            x1 = V[i, 2]; y1 = V[i, 3]
-            x2 = V[i, 4]; y2 = V[i, 5]
+            x0 = V[3*i, 0]; y0 = V[3*i, 1]
+            x1 = V[3*i+1, 0]; y1 = V[3*i+1, 1]
+            x2 = V[3*i+2, 0]; y2 = V[3*i+2, 1]
             a = num.sqrt((x0-x1)**2+(y0-y1)**2)
             b = num.sqrt((x1-x2)**2+(y1-y2)**2)
             c = num.sqrt((x2-x0)**2+(y2-y0)**2)
@@ -297,7 +297,7 @@ class Mesh(General_mesh):
                                                           self.neighbour_edges,
                                                           self.number_of_boundaries)
 
- 
+
 
     def build_surrogate_neighbour_structure(self):
         """Build structure where each triangle edge points to its neighbours
@@ -400,7 +400,7 @@ class Mesh(General_mesh):
         for id, edge in X:
             self.neighbours[id, edge] = index
 
-            self.boundary_enumeration[id,edge] = -index -1 
+            self.boundary_enumeration[id,edge] = -index -1
 
             index -= 1
 
@@ -527,7 +527,7 @@ class Mesh(General_mesh):
                 # that have no neighbours.
 
                 if verbose:
-                    log.critical('Point %s has multiple candidates: %s'
+                    log.info('Point %s has multiple candidates: %s'
                                  % (str(p0), candidate_list))
 
                 # Check that previous are not in candidate list
@@ -566,7 +566,7 @@ class Mesh(General_mesh):
                         p1 = pc             # Best candidate
 
                 if verbose is True:
-                    log.critical('  Best candidate %s, angle %f'
+                    log.info('  Best candidate %s, angle %f'
                                  % (p1, minimum_angle*180/pi))
             else:
                 p1 = candidate_list[0]
@@ -576,9 +576,9 @@ class Mesh(General_mesh):
                 if num.allclose(p1, polygon[0]):
                     # If it is the initial point, the polygon is complete.
                     if verbose is True:
-                        log.critical('  Stop criterion fulfilled at point %s'
+                        log.info('  Stop criterion fulfilled at point %s'
                                      % str(p1))
-                        log.critical(str(polygon))
+                        log.info(str(polygon))
 
                     # We have completed the boundary polygon - yeehaa
                     break
@@ -761,7 +761,7 @@ class Mesh(General_mesh):
         assert num.sum(self.number_of_triangles_per_node) ==\
                        len(self.vertex_value_indices)
 
-        
+
         # Check number of triangles per node
 #        count = [0]*self.number_of_nodes
 #        for triangle in self.triangles:
@@ -796,7 +796,7 @@ class Mesh(General_mesh):
         #print 'node_index',self.node_index.dtype
         #print 'number_of_triangles_per_node',self.number_of_triangles_per_node.dtype
 
-		
+
         check_integrity_c(self.vertex_value_indices,
                           self.triangles,
                           self.node_index,
@@ -868,8 +868,8 @@ class Mesh(General_mesh):
         available boundary tags.
 
         Keyword arguments:
-        nbins -- number of bins to use for area histogram (default 10)  
-        
+        nbins -- number of bins to use for area histogram (default 10)
+
         """
 
         from anuga.utilities.numerical_tools import histogram, create_bins
@@ -938,47 +938,64 @@ class Mesh(General_mesh):
         return str
 
 
+    # Number of calls before building the spatial index.  A handful of inlet
+    # lookups happen at startup (compute_enquiry_index); once we exceed this
+    # threshold the quad-tree pays for itself many times over.
+    _SPATIAL_INDEX_THRESHOLD = 5
+
     def get_triangle_containing_point(self, point):
         """Return triangle id for triangle containing specified point (x,y)
 
-        If point isn't within mesh, raise exception
+        If point isn't within mesh, raise exception.
 
+        Uses a brute-force O(N) scan for the first few calls.  After
+        _SPATIAL_INDEX_THRESHOLD calls a MeshQuadtree spatial index is built
+        and used for all subsequent queries.
         """
 
-        # FIXME(Ole): This function is currently brute force
-        # because I needed it for diagnostics.
-        # We should make it fast - probably based on the
-        # quad tree structure.
+        # Increment call counter and build index on threshold crossing.
+        self._point_lookup_count = getattr(self, '_point_lookup_count', 0) + 1
+        if not hasattr(self, '_triangle_spatial_index'):
+            self._triangle_spatial_index = None
+        if self._triangle_spatial_index is None and \
+                self._point_lookup_count > self._SPATIAL_INDEX_THRESHOLD:
+            from anuga.pmesh.mesh_quadtree import MeshQuadtree
+            self._triangle_spatial_index = MeshQuadtree(self)
+
+        if self._triangle_spatial_index is not None:
+            found, _s0, _s1, _s2, k = self._triangle_spatial_index.search_fast(point)
+            if found:
+                return k
+            msg = 'Point %s not found within a triangle' % str(point)
+            raise Exception(msg)
+
+        # Brute-force fallback used only for the first few calls.
         from anuga.geometry.polygon import is_inside_polygon
-
         V = self.get_vertex_coordinates(absolute=True)
-
-        # FIXME: Horrible brute force
         for i, triangle in enumerate(self.triangles):
             poly = V[3*i:3*i+3]
-
             if is_inside_polygon(point, poly, closed=True):
                 return i
 
-        msg = 'Point %s not found within a triangle' %str(point)
+        msg = 'Point %s not found within a triangle' % str(point)
         raise Exception(msg)
 
 
     def get_triangle_near_point(self, point, tolerance=1.0e20):
         """
-        Function to get the index of the triangle nearest to a point (as measured by distance to 
+        Function to get the index of the triangle nearest to a point (as measured by distance to
         centroid of the triangles).
 
         @param point A single point (absolute units)
         @param tolerance Raise an exception if "nearest" point is further that tolerance from the domain
-        
+
         @return The index of the triangle "nearest" to point.
         """
 
         C = self.get_centroid_coordinates(absolute=True)
-        
+
         distance2 = (C[:,0] - point[0])**2 + (C[:,1] - point[1])**2
-        
+
         tid = num.argmin(distance2)
 
         if distance2[tid] > tolerance**2:
@@ -1101,12 +1118,12 @@ class Mesh(General_mesh):
         Reorder the mesh using new_order which is a list or int array of length number of triangles which
         defines a permutation of triangle numbering.
 
-        param new_order: list or int array of length number of triangles which 
+        param new_order: list or int array of length number of triangles which
         defines a permutation of triangle numbering.
-        param in_place: if True, the original mesh will be modified. Be careful with this as 
-        it will modify the original mesh and all references to it. If False, a new mesh will be 
+        param in_place: if True, the original mesh will be modified. Be careful with this as
+        it will modify the original mesh and all references to it. If False, a new mesh will be
         created and returned, and the original mesh will not be modified.
-        param original_method: if True, the original method of reordering will be used, 
+        param original_method: if True, the original method of reordering will be used,
         which is simpler but less efficient. If False, the new method will be used.
         param verbose: if True, print verbose output during reordering.
         """
@@ -1139,8 +1156,8 @@ class Mesh(General_mesh):
             geo_reference=self.geo_reference
             use_inscribed_circle=self.use_inscribed_circle
 
-            return Mesh(new_nodes, new_triangles, 
-                    boundary=new_boundary, 
+            return Mesh(new_nodes, new_triangles,
+                    boundary=new_boundary,
                     tagged_elements=tagged_elements,
                     geo_reference=geo_reference,
                     use_inscribed_circle=use_inscribed_circle,
@@ -1148,7 +1165,7 @@ class Mesh(General_mesh):
 
 
         if in_place is True:
-            # modify original mesh. Be careful with this as it will modify the original mesh 
+            # modify original mesh. Be careful with this as it will modify the original mesh
             # and all references to it.
             new_mesh = self
         else:
@@ -1193,12 +1210,12 @@ class Mesh(General_mesh):
         new_mesh.surrogate_neighbours[:] = inv_order[new_mesh.surrogate_neighbours[new_order]]
 
 
-        # build some auxilary boundary structures that are used for domain.set_boundary 
+        # build some auxilary boundary structures that are used for domain.set_boundary
         # and domain.get_boundary_polygon
         new_mesh.build_boundary_neighbours()
 
 
-        
+
 
 
         #pprint(self.vertex_value_indices)
@@ -1210,12 +1227,77 @@ class Mesh(General_mesh):
         for tag in list(new_mesh.tagged_elements.keys()):
             tagged_elements[tag] = num.array(inv_order[new_mesh.tagged_elements[tag]], int)
         new_mesh.tagged_elements = tagged_elements
-        
+
         return new_mesh
 
+    def save_to_file(self, filename):
+        """Save the mesh geometry to a TSH or MSH file.
+
+        Writes vertices, triangles (with neighbour links and region tags), and
+        boundary segments.  The outline section (regions, holes, max areas) is
+        left empty because that information belongs to the mesh generator
+        (pmesh) and is not retained in the runtime Mesh object.
+
+        Parameters
+        ----------
+        filename : str
+            Output path.  Must end in ``.tsh`` (ASCII) or ``.msh`` (NetCDF).
+
+        Examples
+        --------
+        >>> mesh.save_to_file('my_mesh.tsh')
+        >>> mesh.save_to_file('my_mesh.msh')
+        """
+        from anuga.load_mesh.loadASCII import export_mesh_file
+
+        ext = filename[-4:].lower()
+        if ext not in ('.tsh', '.msh'):
+            raise ValueError(
+                f"filename must end in '.tsh' or '.msh', got: {filename!r}")
+
+        _EDGE_VERTS = [(1, 2), (2, 0), (0, 1)]
+
+        # --- triangle tags (invert tagged_elements: tag -> [elems]) ---
+        N = self.number_of_triangles
+        tri_tags = [''] * N
+        for tag, elems in self.tagged_elements.items():
+            for e in elems:
+                tri_tags[e] = tag
+
+        # --- boundary segments from boundary dict ---
+        segments = []
+        seg_tags = []
+        for (tri_id, edge_id), tag in self.boundary.items():
+            vi, vj = _EDGE_VERTS[edge_id]
+            v0 = int(self.triangles[tri_id, vi])
+            v1 = int(self.triangles[tri_id, vj])
+            segments.append([v0, v1])
+            seg_tags.append(tag)
+
+        mesh_dict = {
+            'vertices':               self.nodes.tolist(),
+            'vertex_attributes':      [],
+            'vertex_attribute_titles': [],
+            'triangles':              self.triangles.tolist(),
+            'triangle_tags':          tri_tags,
+            'triangle_neighbors':     self.neighbours.tolist(),
+            'segments':               segments,
+            'segment_tags':           seg_tags,
+            'geo_reference':          self.geo_reference,
+        }
+
+        export_mesh_file(filename, mesh_dict)
+
+    def save_mesh_to_tsh(self, filename):
+        """Deprecated — use :meth:`save_to_file` instead."""
+        import warnings
+        warnings.warn(
+            'save_mesh_to_tsh() is deprecated; use save_to_file() instead.',
+            DeprecationWarning, stacklevel=2)
+        self.save_to_file(filename)
 
 
-class Triangle_intersection(object):
+class Triangle_intersection:
     """Store information about line segments intersecting a triangle
 
     Attributes are
@@ -1270,6 +1352,7 @@ def _get_intersecting_segments(V, N, line,
 
     from anuga.geometry.polygon import intersection
     from anuga.geometry.polygon import is_inside_polygon
+    from anuga.geometry.polygon_ext import _line_intersect
 
     msg = 'Line segment must contain exactly two points'
     assert len(line) == 2, msg
@@ -1279,11 +1362,16 @@ def _get_intersecting_segments(V, N, line,
     xi0 = line[0][0]
     eta0 = line[0][1]
 
+    # Use C extension to pre-filter: find only the triangles that the line
+    # segment actually passes through, avoiding an O(N) Python loop.
+    line_arr = num.array(line, dtype=float)
+    all_indices = num.zeros(N, dtype=num.int64)
+    count = _line_intersect(line_arr, V, all_indices)
+    candidate_ids = all_indices[:count]
 
-    # Check intersection with edge segments for all triangles
-    # FIXME (Ole): This should be implemented in C
+    # Check intersection with edge segments for candidates only
     triangle_intersections={} # Keep track of segments already done
-    for i in range(N):
+    for i in candidate_ids:
         # Get nodes and edge segments for each triangle
         x0, y0 = V[3*i, :]
         x1, y1 = V[3*i+1, :]
@@ -1300,7 +1388,7 @@ def _get_intersecting_segments(V, N, line,
         for edge in edge_segments:
 
             status, value = intersection(line, edge)
-            #if value is not None: log.critical('Triangle %d, status=%s, '
+            #if value is not None: log.info('Triangle %d, status=%s, '
             #                                   'value=%s'
             #                                   % (i, str(status), str(value)))
 
@@ -1424,8 +1512,8 @@ def get_intersecting_segments(V, N, polyline,
 
         point1 = polyline[i+1]
         if verbose:
-            log.critical('Extracting mesh intersections from line:')
-            log.critical('(%.2f, %.2f) - (%.2f, %.2f)'
+            log.info('Extracting mesh intersections from line:')
+            log.info('(%.2f, %.2f) - (%.2f, %.2f)'
                          % (point0[0], point0[1], point1[0], point1[1]))
 
         line = [point0, point1]
@@ -1545,7 +1633,7 @@ def get_boundary_polygon(self, verbose=False):
             # that have no neighbours.
 
             if verbose:
-                log.critical('Point %s has multiple candidates: %s'
+                log.info('Point %s has multiple candidates: %s'
                                 % (str(p0), candidate_list))
 
             # Check that previous are not in candidate list
@@ -1584,7 +1672,7 @@ def get_boundary_polygon(self, verbose=False):
                     p1 = pc             # Best candidate
 
             if verbose is True:
-                log.critical('  Best candidate %s, angle %f'
+                log.info('  Best candidate %s, angle %f'
                                 % (p1, minimum_angle*180/pi))
         else:
             p1 = candidate_list[0]
@@ -1594,9 +1682,9 @@ def get_boundary_polygon(self, verbose=False):
             if num.allclose(p1, polygon[0]):
                 # If it is the initial point, the polygon is complete.
                 if verbose is True:
-                    log.critical('  Stop criterion fulfilled at point %s'
+                    log.info('  Stop criterion fulfilled at point %s'
                                     % str(p1))
-                    log.critical(str(polygon))
+                    log.info(str(polygon))
 
                 # We have completed the boundary polygon - yeehaa
                 break
@@ -1613,13 +1701,13 @@ def get_boundary_polygon(self, verbose=False):
         polygon.append(list(p1))    # De-numeric each point :-)
         p0 = p1
 
-    return polygon 
+    return polygon
 
 
 
-    
 
-           
+
+
 
 
 

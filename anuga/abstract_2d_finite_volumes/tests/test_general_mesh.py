@@ -31,7 +31,7 @@ class Test_General_Mesh(unittest.TestCase):
         assert num.allclose(domain.get_nodes(), nodes)
 
 
-        M = domain.number_of_triangles        
+        M = domain.number_of_triangles
 
         V = domain.get_vertex_coordinates()
         assert V.shape[0] == 3*M
@@ -45,7 +45,7 @@ class Test_General_Mesh(unittest.TestCase):
         x0 = 314036.58727982
         y0 = 6224951.2960092
         geo = Geo_reference(56, x0, y0)
-        
+
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0, 0.0]
@@ -55,7 +55,7 @@ class Test_General_Mesh(unittest.TestCase):
         nodes = num.array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
-        
+
         #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
@@ -66,7 +66,7 @@ class Test_General_Mesh(unittest.TestCase):
                % (str(num.array([b,a,c])), str(verts)))
         self.assertTrue(num.allclose(num.array([b,a,c]), verts), msg)
 
-        verts = domain.get_vertex_coordinates(triangle_id=0)       
+        verts = domain.get_vertex_coordinates(triangle_id=0)
         msg = ("num.array([b,a,c])=\n%s\nshould be close to 'verts'=\n%s"
                % (str(num.array([b,a,c])), str(verts)))
         self.assertTrue(num.allclose(num.array([b,a,c]), verts), msg)
@@ -83,7 +83,7 @@ class Test_General_Mesh(unittest.TestCase):
                                      verts), msg)
 
         verts = domain.get_vertex_coordinates(triangle_id=0,
-                                              absolute=True)       
+                                              absolute=True)
         msg = ("num.array([...])=\n%s\nshould be close to 'verts'=\n%s"
                % (str(num.array([nodes_absolute[1],
                                  nodes_absolute[0],
@@ -108,7 +108,7 @@ class Test_General_Mesh(unittest.TestCase):
         assert num.allclose(domain.get_nodes(), nodes)
 
 
-        M = domain.number_of_triangles        
+        M = domain.number_of_triangles
 
         for i in range(M):
             V = domain.get_vertex_coordinates(triangle_id=i)
@@ -130,7 +130,7 @@ class Test_General_Mesh(unittest.TestCase):
         assert num.allclose(domain.get_nodes(), nodes)
 
 
-        M = domain.number_of_triangles        
+        M = domain.number_of_triangles
 
         E = domain.get_edge_midpoint_coordinates()
         assert E.shape[0] == 3*M
@@ -148,7 +148,7 @@ class Test_General_Mesh(unittest.TestCase):
         x0 = 314036.58727982
         y0 = 6224951.2960092
         geo = Geo_reference(56, x0, y0)
-        
+
         a = num.array([0.0, 0.0])
         b = num.array([0.0, 2.0])
         c = num.array([2.0, 0.0])
@@ -158,7 +158,7 @@ class Test_General_Mesh(unittest.TestCase):
         nodes = num.array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
-        
+
         #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
@@ -195,7 +195,7 @@ class Test_General_Mesh(unittest.TestCase):
         assert num.allclose(domain.get_nodes(), nodes)
 
 
-        M = domain.number_of_triangles        
+        M = domain.number_of_triangles
 
         for i in range(M):
             E = domain.get_edge_midpoint_coordinates(triangle_id=i)
@@ -217,11 +217,11 @@ class Test_General_Mesh(unittest.TestCase):
             assert num.allclose(E0, 0.5*(nodes[k1]+nodes[k2]))
             assert num.allclose(E1, 0.5*(nodes[k0]+nodes[k2]))
             assert num.allclose(E2, 0.5*(nodes[k1]+nodes[k0]))
-            
 
 
-        
-        
+
+
+
 
     def test_get_vertex_values(self):
         """Get connectivity based on triangle lists.
@@ -242,7 +242,7 @@ class Test_General_Mesh(unittest.TestCase):
                   str([triangles[0], triangles[4]])))
         assert num.allclose(domain.get_triangles([0,4]),
                             [triangles[0], triangles[4]]), msg
-        
+
 
     def test_vertex_value_indices(self):
         """Check that structures are correct.
@@ -261,7 +261,7 @@ class Test_General_Mesh(unittest.TestCase):
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         domain1 = General_mesh(nodes, triangles)
-        
+
         #Create larger mesh
         nodes, triangles, _ = rectangular(3, 6)
         domain2 = General_mesh(nodes, triangles)
@@ -280,13 +280,13 @@ class Test_General_Mesh(unittest.TestCase):
             #print count
             #
             assert num.allclose(count, domain.number_of_triangles_per_node)
-            
+
             # Check indices
             current_node = 0
             k = 0 # Track triangles touching on node
             for index in domain.vertex_value_indices:
                 k += 1
-                
+
                 triangle = index//3
                 vertex = index % 3
 
@@ -296,7 +296,7 @@ class Test_General_Mesh(unittest.TestCase):
                     # Move on to next node
                     k = 0
                     current_node += 1
-                
+
 
     def test_get_triangles_and_vertices_per_node(self):
         """test_get_triangles_and_vertices_per_node -
@@ -333,25 +333,25 @@ class Test_General_Mesh(unittest.TestCase):
         for i, Lref in enumerate(ALL):
             L = domain.get_triangles_and_vertices_per_node(node=i)
             assert num.allclose(L, Lref)
-            
 
-        
 
-        
+
+
+
 
 
     def test_areas(self):
         #Create basic mesh
         points, vertices, boundary = rectangular(1, 3)
-        domain = General_mesh(points, vertices)        
+        domain = General_mesh(points, vertices)
 
         assert domain.get_area() == 1.0
-        
-        
-        
+
+
+
     def test_one_degenerate_triangles(self):
 
-        
+
         a = num.array([1.0, 1.0])
         b = num.array([0.0, 2.0])
         c = num.array([2.0, 0.0])
@@ -360,7 +360,7 @@ class Test_General_Mesh(unittest.TestCase):
         f = num.array([4.0, 0.0])
         nodes = num.array([a, b, c, d, e, f])
 
-        
+
         #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
@@ -369,12 +369,12 @@ class Test_General_Mesh(unittest.TestCase):
         except AssertionError:
             #print 'excepted assertion error'
             pass
-            
-            
+
+
 
     def test_two_degenerate_triangles(self):
 
-        
+
         a = num.array([1.0, 1.0])
         b = num.array([0.0, 2.0])
         c = num.array([2.0, 0.0])
@@ -386,7 +386,7 @@ class Test_General_Mesh(unittest.TestCase):
         #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]], int)
 
-        
+
         try:
             domain = General_mesh(nodes, triangles)
         except AssertionError:
@@ -419,11 +419,11 @@ class Test_General_Mesh(unittest.TestCase):
         from inverted triangles structure
 
         """
-        
+
         x0 = 314036.58727982
         y0 = 6224951.2960092
         geo = Geo_reference(56, x0, y0)
-        
+
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0, 0.0]
@@ -434,31 +434,31 @@ class Test_General_Mesh(unittest.TestCase):
         nodes = num.array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
-        
+
         #                        bac,     bce,     ecf,     dbe
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
 
         domain = General_mesh(nodes, triangles, geo_reference = geo)
-        node = domain.get_node(2)        
+        node = domain.get_node(2)
         msg = ('\nc=%s\nnode=%s' % (str(c), str(node)))
         self.assertTrue(num.all(c == node), msg)
 
         # repeat get_node(), see if result same
-        node = domain.get_node(2)        
+        node = domain.get_node(2)
         msg = ('\nc=%s\nnode=%s' % (str(c), str(node)))
         self.assertTrue(num.all(c == node), msg)
-        
-        node = domain.get_node(2, absolute=True)     
+
+        node = domain.get_node(2, absolute=True)
         msg = ('\nnodes_absolute[2]=%s\nnode=%s'
                % (str(nodes_absolute[2]), str(node)))
         self.assertTrue(num.all(nodes_absolute[2] == node), msg)
-       
+
         # repeat get_node(2, absolute=True), see if result same
-        node = domain.get_node(2, absolute=True)     
+        node = domain.get_node(2, absolute=True)
         msg = ('\nnodes_absolute[2]=%s\nnode=%s'
                % (str(nodes_absolute[2]), str(node)))
         self.assertTrue(num.all(nodes_absolute[2] == node), msg)
-        
+
 
     def test_assert_index_in_nodes(self):
         """test_assert_index_in_nodes -
@@ -466,11 +466,11 @@ class Test_General_Mesh(unittest.TestCase):
         Test that node indices in triangles are within nodes array.
 
         """
-        
+
         x0 = 314036.58727982
         y0 = 6224951.2960092
         geo = Geo_reference(56, x0, y0)
-        
+
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0, 0.0]
@@ -481,31 +481,71 @@ class Test_General_Mesh(unittest.TestCase):
         nodes = num.array([a, b, c, d, e, f])
 
         nodes_absolute = geo.get_absolute(nodes)
-        
+
         # max index is 5, use 5, expect success
         triangles = num.array([[1,0,2], [1,2,4], [4,2,5], [3,1,4]])
         General_mesh(nodes, triangles, geo_reference=geo)
-        
-        
+
+
         # should fail with negative area
         triangles = num.array([[0,1,2], [1,2,4], [4,2,5], [3,1,4]])
-        self.assertRaises(AssertionError, General_mesh, 
+        self.assertRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
 
-        
+
         # max index is 5, use 6, expect assert failure
         triangles = num.array([[1,6,2], [1,2,4], [4,2,5], [3,1,4]])
         self.assertRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
-        
 
-        
+
+
         # max index is 5, use 10, expect assert failure
         triangles = num.array([[1,10,2], [1,2,4], [4,2,5], [3,1,4]])
         self.assertRaises(AssertionError, General_mesh,
                               nodes, triangles, geo_reference=geo)
 
 ################################################################################
+
+class Test_General_Mesh_extra(unittest.TestCase):
+    """Tests for uncovered General_mesh methods."""
+
+    def _make_mesh_with_geo(self):
+        geo = Geo_reference(56, 100.0, 200.0)
+        nodes = num.array([[0.0, 0.0], [0.0, 2.0], [2.0, 0.0],
+                           [0.0, 4.0], [2.0, 2.0], [4.0, 0.0]])
+        triangles = num.array([[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]])
+        return General_mesh(nodes, triangles, geo_reference=geo)
+
+    def test_get_nodes_absolute(self):
+        """get_nodes(absolute=True) with non-absolute geo_reference (lines 340-341)."""
+        mesh = self._make_mesh_with_geo()
+        nodes_abs = mesh.get_nodes(absolute=True)
+        nodes_rel = mesh.get_nodes(absolute=False)
+        self.assertFalse(num.allclose(nodes_abs, nodes_rel))
+
+    def test_get_edge_midpoint_coordinates_absolute(self):
+        """get_edge_midpoint_coordinates(absolute=True) path (lines 469-470)."""
+        mesh = self._make_mesh_with_geo()
+        E_abs = mesh.get_edge_midpoint_coordinates(absolute=True)
+        E_rel = mesh.get_edge_midpoint_coordinates(absolute=False)
+        self.assertFalse(num.allclose(E_abs, E_rel))
+
+    def test_orphan_node_verbose_warning(self):
+        """Orphan node verbose warning (lines 716-717): verbose=True with unreferenced node."""
+        import io
+        import sys
+        nodes = num.array([[0.0, 0.0], [0.0, 2.0], [2.0, 0.0],
+                           [0.0, 4.0], [2.0, 2.0], [4.0, 0.0],
+                           [10.0, 10.0]])  # orphan node not in any triangle
+        triangles = num.array([[1, 0, 2], [1, 2, 4], [4, 2, 5], [3, 1, 4]])
+        captured = io.StringIO()
+        sys.stdout = captured
+        try:
+            mesh = General_mesh(nodes, triangles, verbose=True)
+        finally:
+            sys.stdout = sys.__stdout__
+
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_General_Mesh)

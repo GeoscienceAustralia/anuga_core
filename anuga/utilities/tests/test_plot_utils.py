@@ -109,7 +109,7 @@ class Test_plot_utils(unittest.TestCase):
         assert(all(p1.friction == p2.friction))
         assert(p1.xllcorner == p2.xllcorner)
         assert(p1.yllcorner == p2.yllcorner)
-        assert((p1.time[slice1] == p2.time[slice2]))
+        assert(p1.time[slice1] == p2.time[slice2])
         return
 
     def basic_checks(self):

@@ -8,7 +8,7 @@ def test_create_culvert_bridge_operator_boyd_pipe():
     import numpy as num
 
     from anuga import Boyd_pipe_operator
-    
+
     ft = 1.0
     bd = 4.0
 
@@ -30,7 +30,7 @@ invert_elevations=[0.0,0.1]
 losses = 1.0
 #end_points = [[10,5], [12,5]]
 
-exchange_lines = [ [[10, 1], [10, 9]], 
+exchange_lines = [ [[10, 1], [10, 9]],
                 [[12, 1], [12, 9]] ]
 """
 
@@ -80,7 +80,7 @@ exchange_lines = [ [[10, 1], [10, 9]],
     #     os.remove('domain2_boyd_pipe.sww')
     # except FileNotFoundError:
     #     pass
-    
+
 def test_create_culvert_bridge_operator_boyd_box():
     """
     Test creation of Boyd_box_operator (width and heightbeing set)
@@ -91,11 +91,11 @@ def test_create_culvert_bridge_operator_boyd_box():
     import numpy as num
 
     from anuga import Boyd_box_operator
-    
-    ft = 1.0
-    bd = 4.0        
 
-    
+    ft = 1.0
+    bd = 4.0
+
+
     file_contents = \
 """
 #--------------------------
@@ -113,7 +113,7 @@ invert_elevations=[0.0,0.1]
 losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
 #end_points = [[10,5], [12,5]]
 
-exchange_lines = [ [[10, 1], [10, 9]], 
+exchange_lines = [ [[10, 1], [10, 9]],
                 [[12, 1], [12, 9]] ]
 """
 
@@ -150,7 +150,7 @@ exchange_lines = [ [[10, 1], [10, 9]],
 
     # Check that the two domains give identical results
     s3 = domain3.get_quantity('stage').centroid_values
-    s4 = domain4.get_quantity('stage').centroid_values 
+    s4 = domain4.get_quantity('stage').centroid_values
 
     # print('s3=', s3)
     # print('s4=', s4)
@@ -159,12 +159,12 @@ exchange_lines = [ [[10, 1], [10, 9]],
 
     assert num.sum(s3 - s4) == 0.0
 
-    try:    
+    try:
         os.remove('domain3_boyd_box.sww')
         os.remove('domain4_boyd_box.sww')
     except FileNotFoundError:
         pass
-    
+
 def test_create_culvert_bridge_operator_weir_orifice_trapezoid():
     """
     Test the creation and equivalence of the Weir_orifice_trapezoid_operator via two methods:
@@ -178,7 +178,7 @@ def test_create_culvert_bridge_operator_weir_orifice_trapezoid():
     - Evolves the second domain for the same timestep.
     - Asserts that the resulting 'stage' quantity is identical for both domains.
     - Cleans up temporary files generated during the test.
-    
+
     Test creation of Weir_orifice_trapezoid_operator (based on z1 or z2 being set)
     """
 
@@ -187,8 +187,8 @@ def test_create_culvert_bridge_operator_weir_orifice_trapezoid():
     import numpy as num
 
     ft = 1.0
-    bd = 4.0    
-    
+    bd = 4.0
+
     file_contents = \
 """
 #--------------------------
@@ -208,7 +208,7 @@ invert_elevations=[0.0,0.1]
 losses = {'inlet':0.5, 'outlet':1.0, 'bend':0.0, 'grate':0.0, 'pier': 0.0, 'other': 0.0}
 #end_points = [[10,5], [12,5]]
 
-exchange_lines = [ [[10, 1], [10, 9]], 
+exchange_lines = [ [[10, 1], [10, 9]],
                 [[12, 1], [12, 9]] ]
 """
 
@@ -252,7 +252,7 @@ exchange_lines = [ [[10, 1], [10, 9]],
     # print(num.sum(s1 - s2))
 
     assert num.sum(s1 - s2) == 0.0
-    
+
     try:
         os.remove('domain1_weir_orifice_trapezoid.sww')
         os.remove('domain2_weir_orifice_trapezoid.sww')
@@ -263,4 +263,4 @@ exchange_lines = [ [[10, 1], [10, 9]],
 test_create_culvert_bridge_operator_boyd_pipe()
 test_create_culvert_bridge_operator_boyd_box()
 test_create_culvert_bridge_operator_weir_orifice_trapezoid()
-    
+
