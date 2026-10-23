@@ -30,13 +30,10 @@ time00 = time.time()
 # Preparation of topographic data
 # Convert ASC 2 DEM 2 PTS using source data and store result in source data
 #------------------------------------------------------------------------------
-# Unzip asc from zip file
-import zipfile as zf
-if project.verbose: print('Reading ASC from cairns.zip')
-zf.ZipFile(project.name_stem+'.zip').extract(project.name_stem+'.asc')
-
-# Create DEM from asc data
-anuga.asc2dem(project.name_stem+'.asc', use_cache=project.cache, 
+# The ASC (and its .prj) is shared with the TOML examples in
+# examples/data/cairns; the DEM is written here as cairns.dem
+anuga.asc2dem(os.path.join('..', 'data', 'cairns', 'cairns.asc'),
+              name_out=project.name_stem, use_cache=project.cache, 
               verbose=project.verbose)
 
 # Create pts file for onshore DEM
