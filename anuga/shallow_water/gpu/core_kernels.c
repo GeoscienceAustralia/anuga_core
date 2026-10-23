@@ -849,6 +849,45 @@ static inline double core_vegetation_sediment_fc(anuga_int veg_shear, double h,
     return g * r * r / (Cb * Cb);
 }
 
+// Move cell k's bed by dz, holding the stage, as every sediment kernel does.
+//
+// Holding w makes the depth h = w - z change by -dz, and the momentum must
+// follow it or the velocity uh/h does not survive the step. A deposit dz
+// close to the depth of a thin film leaves the film nearly gone but carrying
+// its full momentum: on the Zaragoza pier case under DE0 one bedload step put
+// 0.088 mm of sand under a 0.088 mm film, the depth fell to 1.6e-7 m, and
+// the speed jumped from 1.8 to 972 m/s and collapsed the timestep. Protect
+// zeroes momentum only below minimum_allowed_height, which DE1 sets to 1e-5
+// but DE0 to 1e-12, so DE0 met it first; nothing stopped it in DE1 either.
+//
+// So a rising bed scales the momentum by h_new/h_old, keeping the velocity,
+// and a bed that reaches the stage takes the momentum to zero. A falling bed
+// leaves the momentum alone: keeping the velocity there would multiply the
+// momentum of a nearly dry cell by an arbitrarily large ratio, creating
+// momentum from nothing, and the slower flow over the deeper cell is the
+// safe side.
+#pragma omp declare target
+static inline void core_shift_bed(double * restrict bed_cv,
+                                  double * restrict bed_ev,
+                                  const double * restrict stage_cv,
+                                  double * restrict xmom_cv,
+                                  double * restrict ymom_cv,
+                                  anuga_int k, double dz) {
+    if (dz > 0.0) {
+        const double h_old = stage_cv[k] - bed_cv[k];
+        const double h_new = h_old - dz;
+        const double r = (h_old > 0.0 && h_new > 0.0) ? h_new / h_old : 0.0;
+        xmom_cv[k] *= r;
+        ymom_cv[k] *= r;
+    }
+    bed_cv[k] += dz;
+    const anuga_int k3 = 3 * k;
+    bed_ev[k3 + 0] += dz;
+    bed_ev[k3 + 1] += dz;
+    bed_ev[k3 + 2] += dz;
+}
+#pragma omp end declare target
+
 static inline double core_centroid_slope(const double * restrict f,
                                          const anuga_int * restrict neighbours,
                                          const anuga_geom_t * restrict cc,
@@ -1323,11 +1362,7 @@ void core_apply_bedload(struct domain *D, double timestep) {
     for (anuga_int k = 0; k < n; k++) {
         const double dz = dzs[k];
         if (dz != 0.0) {
-            bed_cv[k] += dz;
-            const anuga_int k3 = 3 * k;
-            bed_ev[k3 + 0] += dz;
-            bed_ev[k3 + 1] += dz;
-            bed_ev[k3 + 2] += dz;
+            core_shift_bed(bed_cv, bed_ev, stage_cv, xmom_cv, ymom_cv, k, dz);
         }
     }
 }
@@ -1395,6 +1430,9 @@ anuga_int core_apply_repose(struct domain *D) {
 
     double * restrict bed_cv = D->bed_centroid_values;
     double * restrict bed_ev = D->bed_edge_values;
+    double * restrict stage_cv = D->stage_centroid_values;
+    double * restrict xmom_cv = D->xmom_centroid_values;
+    double * restrict ymom_cv = D->ymom_centroid_values;
     double * restrict dz = D->sediment_repose_dz;
     anuga_geom_t * restrict areas = D->areas;
     anuga_geom_t * restrict cc = D->centroid_coordinates;
@@ -1506,11 +1544,7 @@ anuga_int core_apply_repose(struct domain *D) {
         for (anuga_int k = 0; k < n; k++) {
             const double d = dz[k];
             if (d != 0.0) {
-                bed_cv[k] += d;
-                const anuga_int k3 = 3 * k;
-                bed_ev[k3 + 0] += d;
-                bed_ev[k3 + 1] += d;
-                bed_ev[k3 + 2] += d;
+                core_shift_bed(bed_cv, bed_ev, stage_cv, xmom_cv, ymom_cv, k, d);
             }
         }
     }
@@ -2287,13 +2321,10 @@ void core_apply_sediment_source(struct domain *D, double timestep) {
         // (bed_vv = bed_ev1 + bed_ev2 - bed_ev0).
         //
         // Stage is left alone, so h = w - z falls by exactly dz -- the
-        // quiescent-water behaviour of LM15 Example 2.
+        // quiescent-water behaviour of LM15 Example 2 -- and the momentum
+        // falls with it (core_shift_bed).
         if (dz_cell != 0.0) {
-            bed_cv_w[k] += dz_cell;
-            const anuga_int k3 = 3 * k;
-            bed_ev_w[k3 + 0] += dz_cell;
-            bed_ev_w[k3 + 1] += dz_cell;
-            bed_ev_w[k3 + 2] += dz_cell;
+            core_shift_bed(bed_cv_w, bed_ev_w, stage_cv, xmom_cv, ymom_cv, k, dz_cell);
         }
     }
 }

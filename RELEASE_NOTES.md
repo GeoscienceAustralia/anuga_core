@@ -1,3 +1,24 @@
+# ANUGA 4.1.1 (unreleased)
+
+A patch release on the 4.1 line.
+
+## Fixes
+
+* Sediment: a bed that rises under a thin film no longer leaves the film with
+  its whole momentum. Every sediment kernel moves the bed with the stage held,
+  so the depth falls by the deposit, and the momentum was left as it was: a
+  deposit that nearly filled a film made its velocity run away and collapsed
+  the timestep. It stopped the Zaragoza pier validation case under `DE0`
+  (one bedload step took a 0.088 mm film to 1.6e-7 m and its speed from 1.8
+  to 972 m/s), so 4.1.0 shipped without its `DE0` validation report. A rising
+  bed now scales the momentum with the depth, keeping the velocity, in the
+  bedload, angle-of-repose and suspended-exchange kernels, on the CPU and the
+  GPU. Results change only where a bed change is comparable to the depth: on
+  the pier case the scour is about half a millimetre shallower and the eroded
+  volume 15% smaller under `DE1`, with the same RMS against the Kinect bed.
+
+---
+
 # ANUGA 4.1.0
 
 ANUGA 4.1.0 adds two new capabilities to the solver: **passive tracers**,
