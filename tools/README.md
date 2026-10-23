@@ -46,6 +46,7 @@ compiles but crashes on every kernel launch), `NVHPC_ROOT`. See `../CLAUDE.md` â
 | `install_ubuntu.sh` | Install ANUGA into a Python venv on Ubuntu (22.04 / 24.04 / 26.04) via apt + pip. Detects the release and picks numpy/gdal pins. The conda path (`install_miniforge.sh`) is more robust. |
 | `count_lines.py` | Report total lines of code in ANUGA (dev utility). |
 | `clear_for_master.sh` | Remove generated `*.c`/`*.so` build artifacts (dev utility). |
+| `slim_notebook_outputs.py` | Shrink the images stored in `examples/notebooks` outputs (JPEG animation frames, lossless PNG recompression). Run after re-running and saving a notebook. Needs Pillow. |
 
 ### Legacy / unreferenced (candidates for removal)
 
