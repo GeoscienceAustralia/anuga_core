@@ -35,6 +35,9 @@ keywords:
   - shallow water equations
   - finite volume method
 license: Apache-2.0
+# The concept DOI, which resolves to the latest release on Zenodo; each
+# release also has a DOI of its own, given in its GitHub release notes.
+doi: 10.5281/zenodo.23585306
 # NOTE: set `date-released: 'YYYY-MM-DD'` in the release commit, matching the
 # tag date -- see claude/RELEASE_PLAN_4.0.0.md Phase 3. It is omitted rather
 # than left stale (it read 2022-06-26 through three releases). The `commit:`
