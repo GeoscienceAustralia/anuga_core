@@ -1,46 +1,15 @@
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include "anuga_typedefs.h"
 
 #include "omp.h"
-// JORGE TODO: replace with library call!!!!
-//Rough quicksort implementation (for build_operator_matrix)
-// taken from http://cprogramminglanguage.net/quicksort-algorithm-c-source-code.aspx
-
-void swap(anuga_int *x, anuga_int *y) {
-    anuga_int temp;
-    temp = *x;
-    *x = *y;
-    *y = temp;
-}
-
-anuga_int choose_pivot(anuga_int i, anuga_int j) {
-    return ((i + j) / 2);
-}
-
-void quicksort(anuga_int list[], anuga_int m, anuga_int n) {
-    anuga_int key, i, j, k;
-    if (m < n) {
-        k = choose_pivot(m, n);
-        swap(&list[m], &list[k]);
-        key = list[m];
-        i = m + 1;
-        j = n;
-        while (i <= j) {
-            while ((i <= n) && (list[i] <= key))
-                i++;
-            while ((j >= m) && (list[j] > key))
-                j--;
-            if (i < j)
-                swap(&list[i], &list[j]);
-        }
-        // swap two elements
-        swap(&list[m], &list[j]);
-        // recursively sort the lesser list
-        quicksort(list, m, j - 1);
-        quicksort(list, j + 1, n);
-    }
+/* Ascending comparator for qsort on anuga_int arrays (the four neighbour
+   indices sorted in the matrix builders below). */
+static int cmp_anuga_int(const void *a, const void *b) {
+    anuga_int x = *(const anuga_int *)a, y = *(const anuga_int *)b;
+    return (x > y) - (x < y);
 }
 
 anuga_int _build_geo_structure(anuga_int n,
@@ -119,7 +88,7 @@ anuga_int _build_elliptic_matrix_not_symmetric(anuga_int n,
         }
         //Organise the set of 4 values/indices into the data and colind arrays
         for (k = 0; k < 4; k++) sorted_j[k] = j[k];
-        quicksort(sorted_j, 0, 3);
+        qsort(sorted_j, 4, sizeof(anuga_int), cmp_anuga_int);
         for (k = 0; k < 4; k++) { //loop through the nonzero indices
             this_index = sorted_j[k];
             if (this_index == i) {
@@ -174,7 +143,7 @@ anuga_int _build_elliptic_matrix(anuga_int n,
         }
         //Organise the set of 4 values/indices into the data and colind arrays
         for (k = 0; k < 4; k++) sorted_j[k] = j[k];
-        quicksort(sorted_j, 0, 3);
+        qsort(sorted_j, 4, sizeof(anuga_int), cmp_anuga_int);
         for (k = 0; k < 4; k++) { //loop through the nonzero indices
             this_index = sorted_j[k];
             if (this_index == i) {
@@ -223,7 +192,7 @@ anuga_int _update_elliptic_matrix_not_symmetric(anuga_int n,
         }
         //Organise the set of 4 values/indices into the data and colind arrays
         for (k = 0; k < 4; k++) sorted_j[k] = j[k];
-        quicksort(sorted_j, 0, 3);
+        qsort(sorted_j, 4, sizeof(anuga_int), cmp_anuga_int);
         for (k = 0; k < 4; k++) { //loop through the nonzero indices
             this_index = sorted_j[k];
             if (this_index == i) {
@@ -279,7 +248,7 @@ anuga_int _update_elliptic_matrix(anuga_int n,
         }
         //Organise the set of 4 values/indices into the data and colind arrays
         for (k = 0; k < 4; k++) sorted_j[k] = j[k];
-        quicksort(sorted_j, 0, 3);
+        qsort(sorted_j, 4, sizeof(anuga_int), cmp_anuga_int);
         for (k = 0; k < 4; k++) { //loop through the nonzero indices
             this_index = sorted_j[k];
             if (this_index == i) {

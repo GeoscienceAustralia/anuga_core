@@ -555,6 +555,10 @@ class Pmesh:
         # Rigid
         self.tri_mesh = None
 
+        # Defaults for generate_mesh, see there
+        self.size_field = None
+        self.relax_passes = 0
+
         self.visualise_graph = True
 
         if userSegments is None:
@@ -1211,15 +1215,79 @@ class Pmesh:
     def generate_mesh(self,
                       maximum_triangle_area="",
                       minimum_triangle_angle=28.0,
-                      verbose=False):
+                      verbose=False,
+                      size_field=None,
+                      relax_passes=None):
+        """Triangulate the mesh outline.
+
+        Parameters
+        ----------
+        maximum_triangle_area : float, optional
+            Maximum area of any triangle. Regions with their own maximum
+            area are refined to that as well.
+        minimum_triangle_angle : float, optional
+            Minimum angle of any triangle, in degrees (default 28.0).
+        verbose : bool, optional
+        size_field : Size_field or callable, optional
+            Target triangle area as a function of position: a triangle is
+            refined if its area exceeds the field at its centroid. Either
+            an :class:`anuga.Size_field` or a callable ``f(x, y)`` taking
+            absolute coordinates. Applied as well as the area constraints
+            above. Defaults to ``self.size_field``. Needs meshpy.
+        relax_passes : int, optional
+            If positive, follow the triangulation with up to this many
+            passes of :meth:`relax_worst_cells`. Defaults to
+            ``self.relax_passes``.
+        """
+        if size_field is None:
+            size_field = getattr(self, 'size_field', None)
+        if relax_passes is None:
+            relax_passes = getattr(self, 'relax_passes', 0)
+
         if verbose is True:
             silent = ''
         else:
             silent = 'Q'
         self._generateMesh_impl(mode=silent + "pzq"+str(minimum_triangle_angle)
                                 + "a"+str(maximum_triangle_area)
-                                + "a", verbose=verbose)
+                                + "a", verbose=verbose,
+                                size_field=size_field)
         # The last a is so areas for regions will be used
+
+        if relax_passes:
+            self.relax_worst_cells(passes=relax_passes, verbose=verbose)
+
+    def relax_worst_cells(self, passes=30, fraction=0.5, verbose=False):
+        """Move the vertices of the smallest cells so the smallest cell grows.
+
+        ANUGA steps at the global minimum of radii / wave speed, so the
+        smallest cell of the mesh sets the timestep of the whole run. This
+        nudges the vertices of the worst ``fraction`` percent of cells, for
+        up to ``passes`` passes, to enlarge them. Vertices on a segment (the
+        boundary, breaklines, region outlines) do not move and the triangles
+        are not reconnected. See
+        :func:`anuga.pmesh.mesh_relax.relax_worst_cells`.
+
+        The mesh must have been triangulated. Vertex attributes are left as
+        they are, although the vertices they belong to may have moved.
+
+        Returns
+        -------
+        before, after : float
+            Quality, min(radii, inradius), of the worst cell before and after.
+        """
+        from anuga.pmesh.mesh_relax import relax_worst_cells
+
+        if self.tri_mesh is None:
+            raise Exception('Generate the mesh before relaxing it')
+
+        tri_mesh = self.tri_mesh
+        fixed = num.unique(num.asarray(tri_mesh.segments, dtype=num.int64))
+        vertices, before, after = relax_worst_cells(
+            tri_mesh.vertices, tri_mesh.triangles, fixed,
+            passes=passes, fraction=fraction, verbose=verbose)
+        tri_mesh.vertices = vertices
+        return before, after
 
     def generateMesh(self, mode=None, maxArea=None, minAngle=None,
                      isRegionalMaxAreas=True, verbose=False):
@@ -1233,7 +1301,8 @@ class Pmesh:
                                        verbose=verbose)
 
     def _generateMesh_impl(self, mode=None, maxArea=None, minAngle=None,
-                           isRegionalMaxAreas=True, verbose=False):
+                           isRegionalMaxAreas=True, verbose=False,
+                           size_field=None):
         """
         Generate a new mesh based on current user values, holes, and regions.
 
@@ -1255,6 +1324,8 @@ class Pmesh:
         verbose : bool, optional
             If True, output information about mesh generation progress.
             Default is False.
+        size_field : Size_field or callable, optional
+            Target triangle area by position, see generate_mesh.
 
         Preconditions
         --------------
@@ -1322,6 +1393,15 @@ class Pmesh:
         # print "%%%%%%%%%%%%%%%%%%%%%%%%%%%regionlist",meshDict['regionlist']
         # print "meshDict['segmenttaglist']", meshDict['segmenttaglist'
         # print "self.mode", self.mode
+        refinement_func = None
+        if size_field is not None:
+            # Triangle sees coordinates relative to the mesh geo reference
+            from anuga.pmesh.size_field import make_refinement_func
+            refinement_func = make_refinement_func(
+                size_field,
+                self.geo_reference.get_xllcorner(),
+                self.geo_reference.get_yllcorner())
+
         generatedMesh = generate_mesh(
             meshDict['pointlist'],
             meshDict['segmentlist'],
@@ -1331,7 +1411,8 @@ class Pmesh:
             meshDict['segmenttaglist'],
             self.mode,
             meshDict['pointlist'],
-            verbose)
+            verbose,
+            refinement_func=refinement_func)
         # print "%%%%%%%%%%%%%%%%%%%%%%%%%%%generated",generatedMesh
         generatedMesh['qaa'] = 1
         if generatedMesh['generatedsegmentmarkerlist'] is not None:

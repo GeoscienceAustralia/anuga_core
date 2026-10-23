@@ -25,6 +25,10 @@ Interactive Jupyter notebooks demonstrating ANUGA usage from beginner to advance
    * - ``notebook_tsunami_benchmark.ipynb``
      - Okushiri Island tsunami runup (IWTS Benchmark 2).
      - Advanced
+   * - ``notebook_sediment_transport.ipynb``
+     - Suspended sediment: scour in a sloping channel, and settling in still
+       water checked against its reference solution.
+     - Intermediate
 
 Data files required by the advanced notebooks are in ``anuga_core/examples/data/``.
 The notebooks locate this directory automatically via ``anuga.__file__``.

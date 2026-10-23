@@ -15,7 +15,16 @@
 #include "math.h"
 #include "stdint.h"
 #include "stdio.h"
+#include <stdlib.h>
 #include "anuga_typedefs.h"
+
+/* Defined below; used by the segment-triangle predicate for a zero-length
+ * segment. */
+anuga_int __is_inside_triangle(double *point,
+                             double *triangle,
+                             anuga_int closed,
+                             double rtol,
+                             double atol);
 #define YES 1
 #define NO 0
 
@@ -295,10 +304,9 @@ anuga_int __interpolate_polyline(anuga_int number_of_nodes,
 
     neighbour_id = gauge_neighbour_id[j];
 
-    // FIXME(Ole): I am convinced that gauge_neighbour_id can be discarded, but need to check with John J.
-    // Keep it for now (17 Jan 2009)
-    // When gone, we can simply interpolate between neighbouring nodes, i.e. neighbour_id = j+1.
-    // and the test below becomes something like: if j < number_of_nodes...
+    // gauge_neighbour_id[j] names the node that segment j runs to, and is -1
+    // for the last node of a polyline. It is passed in rather than assumed to
+    // be j+1 so a set of disjoint polylines can share one array; keep it.
 
     if (neighbour_id >= 0)
     {
@@ -452,84 +460,112 @@ anuga_int __polygon_overlap(double *polygon,
   return inside_index;
 }
 
+/* Does the segment p0->p1 pass THROUGH or ALONG the closed triangle?
+ *
+ * The segment is clipped against the triangle's three half-planes
+ * (Cyrus-Beck) to the parameter interval [amin, amax] of the part of the
+ * segment inside the triangle, and the triangle counts as intersected when
+ * that part has positive length. So:
+ *
+ *   - a segment crossing the interior, ending inside, or lying along an
+ *     edge counts (a segment along a shared edge counts for the triangles
+ *     on BOTH sides -- the selection is symmetric, a property of the
+ *     geometry);
+ *   - a segment that only touches a vertex, or ends exactly on an edge from
+ *     outside, does not: the contact has zero length.
+ *
+ * Tolerances are lengths relative to the size of the segment and triangle,
+ * so a segment within rounding of a mesh line is treated as on it whichever
+ * way the last bit fell. The previous test compared exact intersection
+ * parameters against 0 and 1 and counted point contacts, so triangles
+ * touched at a vertex or along an edge were selected or not according to
+ * floating-point contraction and evaluation order -- the same script gave
+ * a 68% larger inlet area under one compiler than another when its exchange
+ * line lay on mesh lines (anuga-community/anuga_core#231). */
 anuga_int __triangle_line_intersect(double *line,
                                   double *triangle)
 {
-  anuga_int j, jj, A, B;
-  double p0_x, p0_y, p1_x, p1_y, pp_x, pp_y;
-  double t0_x, t0_y, t1_x, t1_y, tp_x, tp_y;
-  double u_x, u_y, v_x, v_y, w_x, w_y;
-  double u_dot_tp, v_dot_tp, v_dot_pp, w_dot_pp;
-  double a, b;
+  const double p0_x = line[0], p0_y = line[1];
+  const double p1_x = line[2], p1_y = line[3];
+  const double u_x = p1_x - p0_x, u_y = p1_y - p0_y;
+  const double u_len = sqrt(u_x * u_x + u_y * u_y);
 
-  p0_x = line[0];
-  p0_y = line[1];
-  p1_x = line[2];
-  p1_y = line[3];
-
-  pp_x = -(p1_y - p0_y);
-  pp_y = p1_x - p0_x;
-
-  A = 0;
-  B = 0;
-
-  t0_x = triangle[0];
-  t0_y = triangle[1];
-
-  for (j = 1; j < 4; j++)
+  /* A length scale for the tolerances: the segment and the triangle. */
+  double scale = u_len;
+  double area2 = 0.0;
+  anuga_int i;
+  for (i = 0; i < 3; i++)
   {
-    jj = j % 3;
+    const anuga_int k = (i + 1) % 3;
+    const double e_x = triangle[2 * k] - triangle[2 * i];
+    const double e_y = triangle[2 * k + 1] - triangle[2 * i + 1];
+    const double e_len = sqrt(e_x * e_x + e_y * e_y);
+    if (e_len > scale) scale = e_len;
+  }
+  const double tol = 1.0e-10 * scale;           /* a length */
 
-    t1_x = triangle[2 * jj];
-    t1_y = triangle[2 * jj + 1];
+  area2 = (triangle[2] - triangle[0]) * (triangle[5] - triangle[1])
+        - (triangle[4] - triangle[0]) * (triangle[3] - triangle[1]);
+  if (fabs(area2) <= tol * tol)
+  {
+    return 0;                                   /* degenerate triangle */
+  }
+  const double orient = (area2 > 0.0) ? 1.0 : -1.0;
 
-    tp_x = -(t1_y - t0_y); // perpendicular to triangle vector
-    tp_y = t1_x - t0_x;
+  if (u_len <= tol)
+  {
+    /* A zero-length segment has no interior and selects nothing. It is
+     * what the two side edges of a structure's apron polygon are when
+     * apron = 0, and treating it as a point test pulled in the triangle
+     * across the channel bank at each end of a bridge's exchange line,
+     * which moved the bridge's discharge (the HEC-RAS bridge regressions
+     * caught it). A caller that wants a point test has is_inside_triangle. */
+    return 0;
+  }
 
-    u_x = p1_x - p0_x;
-    u_y = p1_y - p0_y;
-    v_x = t0_x - p0_x;
-    v_y = t0_y - p0_y;
-    w_x = t1_x - t0_x;
-    w_y = t1_y - t0_y;
-
-    u_dot_tp = (u_x * tp_x) + (u_y * tp_y);
-
-    if (u_dot_tp != 0.0f) // If vectors are not parallel, continue
+  double amin = 0.0, amax = 1.0;
+  for (i = 0; i < 3; i++)
+  {
+    const anuga_int k = (i + 1) % 3;
+    const double ta_x = triangle[2 * i], ta_y = triangle[2 * i + 1];
+    const double e_x = triangle[2 * k] - ta_x;
+    const double e_y = triangle[2 * k + 1] - ta_y;
+    const double e_len = sqrt(e_x * e_x + e_y * e_y);
+    if (e_len <= tol)
     {
-      v_dot_tp = (v_x * tp_x) + (v_y * tp_y);
-      v_dot_pp = (v_x * pp_x) + (v_y * pp_y);
-      w_dot_pp = (w_x * pp_x) + (w_y * pp_y);
-
-      a = v_dot_tp / u_dot_tp;
-      b = -v_dot_pp / w_dot_pp;
-
-      if (a >= 0.0f && a <= 1.0f && b >= 0.0f && b <= 1.0f)
-      {
-        return 1; // intersect
-      }
-
-      if (a > 1.0f && b >= 0.0f && b <= 1.0f)
-      {
-        A++;
-      }
-
-      if (a < 0.0f && b >= 0.0f && b <= 1.0f)
-      {
-        B++;
-      }
+      continue;                                 /* zero-length edge */
     }
+    /* Unit inward normal of this edge (left of the edge for a
+     * counter-clockwise triangle), so d0 and du are lengths. */
+    const double n_x = orient * (-e_y) / e_len;
+    const double n_y = orient * e_x / e_len;
+    const double d0 = n_x * (p0_x - ta_x) + n_y * (p0_y - ta_y);
+    const double du = n_x * u_x + n_y * u_y;
 
-    t0_x = t1_x;
-    t0_y = t1_y;
+    if (fabs(du) <= tol)
+    {
+      /* Segment parallel to this edge: it is inside this half-plane
+       * everywhere or nowhere. Within tolerance of the edge counts as on
+       * it, on either side. */
+      if (d0 < -tol)
+      {
+        return 0;
+      }
+      continue;
+    }
+    const double a = -d0 / du;
+    if (du > 0.0)
+    {
+      if (a > amin) amin = a;                   /* entering */
+    }
+    else
+    {
+      if (a < amax) amax = a;                   /* leaving */
+    }
   }
 
-  if (A >= 1 && B >= 1)
-  {
-    return 1; // line sits completely inside a triangle
-  }
-
-  return 0; // no intersection
+  /* Positive length inside the triangle, not a point contact. */
+  return ((amax - amin) * u_len > tol) ? 1 : 0;
 }
 
 anuga_int __line_intersect(double *line,
@@ -659,16 +695,16 @@ anuga_int __separate_points_by_polygon(const anuga_int M, // Number of points
                                      double *polygon,
                                      anuga_int *indices, // M-Array for storage indices
                                      const anuga_int closed,
-                                     const anuga_int verbose)
+                                     const anuga_int verbose,
+                                     const double rtol,  // tolerances for the
+                                     const double atol)  // point-on-edge test
 {
 
-  double minpx, maxpx, minpy, maxpy, rtol = 0.0, atol = 0.0;
+  double minpx, maxpx, minpy, maxpy;
   anuga_int outside_index, inside_index;
 
   // Find min and max of poly used for optimisation when points
   // are far away from polygon
-
-  // FIXME(Ole): Pass in rtol and atol from Python
 
   minpx = polygon[0];
   maxpx = minpx;
@@ -690,19 +726,18 @@ anuga_int __separate_points_by_polygon(const anuga_int M, // Number of points
       maxpy = py_i;
   }
 
-  // Begin main loop (for each point)
-  inside_index = 0;      // Keep track of points inside
-  outside_index = M - 1; // Keep track of points outside (starting from end)
-  // if (verbose){
-  //    printf("Separating %ld points\n", M);
-  // }
-  // TODO, JLGV: Use OpenMP to parallelise this loop
+  // Main loop, in two passes. The inside/outside test for each point is
+  // independent, so it runs in parallel into a flag array; the compaction
+  // into `indices` is order dependent (inside points in increasing k from
+  // the front, outside points in decreasing k from the back) and stays
+  // serial, so the output is identical to the old single loop.
+  unsigned char *inside_flag = (unsigned char *)malloc((size_t)(M > 0 ? M : 1));
+  if (inside_flag == NULL)
+    return -1;
+
+#pragma omp parallel for schedule(static)
   for (int k = 0; k < M; k++)
   {
-    // if (verbose){
-    //   if (k %((M+10)/10)==0) printf("Doing %ld of %ld\n", k, M);
-    // }
-
     double x = points[2 * k];
     double y = points[2 * k + 1];
 
@@ -750,7 +785,14 @@ anuga_int __separate_points_by_polygon(const anuga_int M, // Number of points
         }
       }
     }
-    if (inside == 1)
+    inside_flag[k] = (unsigned char)inside;
+  } // End k (parallel)
+
+  inside_index = 0;      // Keep track of points inside
+  outside_index = M - 1; // Keep track of points outside (starting from end)
+  for (int k = 0; k < M; k++)
+  {
+    if (inside_flag[k])
     {
       indices[inside_index] = k;
       inside_index += 1;
@@ -760,94 +802,8 @@ anuga_int __separate_points_by_polygon(const anuga_int M, // Number of points
       indices[outside_index] = k;
       outside_index -= 1;
     }
-  } // End k
+  }
+  free(inside_flag);
 
   return inside_index;
 }
-// anuga_int __separate_points_by_polygon(anuga_int M,     // Number of points
-// 				 anuga_int N,     // Number of polygon vertices
-// 				 double* points,
-// 				 double* polygon,
-// 				 anuga_int* indices,  // M-Array for storage indices
-// 				 anuga_int closed,
-// 				 anuga_int verbose) {
-
-//   double minpx, maxpx, minpy, maxpy, x, y, px_i, py_i, px_j, py_j, rtol=0.0, atol=0.0;
-//   anuga_int i, j, k, outside_index, inside_index, inside;
-
-//   // Find min and max of poly used for optimisation when points
-//   // are far away from polygon
-
-//   // FIXME(Ole): Pass in rtol and atol from Python
-
-//   minpx = polygon[0]; maxpx = minpx;
-//   minpy = polygon[1]; maxpy = minpy;
-
-//   for (i=0; i<N; i++) {
-//     px_i = polygon[2*i];
-//     py_i = polygon[2*i + 1];
-
-//     if (px_i < minpx) minpx = px_i;
-//     if (px_i > maxpx) maxpx = px_i;
-//     if (py_i < minpy) minpy = py_i;
-//     if (py_i > maxpy) maxpy = py_i;
-//   }
-
-//   // Begin main loop (for each point)
-//   inside_index = 0;    // Keep track of points inside
-//   outside_index = M-1; // Keep track of points outside (starting from end)
-//   if (verbose){
-//      printf("Separating %ld points\n", M);
-//   }
-//   for (k=0; k<M; k++) {
-//     if (verbose){
-//       if (k %((M+10)/10)==0) printf("Doing %ld of %ld\n", k, M);
-//     }
-
-//     x = points[2*k];
-//     y = points[2*k + 1];
-
-//     inside = 0;
-
-//     // Optimisation
-//     if ((x > maxpx) || (x < minpx) || (y > maxpy) || (y < minpy)) {
-//       // Nothing
-//     } else {
-//       // Check polygon
-//       for (i=0; i<N; i++) {
-//         j = (i+1)%N;
-
-//         px_i = polygon[2*i];
-//         py_i = polygon[2*i+1];
-//         px_j = polygon[2*j];
-//         py_j = polygon[2*j+1];
-
-//         // Check for case where point is contained in line segment
-//         if (__point_on_line(x, y, px_i, py_i, px_j, py_j, rtol, atol)) {
-// 	  if (closed == 1) {
-// 	    inside = 1;
-// 	  } else {
-// 	    inside = 0;
-// 	  }
-// 	  break;
-//         } else {
-//           //Check if truly inside polygon
-// 	  if ( ((py_i < y) && (py_j >= y)) ||
-// 	       ((py_j < y) && (py_i >= y)) ) {
-// 	    if (px_i + (y-py_i)/(py_j-py_i)*(px_j-px_i) < x)
-// 	      inside = 1-inside;
-// 	  }
-//         }
-//       }
-//     }
-//     if (inside == 1) {
-//       indices[inside_index] = k;
-//       inside_index += 1;
-//     } else {
-//       indices[outside_index] = k;
-//       outside_index -= 1;
-//     }
-//   } // End k
-
-//   return inside_index;
-// }

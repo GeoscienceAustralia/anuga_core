@@ -5,6 +5,22 @@ or require caution when working in specific areas.
 
 ---
 
+## Sediment
+
+### `'depth_slope'` shear closure is self-amplifying on an evolving bed (2026-09-18)
+
+`[T-7]` `tau_b = rho g h S` takes `S` from the bed itself. Once the bed evolves,
+any non-uniform erosion steepens local slopes, which raises `tau_b`, which erodes
+faster: a tank of still water on a 1e-3 slope scoured 0.8 m in 60 s and a
+fraction with `tau_c* = 10` (30x above the stress the imposed slope gives) was
+entrained. anugaSed keeps this in check with the undocumented domain-global
+clamp `S <- min(S, mean(S)/2)` that PHYSICS_SPEC D1a describes; ANUGA does not
+apply that. Since 2026-09-20 `set_shear_closure` offers two explicit bounds:
+`max_slope` (a per-cell cap) and `freeze_slope=True` (S from the bed at setup,
+kept for the run), the latter being what the sediment_erosion validation case
+uses to evolve its bed. Without either, use `'quadratic_drag'` (default) or
+`'energy_slope'` when the bed moves.
+
 ## Structures
 
 ### A culvert in still water amplifies roundoff (not a mode-1 vs mode-2 problem)
@@ -381,6 +397,55 @@ RK loop's device state mid-step). The session-51 in-process double-precision
 localization harness (build two domains from the same setup, restartable lockstep
 evolve, diff `centroid_values` in double precision) is the tool if it's ever chased.
 
+### DE_ader2's steady state depends on dt, so it never quite settles (2026-10-01)
+
+DE1 and DE2 evaluate every flux on a state reconstructed from Q alone, and dt
+only multiplies R(Q): their discrete steady state is R(Q) = 0 whatever the
+timestep (dt 0.04 vs 0.08 s: steady depths agree to 1e-15). DE_ader2 evaluates
+the fluxes on the predicted state Q + (dt/2) Q_t, where Q_t is the local
+Cauchy-Kovalewski derivative from each cell's own gradients, not the discrete
+residual. At a discrete steady state R = 0 but Q_t != 0 wherever the flow is not
+uniform, so the steady state solves R(Q + (dt/2) Q_t) = 0 and moves with dt. This
+is the familiar Lax-Wendroff / MUSCL-Hancock property. Measured on the
+rundown_mild_slope stable case (100 m, n = 0.06), dt 0.04 vs 0.08 s moves the
+depth by 4e-3 h0 in the cells next to the inflow and outflow, 7e-4 at 10-20 m
+and 2e-5 in the interior. Uniform flow itself is dt-independent since #404 put
+the friction in the predictor.
+
+So every change in dt sends a small pulse downstream from the boundary cells.
+The predictor also uses the *previous* step's dt (`prev_dt * 0.5` in
+`evolve_one_ader2_step`), which adds a mismatch whenever dt changes. There are
+two sources of dt changes:
+
+- **Clipping to output times.** The step before each yield is cut short. On a
+  stable flow this alone keeps the inlet at about 1e-4 h0.
+- **Feedback in unstable flow.** Above the roll-wave threshold (Froude > 1.5 for
+  Manning), the start-up transient's dt changes seed roll waves. The waves then
+  swing the global CFL dt by about 17%, which kicks the inlet again. The loop
+  sustains itself: about 1e-3 h0 near the inlet even with no output clipping.
+  DE1 and DE2, under the same dt swings, stay steady to 1e-14 and grow no roll
+  waves unless seeded.
+
+The effect is far below any physical disturbance, and it only shows in flows
+that are physically unstable. That is why `rundown_mild_slope` gives every solver
+the same 1% inflow seed (PR #407). A fixed dt that divides yieldstep exactly
+gives a DE_ader2 steady state to 1e-13.
+
+Prototypes tried (scratch only, not adopted):
+
+- **Predictor with the current step's dt** (CFL pass on Q^n first). This removes
+  the prev_dt mismatch but not the dt-dependence: noise falls about 3x with
+  output clipping (1.6e-3 to 4.8e-4 h0) and is unchanged without it (9e-4 to
+  8.4e-4).
+- **Held dt.** Keep dt fixed until the CFL limit forces it down, reset to
+  MARGIN x the CFL dt, and meet output times with equal steps r/ceil(r/held).
+  Between held changes the inlet relaxes exponentially (3e-4 to 1e-10 h0 in
+  25 s). With MARGIN 0.7-0.85 and no raising, the unseeded roll-wave case goes
+  steady (1e-13). It is fragile, though: MARGIN 0.9, or 0.75 with a rule to raise
+  dt, lets the start-up kicks establish the waves, and the loop then persists.
+  It costs about 1/MARGIN more steps, which gives back much of ADER-2's
+  one-flux-call advantage.
+
 ---
 
 ## API
@@ -686,3 +751,56 @@ References:
 - "OpenMP Offload Features and Strategies for High Performance across Architectures and
   Compilers", IPDPSW 2023 — https://swapp.cs.iastate.edu/files/inline-files/OpenMP_Offload_Features_and_Strategies_for_High_Performance_across_Architectures_and_Compilers-ipdpsw-may-2023.pdf
 - OMP_TARGET_OFFLOAD, OpenMP 5.0 spec — https://www.openmp.org/spec-html/5.0/openmpse65.html
+
+## `struct domain` fields must be explicitly initialised in sw_domain_openmp_ext
+
+(2026-08-24) `Domain_C_struct.__cinit__` allocates the C struct with
+`PyMem_Malloc` — **uninitialized memory** — and fills every field explicitly in
+`get_python_domain_parameters` / `get_python_domain_pointers`. Adding a field
+to `struct domain` (sw_domain.h) without also setting it there leaves garbage
+in the legacy path. Symptom when it happened (`reconstruct_edge_bed`): the
+flux kernel read a garbage flag, well-balance broke, and
+`test_ader2::test_still_water_flat_bed` spun forever in its evolve loop at
+100% CPU (timestep collapse — not a hang in any one kernel). The GPU-path
+`GPUDomain` is a cdef-class member and IS zero-initialised, which makes the
+asymmetry easy to miss. Both pyx files also redeclare the struct member list,
+so a new field must be added there before Cython can assign it.
+
+## ninja does not reliably re-track `sw_domain.h` — clean-rebuild after struct changes
+
+(2026-08-24) After editing `struct domain` (sw_domain.h), incremental `ninja`
+in `build/cp313` rebuilt only a subset of objects (and once reported "no work
+to do" straight after a header revert). The resulting mixed-layout objects
+produce baffling failures: OpenMP "partially present on the device" fatals at
+map time, silent `exit(1)` during mode-2 init, and test failures that migrate
+as you touch unrelated files. If a change touches any shared struct header,
+run `ninja -t clean && ninja` (74 targets, ~1 min) before trusting any test
+result — an afternoon was lost bisecting phantom bugs that were stale objects.
+
+## OMP_TEAMS_THREAD_LIMIT silently corrupts nvc `target teams loop` kernels
+
+(2026-08-25, GPU build, nvhpc 25.9) Setting `OMP_TEAMS_THREAD_LIMIT` (32/64/96)
+on the unified GPU kernels produced spectacular "speedups" (up to 1.6x) with
+SILENTLY WRONG results — the lake-at-rest well-balance check exploded from
+1e-14 to O(10) momentum, and at 48 the kernels appear not to run at all
+(exact 0.0 outputs). nvc's `omp target teams loop` codegen evidently bakes in
+blocking assumptions the runtime override violates. Never benchmark this knob
+without a physics gate; `OMP_NUM_TEAMS` / `OMP_THREAD_LIMIT` were separately
+measured as safe-but-useless (nvc defaults are already right).
+
+## Bedload is first order in the bed
+
+The bedload edge flux is centred with Rusanov dissipation scaled by the
+bed-wave speed (`core_apply_bedload`, pass 2). That makes it monotone and
+exactly conservative, but first order: a migrating bed form is smoothed at
+O(dx). The `sediment_bed_hump` validation case measures 9.9% L1 error of the
+hump volume at 10 m cells and 5.5% at 5 m. The bare centred flux it replaced
+was unstable on that case (scour hole at the upstream toe, overshoot at the
+crest, noise fed back into the flow). The upgrade, if sharper bed forms are
+ever needed, is a limited (MUSCL) reconstruction of z at the edge feeding the
+same Rusanov flux.
+
+The bed update runs in a pass of its own (pass 3): the Rusanov term reads the
+neighbour's bed elevation, so writing the bed inside the divergence loop made
+the two sides of an edge see different states and broke conservation. Any
+future term that reads a neighbour's bed must keep that separation.

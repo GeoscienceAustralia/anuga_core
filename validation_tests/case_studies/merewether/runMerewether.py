@@ -200,13 +200,6 @@ center = (382265.0, 6354280.0)
 radius = 10.0
 region0 = anuga.Region(domain, center=center, radius=radius)
 fixed_inflow = Inlet_operator(domain, region0 , 19.7, verbose = True)
-#fixed_inflow = anuga.Inflow(domain,
-#           center=(382300.0,6354290.0),
-#           radius=15.00,
-#           rate=19.7)
-#domain.forcing_terms.append(fixed_inflow)
-#hydrograph = anuga.Inflow(center=(382300.0,6354290.0),radius=30.0,rate=anuga.file_function('test_hydrograph2.tms', quantities=['hydrograph']) 
-#domain.forcing_terms.append(hydrograph)
 
 #------------------------------------------------------------------------------
 # Evolve system through time

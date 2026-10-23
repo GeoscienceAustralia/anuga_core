@@ -20,7 +20,7 @@ license = "Apache-2.0"
 authors = [
   {name = 'Stephen Roberts', email = 'stephen.roberts@anu.edu.au'},
 ]
-requires-python = ">=3.10, <3.15"
+requires-python = ">=3.10, <3.16"
 dependencies = [
     'numpy>=2.0.0',
     'dill>=0.3.7',
@@ -49,6 +49,7 @@ classifiers = [
     'Programming Language :: Python :: 3.12',
     'Programming Language :: Python :: 3.13',
     'Programming Language :: Python :: 3.14',
+    'Programming Language :: Python :: 3.15',
 ]
 
 [project.optional-dependencies]
@@ -136,21 +137,15 @@ filterwarnings = [
     # ANUGA's C extensions when numpy was compiled with a different ABI than
     # the running numpy.  It is harmless and appears across the whole suite.
     "ignore:numpy.ndarray size changed:RuntimeWarning",
-    # Legacy forcing classes and Culvert_flow are deprecated but their tests
-    # intentionally exercise the backward-compatible API.  The warnings use
-    # stacklevel=2 so they appear to originate at the call site; match by
-    # message text so the filter works regardless of call location.
-    "ignore:Inflow is deprecated:DeprecationWarning",
-    "ignore:Rainfall is deprecated:DeprecationWarning",
-    "ignore:Wind_stress is deprecated:DeprecationWarning",
-    "ignore:Barometric_pressure is deprecated:DeprecationWarning",
-    "ignore:Culvert_flow_general.*is deprecated:DeprecationWarning",
-    "ignore:anuga.culvert_flows is deprecated:DeprecationWarning",
     # rasterio (<=1.5.0) still does `arr.shape = ...` internally, which NumPy 2.5
     # deprecates; the warning is attributed to ANUGA's raster.read() call sites
     # via stacklevel.  Not fixable in ANUGA — remove once rasterio ships a
     # NumPy-2.5-compatible release.  (ANUGA's own .shape= assignments were
     # converted to .reshape().)
     "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning",
+    # Small test meshes routinely put culvert enquiry points inside inlet
+    # triangles (EnquiryPointWarning). Expected there; the tests that check
+    # for it record it explicitly with simplefilter('always').
+    "ignore:Enquiry point is in an inlet triangle:UserWarning",
 ]
 

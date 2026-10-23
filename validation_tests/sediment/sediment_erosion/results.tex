@@ -1,0 +1,65 @@
+
+\section{Entrainment of bed sediment into still water}
+
+A tank of still water 1~m deep stands over a plane bed of slope
+$S = 10^{-3}$. The sediment is 0.5~mm sand with the settling velocity $v_s$
+of Ferguson and Church~\cite{FergusonChurch2004}. There is no flow, so the
+case uses the depth--slope closure, under which the bed shear stress of a
+cell depends only on its depth and bed slope, $\tau_b = \rho g h S$, with the
+slope frozen at the setup bed, so that $\tau_b$ is a function of the depth
+alone. The Shields stress is $\tau^{*} = hS/(RD) \approx 1.2$ with
+$R = \rho_s/\rho - 1$, some $30\,\tau_c^{*}$ for the sand
+($\tau_c^{*} = 0.04$), and the non-cohesive entrainment law of Smith and
+McLean fires,
+\begin{equation}
+E = v_s E^{*}, \qquad
+E^{*} = \frac{0.65\,\gamma_0 X}{1 + \gamma_0 X}, \qquad
+X = \frac{\tau^{*}}{\tau_c^{*}} - 1, \qquad \gamma_0 = 0.0024 ,
+\end{equation}
+while deposition returns sediment to the bed at the well-mixed rate
+$D = d^{*} v_s c$ with $d^{*} = 1$. A second fraction of the same grain but
+$\tau_c^{*} = 10$ lies below its threshold and must stay at zero: the
+control. Every cell is a closed system, so the sediment mass per unit area
+$m = hc$ and the bed obey
+\begin{equation}
+\frac{dm}{dt} = E(h) - D, \qquad \frac{dz}{dt} = -\frac{E(h) - D}{1-\lambda},
+\qquad h = w - z ,
+\end{equation}
+$\lambda = 0.3$: as the bed lowers the depth grows and $E$ with it. That
+coupled system is integrated to machine precision for the reference, each
+cell on its own curve; with the depth held fixed it reduces to a relaxation
+$c(t) = c_{eq}(1 - e^{-t/T})$, $T = h/(d^{*}v_s) \approx 10$~s, which the
+reference departs from as the bed moves. The slope is frozen on purpose:
+read from the evolving bed, the depth--slope closure feeds on the roughness
+that uneven erosion creates, and no closed-form reference exists; frozen,
+$S$ is the reach slope the closure was written for and the bed can evolve
+under it. The case checks the entrainment law and its threshold, the
+depth--slope closure in every cell (the slope estimate must reproduce the
+plane along the walls and in the corners as well as in the interior), the
+balance of entrainment against deposition in the conserved sediment mass,
+the bed lowering, and that sediment mass is conserved between the water
+column and the bed.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{concentration_plot.png}
+\end{center}
+\caption{Depth-averaged concentration against time, tank mean, for the
+sand and for the control fraction.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{profile_plot.png}
+\end{center}
+\caption{Concentration in every cell along the tank at the end of the run.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_lowering_plot.png}
+\end{center}
+\caption{Bed lowering from entrainment against time, tank mean.}
+\end{figure}
+
+\endinput

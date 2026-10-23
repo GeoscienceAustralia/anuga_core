@@ -18,6 +18,7 @@ python_sources = [
     'test_neighbour_mesh_reorder.py',
     'test_pmesh2domain.py',
     'test_quantity.py',
+    'test_quantity_openmp_ext.py',
     'test_region.py',
     'test_tag_region.py',
     'test_util.py',

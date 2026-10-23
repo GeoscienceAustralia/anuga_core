@@ -15,7 +15,13 @@ extensions.
 
 ANUGA was created in a collaboration by Geoscience Australia 
 and Mathematical Sciences Institute at the Australian National University. 
-It is now developed and maintained by a community of volunteers.
+It is now developed and maintained by a community of volunteers. The GPU and
+multicore solver introduced in ANUGA 4.0 was developed in collaboration with
+the `Centre for Development of Advanced Computing (C-DAC) <https://www.cdac.in/>`_,
+India, as part of a catchment flood prediction project, and the
+`National Computational Infrastructure (NCI) <https://nci.org.au/>`_,
+Australia, on whose Gadi supercomputer it was developed; see
+:ref:`acknowledgements`.
 
 .. note::
 
@@ -52,9 +58,11 @@ It is now developed and maintained by a community of volunteers.
    Installing for GPU <appendices/install_gpu>
    appendices/advanced_script
    parallel/advanced
+   mathematical_background
+   Sediment physics: choosing the laws <appendices/sediment_physics>
+   Sediment physics specification <appendices/physics_spec>
    Compute modes: legacy vs unified <appendices/compute_modes>
    appendices/profiling_gpu
-   mathematical_background
    appendices/contributing
 
 

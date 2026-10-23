@@ -12,6 +12,7 @@ py3.extension_module('urs_ext',
 
 python_sources = [
   'csv_file.py',
+  'gpkg.py',
   '__init__.py',
   'mux.py',
   'netcdf.py',

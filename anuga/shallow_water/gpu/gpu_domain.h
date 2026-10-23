@@ -10,6 +10,8 @@
 #ifndef GPU_DOMAIN_H
 #define GPU_DOMAIN_H
 
+#define GPU_LAST_ERROR_LEN 512
+
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -205,6 +207,10 @@ struct rate_operator_info {
     double *rate_array_cache;    // GPU-resident copy of rate array
     int rate_array_size;         // Size of cached rate array
     int rate_array_mapped;       // Whether rate array is mapped to GPU
+    // Tracers carried by the rate (gpu_rate_operator_tracers_*). Appended so
+    // no earlier member moves; allocated on first use.
+    double *scratch_hold;        // depth before the rate is applied [num_indices]
+    int hold_mapped;
 };
 
 struct rate_operators {
@@ -230,6 +236,13 @@ struct inlet_operator_info {
     double *scratch_depths;      // Host scratch buffer [num_indices]
     int active;
     int mapped;
+    // Tracers carried by the inlet (see gpu_inlet_apply). Appended so no
+    // earlier member moves. scratch_hold is sized with the others; the tracer
+    // mass buffer is sized on first use, since tracers can be registered after
+    // the operator is created.
+    double *scratch_hold;        // depths before the water moves [num_indices]
+    double *scratch_tracer;      // tracer mass [ns * num_indices]
+    int scratch_tracer_len;      // allocated (and mapped) length of scratch_tracer
 };
 
 struct inlet_operators {
@@ -383,6 +396,14 @@ struct culvert_operators {
     double *scratch_slot_ymom;      // [2*nc]
 
     int mapped;
+
+    // Tracers carried by the transfer (see gpu_culvert_scatter). Appended so
+    // no earlier member moves; sized on first use for the domain's tracers.
+    int tracer_scratch_ns;          // tracers the buffers are sized for (0 = none)
+    double *scratch_tr_hold;        // [nt] depth before the transfer
+    double *scratch_tr_T;           // [2*nc*ns] tracer given up, per inlet
+    double *scratch_tr_G;           // [2*nc] water gained, per inlet
+    double *scratch_tr_c;           // [nc*ns] concentration each culvert carries
 };
 
 // Max-quantities operator — device-resident running maxima of stage, depth,
@@ -394,6 +415,12 @@ struct max_quantities_info {
     double *max_depth;           // [n] device-resident running max depth
     double *max_speed;           // [n] device-resident running max speed
     double *max_uh;              // [n] device-resident running max ||(uh,vh)||
+    // Running max of each tracer's concentration, [n_tracers][n] flattened as
+    // max_tracer[s*n + i], the same layout the tracer arrays themselves use.
+    // NULL and n_tracers == 0 when the domain has no tracers, which is the
+    // common case and costs nothing.
+    double *max_tracer;
+    int n_tracers;
     int initialized;
     int mapped;
 };
@@ -449,6 +476,28 @@ struct gpu_domain {
     int device_id;
     int gpu_aware_mpi;           // Runtime flag: 1 if GPU-aware MPI available
     int verbose;                 // 0 = silent (default), 1 = print init/mapping messages
+    // Last error message set by gpu_set_error(). Read back through
+    // get_last_error() in the Cython layer so a failed init raises with the
+    // reason, rather than the reason going only to a (possibly discarded)
+    // per-rank stderr.
+    char last_error[GPU_LAST_ERROR_LEN];
+
+    // Active-set stepping: opt-in wet/dry fast path (domain.set_use_active_set()).
+    // Prepared lazily on the first evolve step: builds the compacted
+    // owned-edge list, switches the flux kernel to scatter mode, and maps the
+    // classification scratch.  Serial (nprocs == 1) only -- silently disabled
+    // with a warning under MPI.  See core_build_active_sets() for the
+    // 2-ring-halo exactness argument.
+    int use_active_set;          // requested from Python
+    int as_prepared;             // lazy init has run
+    int as_ready;                // >=1 full step since mapping (first step runs full)
+    anuga_int *as_wet;           // scratch: wet flags         [n]
+    anuga_int *as_ring1;         // scratch: 1-ring flags      [n]
+    anuga_int *as_cells;         // compacted active cells     [n]
+    anuga_int *as_edges;         // compacted active edges     [num_owned_edges]
+    anuga_int as_counts[2];      // {n_active_cells, n_active_edges} per rebuild
+    double as_cellfrac_sum;      // stats: sum of active fractions
+    long   as_samples;           // stats: number of rebuilds
 
     // Halo exchange info
     struct halo_exchange halo;
@@ -507,6 +556,11 @@ struct gpu_domain {
 
 // Initialization and cleanup
 int gpu_domain_init(struct gpu_domain *GD, MPI_Comm comm, int rank, int nprocs);
+// Lazy first-step setup for active-set stepping (no-op unless
+// GD->use_active_set); safe to call every step.
+void gpu_active_set_prepare(struct gpu_domain *GD);
+// Mean active cell fraction since mapping (1.0 if never engaged).
+double gpu_active_set_mean_fraction(struct gpu_domain *GD);
 void gpu_domain_finalize(struct gpu_domain *GD);
 
 // Halo exchange setup - called once after Python domain is partitioned
@@ -536,6 +590,8 @@ void gpu_sync_boundary_values(struct gpu_domain *GD);
 // Sync riverwall crest elevations / hydraulic properties TO GPU (after a
 // host-side RiverWall.set_elevation() and friends)
 void gpu_sync_riverwall_to_device(struct gpu_domain *GD);
+void gpu_sync_tracer_source_to_device(struct gpu_domain *GD);
+void gpu_sync_tracer_boundary_to_device(struct gpu_domain *GD);
 
 // Sync edge values FROM GPU (before CPU boundary evaluation)
 void gpu_sync_edge_values_from_device(struct gpu_domain *GD);
@@ -624,6 +680,13 @@ void gpu_rate_operators_finalize_all(struct gpu_domain *GD);
 // factor: conversion factor
 // timestep: current timestep
 // For negative rates, also scales momentum appropriately
+// Tracers carried by a rate operator: capture depths before the rate is
+// applied, then add c_in * dh where water was added and, for tracers flagged
+// carry, keep the concentration where water was removed.
+int gpu_rate_operator_tracers_capture(struct gpu_domain *GD, int op_id);
+void gpu_rate_operator_tracers_apply(struct gpu_domain *GD, int op_id,
+                                     const double *c_in, const int *carry, int ns);
+
 double gpu_rate_operator_apply(struct gpu_domain *GD, int op_id,
                                double rate, double factor, double timestep);
 
@@ -645,14 +708,21 @@ void gpu_max_quantities_update(struct gpu_domain *GD);
 void gpu_max_quantities_get(struct gpu_domain *GD,
                             double *out_stage, double *out_depth,
                             double *out_speed, double *out_uh);
+void gpu_max_tracers_get(struct gpu_domain *GD, double *out_tracer);
 void gpu_max_quantities_finalize(struct gpu_domain *GD);
 
 // Ghost exchange - the key MPI function
 // Uses GPU-aware MPI if available, otherwise does D2H/H2D for small halo buffers
 void gpu_exchange_ghosts(struct gpu_domain *GD);
+void gpu_exchange_bed_ghosts(struct gpu_domain *GD);
 
 // GPU kernels (stubs - will be implemented in sw_domain_gpu.c)
 void gpu_extrapolate_second_order(struct gpu_domain *GD);
+
+// Fused RK2-backup (optional) + protect + extrapolate centroid pass in one
+// launch; returns the protect mass error.  Pair with gpu_extrapolate_edges.
+double gpu_prepare_step(struct gpu_domain *GD, int do_backup, int zero_eu);
+void gpu_extrapolate_edges(struct gpu_domain *GD, double predictor_dt);
 double gpu_compute_fluxes(struct gpu_domain *GD, int substep_count, int timestep_fluxcalls);
 void gpu_update_conserved_quantities(struct gpu_domain *GD, double timestep);
 void gpu_backup_conserved_quantities(struct gpu_domain *GD);
@@ -661,6 +731,20 @@ void gpu_saxpy3_conserved_quantities(struct gpu_domain *GD, double a, double b, 
 double gpu_protect(struct gpu_domain *GD);
 double gpu_compute_water_volume(struct gpu_domain *GD);
 void gpu_manning_friction(struct gpu_domain *GD);
+
+// Fused Manning + update (+ RK2 average when do_saxpy) in a single launch.
+// timestep must already be known. Falls back to the separate kernels under
+// sloped Manning.
+void gpu_forcing_and_update(struct gpu_domain *GD, double timestep,
+                            int apply_forcing, int do_saxpy,
+                            double a, double b);
+
+// Flux + apply phases: select the edge-based kernel pair automatically when
+// D->edge_flux_work is allocated (and no riverwalls); cell-based otherwise.
+double gpu_flux_phase(struct gpu_domain *GD, int substep_count, int timestep_fluxcalls);
+int gpu_prepare_should_zero_eu(struct gpu_domain *GD);
+void gpu_apply_phase(struct gpu_domain *GD, double timestep, int apply_forcing,
+                     int do_saxpy, double a, double b, int substep_count);
 
 // Full Euler step on GPU
 double gpu_evolve_one_euler_step(struct gpu_domain *GD, double max_timestep, int apply_forcing);
@@ -746,7 +830,8 @@ double gpu_inlet_apply(struct gpu_domain *GD, int op_id, double volume,
                        double current_volume, double total_area,
                        double *vel_u, double *vel_v, int num_vel,
                        int has_velocity, double ext_vel_u, double ext_vel_v,
-                       int zero_velocity);
+                       int zero_velocity,
+                       const double *c_in, int n_cin, double *dmass_out);
 
 // Culvert operators (Boyd box/pipe - batched GPU gather/scatter with MPI)
 int gpu_culvert_init(struct gpu_domain *GD,
@@ -760,12 +845,18 @@ int gpu_culvert_init(struct gpu_domain *GD,
                      double init_smooth_Q, double init_smooth_delta_total_energy);
 void gpu_culvert_finalize(struct gpu_domain *GD, int culvert_id);
 void gpu_culverts_finalize_all(struct gpu_domain *GD);
-void gpu_culverts_map(struct gpu_domain *GD);
+int gpu_culverts_map(struct gpu_domain *GD);   // 0, or -1 if scratch could not be allocated
 void gpu_culverts_apply_all(struct gpu_domain *GD, double timestep);
 // Read back a culvert's per-step reporting stats into out[5] =
 // {gain, discharge, velocity, driving_energy, delta_total_energy}. Returns 0 on
 // success, -1 if culvert_id is out of range. Values are non-zero only on the
 // proc that computed the discharge (the master proc).
 int gpu_culverts_get_report(struct gpu_domain *GD, int culvert_id, double *out);
+
+// Record an error message on the domain (printf-style) and echo it to stderr.
+// Functions that return an error code call this first so the Cython layer can
+// raise with the message (get_last_error).
+void gpu_set_error(struct gpu_domain *GD, const char *fmt, ...);
+const char *gpu_get_last_error(const struct gpu_domain *GD);
 
 #endif // GPU_DOMAIN_H

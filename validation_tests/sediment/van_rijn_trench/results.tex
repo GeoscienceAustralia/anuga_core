@@ -1,0 +1,232 @@
+
+\section{Suspended sand settling into a dredged trench: van Rijn's flume}
+
+Delft Hydraulics flume experiments reported by van Rijn \cite{vanRijn1986b}
+(Figs.~16--17): a flow $h_0 = 0.39$~m deep at $\bar u_0 = 0.51$~m/s carrying
+160~$\mu$m sand in equilibrium (0.04~kg/s/m in total, 0.03 in suspension and
+0.01 as bedload; suspended size 130~$\mu$m, $w_s = 0.013$~m/s; $k_s = 0.025$~m)
+crosses a trench cut across the 0.5~m wide flume. The flow slows over the
+trench, the suspended sand settles onto the downstream side slope and the
+floor, and the trench fills and migrates downstream. The bed profiles
+measured after 15 hours for side slopes of 1:3, 1:7 and 1:10 (the ``x''
+markers of Fig.~16, digitised here) are the data.
+
+\anuga{} runs the approach flow as normal flow on a plane with the Manning
+$n$ of $k_s$, held by Dirichlet boundaries, with the trench cut into the
+plane 5~m from the inflow, and the inflow carrying the measured suspended
+supply. One sand fraction carries the measured settling velocity
+(Ferguson--Church equivalent diameter 138~$\mu$m), the de Leeuw et al.
+(2020) entrainment law with the Rouse near-bed ratio referenced at $0.1h$,
+Wong--Parker bedload with open inflow and outflow, and an evolving bed. As
+van Rijn did for his own model (``the constant of Eq.~26 was adjusted
+somewhat to give a suspended load of 0.03~kg/sm at the inlet''), the
+entrainment constant is calibrated so that the approach flow is in
+equilibrium at the measured supply, by short pre-runs on the plane without
+the trench; with the de Leeuw law the uncalibrated equilibrium is already
+0.0217~kg/s/m under the default closure, so the factor is 1.38. What the trench then tests is the
+response of the transport to the non-uniform flow: the settling lag, the
+deposition on the downstream slope and floor, and the Exner coupling.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{The flume of van Rijn's trench tests, here test 3 with 1:10 side slopes. Tests 1 and 2 cut the same depth with 1:3 and 1:7 slopes.}
+\end{figure}
+
+
+The flume is one-dimensional, so the mesh carries two rows of 0.1~m cells
+across it, and the 15 hours of bed evolution run under a morphological
+acceleration factor of 10: the bed change of every step is multiplied by
+ten, the suspension, which adapts over a settling length of about 20~m in
+under a minute, is left alone, and the run covers 1.5 hours of flow.
+Wong--Parker bedload is scaled to the measured 0.01~kg/s/m at the inlet,
+as van Rijn did with his own bedload constant, and the inlet carries that
+bedload as a prescribed flux, as the flume was fed at a set rate. The
+default zero-gradient import, which equals the inflow cell's own export,
+feeds back on itself here: a cell that aggrades under the fixed inflow
+stage sees its transport and its import rise, and within a few hours the
+reach aggrades without bound. A rigid approach strip cures that but starves
+the first erodible cell behind it of bedload, which then scours a 25--30~cm
+hole that feeds the trench; the prescribed supply avoids both, and the two
+compute modes then agree to 0.1~mm over the 15 hours.
+
+The pass criterion is the bed level after 15 hours at the measured points:
+RMS error below 0.03~m (the fill is 0.08--0.10~m deep over 7~m of flume,
+and van Rijn's own profile model matched it to about 0.01~m), and the
+deepest remaining point within 1.5~m of the measured position. The gentle
+1:10 trench, the one a depth-averaged model is expected to get, runs
+routinely; the 1:3 and 1:7 trenches, where the flow separates over the lip
+and van Rijn's own depth-averaged attempts failed, join it under the long
+option. The case runs the default closure, which since the two-layer suspension
+[D-5] became the default is a near-bed layer $0.2h$ thick with the log-law
+velocity split. The three tests then give 2.45, 2.19 and 1.74~cm RMS. The
+instantaneous exchange that was the default before gives 3.9, 3.2 and
+2.85: its near-bed concentration responds at once to the slower flow over
+the trench, where in the flume the sediment high in the water column takes
+time to settle through it, so the trench fills about 25\,\% too fast. The
+inflow concentration is set from the measured supply through the
+profile-integrated transport $\beta \bar u h c$ rather than $\bar u h c$,
+$\beta = 0.71$ here, since the layers move at their own speeds.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_profile_test3.png}
+\end{center}
+\caption{Test 3, side slopes 1:10: bed level at three times against the
+measured profile after 15 hours (times are morphological, the simulated time
+times the acceleration factor).}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{suspended_load_test3.png}
+\end{center}
+\caption{Test 3: suspended load along the flume at the end of the run,
+scaled by the inflow supply.}
+\end{figure}
+
+\figifexists{bed_profile_test1.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_profile_test1.png}
+\end{center}
+\caption{Test 1, side slopes 1:3 (long run).}
+\end{figure}
+}{}
+
+\figifexists{bed_profile_test2.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{bed_profile_test2.png}
+\end{center}
+\caption{Test 2, side slopes 1:7 (long run).}
+\end{figure}
+}{}
+
+
+\subsection*{Closure options explored on the 1:10 trench}
+
+The case runs whatever the default closure is, which since [D-5] became
+the default is the two-layer suspension with the velocity split, the bold
+row below. The options were each run on test 3
+(slopes 1:10, 15 hours, morphological factor 10) to see how far the fit can
+be taken, all on the same calibrated setup. Each is chosen by a keyword of
+\texttt{set\_deposition} (or \texttt{set\_bedload}); nothing else in the
+script changes. The score is the RMS error at the measured points after
+15~h, the position and depth of the deepest remaining point (measured
+6.57~m, 0.079~m), and the bed volume change per unit width over the three
+reaches of the figure (m$^2$ per unit width, positive is bed gain): the
+downstream side slope (3.5--6~m) and the four metres past the toe. The
+trench upstream of the first measured point (0--3.5~m) fills back to the
+original bed, +0.41~m$^2$, in the flume and in every run, so it is left out.
+
+\begin{table}[h]
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\newcolumntype{L}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcolumntype{T}[1]{>{\ttfamily\raggedright\arraybackslash}p{#1}}
+\begin{tabular}{L{3.6cm}T{3.6cm}L{1.0cm}L{1.4cm}rr}
+\hline
+\textrm{option} & \textrm{chosen by} & RMS (cm) & deepest (m) & slope & toe \\
+\hline
+measured & & & 6.57, 0.079 & +0.17 & $-0.26$ \\
+\hline
+instantaneous exchange (the old default) & adaptation='none' & 2.85 & 7.10, 0.039 & +0.20 & $-0.15$ \\
+Galappatti lag [D-3] & adaptation='armanini' & 3.7 & & & \\
+carried near-bed ratio [D-4] & adaptation='carried' & 2.7 & & & \\
+two-layer, near-bed layer $a$ [D-5] & adaptation=\newline 'two\_layer' & 2.66 & 5.50, 0.084 & +0.08 & $-0.20$ \\
+\quad exchange rate $\times0.5$ & exchange\_factor=0.5 & 2.80 & & & \\
+\quad exchange rate $\times2$ & exchange\_factor=2 & 2.56 & & & \\
+\quad exchange rate $\times4$ & exchange\_factor=4 & 2.59 & & & \\
+\quad near-bed layer $0.05h$ & layer\_fraction=0.05 & 4.24 & & & \\
+\quad near-bed layer $0.2h$ & layer\_fraction=0.2 & 2.17 & 5.72, 0.061 & +0.14 & $-0.18$ \\
+\textbf{two-layer $0.2h$, velocity split [D-5v]} (the default, and the case) & \textrm{the defaults} & \textbf{1.74} & 6.22, 0.054 & +0.17 & $-0.19$ \\
+\quad near-bed layer $0.1h$ & layer\_fraction=0.1 & 3.12 & & & \\
+\quad near-bed layer $0.3h$ & layer\_fraction=0.3 & 2.37 & & & \\
+\quad exchange rate $\times0.5$ & exchange\_factor=0.5 & 1.66 & 6.30, 0.055 & +0.17 & $-0.20$ \\
+\quad bedload power 2.1 (van Rijn 1984) & set\_bedload(m=2.1) & 2.00 & 6.90, 0.050 & +0.19 & $-0.19$ \\
+\quad Rouse number $/\,(1+2(w_s/u_*)^2)$ [S-2b] & rouse\_beta='van\_rijn' & 2.07 & 5.60, 0.070 & +0.12 & $-0.20$ \\
+\quad Rouse number scaled to 0.5 & rouse\_scale=0.63 & 3.18 & 5.40, 0.083 & +0.07 & $-0.18$ \\
+\quad shear overshoot $1+\lambda(h/u)\,du/ds$, $\lambda=5$ & \textrm{experimental, not kept} & 1.77 & 6.40, 0.053 & +0.17 & $-0.19$ \\
+\hline
+\end{tabular}
+\caption{Test 3 (slopes 1:10) after 15 hours under each closure option:
+RMS error at the measured points, position and depth of the deepest
+point, and the bed volume change (m$^2$ per unit width) on the downstream
+slope (3.5--6~m) and past the toe (6--10~m). Indented rows vary one
+setting of the row above them. Each keyword is an argument of
+\texttt{set\_deposition} unless stated.}
+\end{table}
+
+What the sequence shows. The instantaneous exchange deposits as soon as
+the flow slows, so the fill sits on the upstream part of the slope and the
+deepest point is 0.5~m too far downstream and half as deep. The Galappatti
+lag scales the whole exchange down and over-corrects. The two-layer
+suspension keeps the sediment high in the column as a state, and with the
+near-bed layer at $0.2h$ and each layer advected at its log-law mean
+velocity (the near-bed layer at about $0.55\,\bar u$, the upper at
+$1.05\,\bar u$) the deposit on the downstream slope matches the measured
+volume and the deepest point lands within 0.35~m of the measured one. The
+same setting gives 2.45 and 2.19~cm on the 1:3 and 1:7 trenches (3.07 and
+3.26 with the two-layer defaults). Every remaining option redistributes
+the deposit between the floor and the slope and leaves the scour past the
+toe at 0.18--0.20~m$^2$ against the measured 0.26: in the model the trench
+stops trapping at about 10~h, when the fill reaches the toe, where the
+flume's trench was still 8~cm deep there at 15~h. The bedload is not the
+cause: the flow over the trench floor keeps the Shields stress seven times
+the threshold, so 70\,\% of the bedload crosses the trench even at the
+start and all of it once the upstream part has filled. Van Rijn's
+concentration profiles (his Fig.~17) show the flume carrying 45\,\% of its
+load above the near-bed layer where the Rouse fit at $Z=0.79$ carries
+5\,\%, but flattening the fit lowers the near-bed concentration and with it
+the deposit on the slope, because the two-layer exchange sets both from
+the one fitted ratio. Resolving the column in more layers, with a mixing
+profile, is the change that would separate them; it is what van Rijn's own
+model did.
+
+\figifexists{trench_velocity_profile.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{trench_velocity_profile.png}
+\end{center}
+\caption{Test 3: the two-layer suspension with and without the log-law
+velocity split, at three near-bed layer thicknesses, against the
+instantaneous exchange that preceded it.}
+\end{figure}
+}{}
+
+\figifexists{trench_two_layer_sweep.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{trench_two_layer_sweep.png}
+\end{center}
+\caption{Test 3: the two-layer knobs, exchange rate and layer thickness,
+without the velocity split.}
+\end{figure}
+}{}
+
+\figifexists{trench_rouse_correction.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{trench_rouse_correction.png}
+\end{center}
+\caption{Test 3: the Rouse-number correction on top of the best two-layer
+setting. A flatter profile carries more sediment high in the column but
+deposits less on the slope.}
+\end{figure}
+}{}
+
+\figifexists{trench_bedload_diag.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{trench_bedload_diag.png}
+\end{center}
+\caption{Test 3, best two-layer setting: bedload and suspended transport
+along the flume through the run. The bedload is only partly trapped and
+the suspended transport past the toe has not recovered its inflow value
+within the flume.}
+\end{figure}
+}{}
+
+\endinput

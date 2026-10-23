@@ -1,0 +1,74 @@
+
+\section{Sediment pick-up in initially clear water: van Rijn's flume}
+
+A Delft Hydraulics flume experiment reported by van Rijn \cite{vanRijn1986b,vanRijn1986c}:
+a uniform flow $d = 0.25$~m deep at $\bar u = 0.67$~m/s, initially free of
+sediment, runs from a rigid bed onto a bed of 230~$\mu$m sand and picks up
+sediment until the suspended load reaches equilibrium. Water samples at four
+heights and four stations gave the depth-integrated suspended load, which
+rises from about half of the computed equilibrium load
+$q_{s,\infty} = 0.036$~kg/s/m at $x = 4d$ to $1.3\,q_{s,\infty}$ at
+$x = 40d$ (Fig.~3 of \cite{vanRijn1986c}, digitised here). The measured
+bed-shear velocity was $u_* = 0.0477$~m/s ($k_s = 0.01$~m), the suspended
+sediment had a representative size of 200~$\mu$m and settling velocity
+$w_s = 0.022$~m/s, so the Rouse number $w_s/(\kappa u_*) = 1.15$: the
+suspension is strongly stratified.
+
+\anuga{} runs the normal flow on a plane of slope $S = u_*^2/(g d)$ with the
+Manning $n$ that gives $\bar u$, held by Dirichlet boundaries at both ends,
+with clear water at the inflow and a fixed bed (the experiment kept scour to
+a minimum, and van Rijn's own simulation ignored bed change). One sand
+fraction carries the measured settling velocity (Ferguson--Church equivalent
+diameter 193~$\mu$m with the natural-grain constants), the de Leeuw et al.
+(2020) entrainment law with the Rouse near-bed ratio referenced at $0.1 d$,
+where that law defines its near-bed concentration. The case checks the
+entrainment law and the near-bed treatment against measured data, not
+against a closed-form solution, so it is scored the way van Rijn scores a
+transport formula, by the discrepancy ratio of predicted to measured load:
+its geometric mean over the four stations must lie in his class 0.5--2 and
+no station outside 0.33--3, and the load must increase monotonically along
+the flume. With the de Leeuw law the ratios are 1.05, 0.95, 0.83 and 0.67
+(mean 0.86); van Rijn's own SUTRENCH model reaches 0.68 of the measurement
+at $x = 40d$. Under the instantaneous exchange, the default before the
+two-layer suspension [D-5] replaced it, the ratios were 0.74, 0.66, 0.57
+and 0.46 (mean 0.60): the load reached its equilibrium within about 15
+depths where the flume was still loading at 40. The Smith--McLean law with its default reference level of
+$0.01 d$ predicts seven times the measured load in this flume, and twelve
+times at a $0.02 d$ reference, which is why it is not the choice here.
+The remaining shortfall at $x = 40d$ is the same slow diffusion of
+sediment into the upper water column that the two-layer closure only
+partly represents, together with the scour hole at the rigid-bed
+transition, which this fixed-bed case does not have.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{Van Rijn's pick-up flume: clear water runs onto a sand bed and entrains sediment, with the measured stations at 4, 10, 20 and 40 depths.}
+\end{figure}
+
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{suspended_load_plot.png}
+\end{center}
+\caption{Depth-integrated suspended load $\rho_s c q$ along the flume,
+scaled by van Rijn's equilibrium load, against the four measured stations.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{concentration_plot.png}
+\end{center}
+\caption{Depth-averaged concentration along the flume.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{depth_plot.png}
+\end{center}
+\caption{Depth error relative to the normal depth along the flume at the
+end of the run, in micrometres.}
+\end{figure}
+
+\endinput

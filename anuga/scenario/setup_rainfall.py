@@ -10,8 +10,8 @@ Gareth Davies, Geoscience Australia 2014+
 
 import numpy
 import anuga
-import scipy.interpolate
 from anuga.utilities import spatialInputUtil as su
+from anuga.scenario.timeseries import make_timeseries_function
 
 
 def setup_rainfall(domain, project):
@@ -61,9 +61,10 @@ def setup_rainfall(domain, project):
 
         # Make interpolation function and add to ANUGA as operator
         if rain_timeseries[:, 1].max() >= 0.:
-            myrain = scipy.interpolate.interp1d(
+            # No rain before the series starts (as for .tms files)
+            myrain = make_timeseries_function(
                 rain_timeseries[:, 0], rain_timeseries[:, 1],
-                kind=interpolation_type)
+                kind=interpolation_type, before=0.0)
             anuga.operators.rate_operators.Rate_operator(
                 domain, rate=myrain, polygon=polygon, label=timeseries_file)
 

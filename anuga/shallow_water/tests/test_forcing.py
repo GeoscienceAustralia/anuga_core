@@ -1,6 +1,10 @@
-"""  Test environmental forcing - rain, wind, etc.
-"""
+"""Tests of the environmental forcing operators: wind stress, barometric
+pressure and rainfall, including fields read from time-series (.tms) and
+spatial (.sww) files, plus the in-Python gravity / Manning-friction terms.
 
+The legacy forcing-function classes (Wind_stress, Rainfall, Inflow,
+Barometric_pressure) were removed in 4.1; see UPGRADING_TO_4.0.md.
+"""
 
 import unittest
 import os
@@ -11,21 +15,17 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.abstract_2d_finite_volumes.util import file_function
-from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_mode_a
+from anuga.file.netcdf import NetCDFFile
+from anuga.utilities.numerical_tools import ensure_numeric
 
-from anuga.shallow_water.forcing import *
+from anuga.operators.rate_operators import Rate_operator
+from anuga.operators.wind_stress_operator import Wind_stress_operator
+from anuga.operators.barometric_pressure import Barometric_pressure_operator
 
 import numpy as num
 import warnings
 
 
-def scalar_func_list(t, x, y):
-    """Function that returns a scalar.
-
-    Used to test error message when numeric array is expected
-    """
-
-    return [17.7]
 
 
 def speed(t, x, y):
@@ -212,6 +212,7 @@ def ndgrid(x,y):
             k+=1
     return X,Y
 
+
 class Test_Forcing(unittest.TestCase):
     def setUp(self):
         pass
@@ -337,10 +338,13 @@ class Test_Forcing(unittest.TestCase):
 
         fid.close()
 
-    def test_constant_wind_stress(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
 
+    # ------------------------------------------------------------------
+    # Helpers
+    # ------------------------------------------------------------------
+
+    def _small_domain(self, geo_reference=None, dt=1.0):
+        """6-point, 4-triangle flat domain, 1 m of water, timestep *dt*."""
         a = [0.0, 0.0]
         b = [0.0, 2.0]
         c = [2.0, 0.0]
@@ -352,9 +356,9 @@ class Test_Forcing(unittest.TestCase):
         #             bac,     bce,     ecf,     dbe
         vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
 
-        domain = Domain(points, vertices)
+        domain = Domain(points, vertices, geo_reference=geo_reference)
 
-        #Flat surface with 1m of water
+        # Flat surface with 1m of water
         domain.set_quantity('elevation', 0)
         domain.set_quantity('stage', 1.0)
         domain.set_quantity('friction', 0)
@@ -362,218 +366,91 @@ class Test_Forcing(unittest.TestCase):
         Br = Reflective_boundary(domain)
         domain.set_boundary({'exterior': Br})
 
-        #Setup only one forcing term, constant wind stress
+        domain.timestep = dt
+        return domain
+
+    @staticmethod
+    def _momentum_delta(domain, op):
+        """Apply *op* once; return (d_xmom, d_ymom, d_stage) per triangle."""
+        xmom0 = domain.quantities['xmomentum'].centroid_values.copy()
+        ymom0 = domain.quantities['ymomentum'].centroid_values.copy()
+        stage0 = domain.quantities['stage'].centroid_values.copy()
+        op()
+        return (domain.quantities['xmomentum'].centroid_values - xmom0,
+                domain.quantities['ymomentum'].centroid_values - ymom0,
+                domain.quantities['stage'].centroid_values - stage0)
+
+    @staticmethod
+    def _wind_stress(s, phi):
+        """Reference (S*u, S*v) for wind speed *s* [m/s], direction *phi* [deg]."""
+        from anuga.config import rho_a, rho_w, eta_w
+        from math import pi
+        const = eta_w*rho_a/rho_w
+        phi = num.asarray(phi, float)*pi/180.0
+        u = s*num.cos(phi)
+        v = s*num.sin(phi)
+        S = const*num.sqrt(u**2 + v**2)
+        return S*u, S*v
+
+    def _rectangular_field_domain(self, nrows, ncols, cellsize,
+                                  xllcorner, yllcorner):
+        points, vertices, boundary = rectangular(nrows-2, ncols-2,
+                                                 len1=cellsize*(ncols-1),
+                                                 len2=cellsize*(nrows-1),
+                                                 origin=(xllcorner, yllcorner))
+        domain = Domain(points, vertices, boundary)
+
+        # Flat surface with 1m of water
+        domain.set_quantity('elevation', 0)
+        domain.set_quantity('stage', 1.0)
+        domain.set_quantity('friction', 0)
+
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'top': Br, 'bottom': Br, 'left': Br, 'right': Br})
+        return domain
+
+    # ------------------------------------------------------------------
+    # Wind stress
+    # ------------------------------------------------------------------
+
+    def test_constant_wind_stress(self):
+        domain = self._small_domain()
+
         s = 100
         phi = 135
-        domain.forcing_terms = []
-        domain.forcing_terms.append(Wind_stress(s, phi))
+        W = Wind_stress_operator(domain, s, phi)
 
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, W)
+        Su, Sv = self._wind_stress(s, phi)
 
-        const = eta_w*rho_a/ rho_w
-
-        #Convert to radians
-        phi = phi*pi/ 180
-
-        #Compute velocity vector (u, v)
-        u = s*cos(phi)
-        v = s*sin(phi)
-
-        #Compute wind stress
-        S = const * num.sqrt(u**2 + v**2)
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update, S*u)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, S*v)
+        assert num.allclose(dstage, 0)
+        assert num.allclose(dx, Su)
+        assert num.allclose(dy, Sv)
 
     def test_variable_wind_stress(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        #Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
+        domain = self._small_domain()
         domain.set_time(5.54)   # Take a random time (not zero)
 
-        #Setup only one forcing term, constant wind stress
-        s = 100
-        phi = 135
-        domain.forcing_terms = []
-        domain.forcing_terms.append(Wind_stress(s=speed, phi=angle))
+        W = Wind_stress_operator(domain, speed=speed, phi=angle)
 
-        domain.compute_forcing_terms()
-
-        #Compute reference solution
-        const = eta_w*rho_a/rho_w
-
-        N = len(domain)    # number_of_triangles
-
-        xc = domain.get_centroid_coordinates()
-        t = domain.get_time()
-
-        x = xc[:,0]
-        y = xc[:,1]
-        s_vec = speed(t,x,y)
-        phi_vec = angle(t,x,y)
-
-        for k in range(N):
-            # Convert to radians
-            phi = phi_vec[k]*pi/ 180
-            s = s_vec[k]
-
-            # Compute velocity vector (u, v)
-            u = s*cos(phi)
-            v = s*sin(phi)
-
-            # Compute wind stress
-            S = const * num.sqrt(u**2 + v**2)
-
-            assert num.allclose(domain.quantities['stage'].explicit_update[k],
-                                0)
-            assert num.allclose(domain.quantities['xmomentum'].\
-                                     explicit_update[k],
-                                S*u)
-            assert num.allclose(domain.quantities['ymomentum'].\
-                                     explicit_update[k],
-                                S*v)
-
-    def test_windfield_from_file(self):
-        import time
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
-        from anuga.abstract_2d_finite_volumes.util import file_function
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        domain.set_time(7)    # Take a time that is represented in file (not zero)
-
-        # Write wind stress file (ensure that domaim time is covered)
-        # Take x=1 and y=0
-        filename = 'test_windstress_from_file'
-        start = time.mktime(time.strptime('2000', '%Y'))
-        fid = open(filename + '.txt', 'w')
-        dt = 1    # One second interval
-        t = 0.0
-        while t <= 10.0:
-            t_string = time.strftime(time_format, time.gmtime(t+start))
-
-            fid.write('%s, %f %f\n' %
-                      (t_string, speed(t,[1],[0])[0], angle(t,[1],[0])[0]))
-            t += dt
-
-        fid.close()
-
-        timefile2netcdf(filename + '.txt')
-        os.remove(filename + '.txt')
-
-        # Setup wind stress
-        F = file_function(filename + '.tms',
-                          quantities=['Attribute0', 'Attribute1'])
-        os.remove(filename + '.tms')
-
-        W = Wind_stress(F)
-
-        domain.forcing_terms = []
-        domain.forcing_terms.append(W)
-
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, W)
 
         # Compute reference solution
-        const = eta_w*rho_a/ rho_w
-
-        N = len(domain)    # number_of_triangles
-
+        xc = domain.get_centroid_coordinates()
         t = domain.get_time()
+        Su, Sv = self._wind_stress(speed(t, xc[:,0], xc[:,1]),
+                                   angle(t, xc[:,0], xc[:,1]))
 
-        s = speed(t, [1], [0])[0]
-        phi = angle(t, [1], [0])[0]
+        assert num.allclose(dstage, 0)
+        assert num.allclose(dx, Su)
+        assert num.allclose(dy, Sv)
 
-        # Convert to radians
-        phi = phi*pi/ 180
-
-        # Compute velocity vector (u, v)
-        u = s*cos(phi)
-        v = s*sin(phi)
-
-        # Compute wind stress
-        S = const * num.sqrt(u**2 + v**2)
-
-        for k in range(N):
-            assert num.allclose(domain.quantities['stage'].explicit_update[k],
-                                0)
-            assert num.allclose(domain.quantities['xmomentum'].\
-                                    explicit_update[k],
-                                S*u)
-            assert num.allclose(domain.quantities['ymomentum'].\
-                                    explicit_update[k],
-                                S*v)
-
-    def test_windfield_from_file_seconds(self):
+    def _check_windfield_from_tms(self, dt, time_as_seconds):
+        """Uniform, time-varying wind read from a .tms file."""
         import time
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
         from anuga.config import time_format
-        from anuga.abstract_2d_finite_volumes.util import file_function
 
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
+        domain = self._small_domain()
         domain.set_time(7)    # Take a time that is represented in file (not zero)
 
         # Write wind stress file (ensure that domain time is covered)
@@ -581,16 +458,18 @@ class Test_Forcing(unittest.TestCase):
         filename = 'test_windstress_from_file'
         start = time.mktime(time.strptime('2000', '%Y'))
         fid = open(filename + '.txt', 'w')
-        dt = 0.5    # Half second interval
         t = 0.0
         while t <= 10.0:
-            fid.write('%s, %f %f\n'
-                      % (str(t), speed(t, [1], [0])[0], angle(t, [1], [0])[0]))
+            if time_as_seconds:
+                t_string = str(t)
+            else:
+                t_string = time.strftime(time_format, time.gmtime(t+start))
+            fid.write('%s, %f %f\n' %
+                      (t_string, speed(t,[1],[0])[0], angle(t,[1],[0])[0]))
             t += dt
-
         fid.close()
 
-        timefile2netcdf(filename + '.txt', time_as_seconds=True)
+        timefile2netcdf(filename + '.txt', time_as_seconds=time_as_seconds)
         os.remove(filename + '.txt')
 
         # Setup wind stress
@@ -598,316 +477,107 @@ class Test_Forcing(unittest.TestCase):
                           quantities=['Attribute0', 'Attribute1'])
         os.remove(filename + '.tms')
 
-        W = Wind_stress(F)
+        W = Wind_stress_operator(domain, F, use_coordinates=False)
 
-        domain.forcing_terms = []
-        domain.forcing_terms.append(W)
-
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, W)
 
         # Compute reference solution
-        const = eta_w*rho_a/ rho_w
-
-        N = len(domain)    # number_of_triangles
-
         t = domain.get_time()
+        Su, Sv = self._wind_stress(speed(t, [1], [0])[0], angle(t, [1], [0])[0])
 
-        s = speed(t, [1], [0])[0]
-        phi = angle(t, [1], [0])[0]
+        assert num.allclose(dstage, 0)
+        assert num.allclose(dx, Su)
+        assert num.allclose(dy, Sv)
 
-        # Convert to radians
-        phi = phi*pi/ 180
+    def test_windfield_from_file(self):
+        self._check_windfield_from_tms(dt=1.0, time_as_seconds=False)
 
-        # Compute velocity vector (u, v)
-        u = s*cos(phi)
-        v = s*sin(phi)
-
-        # Compute wind stress
-        S = const * num.sqrt(u**2 + v**2)
-
-        for k in range(N):
-            assert num.allclose(domain.quantities['stage'].explicit_update[k],
-                                0)
-            assert num.allclose(domain.quantities['xmomentum'].\
-                                    explicit_update[k],
-                                S*u)
-            assert num.allclose(domain.quantities['ymomentum'].\
-                                    explicit_update[k],
-                                S*v)
+    def test_windfield_from_file_seconds(self):
+        self._check_windfield_from_tms(dt=0.5, time_as_seconds=True)
 
     def test_wind_stress_error_condition(self):
-        """Test that windstress reacts properly when forcing functions
-        are wrong - e.g. returns a scalar
-        """
+        """Wind file must carry exactly (speed, angle); phi must be numeric."""
+        domain = self._small_domain()
 
-        from math import pi, cos, sin
-        from anuga.config import rho_a, rho_w, eta_w
+        with self.assertRaises(ValueError):
+            Wind_stress_operator(domain, speed, use_coordinates=False)
 
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
+        W = Wind_stress_operator(domain, speed=speed, phi='xx')
+        with self.assertRaises((ValueError, TypeError)):
+            W()
 
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+    # ------------------------------------------------------------------
+    # Rainfall (Rate_operator.rainfall takes mm/hr; 1 mm/s == 3600 mm/hr)
+    # ------------------------------------------------------------------
 
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        domain.set_time(5.54)   # Take a random time (not zero)
-
-        # Setup only one forcing term, bad func
-        domain.forcing_terms = []
-
-        try:
-            domain.forcing_terms.append(Wind_stress(s=scalar_func_list,
-                                                    phi=angle))
-        except AssertionError:
-            pass
-        else:
-            msg = 'Should have raised exception'
-            raise(Exception, msg)
-
-        try:
-            domain.forcing_terms.append(Wind_stress(s=speed, phi=scalar_func))
-        except Exception:
-            pass
-        else:
-            msg = 'Should have raised exception'
-            raise(Exception, msg)
-
-        try:
-            domain.forcing_terms.append(Wind_stress(s=speed, phi='xx'))
-        except Exception:
-            pass
-        else:
-            msg = 'Should have raised exception'
-            raise(Exception, msg)
+    MM_S = 3600.0   # multiply a rate in mm/s by this to get mm/hr
 
     def test_rainfall(self):
-        from math import pi, cos, sin
+        domain = self._small_domain()
 
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
+        # Constant rainfall of 2 mm/s over the whole domain
+        R = Rate_operator.rainfall(domain, rate=2.0*self.MM_S)
 
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, constant rainfall
-        domain.forcing_terms = []
-        domain.forcing_terms.append(Rainfall(domain, rate=2.0))
-
-        domain.compute_forcing_terms()
-        assert num.allclose(domain.quantities['stage'].explicit_update,
-                            2.0/1000)
+        dx, dy, dstage = self._momentum_delta(domain, R)
+        assert num.allclose(dstage, 2.0/1000)
 
     def test_rainfall_restricted_by_polygon(self):
-        from math import pi, cos, sin
+        domain = self._small_domain()
 
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
+        # Constant rainfall restricted to a polygon enclosing triangle #1 (bce)
+        R = Rate_operator.rainfall(domain, rate=2.0*self.MM_S,
+                                   polygon=[[1,1], [2,1], [2,2], [1,2]])
 
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        assert num.allclose(R.areas.sum(), 2)
 
-        domain = Domain(points, vertices)
+        dx, dy, dstage = self._momentum_delta(domain, R)
 
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, constant rainfall
-        # restricted to a polygon enclosing triangle #1 (bce)
-        domain.forcing_terms = []
-        R = Rainfall(domain, rate=2.0, polygon=[[1,1], [2,1], [2,2], [1,2]])
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            2.0/1000)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        assert num.allclose(dstage[1], 2.0/1000)
+        assert num.allclose(dstage[0], 0)
+        assert num.allclose(dstage[2:], 0)
 
     def test_time_dependent_rainfall_restricted_by_polygon(self):
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
+        domain = self._small_domain()
 
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        # Time dependent rainfall restricted to a polygon enclosing
+        # triangle #1 (bce)
+        R = Rate_operator.rainfall(domain,
+                                   rate=lambda t: (3*t + 7)*self.MM_S,
+                                   polygon=[[1,1], [2,1], [2,2], [1,2]])
 
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # restricted to a polygon enclosing triangle #1 (bce)
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=lambda t: 3*t + 7,
-                     polygon = [[1,1], [2,1], [2,2], [1,2]])
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
+        assert num.allclose(R.areas.sum(), 2)
 
         domain.set_time(10.0)
 
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, R)
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_time() + 7)/1000)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        assert num.allclose(dstage[1], (3*domain.get_time() + 7)/1000)
+        assert num.allclose(dstage[0], 0)
+        assert num.allclose(dstage[2:], 0)
 
     def test_time_dependent_rainfall_using_starttime(self):
         rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], float)
 
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
+        domain = self._small_domain()
 
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        R = Rate_operator.rainfall(domain,
+                                   rate=lambda t: (3*t + 7)*self.MM_S,
+                                   polygon=rainfall_poly)
 
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # restricted to a polygon enclosing triangle #1 (bce)
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=lambda t: 3*t + 7,
-                     polygon=rainfall_poly)
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
+        assert num.allclose(R.areas.sum(), 2)
 
         # This will test that time is set to starttime in set_starttime
         domain.set_starttime(5.0)
 
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, R)
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_time() + 7)/1000)
-
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
-
-    def test_absolute_time_dependent_rainfall_using_starttime(self):
-        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], float)
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # restricted to a polygon enclosing triangle #1 (bce)
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=lambda t: 3*t + 7,
-                     polygon=rainfall_poly)
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
-
-        # This will test that time is set to starttime in set_starttime
-        domain.set_starttime(5.0)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_starttime() + 7)/1000)
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
-
+        assert num.allclose(dstage[1], (3*domain.get_time() + 7)/1000)
+        assert num.allclose(dstage[1], (3*domain.get_starttime() + 7)/1000)
+        assert num.allclose(dstage[0], 0)
+        assert num.allclose(dstage[2:], 0)
 
     def test_time_dependent_rainfall_using_georef(self):
-        """test_time_dependent_rainfall_using_georef
-
-        This will also test the General forcing term using georef
-        """
-
+        """Polygon given in absolute (georeferenced) coordinates."""
         # Mesh in zone 56 (absolute coords)
         x0 = 314036.58727982
         y0 = 6224951.2960092
@@ -915,348 +585,140 @@ class Test_Forcing(unittest.TestCase):
         rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], float)
         rainfall_poly += [x0, y0]
 
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
+        domain = self._small_domain(geo_reference=Geo_reference(56, x0, y0))
 
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
+        R = Rate_operator.rainfall(domain,
+                                   rate=lambda t: (3*t + 7)*self.MM_S,
+                                   polygon=rainfall_poly)
 
-        domain = Domain(points, vertices,
-                        geo_reference=Geo_reference(56, x0, y0))
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # restricted to a polygon enclosing triangle #1 (bce)
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=lambda t: 3*t + 7,
-                     polygon=rainfall_poly)
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
-
-        # This will test that time is set to starttime in set_starttime
-        domain.set_starttime(5.0)
-
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_time() + 7)/1000)
-
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
-
-    def test_absolute_time_dependent_rainfall_using_georef(self):
-        """test_time_dependent_rainfall_using_georef
-
-        This will also test the General forcing term using georef
-        """
-
-        # Mesh in zone 56 (absolute coords)
-        x0 = 314036.58727982
-        y0 = 6224951.2960092
-
-        rainfall_poly = ensure_numeric([[1,1], [2,1], [2,2], [1,2]], float)
-        rainfall_poly += [x0, y0]
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices,
-                        geo_reference=Geo_reference(56, x0, y0))
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # restricted to a polygon enclosing triangle #1 (bce)
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=lambda t: 3*t + 7,
-                     polygon=rainfall_poly)
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
+        assert num.allclose(R.areas.sum(), 2)
 
         # This will test that time is set to starttime in set_starttime
         domain.set_starttime(5.0)
         domain.set_time(5.0)
 
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, R)
 
-        # print(domain.quantities['stage'].explicit_update[1])
-        # print((3*domain.get_time() + 7)/1000.0)
-        # print(domain.relative_time)
-        # print(domain.get_time())
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_time() + 7)/1000.0)
+        assert num.allclose(dstage[1], (3*domain.get_time() + 7)/1000)
+        assert num.allclose(dstage[0], 0)
+        assert num.allclose(dstage[2:], 0)
 
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
-
-
-
-    def test_absolute_time_dependent_rainfall_restricted_by_polygon_with_default(self):
+    def test_time_dependent_rainfall_restricted_by_polygon_with_default(self):
         """
         Test that default rainfall can be used when given rate runs out of data.
         """
-
-        import warnings
-        warnings.simplefilter('ignore', UserWarning)
-
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # that expires at t==20
         from anuga.fit_interpolate.interpolate import Modeltime_too_late
 
+        domain = self._small_domain()
+
+        # Time dependent rainfall that expires at t==20
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
                 raise Modeltime_too_late(msg)
             else:
-                return 3*t + 7
+                return (3*t + 7)*self.MM_S
 
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=main_rate,
-                     polygon = [[1,1], [2,1], [2,2], [1,2]],
-                     default_rate=5.0)
+        R = Rate_operator.rainfall(domain,
+                                   rate=main_rate,
+                                   polygon=[[1,1], [2,1], [2,2], [1,2]],
+                                   default_rate=5.0*self.MM_S)
 
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
+        assert num.allclose(R.areas.sum(), 2)
 
         domain.set_time(10.)
+        dx, dy, dstage = self._momentum_delta(domain, R)
 
-        domain.compute_forcing_terms()
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            (3*domain.get_time()+7)/1000)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        assert num.allclose(dstage[1], (3*domain.get_time()+7)/1000)
+        assert num.allclose(dstage[0], 0)
+        assert num.allclose(dstage[2:], 0)
 
         domain.set_time(100.)
-        domain.quantities['stage'].explicit_update[:] = 0.0     # Reset
-        domain.compute_forcing_terms()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
+            dx, dy, dstage = self._momentum_delta(domain, R)
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1],
-                            5.0/1000) # Default value
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 0)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        assert num.allclose(dstage[1], 5.0/1000) # Default value
+        assert num.allclose(dstage[0], 0)
+        assert num.allclose(dstage[2:], 0)
 
     def test_rainfall_forcing_with_evolve(self):
-        """test_rainfall_forcing_with_evolve
-
-        Test how forcing terms are called within evolve
-        """
-
-        # FIXME(Ole): This test is just to experiment
-        import warnings
-        warnings.simplefilter('ignore', UserWarning)
-
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # that expires at t==20
+        """Rain that runs out of data falls back to default_rate during evolve."""
         from anuga.fit_interpolate.interpolate import Modeltime_too_late
+
+        domain = self._small_domain()
 
         def main_rate(t):
             if t > 20:
                 msg = 'Model time exceeded.'
                 raise Modeltime_too_late(msg)
             else:
-                return 3*t + 7
+                return (3*t + 7)*self.MM_S
 
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=main_rate,
-                     polygon=[[1,1], [2,1], [2,2], [1,2]],
-                     default_rate=5.0)
+        Rate_operator.rainfall(domain,
+                               rate=main_rate,
+                               polygon=[[1,1], [2,1], [2,2], [1,2]],
+                               default_rate=5.0*self.MM_S)
 
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
-
-        for t in domain.evolve(yieldstep=1, finaltime=25):
-            pass
-            #FIXME(Ole):  A test here is hard because explicit_update also
-            # receives updates from the flux calculation.
-
-
-    def test_rainfall_forcing_with_evolve_1(self):
-        """test_rainfall_forcing_with_evolve_exception
-
-        Test how forcing terms are called within evolve.
-        This test checks that proper exception is thrown when no default_rate is set
-        """
-
-        import warnings
-        warnings.simplefilter('ignore', UserWarning)
-
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent rainfall
-        # that expires at t==20
-        from anuga.fit_interpolate.interpolate import Modeltime_too_late
-
-        def main_rate(t):
-            if t > 20:
-                msg = 'Model time exceeded.'
-                raise Modeltime_too_late(msg)
-            else:
-                return 3*t + 7
-
-        # Forcing-function classes (Rainfall/Wind_stress/...) are legacy-only;
-        # multiprocessor_mode=2 ('unified') applies forcing in C (Manning only)
-        # and deliberately skips them. Pin legacy so this test exercises the
-        # forcing-function machinery it is written for.
-        domain.set_compute_mode('legacy')
-
-        domain.forcing_terms = []
-        R = Rainfall(domain,
-                     rate=main_rate,
-                     polygon=[[1,1], [2,1], [2,2], [1,2]])
-
-
-        assert num.allclose(R.exchange_area, 2)
-
-        domain.forcing_terms.append(R)
-        #for t in domain.evolve(yieldstep=1, finaltime=25):
-        #    pass
-
-        try:
+        volume0 = domain.compute_total_volume()
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', UserWarning)
             for t in domain.evolve(yieldstep=1, finaltime=25):
                 pass
-        except Modeltime_too_late as e:
-            # Test that error message is as expected
-            assert 'can specify keyword argument default_rate in the forcing function' in str(e)
-        else:
-            raise Exception('Should have raised exception')
+
+        # Rain fell only on triangle #1 (area 2): 3t+7 mm/s up to t=20,
+        # then 5 mm/s (integrate rate over the 2 m^2 area, convert mm to m).
+        # The rate is sampled once per (~1 s) step, so allow the resulting
+        # quadrature error; the point is that the fallback rate was used
+        # rather than an exception raised.
+        expected = 2.0*((1.5*20**2 + 7*20) + 5.0*5)/1000
+        assert num.allclose(domain.compute_total_volume() - volume0, expected,
+                            rtol=2e-2)
+
+    def test_rainfall_forcing_with_evolve_1(self):
+        """Without a default_rate, running out of data raises Modeltime_too_late."""
+        from anuga.fit_interpolate.interpolate import Modeltime_too_late
+
+        domain = self._small_domain()
+
+        def main_rate(t):
+            if t > 20:
+                msg = 'Model time exceeded.'
+                raise Modeltime_too_late(msg)
+            else:
+                return (3*t + 7)*self.MM_S
+
+        Rate_operator.rainfall(domain,
+                               rate=main_rate,
+                               polygon=[[1,1], [2,1], [2,2], [1,2]],
+                               default_rate=None)
+
+        with self.assertRaises(Modeltime_too_late):
+            for t in domain.evolve(yieldstep=1, finaltime=25):
+                pass
+
+    # ------------------------------------------------------------------
+    # Wind and pressure fields read from a file (use_coordinates=False)
+    # ------------------------------------------------------------------
 
     def test_constant_wind_stress_from_file(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
         from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
         nrows=5; ncols = 6
-        refzone=50
         xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 6
         timestep=12*60
-        eps=2e-16
 
-        points, vertices, boundary =rectangular(nrows-2,ncols-2,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        domain = Domain(points, vertices, boundary)
+        domain = self._rectangular_field_domain(nrows, ncols, cellsize,
+                                                xllcorner, yllcorner)
+        domain.timestep = 1.0
         midpoints = domain.get_centroid_coordinates()
 
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        # Setup only one forcing term, constant wind stress
+        # Constant wind stress
         s = 100
         phi = 135
         pressure=1000
-        domain.forcing_terms = []
+
         field_sts_filename = 'wind_field'
         self.write_wind_pressure_field_sts(field_sts_filename,
                                       nrows=nrows,
@@ -1278,113 +740,36 @@ class Test_Forcing(unittest.TestCase):
                           quantities=['wind_speed', 'wind_angle'],
                           interpolation_points = midpoints)
 
-        W = Wind_stress(F,use_coordinates=False)
-        domain.forcing_terms.append(W)
-        domain.compute_forcing_terms()
+        W = Wind_stress_operator(domain, F, use_coordinates=False)
 
-        const = eta_w*rho_a/ rho_w
+        dx, dy, dstage = self._momentum_delta(domain, W)
+        Su, Sv = self._wind_stress(s, phi)
 
-        # Convert to radians
-        phi = phi*pi/ 180
+        assert num.allclose(dstage, 0)
+        assert num.allclose(dx, Su)
+        assert num.allclose(dy, Sv)
 
-        # Compute velocity vector (u, v)
-        u = s*cos(phi)
-        v = s*sin(phi)
-
-        # Compute wind stress
-        S = const * num.sqrt(u**2 + v**2)
-
-        assert num.allclose(domain.quantities['stage'].explicit_update, 0)
-        assert num.allclose(domain.quantities['xmomentum'].explicit_update, S*u)
-        assert num.allclose(domain.quantities['ymomentum'].explicit_update, S*v)
+        os.remove(field_sts_filename+'.sts')
+        os.remove(field_sts_filename+'.sww')
 
     def test_variable_windfield_from_file(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
         from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
-        #nrows=25; ncols = 25;
         nrows=10; ncols = 10
-        refzone=50
         xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 10
         timestep=1
         eps=2.e-16
         spatial_thinning=1
 
-        points, vertices, boundary =rectangular(nrows-2,ncols-2,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        time=num.arange(0,10,1,float)
-        eval_time=time[7]
-
-        domain = Domain(points, vertices, boundary)
+        domain = self._rectangular_field_domain(nrows, ncols, cellsize,
+                                                xllcorner, yllcorner)
+        domain.timestep = 1.0
         midpoints = domain.get_centroid_coordinates()
-        vertexpoints = domain.get_nodes()
-
-        """
-        x=grid_1d(xllcorner,cellsize,ncols)
-        y=grid_1d(yllcorner,cellsize,nrows)
-        X,Y=num.meshgrid(x,y)
-        interpolation_points=num.empty((X.shape[0]*X.shape[1],2),float)
-        k=0
-        for i in range(X.shape[0]):
-            for j in range(X.shape[1]):
-                interpolation_points[k,0]=X[i,j]
-                interpolation_points[k,1]=Y[i,j]
-                k+=1
-
-        z=spatial_linear_varying_speed(eval_time,interpolation_points[:,0],
-                                       interpolation_points[:,1])
-
-        k=0
-        Z=num.empty((X.shape[0],X.shape[1]),float)
-        for i in range(X.shape[0]):
-            for j in range(X.shape[1]):
-                Z[i,j]=z[k]
-                k+=1
-
-        Q=num.empty((time.shape[0],points.shape[0]),float)
-        for i, t in enumerate(time):
-            Q[i,:]=spatial_linear_varying_speed(t,points[:,0],points[:,1])
-
-        from interpolate import Interpolation_function
-        I  = Interpolation_function(time,Q,
-                                    vertex_coordinates = points,
-                                    triangles = domain.triangles,
-                                    #interpolation_points = midpoints,
-                                    interpolation_points=interpolation_points,
-                                    verbose=False)
-
-        V=num.empty((X.shape[0],X.shape[1]),float)
-        for k in range(len(interpolation_points)):
-            assert num.allclose(I(eval_time,k),z[k])
-            V[k/X.shape[1],k%X.shape[1]]=I(eval_time,k)
-
-
-           import mpl_toolkits.mplot3d.axes3d as p3
-           fig=P.figure()
-           ax = p3.Axes3D(fig)
-           ax.plot_surface(X,Y,V)
-           ax.plot_surface(X,Y,Z)
-           P.show()
-
-
-        """
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
 
         domain.set_time(7*timestep)    # Take a time that is represented in file (not zero)
 
         # Write wind stress file (ensure that domain time is covered)
-
         field_sts_filename = 'wind_field'
         self.write_wind_pressure_field_sts(field_sts_filename,
                                       nrows=nrows,
@@ -1397,7 +782,6 @@ class Test_Forcing(unittest.TestCase):
                                       speed=spatial_linear_varying_speed,
                                       angle=spatial_linear_varying_angle,
                                       pressure=spatial_linear_varying_pressure)
-
 
         sts2sww_mesh(field_sts_filename,spatial_thinning=spatial_thinning,
                      verbose=False)
@@ -1407,85 +791,41 @@ class Test_Forcing(unittest.TestCase):
                           quantities=['wind_speed', 'wind_angle'],
                           interpolation_points = midpoints)
 
-        W = Wind_stress(FW,use_coordinates=False)
+        W = Wind_stress_operator(domain, FW, use_coordinates=False)
 
-        domain.forcing_terms = []
-        domain.forcing_terms.append(W)
-
-        domain.compute_forcing_terms()
+        dx, dy, dstage = self._momentum_delta(domain, W)
 
         # Compute reference solution
-        const = eta_w*rho_a/ rho_w
-
-        N = len(domain)    # number_of_triangles
-
         xc = domain.get_centroid_coordinates()
         t = domain.get_time()
+        Su, Sv = self._wind_stress(spatial_linear_varying_speed(t, xc[:,0], xc[:,1]),
+                                   spatial_linear_varying_angle(t, xc[:,0], xc[:,1]))
 
-        x = xc[:,0]
-        y = xc[:,1]
-        s_vec = spatial_linear_varying_speed(t,x,y)
-        phi_vec = spatial_linear_varying_angle(t,x,y)
-
-        for k in range(N):
-            # Convert to radians
-            phi = phi_vec[k]*pi/ 180
-            s = s_vec[k]
-
-            # Compute velocity vector (u, v)
-            u = s*cos(phi)
-            v = s*sin(phi)
-
-            # Compute wind stress
-            S = const * num.sqrt(u**2 + v**2)
-
-            assert num.allclose(domain.quantities['stage'].explicit_update[k],0)
-
-            assert num.allclose(domain.quantities['xmomentum'].\
-                                    explicit_update[k],S*u,eps)
-            assert num.allclose(domain.quantities['ymomentum'].\
-                                     explicit_update[k],S*v,eps)
+        assert num.allclose(dstage, 0)
+        assert num.allclose(dx, Su, eps)
+        assert num.allclose(dy, Sv, eps)
 
         os.remove(field_sts_filename+'.sts')
         os.remove(field_sts_filename+'.sww')
 
     def test_variable_pressurefield_from_file(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
+        from anuga.config import rho_w
         from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
 
         cellsize = 25
-        #nrows=25; ncols = 25;
         nrows=10; ncols = 10
-        refzone=50
         xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 10
         timestep=1
-        eps=2.e-16
         spatial_thinning=1
 
-        points, vertices, boundary =rectangular(nrows-2,ncols-2,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        time=num.arange(0,10,1,float)
-        eval_time=time[7]
-
-        domain = Domain(points, vertices, boundary)
-        midpoints = domain.get_centroid_coordinates()
+        domain = self._rectangular_field_domain(nrows, ncols, cellsize,
+                                                xllcorner, yllcorner)
+        domain.timestep = 1.0
         vertexpoints = domain.get_nodes()
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
 
         domain.set_time(7*timestep)    # Take a time that is represented in file (not zero)
 
-        # Write wind stress file (ensure that domain time is covered)
-
+        # Write pressure file (ensure that domain time is covered)
         field_sts_filename = 'wind_field'
         self.write_wind_pressure_field_sts(field_sts_filename,
                                       nrows=nrows,
@@ -1499,7 +839,6 @@ class Test_Forcing(unittest.TestCase):
                                       angle=spatial_linear_varying_angle,
                                       pressure=spatial_linear_varying_pressure)
 
-
         sts2sww_mesh(field_sts_filename,spatial_thinning=spatial_thinning,
                      verbose=False)
 
@@ -1508,545 +847,137 @@ class Test_Forcing(unittest.TestCase):
                            quantities=['barometric_pressure'],
                            interpolation_points = vertexpoints)
 
-        P = Barometric_pressure(FP,use_coordinates=False)
+        P = Barometric_pressure_operator(domain, FP, use_coordinates=False)
 
-
-        domain.forcing_terms = []
-        domain.forcing_terms.append(P)
-
-        domain.compute_forcing_terms()
-
-        N = len(domain)    # number_of_triangles
-
-        xc = domain.get_centroid_coordinates()
-        t = domain.get_time()
-
-        x = xc[:,0]
-        y = xc[:,1]
-        p_vec = spatial_linear_varying_pressure(t,x,y)
+        dx, dy, dstage = self._momentum_delta(domain, P)
 
         h=1 #depth
         px=0.000025  #pressure gradient in x-direction
         py=0.0000125 #pressure gradient in y-direction
-        for k in range(N):
-            # Convert to radians
-            p = p_vec[k]
 
-            assert num.allclose(domain.quantities['stage'].explicit_update[k],0)
+        assert num.allclose(dstage, 0)
+        assert num.allclose(dx, h*px/rho_w)
+        assert num.allclose(dy, h*py/rho_w)
 
-            assert num.allclose(domain.quantities['xmomentum'].\
-                                    explicit_update[k],h*px/rho_w)
+        os.remove(field_sts_filename+'.sts')
+        os.remove(field_sts_filename+'.sww')
 
-            assert num.allclose(domain.quantities['ymomentum'].\
-                                     explicit_update[k],h*py/rho_w)
+    def _evolve_momenta(self, domain, yieldstep, finaltime):
+        """Evolve, returning the centroid momenta at each yieldstep."""
+        xs = []
+        ys = []
+        for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
+            xs.append(domain.quantities['xmomentum'].centroid_values.copy())
+            ys.append(domain.quantities['ymomentum'].centroid_values.copy())
+        return num.array(xs), num.array(ys)
+
+    def _check_field_from_file_evolve(self, quantity, nrows, ncols,
+                                      speed, angle, pressure,
+                                      number_of_timesteps, timestep,
+                                      yieldstep):
+        """A wind or pressure field read from an sww file must drive the
+        same evolution as the function it was written from."""
+        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
+
+        cellsize = 25
+        xllcorner=366000;yllcorner=6369500
+
+        domain = self._rectangular_field_domain(nrows, ncols, cellsize,
+                                                xllcorner, yllcorner)
+
+        field_sts_filename = 'wind_field'
+        self.write_wind_pressure_field_sts(field_sts_filename,
+                                      nrows=nrows,
+                                      ncols=ncols,
+                                      cellsize=cellsize,
+                                      origin=(xllcorner,yllcorner),
+                                      refzone=50,
+                                      timestep=timestep,
+                                      number_of_timesteps=number_of_timesteps,
+                                      speed=speed,
+                                      angle=angle,
+                                      pressure=pressure)
+
+        sts2sww_mesh(field_sts_filename,spatial_thinning=1,
+                     verbose=False)
+
+        if quantity == 'wind':
+            F = file_function(field_sts_filename+'.sww', domain,
+                              quantities=['wind_speed', 'wind_angle'],
+                              interpolation_points=domain.get_centroid_coordinates())
+            Wind_stress_operator(domain, F, use_coordinates=False)
+        else:
+            F = file_function(field_sts_filename+'.sww', domain,
+                              quantities=['barometric_pressure'],
+                              interpolation_points=domain.get_nodes())
+            Barometric_pressure_operator(domain, F, use_coordinates=False)
+
+        finaltime = (number_of_timesteps-1)*timestep
+        xmom_file, ymom_file = self._evolve_momenta(domain, yieldstep, finaltime)
+
+        # Same evolution driven directly by the functions
+        domain_II = self._rectangular_field_domain(nrows, ncols, cellsize,
+                                                   xllcorner, yllcorner)
+        if quantity == 'wind':
+            Wind_stress_operator(domain_II, speed, angle)
+        else:
+            Barometric_pressure_operator(domain_II, pressure)
+
+        xmom_func, ymom_func = self._evolve_momenta(domain_II, yieldstep, finaltime)
+
+        assert xmom_file.shape == xmom_func.shape
+        assert num.allclose(xmom_file, xmom_func), \
+            num.abs(xmom_file - xmom_func).max()
+        assert num.allclose(ymom_file, ymom_func), \
+            num.abs(ymom_file - ymom_func).max()
+        # ... and the forcing actually did something
+        assert num.abs(xmom_func).max() > 0 or num.abs(ymom_func).max() > 0
 
         os.remove(field_sts_filename+'.sts')
         os.remove(field_sts_filename+'.sww')
 
     def test_constant_wind_stress_from_file_evolve(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
-        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
-
-        cellsize = 25
-        nrows=5; ncols = 6
-        refzone=50
-        xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 27
-        timestep=1
-        eps=2e-16
-
-        points, vertices, boundary =rectangular(nrows-2,ncols-2,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        domain = Domain(points, vertices, boundary)
-        domain.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-        midpoints = domain.get_centroid_coordinates()
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        # Setup only one forcing term, constant wind stress
-        s = 100
-        phi = 135
-        field_sts_filename = 'wind_field'
-        self.write_wind_pressure_field_sts(field_sts_filename,
-                                      nrows=nrows,
-                                      ncols=ncols,
-                                      cellsize=cellsize,
-                                      origin=(xllcorner,yllcorner),
-                                      refzone=50,
-                                      timestep=timestep,
-                                      number_of_timesteps=number_of_timesteps,
-                                      speed=s,
-                                      angle=phi)
-
-        sts2sww_mesh(field_sts_filename,spatial_thinning=1,
-                     verbose=False)
-
-        # Setup wind stress
-        F = file_function(field_sts_filename+'.sww', domain,
-                          quantities=['wind_speed', 'wind_angle'],
-                          interpolation_points = midpoints)
-
-        W = Wind_stress(F,use_coordinates=False)
-        domain.forcing_terms.append(W)
-
-        valuesUsingFunction=num.empty((3,number_of_timesteps+1,midpoints.shape[0]),
-                                      float)
-        i=0
-        for t in domain.evolve(yieldstep=1, finaltime=number_of_timesteps*timestep):
-            valuesUsingFunction[0,i]=domain.quantities['stage'].explicit_update
-            valuesUsingFunction[1,i]=domain.quantities['xmomentum'].explicit_update
-            valuesUsingFunction[2,i]=domain.quantities['ymomentum'].explicit_update
-            i+=1
-
-
-        domain_II = Domain(points, vertices, boundary)
-        domain_II.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-
-        # Flat surface with 1m of water
-        domain_II.set_quantity('elevation', 0)
-        domain_II.set_quantity('stage', 1.0)
-        domain_II.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain_II)
-        domain_II.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        s = 100
-        phi = 135
-        domain_II.forcing_terms = []
-        domain_II.forcing_terms.append(Wind_stress(s, phi))
-
-        i=0
-        for t in domain_II.evolve(yieldstep=1,
-                                  finaltime=number_of_timesteps*timestep):
-            assert num.allclose(valuesUsingFunction[0,i],domain_II.quantities['stage'].explicit_update), max(valuesUsingFunction[0,i]-domain_II.quantities['stage'].explicit_update)
-            assert  num.allclose(valuesUsingFunction[1,i],domain_II.quantities['xmomentum'].explicit_update)
-            assert num.allclose(valuesUsingFunction[2,i],domain_II.quantities['ymomentum'].explicit_update)
-            i+=1
-
-        os.remove(field_sts_filename+'.sts')
-        os.remove(field_sts_filename+'.sww')
+        self._check_field_from_file_evolve('wind', nrows=5, ncols=6,
+                                           speed=100.0, angle=135.0,
+                                           pressure=1000.0,
+                                           number_of_timesteps=27, timestep=1,
+                                           yieldstep=1)
 
     def test_temporally_varying_wind_stress_from_file_evolve(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
-        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
-
-        cellsize = 25
-        #nrows=20; ncols = 20;
-        nrows=10; ncols = 10
-        refzone=50
-        xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 28
-        timestep=1.
-        eps=2e-16
-
-        #points, vertices, boundary =rectangular(10,10,
-        points, vertices, boundary =rectangular(5,5,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        domain = Domain(points, vertices, boundary)
-        domain.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-        midpoints = domain.get_centroid_coordinates()
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        # Setup only one forcing term, constant wind stress
-        field_sts_filename = 'wind_field'
-        self.write_wind_pressure_field_sts(field_sts_filename,
-                                      nrows=nrows,
-                                      ncols=ncols,
-                                      cellsize=cellsize,
-                                      origin=(xllcorner,yllcorner),
-                                      refzone=50,
-                                      timestep=timestep,
-                                      number_of_timesteps=number_of_timesteps,
-                                      speed=time_varying_speed,
-                                      angle=time_varying_angle,
-                                      pressure=time_varying_pressure)
-
-        sts2sww_mesh(field_sts_filename,spatial_thinning=1,
-                     verbose=False)
-
-        # Setup wind stress
-        F = file_function(field_sts_filename+'.sww', domain,
-                          quantities=['wind_speed', 'wind_angle'],
-                          interpolation_points = midpoints)
-
-        #W = Wind_stress(F,use_coordinates=False)
-        W = Wind_stress_fast(F,filename=field_sts_filename+'.sww', domain=domain)
-        domain.forcing_terms.append(W)
-
-        valuesUsingFunction=num.empty((3,2*number_of_timesteps,midpoints.shape[0]),
-                                      float)
-        i=0
-        for t in domain.evolve(yieldstep=timestep/2., finaltime=(number_of_timesteps-1)*timestep):
-            valuesUsingFunction[0,i]=domain.quantities['stage'].explicit_update
-            valuesUsingFunction[1,i]=domain.quantities['xmomentum'].explicit_update
-            valuesUsingFunction[2,i]=domain.quantities['ymomentum'].explicit_update
-            i+=1
-
-
-        domain_II = Domain(points, vertices, boundary)
-        domain_II.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-
-        # Flat surface with 1m of water
-        domain_II.set_quantity('elevation', 0)
-        domain_II.set_quantity('stage', 1.0)
-        domain_II.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain_II)
-        domain_II.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        domain_II.forcing_terms.append(Wind_stress(s=time_varying_speed,
-                                                   phi=time_varying_angle))
-
-        i=0
-        for t in domain_II.evolve(yieldstep=timestep/2.,
-                                  finaltime=(number_of_timesteps-1)*timestep):
-            assert num.allclose(valuesUsingFunction[0,i],
-                                domain_II.quantities['stage'].explicit_update,
-                                eps)
-            #print i,valuesUsingFunction[1,i]
-            assert  num.allclose(valuesUsingFunction[1,i],
-                                 domain_II.quantities['xmomentum'].explicit_update,
-                                 eps),(valuesUsingFunction[1,i]-
-                                 domain_II.quantities['xmomentum'].explicit_update)
-            assert num.allclose(valuesUsingFunction[2,i],
-                                domain_II.quantities['ymomentum'].explicit_update,
-                                eps)
-            #if i==1: assert-1==1
-            i+=1
-
-        os.remove(field_sts_filename+'.sts')
-        os.remove(field_sts_filename+'.sww')
+        self._check_field_from_file_evolve('wind', nrows=5, ncols=6,
+                                           speed=time_varying_speed,
+                                           angle=time_varying_angle,
+                                           pressure=time_varying_pressure,
+                                           number_of_timesteps=28, timestep=1.,
+                                           yieldstep=0.5)
 
     def test_spatially_varying_wind_stress_from_file_evolve(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
-        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
-
-        cellsize = 25
-        nrows=20; ncols = 20
-        nrows=10; ncols = 10
-        refzone=50
-        xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 28
-        timestep=1.
-        eps=2e-16
-
-        #points, vertices, boundary =rectangular(10,10,
-        points, vertices, boundary =rectangular(5,5,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        domain = Domain(points, vertices, boundary)
-        domain.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-        midpoints = domain.get_centroid_coordinates()
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        # Setup only one forcing term, constant wind stress
-        field_sts_filename = 'wind_field'
-        self.write_wind_pressure_field_sts(field_sts_filename,
-                                      nrows=nrows,
-                                      ncols=ncols,
-                                      cellsize=cellsize,
-                                      origin=(xllcorner,yllcorner),
-                                      refzone=50,
-                                      timestep=timestep,
-                                      number_of_timesteps=number_of_timesteps,
-                                      speed=spatial_linear_varying_speed,
-                                      angle=spatial_linear_varying_angle,
-                                      pressure=spatial_linear_varying_pressure)
-
-        sts2sww_mesh(field_sts_filename,spatial_thinning=1,
-                     verbose=False)
-
-        # Setup wind stress
-        F = file_function(field_sts_filename+'.sww', domain,
-                          quantities=['wind_speed', 'wind_angle'],
-                          interpolation_points = midpoints)
-
-        W = Wind_stress(F,use_coordinates=False)
-        domain.forcing_terms.append(W)
-
-        valuesUsingFunction=num.empty((3,number_of_timesteps,midpoints.shape[0]),
-                                      float)
-        i=0
-        for t in domain.evolve(yieldstep=timestep, finaltime=(number_of_timesteps-1)*timestep):
-            valuesUsingFunction[0,i]=domain.quantities['stage'].explicit_update
-            valuesUsingFunction[1,i]=domain.quantities['xmomentum'].explicit_update
-            valuesUsingFunction[2,i]=domain.quantities['ymomentum'].explicit_update
-            i+=1
-
-
-        domain_II = Domain(points, vertices, boundary)
-        domain_II.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-
-        # Flat surface with 1m of water
-        domain_II.set_quantity('elevation', 0)
-        domain_II.set_quantity('stage', 1.0)
-        domain_II.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain_II)
-        domain_II.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        domain_II.forcing_terms.append(Wind_stress(s=spatial_linear_varying_speed,
-                                                   phi=spatial_linear_varying_angle))
-
-        i=0
-        for t in domain_II.evolve(yieldstep=timestep,
-                                  finaltime=(number_of_timesteps-1)*timestep):
-            #print valuesUsingFunction[1,i],domain_II.quantities['xmomentum'].explicit_update
-            assert num.allclose(valuesUsingFunction[0,i],
-                                domain_II.quantities['stage'].explicit_update,
-                                eps)
-            assert  num.allclose(valuesUsingFunction[1,i],
-                                 domain_II.quantities['xmomentum'].explicit_update,
-                                 eps)
-            assert num.allclose(valuesUsingFunction[2,i],
-                                domain_II.quantities['ymomentum'].explicit_update,
-                                eps)
-            i+=1
-
-        os.remove(field_sts_filename+'.sts')
-        os.remove(field_sts_filename+'.sww')
+        self._check_field_from_file_evolve('wind', nrows=10, ncols=10,
+                                           speed=spatial_linear_varying_speed,
+                                           angle=spatial_linear_varying_angle,
+                                           pressure=spatial_linear_varying_pressure,
+                                           number_of_timesteps=28, timestep=1.,
+                                           yieldstep=1)
 
     def test_temporally_varying_pressure_stress_from_file_evolve(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
-        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
-
-        cellsize = 25
-        #nrows=20; ncols = 20;
-        nrows=10; ncols = 10
-        refzone=50
-        xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 28
-        timestep=10.
-        eps=2e-16
-
-        #print "Building mesh"
-        #points, vertices, boundary =rectangular(10,10,
-        points, vertices, boundary =rectangular(5,5,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        domain = Domain(points, vertices, boundary)
-        domain.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-        vertexpoints = domain.get_nodes()
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        # Setup only one forcing term, constant wind stress
-        field_sts_filename = 'wind_field'
-        #print 'Writing pressure field sts file'
-        self.write_wind_pressure_field_sts(field_sts_filename,
-                                      nrows=nrows,
-                                      ncols=ncols,
-                                      cellsize=cellsize,
-                                      origin=(xllcorner,yllcorner),
-                                      refzone=50,
-                                      timestep=timestep,
-                                      number_of_timesteps=number_of_timesteps,
-                                      speed=time_varying_speed,
-                                      angle=time_varying_angle,
-                                      pressure=time_varying_pressure)
-
-        #print "converting sts to sww"
-        sts2sww_mesh(field_sts_filename,spatial_thinning=1,
-                     verbose=False)
-
-        #print 'initialising file_function'
-        # Setup wind stress
-        F = file_function(field_sts_filename+'.sww', domain,
-                          quantities=['barometric_pressure'],
-                          interpolation_points = vertexpoints)
-
-        #P = Barometric_pressure(F,use_coordinates=False)
-        #print 'initialising pressure forcing term'
-        P = Barometric_pressure_fast(p=F,filename=field_sts_filename+'.sww',domain=domain)
-        domain.forcing_terms.append(P)
-
-        valuesUsingFunction=num.empty((3,2*number_of_timesteps,len(domain)),
-                                      float)
-        i=0
-        import time as timer
-        t0=timer.time()
-        for t in domain.evolve(yieldstep=timestep/2., finaltime=(number_of_timesteps-1)*timestep):
-            valuesUsingFunction[0,i]=domain.quantities['stage'].explicit_update
-            valuesUsingFunction[1,i]=domain.quantities['xmomentum'].explicit_update
-            valuesUsingFunction[2,i]=domain.quantities['ymomentum'].explicit_update
-            i+=1
-            #domain.write_time()
-        t1=timer.time()
-        #print "That took %fs seconds" %(t1-t0)
-
-
-        domain_II = Domain(points, vertices, boundary)
-        domain_II.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-
-        # Flat surface with 1m of water
-        domain_II.set_quantity('elevation', 0)
-        domain_II.set_quantity('stage', 1.0)
-        domain_II.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain_II)
-        domain_II.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        domain_II.forcing_terms.append(Barometric_pressure(p=time_varying_pressure))
-
-        i=0
-        for t in domain_II.evolve(yieldstep=timestep/2.,
-                                  finaltime=(number_of_timesteps-1)*timestep):
-            assert num.allclose(valuesUsingFunction[0,i],
-                                domain_II.quantities['stage'].explicit_update,
-                                eps)
-            assert  num.allclose(valuesUsingFunction[1,i],
-                                 domain_II.quantities['xmomentum'].explicit_update,
-                                 eps)
-            assert num.allclose(valuesUsingFunction[2,i],
-                                domain_II.quantities['ymomentum'].explicit_update,
-                                eps)
-            i+=1
-
-        os.remove(field_sts_filename+'.sts')
-        os.remove(field_sts_filename+'.sww')
+        self._check_field_from_file_evolve('pressure', nrows=5, ncols=6,
+                                           speed=time_varying_speed,
+                                           angle=time_varying_angle,
+                                           pressure=time_varying_pressure,
+                                           number_of_timesteps=28, timestep=1.,
+                                           yieldstep=0.5)
 
     def test_spatially_varying_pressure_stress_from_file_evolve(self):
-        from anuga.config import rho_a, rho_w, eta_w
-        from math import pi, cos, sin
-        from anuga.config import time_format
-        from anuga.file_conversion.sts2sww_mesh import sts2sww_mesh
+        self._check_field_from_file_evolve('pressure', nrows=10, ncols=10,
+                                           speed=spatial_linear_varying_speed,
+                                           angle=spatial_linear_varying_angle,
+                                           pressure=spatial_linear_varying_pressure,
+                                           number_of_timesteps=28, timestep=1.,
+                                           yieldstep=1)
 
-        cellsize = 25
-        #nrows=20; ncols = 20;
-        nrows=10; ncols = 10
-        refzone=50
-        xllcorner=366000;yllcorner=6369500
-        number_of_timesteps = 28
-        timestep=1.
-        eps=2e-16
-
-        #points, vertices, boundary =rectangular(10,10,
-        points, vertices, boundary =rectangular(5,5,
-                                                len1=cellsize*(ncols-1),
-                                                len2=cellsize*(nrows-1),
-                                                origin=(xllcorner,yllcorner))
-
-        domain = Domain(points, vertices, boundary)
-        domain.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-        vertexpoints = domain.get_nodes()
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        # Setup only one forcing term, constant wind stress
-        field_sts_filename = 'wind_field'
-        self.write_wind_pressure_field_sts(field_sts_filename,
-                                      nrows=nrows,
-                                      ncols=ncols,
-                                      cellsize=cellsize,
-                                      origin=(xllcorner,yllcorner),
-                                      refzone=50,
-                                      timestep=timestep,
-                                      number_of_timesteps=number_of_timesteps,
-                                      speed=spatial_linear_varying_speed,
-                                      angle=spatial_linear_varying_angle,
-                                      pressure=spatial_linear_varying_pressure)
-
-        sts2sww_mesh(field_sts_filename,spatial_thinning=1,
-                     verbose=False)
-
-        # Setup wind stress
-        F = file_function(field_sts_filename+'.sww', domain,
-                          quantities=['barometric_pressure'],
-                          interpolation_points = vertexpoints)
-
-        P = Barometric_pressure(F,use_coordinates=False)
-        domain.forcing_terms.append(P)
-
-        valuesUsingFunction=num.empty((3,number_of_timesteps,len(domain)),
-                                      float)
-        i=0
-        for t in domain.evolve(yieldstep=timestep, finaltime=(number_of_timesteps-1)*timestep):
-            valuesUsingFunction[0,i]=domain.quantities['stage'].explicit_update
-            valuesUsingFunction[1,i]=domain.quantities['xmomentum'].explicit_update
-            valuesUsingFunction[2,i]=domain.quantities['ymomentum'].explicit_update
-            i+=1
-
-
-        domain_II = Domain(points, vertices, boundary)
-        domain_II.set_compute_mode('legacy')  # forcing-function class is legacy-only (mode-2 skips it; use the operators)
-
-        # Flat surface with 1m of water
-        domain_II.set_quantity('elevation', 0)
-        domain_II.set_quantity('stage', 1.0)
-        domain_II.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain_II)
-        domain_II.set_boundary({'top': Br, 'bottom' :Br, 'left': Br, 'right': Br})
-
-        domain_II.forcing_terms.append(Barometric_pressure(p=spatial_linear_varying_pressure))
-
-        i=0
-        for t in domain_II.evolve(yieldstep=timestep,
-                                  finaltime=(number_of_timesteps-1)*timestep):
-
-            assert num.allclose(valuesUsingFunction[0,i],
-                                domain_II.quantities['stage'].explicit_update,
-                                eps)
-            assert  num.allclose(valuesUsingFunction[1,i],
-                                 domain_II.quantities['xmomentum'].explicit_update,
-                                 eps)
-            assert num.allclose(valuesUsingFunction[2,i],
-                                domain_II.quantities['ymomentum'].explicit_update,
-                                eps)
-            i+=1
-
-        os.remove(field_sts_filename+'.sts')
-        os.remove(field_sts_filename+'.sww')
+    # ------------------------------------------------------------------
+    # Gravity and Manning friction (in-Python forcing machinery)
+    # ------------------------------------------------------------------
 
     def test_flux_gravity(self):
         #Assuming no friction
@@ -2282,129 +1213,6 @@ class Test_Forcing(unittest.TestCase):
 
 
 
-
-
-    def test_inflow_using_circle(self):
-        from math import pi, cos, sin
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, constant inflow of 2 m^3/s
-        # on a circle affecting triangles #0 and #1 (bac and bce)
-        domain.forcing_terms = []
-
-        I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
-        domain.forcing_terms.append(I)
-        domain.compute_forcing_terms()
-
-
-        A = I.exchange_area
-        assert num.allclose(A, 4) # Two triangles
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
-
-
-    def test_inflow_using_circle_function(self):
-        from math import pi, cos, sin
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, time dependent inflow of 2 m^3/s
-        # on a circle affecting triangles #0 and #1 (bac and bce)
-        domain.forcing_terms = []
-        I = Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
-        domain.forcing_terms.append(I)
-
-        domain.compute_forcing_terms()
-
-        A = I.exchange_area
-        assert num.allclose(A, 4) # Two triangles
-
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
-
-
-
-
-    def test_inflow_catch_too_few_triangles(self):
-        """
-        Test that exception is thrown if no triangles are covered
-        by the inflow area
-        """
-
-        from math import pi, cos, sin
-
-        a = [0.0, 0.0]
-        b = [0.0, 2.0]
-        c = [2.0, 0.0]
-        d = [0.0, 4.0]
-        e = [2.0, 2.0]
-        f = [4.0, 0.0]
-
-        points = [a, b, c, d, e, f]
-        #             bac,     bce,     ecf,     dbe
-        vertices = [[1,0,2], [1,2,4], [4,2,5], [3,1,4]]
-
-        domain = Domain(points, vertices)
-
-        # Flat surface with 1m of water
-        domain.set_quantity('elevation', 0)
-        domain.set_quantity('stage', 1.0)
-        domain.set_quantity('friction', 0)
-
-        Br = Reflective_boundary(domain)
-        domain.set_boundary({'exterior': Br})
-
-        # Setup only one forcing term, constant inflow of 2 m^3/s
-        # on a circle affecting triangles #0 and #1 (bac and bce)
-        try:
-            Inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
-        except Exception:
-            pass
-        else:
-            msg = 'Should have raised exception'
-            raise(Exception, msg)
 
 
 

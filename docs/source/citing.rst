@@ -16,11 +16,16 @@ up-to-date APA or BibTeX entry from it. A minimal BibTeX entry:
 .. code-block:: bibtex
 
    @software{anuga,
-     title     = {ANUGA Hydrodynamic Inundation Modelling},
+     title     = {{ANUGA}: hydrodynamic modelling of floods, storm surges and tsunamis},
      author    = {Roberts, Stephen and Davies, Gareth and Nielsen, Ole and others},
      publisher = {Australian National University and Geoscience Australia},
      url       = {https://github.com/anuga-community/anuga_core}
    }
+
+From version 4.1.0, each release is also archived on Zenodo with a DOI of its
+own, linked from the release on the
+`GitHub releases page <https://github.com/anuga-community/anuga_core/releases>`_.
+Cite that DOI to identify the exact version you used.
 
 ANUGA was created by Geoscience Australia and the Mathematical Sciences Institute
 at the Australian National University, and is now maintained by a community of
@@ -79,6 +84,17 @@ The ANUGA user manual describes the numerical method, the finite-volume
 discretisation, and the validation suite, and has a DOI:
 
    https://dx.doi.org/10.13140/RG.2.2.17267.81446
+
+Validation reports
+------------------
+
+The validation reports of each final release are archived on Zenodo as
+versions of the *ANUGA validation reports* record. Each version has its own
+DOI and is linked from the corresponding release on the
+`GitHub releases page <https://github.com/anuga-community/anuga_core/releases>`_.
+When a result depends on ANUGA reproducing one of the validation cases, cite
+the version that matches the ANUGA release you used. See
+:ref:`anuga-validation` for what the reports contain.
 
 License
 -------

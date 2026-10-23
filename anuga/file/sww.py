@@ -1,6 +1,7 @@
 """ Classes to read an SWW file.
 """
 
+import os
 import numpy
 import numpy as num
 from anuga.utilities.file_utils import create_filename
@@ -21,6 +22,181 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 
 class DataFileNotOpenError(Exception):
     pass
+
+
+class SWWFileInUseError(Exception):
+    """Another live process is writing this SWW file."""
+    pass
+
+
+class SWWTimeOrderError(Exception):
+    """A frame about to be written is earlier than the last frame on file."""
+    pass
+
+
+# ---------------------------------------------------------------------------
+# Writer lock
+#
+# The SWW path is set entirely by domain.set_name() / set_datadir(), and the
+# writer opens the file afresh in append mode at every yieldstep, so two runs
+# that happen to share a name both append to the same file and their frames
+# interleave on the unlimited time dimension. The result opens fine and every
+# frame holds plausible data; only the time variable, which is no longer
+# monotonic, gives it away (anuga-community/anuga_core#232). The netCDF
+# library holds no lock between those opens, so a sidecar '<file>.sww.lock'
+# is taken when the file is created and held until the interpreter exits.
+# ---------------------------------------------------------------------------
+
+_held_sww_locks = set()
+
+
+def sww_lock_path(filename):
+    """The sidecar lock file for an SWW file."""
+    return filename + '.lock'
+
+
+def _release_all_sww_locks():
+    for path in list(_held_sww_locks):
+        release_sww_lock(path)
+
+
+def _pid_is_alive(pid):
+    """Whether a process with this id exists. Never signals or touches it."""
+    if os.name == 'nt':
+        # os.kill(pid, 0) is NOT a probe on Windows: it calls TerminateProcess
+        # on a live process and raises a generic OSError on a dead one. Ask
+        # the kernel for a query-only handle instead.
+        import ctypes
+        from ctypes import wintypes
+        k32 = ctypes.WinDLL('kernel32', use_last_error=True)
+        PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+        ERROR_ACCESS_DENIED = 5
+        STILL_ACTIVE = 259
+        handle = k32.OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, False, pid)
+        if not handle:
+            # No such process (ERROR_INVALID_PARAMETER), or one we may not
+            # open, which nonetheless exists.
+            return ctypes.get_last_error() == ERROR_ACCESS_DENIED
+        try:
+            code = wintypes.DWORD()
+            if k32.GetExitCodeProcess(handle, ctypes.byref(code)):
+                return code.value == STILL_ACTIVE
+            return True
+        finally:
+            k32.CloseHandle(handle)
+    try:
+        os.kill(pid, 0)       # signal 0: existence check only, on POSIX
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True           # exists, owned by someone else
+    except OSError:
+        return True           # cannot tell: treat as alive
+    return True
+
+
+def _read_sww_lock(path):
+    """What a lock file records, as a dict. Missing keys are absent, and an
+    unreadable file gives {}; `pid` is an int or absent."""
+    fields = {}
+    try:
+        with open(path) as f:
+            for line in f:
+                key, sep, value = line.strip().partition('=')
+                if sep and value:
+                    fields[key] = value
+    except OSError:
+        return {}
+    if 'pid' in fields:
+        try:
+            fields['pid'] = int(fields['pid'])
+        except ValueError:
+            del fields['pid']
+    return fields
+
+
+def _describe_sww_lock(fields, host):
+    """Who holds a lock, for the error message: the process and host, plus
+    the start time and script the lock records. A bare pid is little help
+    when the other run is a notebook in another tab."""
+    who = 'process %s on %s' % (fields.get('pid', '?'), fields.get('host') or host)
+    started, script = fields.get('started'), fields.get('script')
+    if started:
+        who += ', started %s' % started
+    if script:
+        who += ', by %s' % script
+    return who
+
+
+def acquire_sww_lock(filename):
+    """Take the writer lock for `filename`, or raise SWWFileInUseError.
+
+    A lock left by a process that is no longer running (a crash, a kill)
+    is taken over SILENTLY: the file is debris, and the run that left it
+    can no longer be writing. Warning about it made an unrelated run fail
+    under `warnings.simplefilter('error')`, which is a state a test suite
+    reaches easily; the takeover is logged at DEBUG instead, so it is still
+    on the record for anyone who turns that level on. A lock held by this very process is
+    likewise taken over silently: re-running a model under the same name in
+    one session is normal. A lock from another host cannot be checked for
+    liveness and is respected; the message says how to clear it.
+    """
+    import atexit
+    import socket
+    import sys
+    import time as _time
+    import warnings
+
+    path = sww_lock_path(filename)
+    me = os.getpid()
+    host = socket.gethostname()
+
+    if os.path.exists(path):
+        fields = _read_sww_lock(path)
+        pid = fields.get('pid')
+        other_host = fields.get('host')
+        same_host = (other_host is None or other_host == host)
+        if pid == me:
+            pass                                    # our own earlier run
+        elif same_host and pid is not None and not _pid_is_alive(pid):
+            log.debug('Taking over the SWW writer lock %s left by process '
+                      '%d, which is no longer running' % (path, pid))
+        else:
+            who = _describe_sww_lock(fields, host)
+            raise SWWFileInUseError(
+                'The SWW file %s is being written by another run (%s, lock '
+                'file %s). Two runs appending to one SWW file interleave '
+                'their frames and produce a file that is silently wrong. '
+                'Give this run its own name with domain.set_name() or its '
+                'own directory with domain.set_datadir(); if that run is '
+                'known to be dead, delete the lock file.'
+                % (filename, who, path))
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
+    fd = os.open(path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o644)
+    with os.fdopen(fd, 'w') as f:
+        f.write('pid=%d\nhost=%s\nstarted=%s\nscript=%s\n'
+                % (me, host, _time.strftime('%Y-%m-%dT%H:%M:%S'),
+                   sys.argv[0] if sys.argv else ''))
+    if not _held_sww_locks:
+        atexit.register(_release_all_sww_locks)
+    _held_sww_locks.add(path)
+    return path
+
+
+def release_sww_lock(path):
+    """Remove a lock this process holds. Safe to call twice."""
+    _held_sww_locks.discard(path)
+    pid = _read_sww_lock(path).get('pid')
+    if pid == os.getpid():
+        try:
+            os.remove(path)
+        except OSError:
+            pass
+
 
 
 class DataMissingValuesError(Exception):
@@ -147,6 +323,35 @@ class SWW_file(Data_format):
                 static_c_quantities.append(q+'_c')
                 self._overwrite_c_quantities.append(q+'_c')
 
+        # Passive tracers, and therefore suspended sediment classes, which are
+        # tracers with settling parameters (see Domain.add_sediment_fraction).
+        #
+        # Tracers are NOT Quantity objects: they live in one contiguous
+        # (n_tracers, N) block so the C kernel can stride them and the device
+        # can map them in one go. They are deliberately kept out of
+        # domain.quantities -- that dict is walked by the solver, not just by
+        # this writer (mesh reordering rewrites vertex/edge/gradient arrays,
+        # set_beta pushes a per-quantity beta where tracers share one scalar),
+        # so registering a view there would put tracers in the path of
+        # machinery that assumes a real Quantity.
+        #
+        # They are centroid quantities, so they take the same route as a flag-3
+        # quantity: one dynamic <name>_c variable, no vertex storage, nothing
+        # interpolated that the solver never computed.
+        self._tracer_names = list(getattr(domain, '_tracer_names', []) or [])
+        if self._tracer_names and getattr(domain, 'store_tracers', True):
+            for name in self._tracer_names:
+                cname = name + '_c'
+                if cname not in dynamic_c_quantities:
+                    dynamic_c_quantities.append(cname)
+        else:
+            self._tracer_names = []
+
+        # Refuse to create a file another live run is writing (#232).
+        self._lock = None
+        if mode[0] == 'w':
+            self._lock = acquire_sww_lock(self.filename)
+
         # NetCDF file definition
         fid = NetCDFFile(self.filename, mode)
         if mode[0] == 'w':
@@ -156,7 +361,8 @@ class SWW_file(Data_format):
             self.writer = Write_sww(static_quantities,
                                     dynamic_quantities,
                                     static_c_quantities,
-                                    dynamic_c_quantities)
+                                    dynamic_c_quantities,
+                                    tracer_names=self._tracer_names)
 
             self.writer.store_header(fid,
                                      domain.starttime,
@@ -206,6 +412,14 @@ class SWW_file(Data_format):
                                        ('singleton',))
 
         fid.close()
+
+    def release(self):
+        """Give up the writer lock. Called when the writer moves on to a
+        continuation file; otherwise the lock is released at exit."""
+        lock = getattr(self, '_lock', None)      # absent on writers unpickled
+        if lock is not None:                     # from before the lock existed
+            release_sww_lock(lock)
+            self._lock = None
 
     def store_connectivity(self):
         """Store information about nodes, triangles and static quantities
@@ -301,6 +515,27 @@ class SWW_file(Data_format):
         # Check to see if the file is already too big:
         time = fid.variables['time'][:]
 
+        # Frames must not go backwards. A frame at or before the last one on
+        # file is legitimate only when it REWRITES an existing frame: a
+        # checkpoint resume, or a second evolve() re-storing its starting
+        # frame (Write_sww.store_quantities finds that slot). A time earlier
+        # than the last frame that matches no frame at all is what a second
+        # process appending to this file produces (#232); it used to be
+        # appended with a log warning, leaving a file that opens fine, holds
+        # plausible data and has a non-monotonic time variable.
+        t_new = self.domain.relative_time
+        if len(time) > 0 and t_new < time[-1]:
+            tol = 1.0e-9 * max(1.0, abs(t_new))       # as store_quantities
+            if not num.any(num.abs(time - t_new) <= tol):
+                fid.close()
+                raise SWWTimeOrderError(
+                    'Refusing to append a frame at t=%g to %s, whose last '
+                    'frame is at t=%g and which holds no frame at that time '
+                    'to rewrite. Another process is writing this file (see '
+                    'the lock file %s), or the model time went backwards.'
+                    % (t_new, self.filename, time[-1],
+                       sww_lock_path(self.filename)))
+
         i = len(time) + 1
         file_size = stat(self.filename)[6]
         file_size_increase = file_size//i
@@ -334,8 +569,9 @@ class SWW_file(Data_format):
                 log.info('    saving file to %s'
                              % next_data_structure.filename)
 
-            # Set up the new data_structure
+            # Set up the new data_structure; this file is finished with
             self.domain.writer = next_data_structure
+            self.release()
 
             # Store connectivity and first timestep
             next_data_structure.store_connectivity()
@@ -406,8 +642,17 @@ class SWW_file(Data_format):
                 dynamic_quantities[name] = A
 
             for name in self.writer.dynamic_c_quantities:
-                Q = domain.quantities[name[:-2]]
-                dynamic_quantities_centroid[name] = Q.centroid_values
+                base = name[:-2]
+                if base in self._tracer_names:
+                    # A tracer: a row of the (n_tracers, N) block, not a
+                    # Quantity. The block is REALLOCATED by add_tracer, so it
+                    # is looked up on the domain each step rather than cached.
+                    s_idx = domain._tracer_names.index(base)
+                    dynamic_quantities_centroid[name] = \
+                        domain.tracer_centroid_values[s_idx]
+                else:
+                    Q = domain.quantities[base]
+                    dynamic_quantities_centroid[name] = Q.centroid_values
 
             # Store dynamic quantities
             slice_index = self.writer.store_quantities(fid,
@@ -548,7 +793,8 @@ class Write_sww(Write_sts):
                  static_quantities,
                  dynamic_quantities,
                  static_c_quantities=None,
-                 dynamic_c_quantities=None):
+                 dynamic_c_quantities=None,
+                 tracer_names=None):
         """Initialise Write_sww with two (or 4) list af quantity names:
 
         static_quantities (e.g. elevation or friction):
@@ -565,11 +811,21 @@ class Write_sww(Write_sts):
             Stored every timestep in a 2D array with
             dimensions number_of_triangles X number_of_timesteps
 
+        tracer_names (e.g. ['salinity', 'sand']):
+            Which of the dynamic_c_quantities are tracers. Recorded on the
+            file as a global attribute so a reader can tell `salinity_c`
+            from `stage_c` -- both are <name>_c and nothing else
+            distinguishes them. Written even when empty, so an old file
+            (no attribute at all) is distinguishable from a new one that
+            simply has no tracers.
+
         """
         self.static_quantities = static_quantities
         self.dynamic_quantities = dynamic_quantities
         self.static_c_quantities = static_c_quantities if static_c_quantities is not None else []
         self.dynamic_c_quantities = dynamic_c_quantities if dynamic_c_quantities is not None else []
+
+        self.tracer_names = list(tracer_names) if tracer_names else []
 
         self.store_centroids = False
         if static_c_quantities or dynamic_c_quantities:
@@ -604,6 +860,10 @@ class Write_sww(Write_sts):
 
         outfile.institution = institution
         outfile.description = description
+        # Which dynamic centroid variables are tracers (space separated, and
+        # '' when there are none). Lets a reader pick the tracers out without
+        # having to keep a list of every quantity name that is not one.
+        outfile.tracer_names = ' '.join(self.tracer_names)
 
         # For sww compatibility
         if smoothing is True:

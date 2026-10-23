@@ -10,29 +10,29 @@ ctypedef int64_t keyint
 
 # declare the interface to the C code
 cdef extern from "quantity_openmp.c":
-  int64_t _compute_gradients(keyint N, double* centroids, double* centroid_values, int64_t* number_of_boundaries, int64_t* surrogate_neighbours, double* a, double* b)
-  int64_t _compute_local_gradients(keyint N, double* vertex_coordinates, double* vertex_values, double* a, double* b)
-  int64_t _extrapolate_from_gradient(keyint N, double* centroids, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* a, double* b)
-  int64_t _extrapolate_and_limit_from_gradient(keyint N, double beta, double* centroids, int64_t* neighbours, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* phi, double* x_gradient, double* y_gradient) 
-  int64_t _limit_vertices_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient)
-  int64_t _limit_edges_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient)
-  int64_t _limit_edges_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours)
-  int64_t _limit_gradient_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient, int64_t* neighbours)
-  int64_t _bound_vertices_below_by_constant(keyint N, double bound, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient)
-  int64_t _bound_vertices_below_by_quantity(keyint N, double* bound_vertex_values, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient)
-  int64_t _interpolate(keyint N, double* vertex_values, double* edge_values, double* centroid_values)
-  int64_t _interpolate_from_vertices_to_edges(keyint N, double* vertex_values, double* edge_values)
-  int64_t _interpolate_from_edges_to_vertices(keyint N, double* vertex_values, double* edge_values)
-  int64_t _backup_centroid_values(keyint N, double* centroid_values, double* centroid_backup_values)
-  int64_t _saxpy_centroid_values(keyint N, double a, double b, double* centroid_values, double* centroid_backup_values)
-  int64_t _update(keyint N, double timestep, double* centroid_values, double* explicit_update, double* semi_implicit_update)
-  int64_t _average_vertex_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* vertex_values, double* A)
-  int64_t _average_centroid_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* centroid_values, double* A)
-  int64_t _set_vertex_values_c(keyint num_verts, int64_t* vertices, int64_t* node_index, int64_t* number_of_triangles_per_node, int64_t* vertex_value_indices, double* vertex_values, double* A)
-  int64_t _min_and_max_centroid_values(keyint N, double* qc, double* qv, int64_t* neighbours, double* qmin, double* qmax)
+  int64_t _compute_gradients(keyint N, double* centroids, double* centroid_values, int64_t* number_of_boundaries, int64_t* surrogate_neighbours, double* a, double* b) nogil
+  int64_t _compute_local_gradients(keyint N, double* vertex_coordinates, double* vertex_values, double* a, double* b) nogil
+  int64_t _extrapolate_from_gradient(keyint N, double* centroids, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* a, double* b) nogil
+  int64_t _extrapolate_and_limit_from_gradient(keyint N, double beta, double* centroids, int64_t* neighbours, double* centroid_values, double* vertex_coordinates, double* vertex_values, double* edge_values, double* phi, double* x_gradient, double* y_gradient) nogil
+  int64_t _limit_vertices_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient) nogil
+  int64_t _limit_edges_by_all_neighbours(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours, double* x_gradient, double* y_gradient) nogil
+  int64_t _limit_edges_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, int64_t* neighbours) nogil
+  int64_t _limit_gradient_by_neighbour(keyint N, double beta, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient, int64_t* neighbours) nogil
+  int64_t _bound_vertices_below_by_constant(keyint N, double bound, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient) nogil
+  int64_t _bound_vertices_below_by_quantity(keyint N, double* bound_vertex_values, double* centroid_values, double* vertex_values, double* edge_values, double* x_gradient, double* y_gradient) nogil
+  int64_t _interpolate(keyint N, double* vertex_values, double* edge_values, double* centroid_values) nogil
+  int64_t _interpolate_from_vertices_to_edges(keyint N, double* vertex_values, double* edge_values) nogil
+  int64_t _interpolate_from_edges_to_vertices(keyint N, double* vertex_values, double* edge_values) nogil
+  int64_t _backup_centroid_values(keyint N, double* centroid_values, double* centroid_backup_values) nogil
+  int64_t _saxpy_centroid_values(keyint N, double a, double b, double* centroid_values, double* centroid_backup_values) nogil
+  int64_t _update(keyint N, double timestep, double* centroid_values, double* explicit_update, double* semi_implicit_update) nogil
+  int64_t _average_vertex_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* vertex_values, double* A) nogil
+  int64_t _average_centroid_values(keyint N, int64_t* vertex_value_indices, int64_t* number_of_triangles_per_node, double* centroid_values, double* A) nogil
+  int64_t _set_vertex_values_c(keyint num_verts, int64_t* vertices, int64_t* node_index, int64_t* number_of_triangles_per_node, int64_t* vertex_value_indices, double* vertex_values, double* A) nogil
+  int64_t _min_and_max_centroid_values(keyint N, double* qc, double* qv, int64_t* neighbours, double* qmin, double* qmax) nogil
 
 cdef extern from "util_ext.h":
-  void _limit_old(int64_t N, double beta, double* qc, double* qv, double* qmin, double* qmax)
+  void _limit_old(int64_t N, double beta, double* qc, double* qv, double* qmin, double* qmax) nogil
 
 
 def update(object quantity, double timestep):
@@ -80,7 +80,8 @@ def update(object quantity, double timestep):
 
   N = centroid_values.shape[0]
 
-  err = _update(N, timestep, &centroid_values[0], &explicit_update[0], &semi_implicit_update[0])
+  with nogil:
+    err = _update(N, timestep, &centroid_values[0], &explicit_update[0], &semi_implicit_update[0])
 
   assert err == 0, "update: division by zero in semi implicit update - call Stephen :)"
 
@@ -98,7 +99,8 @@ def backup_centroid_values(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _backup_centroid_values(N, &centroid_values[0], &centroid_backup_values[0])
+  with nogil:
+    err = _backup_centroid_values(N, &centroid_values[0], &centroid_backup_values[0])
 
 def saxpy_centroid_values(object quantity, double a, double b):
 
@@ -113,7 +115,8 @@ def saxpy_centroid_values(object quantity, double a, double b):
 
   N = centroid_values.shape[0]
 
-  err = _saxpy_centroid_values(N, a, b, &centroid_values[0], &centroid_backup_values[0])
+  with nogil:
+    err = _saxpy_centroid_values(N, a, b, &centroid_values[0], &centroid_backup_values[0])
 
 
 def set_vertex_values_c(object quantity, np.ndarray[int64_t, ndim=1, mode="c"] vertices not None, np.ndarray[double, ndim=1, mode="c"] A not None):
@@ -140,7 +143,8 @@ def set_vertex_values_c(object quantity, np.ndarray[int64_t, ndim=1, mode="c"] v
 
   num_verts = vertices.shape[0]
 
-  err = _set_vertex_values_c(num_verts, &vertices[0], &node_index[0], &number_of_triangles_per_node[0], &vertex_value_indices[0], &vertex_values[0,0], &A[0])
+  with nogil:
+    err = _set_vertex_values_c(num_verts, &vertices[0], &node_index[0], &number_of_triangles_per_node[0], &vertex_value_indices[0], &vertex_values[0,0], &A[0])
 
 
 def interpolate(object quantity):
@@ -158,7 +162,8 @@ def interpolate(object quantity):
 
   N = vertex_values.shape[0]
 
-  err = _interpolate(N, &vertex_values[0,0], &edge_values[0,0], &centroid_values[0])
+  with nogil:
+    err = _interpolate(N, &vertex_values[0,0], &edge_values[0,0], &centroid_values[0])
 
   assert err == 0, "Interpolate: could not be computed"
 
@@ -175,7 +180,8 @@ def interpolate_from_vertices_to_edges(object quantity):
 
   N = vertex_values.shape[0]
 
-  err = _interpolate_from_vertices_to_edges(N, &vertex_values[0,0], &edge_values[0,0])
+  with nogil:
+    err = _interpolate_from_vertices_to_edges(N, &vertex_values[0,0], &edge_values[0,0])
 
   assert err == 0, "Interpolate: could not be computed"
 
@@ -192,7 +198,8 @@ def interpolate_from_edges_to_vertices(object quantity):
 
   N = vertex_values.shape[0]
 
-  err = _interpolate_from_edges_to_vertices(N, &vertex_values[0,0], &edge_values[0,0])
+  with nogil:
+    err = _interpolate_from_edges_to_vertices(N, &vertex_values[0,0], &edge_values[0,0])
 
   assert err == 0, "Interpolate: could not be computed"
 
@@ -203,7 +210,8 @@ def average_vertex_values(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_ind
 
   N = vertex_value_indices.shape[0]
 
-  err = _average_vertex_values(N, &vertex_value_indices[0], &number_of_triangles_per_node[0], &vertex_values[0,0], &A[0])
+  with nogil:
+    err = _average_vertex_values(N, &vertex_value_indices[0], &number_of_triangles_per_node[0], &vertex_values[0,0], &A[0])
 
   assert err == 0, "average_vertex_values: could not be computed"
 
@@ -214,7 +222,8 @@ def average_centroid_values(np.ndarray[int64_t, ndim=1, mode="c"] vertex_value_i
 
   N = vertex_value_indices.shape[0]
 
-  err = _average_centroid_values(N, &vertex_value_indices[0], &number_of_triangles_per_node[0], &centroid_values[0], &A[0])
+  with nogil:
+    err = _average_centroid_values(N, &vertex_value_indices[0], &number_of_triangles_per_node[0], &centroid_values[0], &A[0])
 
   assert err == 0, "average_centroid_values: could not be computed"
 
@@ -249,14 +258,15 @@ def extrapolate_from_gradient(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _extrapolate_from_gradient(N,\
-							&centroids[0,0],\
-							&centroid_values[0],\
-							&vertex_coordinates[0,0],\
-							&vertex_values[0,0],\
-							&edge_values[0,0],\
-							&x_gradient[0],\
-							&y_gradient[0])
+  with nogil:
+    err = _extrapolate_from_gradient(N,\
+  							&centroids[0,0],\
+  							&centroid_values[0],\
+  							&vertex_coordinates[0,0],\
+  							&vertex_values[0,0],\
+  							&edge_values[0,0],\
+  							&x_gradient[0],\
+  							&y_gradient[0])
 
   assert err == 0, "Internal function _extrapolate failed"
 
@@ -281,7 +291,8 @@ def compute_local_gradients(object quantity):
 
   N = vertex_values.shape[0]
 
-  err = _compute_local_gradients(N, &vertex_coordinates[0,0], &vertex_values[0,0], &x_gradient[0], &y_gradient[0])
+  with nogil:
+    err = _compute_local_gradients(N, &vertex_coordinates[0,0], &vertex_values[0,0], &x_gradient[0], &y_gradient[0])
 
   assert err == 0, "Internal function _compute_local_gradient failed"
 
@@ -339,34 +350,37 @@ def extrapolate_second_order_and_limit_by_edge(object quantity,
 
   ntri = quantity_centroid_values.shape[0]
 
-  err = _compute_gradients(ntri,\
-						&domain_centroids[0,0],\
-						&quantity_centroid_values[0],\
-						&domain_number_of_boundaries[0],\
-						&domain_surrogate_neighbours[0,0],\
-						&quantity_x_gradient[0],\
-						&quantity_y_gradient[0])
+  with nogil:
+    err = _compute_gradients(ntri,\
+  						&domain_centroids[0,0],\
+  						&quantity_centroid_values[0],\
+  						&domain_number_of_boundaries[0],\
+  						&domain_surrogate_neighbours[0,0],\
+  						&quantity_x_gradient[0],\
+  						&quantity_y_gradient[0])
 
   assert err == 0, "Internal function _compute_gradient failed"
 
-  err = _extrapolate_from_gradient(ntri,\
-						&domain_centroids[0,0],\
-						&quantity_centroid_values[0],\
-						&domain_vertex_coordinates[0,0],\
-						&quantity_vertex_values[0,0],\
-						&quantity_edge_values[0,0],\
-						&quantity_x_gradient[0],\
-						&quantity_y_gradient[0])
+  with nogil:
+    err = _extrapolate_from_gradient(ntri,\
+  						&domain_centroids[0,0],\
+  						&quantity_centroid_values[0],\
+  						&domain_vertex_coordinates[0,0],\
+  						&quantity_vertex_values[0,0],\
+  						&quantity_edge_values[0,0],\
+  						&quantity_x_gradient[0],\
+  						&quantity_y_gradient[0])
 
   assert err == 0, "Internal function _extrapolate_from_gradient failed"
 
-  err = _limit_edges_by_all_neighbours(ntri, beta,\
-						&quantity_centroid_values[0],\
-						&quantity_vertex_values[0,0],\
-						&quantity_edge_values[0,0],\
-						&domain_neighbours[0,0],\
-						&quantity_x_gradient[0],\
-						&quantity_y_gradient[0])
+  with nogil:
+    err = _limit_edges_by_all_neighbours(ntri, beta,\
+  						&quantity_centroid_values[0],\
+  						&quantity_vertex_values[0,0],\
+  						&quantity_edge_values[0,0],\
+  						&domain_neighbours[0,0],\
+  						&quantity_x_gradient[0],\
+  						&quantity_y_gradient[0])
 
   assert err == 0, "Internal function _limit_edges_by_all_neighbours failed"
 
@@ -424,34 +438,37 @@ def extrapolate_second_order_and_limit_by_vertex(object quantity,
 
   ntri = quantity_centroid_values.shape[0]
 
-  err = _compute_gradients(ntri,\
-						&domain_centroids[0,0],\
-						&quantity_centroid_values[0],\
-						&domain_number_of_boundaries[0],\
-						&domain_surrogate_neighbours[0,0],\
-						&quantity_x_gradient[0],\
-						&quantity_y_gradient[0])
+  with nogil:
+    err = _compute_gradients(ntri,\
+  						&domain_centroids[0,0],\
+  						&quantity_centroid_values[0],\
+  						&domain_number_of_boundaries[0],\
+  						&domain_surrogate_neighbours[0,0],\
+  						&quantity_x_gradient[0],\
+  						&quantity_y_gradient[0])
 
   assert err == 0, "Internal function _compute_gradient failed"
 
-  err = _extrapolate_from_gradient(ntri,\
-						&domain_centroids[0,0],\
-						&quantity_centroid_values[0],\
-						&domain_vertex_coordinates[0,0],\
-						&quantity_vertex_values[0,0],\
-						&quantity_edge_values[0,0],\
-						&quantity_x_gradient[0],\
-						&quantity_y_gradient[0])
+  with nogil:
+    err = _extrapolate_from_gradient(ntri,\
+  						&domain_centroids[0,0],\
+  						&quantity_centroid_values[0],\
+  						&domain_vertex_coordinates[0,0],\
+  						&quantity_vertex_values[0,0],\
+  						&quantity_edge_values[0,0],\
+  						&quantity_x_gradient[0],\
+  						&quantity_y_gradient[0])
 
   assert err == 0, "Internal function _extrapolate_from_gradient failed"
 
-  err = _limit_vertices_by_all_neighbours(ntri, beta,\
-						&quantity_centroid_values[0],\
-						&quantity_vertex_values[0,0],\
-						&quantity_edge_values[0,0],\
-						&domain_neighbours[0,0],\
-						&quantity_x_gradient[0],\
-						&quantity_y_gradient[0])
+  with nogil:
+    err = _limit_vertices_by_all_neighbours(ntri, beta,\
+  						&quantity_centroid_values[0],\
+  						&quantity_vertex_values[0,0],\
+  						&quantity_edge_values[0,0],\
+  						&domain_neighbours[0,0],\
+  						&quantity_x_gradient[0],\
+  						&quantity_y_gradient[0])
 
   assert err == 0, "Internal function _limit_edges_by_all_neighbours failed"
 
@@ -486,13 +503,14 @@ def compute_gradients(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _compute_gradients(N,\
-						&centroids[0,0],\
-						&centroid_values[0],\
-						&number_of_boundaries[0],\
-						&surrogate_neighbours[0,0],\
-						&x_gradient[0],\
-						&y_gradient[0])
+  with nogil:
+    err = _compute_gradients(N,\
+  						&centroids[0,0],\
+  						&centroid_values[0],\
+  						&number_of_boundaries[0],\
+  						&surrogate_neighbours[0,0],\
+  						&x_gradient[0],\
+  						&y_gradient[0])
 
   assert err == 0, "Gradient could not be computed"
 
@@ -522,11 +540,13 @@ def limit_old(object quantity):
   cdef np.ndarray[double, ndim=1, mode="c"] qmin = np.empty(N, dtype=np.float64)
   cdef np.ndarray[double, ndim=1, mode="c"] qmax = np.empty(N, dtype=np.float64)
 
-  err = _min_and_max_centroid_values(N, &qc[0], &qv[0,0], &neighbours[0,0], &qmin[0], &qmax[0])
+  with nogil:
+    err = _min_and_max_centroid_values(N, &qc[0], &qv[0,0], &neighbours[0,0], &qmin[0], &qmax[0])
 
   assert err == 0, "Internal function _min_and_max_centroid_values failed"
 
-  _limit_old(N, beta_w, &qc[0], &qv[0,0], &qmin[0], &qmax[0])
+  with nogil:
+    _limit_old(N, beta_w, &qc[0], &qv[0,0], &qmin[0], &qmax[0])
 
 def limit_vertices_by_all_neighbours(object quantity):
   
@@ -557,13 +577,14 @@ def limit_vertices_by_all_neighbours(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _limit_vertices_by_all_neighbours(N, beta_w,\
-											&centroid_values[0],\
-											&vertex_values[0,0],\
-											&edge_values[0,0],\
-											&neighbours[0,0],\
-											&x_gradient[0],\
-											&y_gradient[0])
+  with nogil:
+    err = _limit_vertices_by_all_neighbours(N, beta_w,\
+  											&centroid_values[0],\
+  											&vertex_values[0,0],\
+  											&edge_values[0,0],\
+  											&neighbours[0,0],\
+  											&x_gradient[0],\
+  											&y_gradient[0])
 
   assert err == 0, "Internal function _limit_by_vertex failed"
 
@@ -596,13 +617,14 @@ def limit_edges_by_all_neighbours(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _limit_edges_by_all_neighbours(N, beta_w,\
-											&centroid_values[0],\
-											&vertex_values[0,0],\
-											&edge_values[0,0],\
-											&neighbours[0,0],\
-											&x_gradient[0],\
-											&y_gradient[0])
+  with nogil:
+    err = _limit_edges_by_all_neighbours(N, beta_w,\
+  											&centroid_values[0],\
+  											&vertex_values[0,0],\
+  											&edge_values[0,0],\
+  											&neighbours[0,0],\
+  											&x_gradient[0],\
+  											&y_gradient[0])
 
   assert err == 0, "Internal function _limit_by_edges failed"
 
@@ -629,12 +651,13 @@ def bound_vertices_below_by_constant(object quantity, double bound):
 
   N = centroid_values.shape[0]
 
-  err = _bound_vertices_below_by_constant(N, bound,\
-										&centroid_values[0],\
-										&vertex_values[0,0],\
-										&edge_values[0,0],\
-										&x_gradient[0],\
-										&y_gradient[0])
+  with nogil:
+    err = _bound_vertices_below_by_constant(N, bound,\
+  										&centroid_values[0],\
+  										&vertex_values[0,0],\
+  										&edge_values[0,0],\
+  										&x_gradient[0],\
+  										&y_gradient[0])
 
   assert err == 0, "Internal function _bound_vertices_below_by_constant failed"
 
@@ -663,13 +686,14 @@ def bound_vertices_below_by_quantity(object quantity, object bounding_quantity):
 
   N = centroid_values.shape[0]
 
-  err = _bound_vertices_below_by_quantity(N,\
-  										&bound_vertex_values[0,0],\
-										&centroid_values[0],\
-										&vertex_values[0,0],\
-										&edge_values[0,0],\
-										&x_gradient[0],\
-										&y_gradient[0])
+  with nogil:
+    err = _bound_vertices_below_by_quantity(N,\
+    										&bound_vertex_values[0,0],\
+  										&centroid_values[0],\
+  										&vertex_values[0,0],\
+  										&edge_values[0,0],\
+  										&x_gradient[0],\
+  										&y_gradient[0])
 
   assert err == 0, "Internal function _bound_vertices_below_by_quantity failed"
 
@@ -697,11 +721,12 @@ def limit_edges_by_neighbour(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _limit_edges_by_neighbour(N, beta_w,\
-								&centroid_values[0],\
-								&vertex_values[0,0],\
-								&edge_values[0,0],\
-								&neighbours[0,0])
+  with nogil:
+    err = _limit_edges_by_neighbour(N, beta_w,\
+  								&centroid_values[0],\
+  								&vertex_values[0,0],\
+  								&edge_values[0,0],\
+  								&neighbours[0,0])
 
   assert err == 0, "Internal function _limit_edges_by_neighbour failed"
 
@@ -733,13 +758,14 @@ def limit_gradient_by_neighbour(object quantity):
 
   N = centroid_values.shape[0]
 
-  err = _limit_gradient_by_neighbour(N, beta_w,\
-								&centroid_values[0],\
-								&vertex_values[0,0],\
-								&edge_values[0,0],\
-								&x_gradient[0],\
-								&y_gradient[0],\
-								&neighbours[0,0])
+  with nogil:
+    err = _limit_gradient_by_neighbour(N, beta_w,\
+  								&centroid_values[0],\
+  								&vertex_values[0,0],\
+  								&edge_values[0,0],\
+  								&x_gradient[0],\
+  								&y_gradient[0],\
+  								&neighbours[0,0])
 
   assert err == 0, "Internal function _limit_gradient_by_neighbour failed"
 

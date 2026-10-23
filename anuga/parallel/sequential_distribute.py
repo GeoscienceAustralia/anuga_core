@@ -61,6 +61,9 @@ class Sequential_distribute:
         self.domain_quantities_to_be_stored = domain.quantities_to_be_stored
         self.domain_smooth = domain.smooth
         self.domain_low_froude = domain.low_froude
+        # Names and shared beta; the values ride the quantity partitioning. #278
+        from anuga.parallel.distribute_mesh import tracer_partition_metadata
+        self.tracer_metadata = tracer_partition_metadata(domain)
         self.number_of_global_triangles = domain.number_of_triangles
         self.number_of_global_nodes = domain.number_of_nodes
         self.boundary_map = domain.boundary_map
@@ -170,6 +173,14 @@ class Sequential_distribute:
                 'tri_l2g':  tri_l2g, ## SR added this
                 'node_l2g':  node_l2g,
                 'ghost_layer_width':  ghost_layer_width}
+
+        # Rides in kwargs rather than in the tostore tuple, so the tuple keeps
+        # its shape and partition files written before tracers existed still
+        # load -- they simply lack the key. Popped before the Domain
+        # constructor, which would not know what to do with it.
+        if getattr(self, 'tracer_metadata', None) is not None:
+            from anuga.parallel.distribute_mesh import TRACER_METADATA_KEY
+            kwargs[TRACER_METADATA_KEY] = self.tracer_metadata
 
         boundary_map = self.boundary_map
         domain_name = self.domain_name
@@ -501,6 +512,13 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     #---------------------------------------------------------------------------
     # Create domain (parallel if np>1)
     #---------------------------------------------------------------------------
+    # Tracers travel as reserved entries in kwargs and quantities; both have to
+    # come out before the constructor and the set_quantity loop see them. #278
+    from anuga.parallel.distribute_mesh import (
+        TRACER_METADATA_KEY, pop_tracer_quantities, restore_tracers)
+    tracer_metadata = kwargs.pop(TRACER_METADATA_KEY, None)
+    tracer_values = pop_tracer_quantities(quantities)
+
     if np>1:
         domain = Parallel_domain(points, vertices, boundary, **kwargs)
     else:
@@ -511,6 +529,10 @@ def sequential_distribute_load_pickle_file(pickle_name, np=1, verbose = False):
     #------------------------------------------------------------------------
     for q in quantities:
         domain.set_quantity(q, quantities[q], location='centroids')
+
+    # After the quantities: set_tracer derives m = h*c from this sub-domain's
+    # own depth, so stage and elevation have to be in place first.
+    restore_tracers(domain, tracer_metadata, tracer_values)
 
 
     #------------------------------------------------------------------------

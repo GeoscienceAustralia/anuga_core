@@ -364,10 +364,10 @@ def boyd_box_function(width,
         if dcrit > depth:
             dcrit = depth
             flow_area = bf*width*dcrit*barrels
-            perimeter = 2.0*(bf*width*barrels + dcrit)
+            perimeter = barrels*2.0*(bf*width + dcrit)
         else: # dcrit < depth
             flow_area = bf*width*barrels*dcrit
-            perimeter = 2.0*dcrit + bf*width*barrels
+            perimeter = barrels*(bf*width + 2.0*dcrit)
         outlet_culvert_depth = dcrit
         case = 'Inlet unsubmerged Box Acts as Weir'
     else: # Inlet Submerged but check internal culvert flow depth
@@ -376,10 +376,10 @@ def boyd_box_function(width,
         if dcrit > depth:
             dcrit = depth
             flow_area = bf*width*barrels*dcrit
-            perimeter = 2.0*(bf*width*barrels + dcrit)
+            perimeter = barrels*2.0*(bf*width + dcrit)
         else: # dcrit < depth
             flow_area = bf*width*barrels*dcrit
-            perimeter = 2.0*dcrit + bf*width*barrels
+            perimeter = barrels*(bf*width + 2.0*dcrit)
         outlet_culvert_depth = dcrit
         case = 'Inlet submerged Box Acts as Orifice'
 
@@ -391,11 +391,11 @@ def boyd_box_function(width,
     if outlet_culvert_depth > depth:
         outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
         flow_area = bf*width*barrels*depth  # Cross sectional area of flow in the culvert
-        perimeter = 2*(bf*width*barrels + depth)
+        perimeter = barrels*2.0*(bf*width + depth)
         case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
     else:
         flow_area = bf*width*barrels*outlet_culvert_depth
-        perimeter = bf*width*barrels + 2*outlet_culvert_depth
+        perimeter = barrels*(bf*width + 2.0*outlet_culvert_depth)
         case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
     # Initial Estimate of Flow for Outlet Control using energy slope
     #( may need to include Culvert Bed Slope Comparison)
@@ -414,7 +414,7 @@ def boyd_box_function(width,
         if outlet_enquiry_depth > depth:        # The Outlet is Submerged
             outlet_culvert_depth = depth
             flow_area = bf*width*barrels*depth   # Cross sectional area of flow in the culvert
-            perimeter = 2.0*(bf*width*barrels + depth)
+            perimeter = barrels*2.0*(bf*width + depth)
             case = 'Outlet submerged'
         else:   # Here really should use the Culvert Slope to calculate Actual Culvert Depth & Velocity
             dcrit = (Q**2/anuga.g/(bf*width*barrels)**2)**0.333333
@@ -422,11 +422,11 @@ def boyd_box_function(width,
             if outlet_culvert_depth > depth:
                 outlet_culvert_depth = depth
                 flow_area = bf*width*barrels*depth
-                perimeter = 2.0*(bf*width*barrels + depth)
+                perimeter = barrels*2.0*(bf*width + depth)
                 case = 'Outlet is Flowing Full'
             else:
                 flow_area = bf*width*barrels*outlet_culvert_depth
-                perimeter = bf*width*barrels + 2.0*outlet_culvert_depth
+                perimeter = barrels*(bf*width + 2.0*outlet_culvert_depth)
                 case = 'Outlet is open channel flow'
 
         hyd_rad = flow_area/perimeter
@@ -438,9 +438,12 @@ def boyd_box_function(width,
 
         Q = min(Q, Q_outlet_tailwater)
     else:
-
-        pass
-        #FIXME(Ole): What about inlet control?
+        # The head difference has reached the driving energy (a free or
+        # drawn-down outlet). The barrel's friction still limits the flow,
+        # as boyd_pipe_function applies in every regime; without this, Q
+        # jumped (1.9x box, 3.3x trapezoid) as delta_total_energy crossed
+        # driving_energy, over-predicting long or rough culverts.
+        Q = min(Q, Q_outlet_tailwater)
 
     if  flow_area <= 0.0 :
         culv_froude = 0.0

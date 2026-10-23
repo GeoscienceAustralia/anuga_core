@@ -28,6 +28,10 @@ summary; the sections that follow describe each format in detail.
    * - ``.msh``
      - NetCDF
      - Triangular mesh (binary equivalent of TSH)
+   * - ``.gpkg``
+     - GeoPackage
+     - Polygons and polylines with attributes, editable in QGIS; regions,
+       buildings, breaklines (needs ``fiona`` and ``shapely``)
    * - ``.dem``
      - NetCDF
      - Regular Digital Elevation Model (intermediate ANUGA format)
@@ -141,6 +145,20 @@ SWW files are also used as **input** to :func:`File_boundary` and
    # Memory-bounded merge: process 100 timesteps at a time
    domain.sww_merge(delete_old=True, chunk_size=100)
 
+**One writer per file.** While a run is writing an SWW file it holds a
+sidecar lock, ``<name>.sww.lock``, recording its process id and host. A second
+run that would create the same file stops with ``SWWFileInUseError`` naming
+the other run; give each run its own ``set_name()`` or ``set_datadir()`` (a
+parameter sweep launched concurrently from one script is the usual way to
+collide). A lock left by a run that has died is taken over with a warning; a
+lock from another host cannot be checked and must be deleted by hand once that
+run is known to be finished. As a second guard, the writer refuses to append a
+frame earlier than the last one on file that rewrites no existing frame, which
+is what two interleaved writers produce (``SWWTimeOrderError``). Re-running a
+model under the same name in one session, calling ``evolve()`` again from
+where it stopped, and resuming from a checkpoint (which rewrites frames already
+on file) are unaffected.
+
 **Post-processing conversions**
 
 .. code-block:: python
@@ -211,7 +229,7 @@ Mesh file formats — TSH and MSH
 ---------------------------------
 
 Mesh files describe the triangular mesh and its boundary structure.
-They can be created by :func:`create_mesh_from_regions` or by the
+They can be created by :func:`create_pmesh_from_regions` or by the
 built-in mesh generator.
 
 **TSH** (ASCII) is the human-readable format.  It encodes:
@@ -236,7 +254,7 @@ To create a TSH or MSH file from polygon regions:
 
 .. code-block:: python
 
-   anuga.create_mesh_from_regions(
+   anuga.create_pmesh_from_regions(
        bounding_polygon,
        boundary_tags={'left': [0], 'right': [1], 'top': [2], 'bottom': [3]},
        maximum_triangle_area=100.0,
@@ -286,6 +304,53 @@ Convert ASC to DEM, then DEM to a point cloud:
    # Convert DEM to a point cloud (PTS) for fitting onto a mesh
    anuga.dem2pts('elevation.dem', use_cache=False, verbose=True)
 
+
+GeoPackage — GPKG
+-----------------
+
+A `GeoPackage <https://www.geopackage.org/>`_ holds vector layers with
+attributes in one file that QGIS and every other GIS read and write. ANUGA
+reads a polygon or polyline layer straight into the lists of ``[x, y]``
+points its regions, buildings and breaklines take, and writes them back, so
+a model's geometry can be drawn and edited in a GIS. Needs ``fiona`` and
+``shapely`` (``pip install "anuga[data]"``); they are imported only when
+these functions are called.
+
+.. code-block:: python
+
+   import anuga
+
+   # Read a layer: one (N, 2) array per feature plus its attributes.
+   # A MultiPolygon gives one entry per part. Rings come back un-closed,
+   # as ANUGA holds polygons.
+   houses, attrs = anuga.gpkg2polygons('houses.gpkg')          # first layer
+   walls, _ = anuga.gpkg2polygons('model.gpkg', layer='riverwalls')
+   for poly, a in zip(houses, attrs):
+       domain.set_quantity('elevation', a['floors'] * 3.0, polygon=poly)
+
+   # Write polygons with attributes and a CRS (EPSG code, 'EPSG:32756' or WKT)
+   anuga.polygons2gpkg([poly1, poly2], 'regions.gpkg',
+                       attributes=[{'name': 'pond'}, {'name': 'weir'}],
+                       crs=32756, layer='regions')
+   anuga.gpkg_layers('model.gpkg')
+
+The two CSV conventions ANUGA already reads convert both ways:
+
+.. code-block:: python
+
+   # one polygon per file, x,y rows, no header (what anuga.read_polygon reads,
+   # e.g. the Merewether case study's houses/): the file stem becomes a
+   # ``name`` field
+   anuga.polygon_csv_files2gpkg('houses/', 'houses.gpkg', crs=32756)
+   anuga.gpkg2polygon_csv_files('houses.gpkg', 'houses_edited/')
+
+   # easting,northing,id,floors in one file (what load_csv_as_polygons and
+   # load_csv_as_building_polygons read): id and floors become fields
+   anuga.building_csv2gpkg('buildings.csv', 'buildings.gpkg', crs=32756)
+   anuga.gpkg2building_csv('buildings.gpkg', 'buildings_edited.csv')
+
+Only exterior rings are read; holes are dropped, since ANUGA polygons have
+none.
 
 Point data — CSV, TXT and PTS
 -------------------------------

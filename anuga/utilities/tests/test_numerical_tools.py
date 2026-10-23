@@ -315,6 +315,34 @@ class Test_Numerical_Tools(unittest.TestCase):
         assert abs(a - 3.0) < epsilon
         assert abs(b - 1.0) < epsilon
 
+    def test_gradient_C_extension_degenerate_points(self):
+        """Collinear or coincident points have no plane to fit.
+
+        The C helpers used to divide by a zero determinant and hand back
+        NaN, which then propagated into the friction and gravity terms.
+        They now fall back to a flat (first-order) gradient.
+        """
+        from anuga.utilities.util_ext import gradient as gradient_c
+        from anuga.utilities.util_ext import gradient2 as gradient2_c
+
+        # Three collinear points along the x axis
+        a, b = gradient_c(0.0, 0.0, 1.0, 0.0, 2.0, 0.0, 1.0, 2.0, 3.0)
+        assert a == 0.0 and b == 0.0
+
+        # Three coincident points
+        a, b = gradient_c(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 2.0, 3.0)
+        assert a == 0.0 and b == 0.0
+
+        # Two coincident points
+        a, b = gradient2_c(1.0, 1.0, 1.0, 1.0, 0.0, 5.0)
+        assert a == 0.0 and b == 0.0
+
+        # A well-posed case is untouched by the guard
+        a, b = gradient_c(0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 2.0)
+        assert abs(a - 1.0) < epsilon and abs(b - 2.0) < epsilon
+        a, b = gradient2_c(0.0, 0.0, 2.0, 0.0, 0.0, 4.0)
+        assert abs(a - 2.0) < epsilon and abs(b - 0.0) < epsilon
+
     def test_gradient_C_extension3(self):
         from anuga.utilities.util_ext import gradient as gradient_c
 

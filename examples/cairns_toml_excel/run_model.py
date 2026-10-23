@@ -136,7 +136,7 @@ max_quantities = Collect_max_quantities_operator(
 #
 ##########################################################################
 
-domain.set_multiprocessor_mode(project.multiprocessor_mode)
+domain.set_compute_mode(project.compute_mode)
 domain.set_omp_num_threads(project.omp_num_threads)
 
 print('Evolving')

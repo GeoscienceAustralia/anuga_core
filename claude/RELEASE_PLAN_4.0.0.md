@@ -159,7 +159,7 @@ receives in a wheel. Remove it when upstream fixes build 11.
       `ANUGA_VERSION` override with no rc tag. Dispatch:
       `gh workflow run python-publish-pypi.yml -f publish_to=testpypi -f version=4.0.0rc1`
 - [x] **Send the announcement** — draft at
-      `claude/RELEASE_4.0.0rc1_ANNOUNCEMENT.md`, addressed to Ole, Rudy, Petar,
+      `claude/archive/RELEASE_4.0.0rc1_ANNOUNCEMENT.md`, addressed to Ole, Rudy, Petar,
       David and Jorge, with a specific ask for each. Then 3–4 days of soak.
       **Wait for Petar on Towradgi before Phase 3**: it is his case study, it is
       the evidence behind the #229 numbers in the release notes, and if he says

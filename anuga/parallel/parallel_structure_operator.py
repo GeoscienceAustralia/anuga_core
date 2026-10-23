@@ -10,6 +10,45 @@ from anuga.utilities.numerical_tools import ensure_numeric
 from anuga.structures.inlet_enquiry import Inlet_enquiry
 
 
+def inlet_polygons(exchange_lines, end_points, apron):
+    """The exchange regions of a two-inlet structure, one polygon per inlet.
+
+    Each exchange line is extended back by the apron into a quadrilateral,
+    exactly as Structure_operator builds ``poly0``/``poly1``; with no apron
+    the lines themselves are returned. Shared by Parallel_Structure_operator
+    and the operator factory, so the processors allocated to an inlet are
+    the ones that hold triangles of the region the inlet actually uses.
+    """
+    lines = [ensure_numeric(line, float) for line in exchange_lines]
+    if apron is None or apron == 0.0:
+        # No apron: the exchange region is the line itself (a zero-offset
+        # polygon would be a zero-area quadrilateral that selects the same
+        # triangles, less clearly).
+        return lines
+    line0, line1 = lines
+    n = len(line0)
+    if n == 4:
+        outward0 = line0[3] - line0[2]
+        outward1 = line1[3] - line1[2]
+    else:
+        if end_points is None:
+            centre0 = 0.5 * (line0[0] + line0[1])
+            centre1 = 0.5 * (line1[0] + line1[1])
+            culvert_vector = centre1 - centre0
+        else:
+            end_points = ensure_numeric(end_points, float)
+            culvert_vector = end_points[1] - end_points[0]
+        outward0 = culvert_vector
+        outward1 = -culvert_vector
+    polys = []
+    for line, outward in ((line0, outward0), (line1, outward1)):
+        length = math.sqrt(num.sum(outward**2))
+        assert length > 0.0, 'The length of the outward vector is less than 0'
+        offset = -apron * outward / length
+        polys.append(num.array([line[0], line[1], line[1] + offset, line[0] + offset]))
+    return polys
+
+
 class Parallel_Structure_operator(anuga.Operator):
     """Parallel Structure Operator - transfer water from one rectangular box to another.
     Sets up the geometry of problem
@@ -198,7 +237,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
             self.inlets.append(parallel_inlet_enquiry.Parallel_Inlet_enquiry(
                                self.domain,
-                               line0,
+                               poly0,
                                enquiry_point0,
                                invert_elevation = invert_elevation0,
                                outward_culvert_vector = outward_vector0,
@@ -235,7 +274,7 @@ class Parallel_Structure_operator(anuga.Operator):
 
             self.inlets.append(parallel_inlet_enquiry.Parallel_Inlet_enquiry(
                                self.domain,
-                               line1,
+                               poly1,
                                enquiry_point1,
                                invert_elevation = invert_elevation1,
                                outward_culvert_vector = outward_vector1,
@@ -259,6 +298,38 @@ class Parallel_Structure_operator(anuga.Operator):
         self.set_parallel_logging(logging)
 
     def __call__(self):
+        # Tracers ride with the water (anuga/structures/inlet_tracers.py). The
+        # tracer given up and the water gained are summed over the structure's
+        # ranks, so the tracer arrives on whichever ranks hold the outflow.
+        # COLLECTIVE over self.procs, like the rest of this method.
+        tracers = getattr(self, '_structure_tracers', None)
+        if tracers is None:
+            from anuga.structures.inlet_tracers import StructureTracers
+            tracers = self._structure_tracers = StructureTracers(self.domain)
+        state = tracers.capture(self.inlets) if tracers.active() else None
+        self._transfer_water()
+        if state is not None:
+            tracers.apply(state, global_sum=self._structure_sum)
+
+    def _structure_sum(self, x):
+        """Sum an array over self.procs (master gathers and broadcasts)."""
+        x = num.array(x, dtype=float, ndmin=1)
+        if len(self.procs) == 1:
+            return x
+        if self.myid == self.master_proc:
+            total = x.copy()
+            for i in self.procs:
+                if i != self.master_proc:
+                    total += num.asarray(pypar.receive(i), dtype=float)
+            for i in self.procs:
+                if i != self.master_proc:
+                    pypar.send(total, i)
+            return total
+        pypar.send(x, self.master_proc)
+        return num.asarray(pypar.receive(self.master_proc), dtype=float)
+
+    def _transfer_water(self):
+        """One step of the structure's water transfer (no tracers)."""
 
         from anuga.structures.structure_operator import (
             _can_use_c_culvert, _call_c_culvert)

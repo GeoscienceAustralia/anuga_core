@@ -232,6 +232,11 @@ class PrepareData(ProjectData):
         for e in getattr(self, 'erosion_data', []):
             if e.get('polygon'):
                 e['polygon_points'] = su.read_polygon(e['polygon'])
+        sed = getattr(self, 'sediment_data', None)
+        if sed:
+            for r in sed.get('erodible_regions', []):
+                if r.get('polygon'):
+                    r['polygon_points'] = su.read_polygon(r['polygon'])
 
         # Deal with intersections in the bounding polygon / breaklines /
         # riverwalls. At the moment we cannot add points to the bounding

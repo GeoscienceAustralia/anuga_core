@@ -177,3 +177,5 @@ Switching back to a CPU-only build
 
    :ref:`use_gpu_offloading`
       More on the offloading backend and CPU-only fallback.
+
+.. include:: /appendices/gpu_acknowledgement.inc

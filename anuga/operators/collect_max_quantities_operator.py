@@ -21,10 +21,24 @@ class Collect_max_quantities_operator(Operator):
     Maxima are updated every update_frequency timesteps [any integer >= 1],
     after t exceeds collection_start_time.
 
+    NOTE: the INITIAL condition is not sampled. Collection happens on the
+    fractional-step call, which first runs after the first update, so a cell
+    whose maximum is its starting value -- the reservoir behind a dam break,
+    the source cells of a plume that then washes out -- reports the first
+    post-step value instead. Long-standing behaviour for stage/depth/speed/uh;
+    the tracer maxima follow it so that every max_* variable in an sww means
+    the same thing.
+
     If store_to_sww=True the running maxima are written to the SWW file every
     yield step as centroid quantities max_stage_c, max_depth_c, max_speed_c,
     max_uh_c.  This avoids the need to compute maxima by scanning all timeslices
     of the SWW stage output after the run.
+
+    Every registered tracer -- and so every suspended sediment class, a
+    sediment class being a tracer -- is tracked the same way and stored as
+    max_<name>_c.  Register the tracers before creating this operator: the
+    names are fixed here, and an sww variable cannot appear after the file is
+    created.
 
     Velocity is zeroed below velocity_zero_height (defaults to
     minimum_allowed_height) to suppress spurious spikes in nearly-dry cells.
@@ -56,6 +70,19 @@ class Collect_max_quantities_operator(Operator):
         self.max_speed = num.zeros(n)
         self.max_uh    = num.zeros(n)
 
+        # Running max of each tracer's concentration -- and therefore of each
+        # suspended sediment class, which is a tracer. Zero rather than
+        # -max_float: a concentration is non-negative, so zero is the floor
+        # and not a sentinel.
+        #
+        # The names are fixed HERE. add_tracer reallocates the tracer block at
+        # a new width, and an sww variable cannot appear after the file is
+        # created, so a tracer registered later cannot be collected; __call__
+        # says so rather than quietly dropping it.
+        self._tracer_names = list(getattr(domain, 'get_tracer_names', list)())
+        self.max_tracer = num.zeros((len(self._tracer_names), n))
+        self._minimum_allowed_height = domain.minimum_allowed_height
+
         self.xy    = domain.centroid_coordinates
         self.stage = domain.quantities['stage']
         self.elev  = domain.quantities['elevation']
@@ -74,15 +101,12 @@ class Collect_max_quantities_operator(Operator):
 
         self.store_to_sww = store_to_sww
         if store_to_sww:
-            for qname in ('max_stage', 'max_depth', 'max_speed', 'max_uh'):
+            names = ['max_stage', 'max_depth', 'max_speed', 'max_uh']
+            names += ['max_' + t for t in self._tracer_names]
+            for qname in names:
                 Quantity(domain, name=qname, register=True, qty_type='centroid_only')
             # flag=4: centroid-only static variable overwritten each yield step
-            domain.quantities_to_be_stored.update({
-                'max_stage': 4,
-                'max_depth': 4,
-                'max_speed': 4,
-                'max_uh':    4,
-            })
+            domain.quantities_to_be_stored.update({qname: 4 for qname in names})
 
         self._gpu_initialized = False
 
@@ -166,6 +190,7 @@ class Collect_max_quantities_operator(Operator):
                             d.quantities['max_depth'].centroid_values[:] = self.max_depth
                             d.quantities['max_speed'].centroid_values[:] = self.max_speed
                             d.quantities['max_uh'].centroid_values[:]    = self.max_uh
+                            self._store_tracer_maxima_from_device(domain)
                         return
 
                 # ---- CPU / NumPy path --------------------------------
@@ -186,12 +211,66 @@ class Collect_max_quantities_operator(Operator):
                       * (depth > self.velocity_zero_height)
                 self.max_speed = num.maximum(self.max_speed, vel)
 
+                if self._tracer_names:
+                    self._check_tracers_unchanged(domain)
+                    # DERIVE c from the conserved m rather than reading
+                    # domain.tracer_centroid_values. c is only recomputed
+                    # during extrapolation, which runs at the START of a step,
+                    # so by the time a fractional-step operator is called it is
+                    # one step behind the m that update_conserved_quantities
+                    # has just written. Reading it would quietly miss every
+                    # new maximum reached on the final step -- max_stage does
+                    # not suffer this because stage IS a conserved variable.
+                    #
+                    # Same rule the kernel uses: dry cells carry no
+                    # concentration.
+                    inv_h = num.where(depth > self._minimum_allowed_height,
+                                      1.0 / num.maximum(depth, 1e-300), 0.0)
+                    num.maximum(self.max_tracer,
+                                domain.tracer_conserved_values * inv_h,
+                                out=self.max_tracer)
+
                 if self.store_to_sww:
                     d = self.domain
                     d.quantities['max_stage'].centroid_values[:] = self.max_stage
                     d.quantities['max_depth'].centroid_values[:] = self.max_depth
                     d.quantities['max_speed'].centroid_values[:] = self.max_speed
                     d.quantities['max_uh'].centroid_values[:]    = self.max_uh
+                    for s_idx, tname in enumerate(self._tracer_names):
+                        d.quantities['max_' + tname].centroid_values[:] = \
+                            self.max_tracer[s_idx]
+
+    def _check_tracers_unchanged(self, domain):
+        """A tracer added after this operator was built cannot be collected.
+
+        add_tracer reallocates the tracer block at a new width and the sww
+        file's variables are fixed when it is created, so there is nowhere for
+        a late tracer to go. Fail rather than silently record maxima for the
+        wrong tracers -- the arrays would still line up by index, so the
+        numbers would look entirely plausible.
+        """
+        current = list(domain.get_tracer_names())
+        if current != self._tracer_names:
+            raise RuntimeError(
+                'tracers changed after Collect_max_quantities_operator was '
+                'created (%r -> %r); register every tracer before collecting '
+                'maxima' % (self._tracer_names, current))
+
+    def _store_tracer_maxima_from_device(self, domain):
+        """Pull the device-side tracer maxima and hand them to the sww writer.
+
+        Only at yield steps, and only when storing: the maxima themselves are
+        updated on the device by gpu_max_quantities_update, so the running
+        collection stays sync-free.
+        """
+        if not (self._tracer_names and self.store_to_sww):
+            return
+        self._check_tracers_unchanged(domain)
+        from anuga.shallow_water.sw_domain_gpu_ext import get_max_tracers_gpu
+        get_max_tracers_gpu(domain.gpu_interface.gpu_dom, self.max_tracer)
+        for s_idx, tname in enumerate(self._tracer_names):
+            domain.quantities['max_' + tname].centroid_values[:] = \
+                self.max_tracer[s_idx]
 
     def parallel_safe(self):
         """Operator is applied independently on each cell and so is parallel safe."""

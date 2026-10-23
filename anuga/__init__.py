@@ -82,10 +82,48 @@ from anuga.abstract_2d_finite_volumes.region import Region
 from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.operators.base_operator import Operator
+from anuga.operators.sediment_operator import Sediment_transport_operator
 from anuga.structures.structure_operator import Structure_operator
+from anuga.structures.inlet_enquiry import EnquiryPointWarning
 
-from anuga.utilities.animate import SWW_plotter
-from anuga.utilities.animate import Domain_plotter
+# The plotting helpers need matplotlib, and anuga.utilities.animate raises at
+# import when it is missing. Importing them eagerly here made that a hard
+# dependency of `import anuga` itself: a solver-only or MPI run would die
+# before it started because a PLOTTING library could not load.
+#
+# That is not hypothetical. It broke a nightly build on Windows, where
+# matplotlib's _c_internal_utils extension failed inside an mpiexec
+# subprocess -- "DLL load failed ... The handle is invalid" -- and took
+# `import anuga` down with it, in a load-balance test that never plots
+# anything.
+#
+# So bind them lazily. A user who actually plots gets the same clear
+# matplotlib error as before, at the point of use; everyone else is
+# unaffected by matplotlib being absent or broken.
+def _plotter_stub(_name):
+    class _MissingPlotter:
+        """Placeholder for a plotting class whose import failed."""
+
+        def __init__(self, *args, **kwargs):
+            raise ImportError(
+                '%s needs matplotlib, which could not be imported:\n    %s\n'
+                'Install it with: conda install matplotlib  or  '
+                'pip install matplotlib' % (_name, _plotter_import_error))
+
+    _MissingPlotter.__name__ = _name
+    _MissingPlotter.__qualname__ = _name
+    return _MissingPlotter
+
+
+try:
+    from anuga.utilities.animate import SWW_plotter
+    from anuga.utilities.animate import Domain_plotter
+
+    _plotter_import_error = None
+except ImportError as _e:                    # pragma: no cover - env specific
+    _plotter_import_error = _e
+    SWW_plotter = _plotter_stub('SWW_plotter')
+    Domain_plotter = _plotter_stub('Domain_plotter')
 
 
 from anuga.abstract_2d_finite_volumes.generic_domain import Generic_Domain
@@ -103,6 +141,11 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
 
 from anuga.file.csv_file import load_csv_as_building_polygons,  \
                                 load_csv_as_polygons
+
+# GeoPackage in/out (fiona + shapely, imported on call)
+from anuga.file.gpkg import (polygons2gpkg, gpkg2polygons, gpkg_layers,
+                             polygon_csv_files2gpkg, gpkg2polygon_csv_files,
+                             building_csv2gpkg, gpkg2building_csv)
 
 from anuga.file.sts import create_sts_boundary
 
@@ -215,10 +258,6 @@ from anuga.tsunami_source.smf import slide_tsunami, slump_tsunami
 
 # -----------------------------
 # Forcing
-# These are old, should use operators
-# -----------------------------
-from anuga.shallow_water.forcing import Inflow, Rainfall, Wind_stress
-
 # -----------------------------
 # File conversion utilities
 # -----------------------------
@@ -268,6 +307,7 @@ from anuga.simulation.simulation import Simulation
 # -----------------------------
 from anuga.pmesh.mesh_interface import create_pmesh_from_regions
 from anuga.pmesh.mesh_interface import create_mesh_from_regions  # deprecated alias
+from anuga.pmesh.size_field import Size_field, size_field_from_regions
 
 # -----------------------------
 # SWW file access
@@ -453,10 +493,6 @@ __all__ = [
     'Inlet_operator',
     'Internal_boundary_operator',
     'Weir_orifice_trapezoid_operator',
-    # Forcing (legacy)
-    'Inflow',
-    'Rainfall',
-    'Wind_stress',
     # Geometry and polygon utilities
     'inside_polygon',
     'plot_polygons',
@@ -484,6 +520,13 @@ __all__ = [
     'load_checkpoint_file',
     'load_csv_as_building_polygons',
     'load_csv_as_polygons',
+    'polygons2gpkg',
+    'gpkg2polygons',
+    'gpkg_layers',
+    'polygon_csv_files2gpkg',
+    'gpkg2polygon_csv_files',
+    'building_csv2gpkg',
+    'gpkg2building_csv',
     'load_ungenerate',
     'sww2array',
     'sww2csv_gauges',
@@ -553,6 +596,8 @@ __all__ = [
     'create_domain_from_regions',
     'create_mesh_from_regions',   # deprecated alias for create_pmesh_from_regions
     'create_pmesh_from_regions',
+    'Size_field',
+    'size_field_from_regions',
     # System / utility
     'acos',
     'cache',

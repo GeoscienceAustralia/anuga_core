@@ -20,15 +20,13 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
                                             rectangular
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
-from anuga.shallow_water.forcing import Inflow, Cross_section
+from anuga.shallow_water.forcing import Cross_section
 from anuga.geospatial_data.geospatial_data import ensure_geospatial
 
 from anuga.utilities.system_tools import get_pathname_from_package
 
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions \
         import Dirichlet_boundary
-from anuga.shallow_water.forcing import Rainfall, Wind_stress
-from anuga.shallow_water.forcing import Inflow, Cross_section
 from anuga.shallow_water.sww_interrogate import get_flow_through_cross_section
 
 from anuga.shallow_water.shallow_water_domain import Domain

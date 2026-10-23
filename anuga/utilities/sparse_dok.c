@@ -8,8 +8,11 @@ static void *emalloc(size_t amt,char * location)
 {
     void *v = malloc(amt);
     if(!v){
-        fprintf(stderr, "out of mem in quad_tree: %s\n",location);
-        exit(EXIT_FAILURE);
+        /* Report and return NULL; callers propagate the failure up to the
+           Cython layer, which raises MemoryError. exit() here used to kill
+           the whole interpreter and every MPI rank. */
+        fprintf(stderr, "out of mem in %s: %s\n", __FILE__, location);
+        return NULL;
     }
     return v;
 }
@@ -21,6 +24,7 @@ static void *emalloc(size_t amt,char * location)
 sparse_dok * make_dok(void){
 
     sparse_dok * ret = emalloc(sizeof(sparse_dok),"make_dok");
+    if (!ret) return NULL;
     ret->edgetable=NULL;
     ret->num_entries=0;
     ret->num_rows=0;
@@ -37,7 +41,7 @@ edge_t *find_dok_entry(sparse_dok * hashtable,edge_key_t key) {
     return s;
 }
 
-void add_dok_entry(sparse_dok * hashtable, edge_key_t key, double value) {
+anuga_int add_dok_entry(sparse_dok * hashtable, edge_key_t key, double value) {
 
     // Checking here now if there is an existing value
     // not sure if this code will work.
@@ -47,11 +51,12 @@ void add_dok_entry(sparse_dok * hashtable, edge_key_t key, double value) {
     if (s) {
         s->entry+=value;
     } else {
+        s = (edge_t*) emalloc(sizeof(edge_t),"add_dok_entry");
+        if (!s) return -1;
         hashtable->num_entries+=1;
         if(hashtable->num_rows<key.i){
             hashtable->num_rows = key.i;
         }
-        s = (edge_t*) emalloc(sizeof(edge_t),"add_dok_entry");
         memset(s, 0, sizeof(edge_t));
         s->key.i = key.i;
         s->key.j = key.j;
@@ -64,7 +69,7 @@ void add_dok_entry(sparse_dok * hashtable, edge_key_t key, double value) {
             hashtable->num_entries-=1;
     }
 
-    
+    return 0;
 }
 
 void delete_dok_entry(sparse_dok * hashtable,edge_t *edge) {
@@ -122,7 +127,7 @@ void sort_by_key(sparse_dok * hashtable) {
 //-----------------------------------------------
 
 
-void convert_to_csr_ptr(sparse_csr * new_csr, sparse_dok * hashtable){
+anuga_int convert_to_csr_ptr(sparse_csr * new_csr, sparse_dok * hashtable){
 
 
     sparse_csr * ret_csr = new_csr;
@@ -138,6 +143,14 @@ void convert_to_csr_ptr(sparse_csr * new_csr, sparse_dok * hashtable){
     ret_csr->data=emalloc(num_entries*sizeof(double),"convert_to_csr_ptr");
     ret_csr->colind=emalloc(num_entries*sizeof(anuga_int),"convert_to_csr_ptr");
     ret_csr->row_ptr=emalloc((num_rows+1)*sizeof(anuga_int),"convert_to_csr_ptr");
+    if (!ret_csr->data || !ret_csr->colind || !ret_csr->row_ptr) {
+        free(ret_csr->data);    ret_csr->data = NULL;
+        free(ret_csr->colind);  ret_csr->colind = NULL;
+        free(ret_csr->row_ptr); ret_csr->row_ptr = NULL;
+        ret_csr->num_rows = 0;
+        ret_csr->num_entries = 0;
+        return -1;
+    }
 
     edge_t * edge = hashtable->edgetable;
 
@@ -166,9 +179,10 @@ void convert_to_csr_ptr(sparse_csr * new_csr, sparse_dok * hashtable){
     ret_csr -> num_rows = num_rows+1;
     ret_csr -> num_entries = num_entries;
 
+    return 0;
 }
 
-void add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult2){
+anuga_int add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult2){
 
     // add both into dok1 - then leave both alone (free outside)
     anuga_int num_entries = dok1->num_entries;
@@ -191,10 +205,11 @@ void add_sparse_dok(sparse_dok * dok1,double mult1,sparse_dok * dok2,double mult
     num_entries = dok2->num_entries;
     edge = dok2->edgetable;
     for(k=0;k<num_entries;k++){
-        add_dok_entry(dok1,edge->key,edge->entry*mult2);
+        if (add_dok_entry(dok1,edge->key,edge->entry*mult2) != 0) return -1;
         edge = edge->hh.next;
     }
 
+    return 0;
 }
 
 anuga_int get_dok_rows(sparse_dok * dok){

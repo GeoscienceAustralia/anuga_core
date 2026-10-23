@@ -1,0 +1,100 @@
+# GPU tests on real hardware (audit issue #333).
+#
+# The push/PR workflows build with gcc and run the mode-2 ("unified") kernels on
+# the host: the `omp target` regions execute on the CPU, so the dispatch and the
+# kernels are compiled and exercised, but nothing ever runs on a GPU in CI. This
+# workflow is the missing half. It needs a self-hosted runner with:
+#
+#   - an NVIDIA GPU and driver (nvidia-smi works),
+#   - the NVIDIA HPC SDK on PATH (nvc, for -Dgpu_offload=true),
+#   - conda/mamba, and
+#   - the runner labels: self-hosted, linux, gpu.
+#
+# Register one (Settings -> Actions -> Runners) and this job becomes runnable
+# from the Actions tab; until then it is skipped, not failed. It is manual
+# (workflow_dispatch) rather than scheduled because a GPU box is a shared,
+# billable resource; add a `schedule:` block once one is dedicated to CI.
+#
+# What it runs, and why in this shape (see CLAUDE.md "Testing a GPU-offload
+# build"): on an nvc build the NVHPC OpenMP-target runtime aborts a process
+# that has created many mode-2 domains, so the suite cannot run in one process.
+# The isolated runner starts a fresh process per test, with a per-test timeout
+# so a genuine hang is reported rather than sat on.
+
+name: GPU tests (self-hosted)
+
+on:
+  workflow_dispatch:
+    inputs:
+      gpu_arch:
+        description: 'nvc -gpu arch (e.g. cc90 for H100, cc89 for L4, cc120 for RTX 5070). Empty = the meson default.'
+        required: false
+        default: ''
+      python_version:
+        description: 'Python version for the conda environment'
+        required: false
+        default: '3.12'
+
+concurrency:
+  group: gpu-tests
+  cancel-in-progress: false
+
+jobs:
+  gpu:
+    name: mode-2 on GPU (nvc, isolated runner)
+    runs-on: [self-hosted, linux, gpu]
+    timeout-minutes: 180
+    defaults:
+      run:
+        shell: bash -leo pipefail {0}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show the hardware and toolchain the job got
+        run: |
+          nvidia-smi
+          nvc --version | head -3
+          which python || true
+
+      - name: Create the conda environment
+        run: |
+          conda env remove --name anuga_gpu_ci -y 2>/dev/null || true
+          conda env create --name anuga_gpu_ci --file environments/environment_${{ inputs.python_version }}.yml
+          conda activate anuga_gpu_ci
+          python --version
+
+      - name: Build with GPU offload (nvc)
+        run: |
+          conda activate anuga_gpu_ci
+          rm -rf build
+          ARCH_ARG=""
+          if [ -n "${{ inputs.gpu_arch }}" ]; then ARCH_ARG="-Csetup-args=-Dgpu_arch=${{ inputs.gpu_arch }}"; fi
+          CC=$(which nvc) pip install --no-build-isolation -v . \
+              -Csetup-args=-Dgpu_offload=true $ARCH_ARG
+          python -c "import anuga; print(anuga.__version__); print(anuga.gpu_offload_supported())"
+
+      # 1. The bulk suite with the legacy default: domains stay on the CPU, the
+      #    GPU file is excluded (it aborts in-process on an nvc build).
+      - name: Bulk suite (legacy default, GPU file excluded)
+        run: |
+          conda activate anuga_gpu_ci
+          cd sandpit
+          OMP_NUM_THREADS=1 ANUGA_DEFAULT_COMPUTE_MODE=legacy \
+            pytest -rs --pyargs anuga.shallow_water \
+              --ignore-glob='*test_DE_gpu_omp.py'
+
+      # 2. The whole shallow-water set under the unified default, one fresh
+      #    process per test so the NVHPC abort never accumulates.
+      - name: anuga.shallow_water under the unified default (isolated, on the GPU)
+        run: |
+          conda activate anuga_gpu_ci
+          cd sandpit
+          OMP_NUM_THREADS=1 ANUGA_STRICT_COMPUTE_MODE=1 \
+            anuga_run_isolated_tests --pyargs anuga.shallow_water -cm unified --timeout 300
+
+      # 3. The mode-1 vs mode-2 consistency file on real hardware.
+      - name: GPU consistency file (isolated)
+        run: |
+          conda activate anuga_gpu_ci
+          cd sandpit
+          OMP_NUM_THREADS=1 anuga_run_isolated_tests --timeout 300

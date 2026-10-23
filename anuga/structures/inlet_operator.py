@@ -22,6 +22,7 @@ class Inlet_operator(anuga.Operator):
                  velocity = None,
                  zero_velocity = False,
                  default = 0.0,
+                 tracer_concentrations = None,
                  description = None,
                  label = None,
                  logging = False,
@@ -34,6 +35,10 @@ class Inlet_operator(anuga.Operator):
         :param velocity: Optional [u,v] to set velocity of applied discharge
         :param zero_velocity: If set to True, velocity of inlet region set to 0
         :param default: If outside time domain of the Q function, use this default discharge
+        :param tracer_concentrations: dict of tracer name -> concentration (float
+            or function of t) of the water the inlet adds. Tracers not named come
+            in at zero concentration. Water the inlet removes always takes its
+            tracer with it, at the inlet's mean concentration.
         :param description: Describe the Inlet_operator
         :param label: Give Inlet_operator a label (name)
         :param verbose: Provide verbose output
@@ -67,6 +72,10 @@ class Inlet_operator(anuga.Operator):
         self.total_requested_volume = 0.0
 
         self.set_default(default)
+
+        from anuga.structures.inlet_tracers import InletTracers
+        self.tracers = InletTracers(self.domain, tracer_concentrations,
+                                    label=getattr(self, 'label', ''))
 
         self.activate_logging()
 
@@ -112,10 +121,12 @@ class Inlet_operator(anuga.Operator):
         if op_id < 0:
             warnings.warn(
                 f"Failed to register GPU inlet operator "
-                f"'{getattr(self, 'label', repr(self))}': slot limit exceeded "
-                f"(MAX_INLET_OPERATORS=32). Falling back to the Python path; "
+                f"'{getattr(self, 'label', repr(self))}' (the C init "
+                f"returned {op_id}: slot limit exceeded, out-of-range "
+                f"triangle indices, or allocation failure; see stderr). "
+                f"Falling back to the Python path. If it is the slot limit, "
                 f"reduce the number of Inlet_operator instances or increase "
-                f"MAX_INLET_OPERATORS in gpu_domain.h to use the GPU kernel.",
+                f"MAX_INLET_OPERATORS in gpu_domain.h.",
                 stacklevel=2,
             )
             return
@@ -161,10 +172,21 @@ class Inlet_operator(anuga.Operator):
         ext_vel_v = self.velocity[1] if has_velocity else 0.0
         zero_vel = 1 if self.zero_velocity else 0
 
+        # Tracers the water carries (see inlet_tracers.py): the kernel moves
+        # them with the water; here only the inflow concentrations and the
+        # bookkeeping.
+        c_in = dmass = None
+        if self.tracers.active():
+            c_in = self.tracers.inflow_concentrations(t, timestep)
+            dmass = numpy.zeros(self.domain.number_of_tracers)
+
         # Apply on GPU (handles all 3 cases)
         actual_volume = gpu_ext.inlet_apply_gpu(
             gpu_dom, op_id, volume, current_volume, total_area,
-            vel_u, vel_v, has_velocity, ext_vel_u, ext_vel_v, zero_vel)
+            vel_u, vel_v, has_velocity, ext_vel_u, ext_vel_v, zero_vel,
+            c_in, dmass)
+        if dmass is not None:
+            self.tracers.record(dmass)
 
         # Update tracking variables
         self.total_requested_volume += volume
@@ -232,6 +254,14 @@ class Inlet_operator(anuga.Operator):
 
         u,v = self.inlet.get_velocities()
 
+        # Tracer state before the water moves (see inlet_tracers.py).
+        carry_tracers = self.tracers.active()
+        if carry_tracers:
+            tr_idx = self.inlet.triangle_indices
+            tr_areas = self.inlet.get_areas()
+            tr_h_old, tr_m_old = self.tracers.capture(tr_idx)
+        requested_volume = volume
+
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
@@ -285,6 +315,10 @@ class Inlet_operator(anuga.Operator):
 
 
         self.total_applied_volume += volume
+
+        if carry_tracers:
+            self.tracers.apply(tr_idx, tr_areas, tr_h_old, tr_m_old,
+                               requested_volume, t, timestep)
 
 
     def update_Q(self, t):

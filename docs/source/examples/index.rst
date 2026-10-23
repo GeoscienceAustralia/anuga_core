@@ -19,6 +19,7 @@ downloaded and run locally; the script example is also available in the
    notebook_create_domain_with_riverwalls
    notebook_flooding_example
    notebook_tsunami_benchmark
+   notebook_sediment_transport
 
 
 .. list-table::
@@ -64,5 +65,12 @@ downloaded and run locally; the script example is also available in the
        and spatially interpolated bathymetry.  Simulated water-surface
        time series are compared against physical model gauge data.
      - Advanced
+   * - :doc:`Sediment transport <notebook_sediment_transport>`
+     - Suspended sediment with ``add_sediment_fraction``: scour of a sand
+       bed in a sloping channel, with the concentration and bed change
+       plotted on the mesh, then sediment settling out of still water
+       compared against its reference solution (the same case as the
+       ``sediment_settling`` validation test).
+     - Intermediate
 
 .. only:: html

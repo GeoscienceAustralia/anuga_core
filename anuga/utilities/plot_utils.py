@@ -50,7 +50,6 @@
 from anuga.file.netcdf import NetCDFFile
 import numpy
 import copy
-import matplotlib.cm
 
 class combine_outputs:
     """
@@ -155,7 +154,8 @@ class get_output:
         self.x, self.y, self.time, self.vols, self.stage, \
                 self.height, self.elev, self.friction, self.xmom, self.ymom, \
                 self.xvel, self.yvel, self.vel, self.minimum_allowed_height,\
-                self.xllcorner, self.yllcorner, self.timeSlices, self.starttime = \
+                self.xllcorner, self.yllcorner, self.timeSlices, self.starttime, \
+                self.tracers = \
                 _read_output(filename, minimum_allowed_height, copy.copy(timeSlices))
         self.filename = filename
         self.verbose = verbose
@@ -204,6 +204,64 @@ def getInds(varIn, timeSlices, absMax=False):
     return var
 
 ############################################################################
+
+# Quantities whose centroid variable is <name>_c but which are NOT tracers.
+# Only consulted for sww files written before the tracer_names attribute
+# existed; a current file states its tracers outright.
+_NON_TRACER_C_VARIABLES = frozenset((
+    'stage', 'elevation', 'friction', 'xmomentum', 'ymomentum',
+    'height', 'xvelocity', 'yvelocity', 'velocity',
+    'max_stage', 'max_depth', 'max_speed', 'max_uh',
+))
+
+
+def get_tracer_names(filename):
+    """Names of the tracers stored in an sww file, in the order written.
+
+    Tracers -- and therefore suspended sediment classes, which are tracers
+    with settling parameters -- are stored as one dynamic centroid variable
+    `<name>_c` each. That looks exactly like `stage_c`, so the writer records
+    which ones they are as a global `tracer_names` attribute and this reads it.
+
+    Files written before that attribute existed fall back to "every `<name>_c`
+    variable whose base is not a known quantity", which is right for every
+    such file but cannot stay right as quantities are added -- hence the
+    attribute.
+    """
+    fid = NetCDFFile(filename)
+    try:
+        return _tracer_names_from(fid)
+    finally:
+        fid.close()
+
+
+def _tracer_names_from(fid):
+    """As get_tracer_names, on an already-open file."""
+    names = getattr(fid, 'tracer_names', None)
+    if names is not None:
+        # Written by every current file, '' when there are no tracers.
+        if isinstance(names, bytes):
+            names = names.decode()
+        return [n for n in str(names).split() if n]
+
+    # Older file: infer, and accept that a quantity added after this list was
+    # written would be misread as a tracer.
+    found = []
+    for v in fid.variables.keys():
+        if v.endswith('_c') and v[:-2] not in _NON_TRACER_C_VARIABLES:
+            found.append(v[:-2])
+    return sorted(found)
+
+
+def _read_tracers(fid, inds):
+    """{name: array} of the tracer concentrations at the given time slices."""
+    tracers = {}
+    for name in _tracer_names_from(fid):
+        var = name + '_c'
+        if var in fid.variables:
+            tracers[name] = getInds(fid.variables[var], timeSlices=inds)
+    return tracers
+
 
 def _read_output(filename, minimum_allowed_height, timeSlices):
     """
@@ -321,10 +379,13 @@ def _read_output(filename, minimum_allowed_height, timeSlices):
         xmom = getInds(xmom, timeSlices=inds,absMax=True)
         ymom = getInds(ymom, timeSlices=inds,absMax=True)
 
+    tracers = _read_tracers(fid, inds)
+
     fid.close()
 
     return x, y, time, vols, stage, height, elev, friction, xmom, ymom,\
-           xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner, inds, starttime
+           xvel, yvel, vel, minimum_allowed_height, xllcorner,yllcorner, inds, starttime,\
+           tracers
 
 ######################################################################################
 
@@ -348,13 +409,18 @@ class get_centroids:
           array.
           But as a hack for the time being the elevation from the file
           is available via elev_orig
+
+    Tracers -- and suspended sediment classes, which are tracers -- are in
+    the `tracers` dict, keyed by name, e.g. pc.tracers['salinity']. A dict
+    rather than attributes so a tracer cannot shadow `stage` or `vel`.
     """
     def __init__(self, p, velocity_extrapolation=False, verbose=False,
                  timeSlices=None, minimum_allowed_height=1.0e-03):
 
         self.time, self.x, self.y, self.stage, self.xmom,\
             self.ymom, self.height, self.elev, self.elev_orig, self.friction, self.xvel,\
-            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices= \
+            self.yvel, self.vel, self.xllcorner, self.yllcorner, self.timeSlices,\
+            self.tracers = \
                 _get_centroid_values(p, velocity_extrapolation,\
                                      timeSlices=copy.copy(timeSlices),\
                                      minimum_allowed_height=minimum_allowed_height,\
@@ -639,11 +705,20 @@ def _get_centroid_values(p, velocity_extrapolation, verbose, timeSlices,
         xvel_cent = getInds(xvel_cent, timeSlices=inds, absMax=True)
         yvel_cent = getInds(yvel_cent, timeSlices=inds, absMax=True)
 
+    # Tracers are centroid quantities to begin with -- there is no vertex
+    # variable to fall back on -- so this is the path that matters for them.
+    tracers_cent = {}
+    for _tname in _tracer_names_from(fid):
+        if _tname + '_c' in fid.variables:
+            tracers_cent[_tname] = _getCentVar(fid, _tname + '_c',
+                                               time_indices=inds, vols=vols)
+
     fid.close()
 
     return time, x_cent, y_cent, stage_cent, xmom_cent,\
              ymom_cent, height_cent, elev_cent, elev_cent_orig, friction_cent,\
-             xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds
+             xvel_cent, yvel_cent, vel_cent, xllcorner, yllcorner, inds,\
+             tracers_cent
 
 
 def animate_1D(time, var, x, ylab=' '):
@@ -1227,7 +1302,7 @@ def Make_Geotif(swwFile=None,
 
     return
 
-def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib.cm.jet, edgecolors='k'):
+def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=None, edgecolors='k'):
     """ Add mesh triangles to a pyplot plot
 
        @param p = object holding sww vertex information (from util.get_output)
@@ -1239,6 +1314,13 @@ def plot_triangles(p, adjustLowerLeft=False, values=None, values_cmap=matplotlib
     import matplotlib
     from matplotlib import pyplot as pyplot
     from matplotlib.collections import PolyCollection
+
+    # Resolved here rather than as a default argument: importing matplotlib at
+    # module level made it a hard requirement of `import anuga`, which meant a
+    # solver or MPI run could not start when a PLOTTING library was missing or
+    # broken. None keeps the same colormap without that coupling.
+    if values_cmap is None:
+        values_cmap = matplotlib.cm.jet
 
     x0=p.xllcorner
     y0=p.yllcorner

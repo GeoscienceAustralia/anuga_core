@@ -44,6 +44,33 @@ class Test_sanddune_erosion_operator(unittest.TestCase):
     def setUp(self):
         self.domain = make_domain()
 
+    def test_base_does_not_lift_a_bed_that_starts_below_it(self):
+        """#305: `base` is a limit on erosion, not a level to restore to.
+
+        Applied as a bare maximum it lifts a bed that already sits below it.
+        """
+        d = anuga.rectangular_cross_domain(20, 10, 20.0, 10.0)
+        d.set_quantity('elevation', -0.5)          # everywhere BELOW base
+        d.set_quantity('stage', 1.0)
+        d.set_quantity('friction', 0.03)
+        d.set_flow_algorithm('DE1')
+        d.set_datadir('.')
+        d.set_name('test_305_sanddune')
+        d.set_quantities_to_be_stored(None)
+        R = Reflective_boundary(d)
+        d.set_boundary({'left': R, 'right': R, 'top': R, 'bottom': R})
+        Sanddune_erosion_operator(
+            d, base=0.0,
+            polygon=[[2.0, 2.0], [18.0, 2.0], [18.0, 8.0], [2.0, 8.0]])
+
+        z0 = d.quantities['elevation'].centroid_values.copy()
+        for t in d.evolve(yieldstep=2.0, finaltime=4.0):
+            pass
+        dz = d.quantities['elevation'].centroid_values - z0
+
+        assert dz.max() <= 1.0e-10, (
+            'raised a bed already below base by %g m' % dz.max())
+
     def test_whole_domain_scalar_base_runs(self):
         """indices=None + default scalar base: previously crashed, now runs.
 

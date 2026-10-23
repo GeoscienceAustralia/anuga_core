@@ -27,8 +27,13 @@ def setup_weirs(domain, project):
         is absent (e.g. an older Excel-based project file that predates
         weir support) the function returns without error.
     """
-    from anuga.structures.weir_orifice_trapezoid_operator import (
-        Weir_orifice_trapezoid_operator)
+    from anuga.parallel import numprocs
+    if numprocs > 1:
+        from anuga.parallel.parallel_operator_factory import (
+            Weir_orifice_trapezoid_operator)
+    else:
+        from anuga.structures.weir_orifice_trapezoid_operator import (
+            Weir_orifice_trapezoid_operator)
 
     weir_data = getattr(project, 'weir_data', [])
 

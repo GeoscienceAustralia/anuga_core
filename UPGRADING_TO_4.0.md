@@ -27,10 +27,13 @@ Pipes use `Boyd_pipe_operator(..., diameter=...)`; weirs use
 `Weir_orifice_trapezoid_operator`. A worked example is in
 `examples/structures/run_open_slot_wide_bridge.py`.
 
-## 2. Forcing classes are deprecated (removal in 4.1)
+## 2. Forcing classes: deprecated in 4.0, removed in 4.1
 
-They still work in 4.0.0 but emit `DeprecationWarning`, and they are **silently
-skipped in the `'unified'` compute mode** — migrate before enabling it.
+In 4.0.x the classes `Rainfall`, `Inflow`, `Wind_stress`, `Barometric_pressure`
+(and the `_fast` variants) in `anuga.shallow_water.forcing` still work but emit
+`DeprecationWarning`, and they are **silently skipped in the `'unified'`
+compute mode**. **In 4.1 they are gone**: importing them raises `ImportError`.
+Migrate to the operators, which work in both compute modes:
 
 ```python
 # before
@@ -41,15 +44,36 @@ domain.forcing_terms.append(Wind_stress(s=10.0, phi=45.0))
 
 # after
 from anuga import Rate_operator, Wind_stress_operator
-Rate_operator.rainfall(domain, rate=36.0)    # mm/hr  (10 mm/s == 36000 mm/hr)
-Rate_operator.inflow(domain, rate=5.0)       # m^3/s
-Wind_stress_operator(domain, s=10.0, phi=45.0)
+Rate_operator.rainfall(domain, rate=36000.0)   # mm/hr  (10 mm/s == 36000 mm/hr)
+Rate_operator.inflow(domain, rate=5.0)         # m^3/s
+Wind_stress_operator(domain, speed=10.0, phi=45.0)
 ```
+
+Operators attach themselves to the domain when constructed — there is no
+`forcing_terms.append(...)`.
 
 **Watch the units.** `Rainfall` took **mm/s**; `Rate_operator.rainfall()` takes
 **mm/hr** — multiply by 3600 when porting. `Inflow` and `Rate_operator.inflow()`
 both take m³/s, so those carry over unchanged.
 `Barometric_pressure` → `Barometric_pressure_operator`.
+
+**Wind and pressure fields read from a file** (`Wind_stress(F,
+use_coordinates=False)`, `Wind_stress_fast`, `Barometric_pressure_fast`) are
+now handled by the operators with the same `use_coordinates=False` switch; the
+`file_function` is interpolated at the centroids for wind and at the nodes for
+pressure:
+
+```python
+F = anuga.file_function('wind.sww', domain,
+                        quantities=['wind_speed', 'wind_angle'],
+                        interpolation_points=domain.get_centroid_coordinates())
+Wind_stress_operator(domain, F, use_coordinates=False)
+
+P = anuga.file_function('pressure.sww', domain,
+                        quantities=['barometric_pressure'],
+                        interpolation_points=domain.get_nodes())
+Barometric_pressure_operator(domain, P, use_coordinates=False)
+```
 
 ## 3. Structures on sloping ground give different results
 

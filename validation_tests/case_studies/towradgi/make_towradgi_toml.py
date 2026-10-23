@@ -9,7 +9,7 @@ Run from the towradgi case-study directory:
 
 It writes:
   * towradgi.toml
-  * bounding_polygon.csv, inlet_line.csv, inlet_hydrograph.csv, east_stage.csv
+  * bounding_polygon.csv, inlet_line.csv, inlet_hydrograph_<Q>.csv, east_stage.csv
   * culvert_exchange/<label>_{0,1}.csv        (exchange lines for each culvert)
 
 The friction and rainfall lists are built from the actual data on disk
@@ -18,6 +18,16 @@ stays in sync with the dataset. Culvert/bridge geometry and the Manning value
 exceptions are transcribed from run_small_towradgi.py.
 
 Requires the runner enhancements: rainfall .tms support and dict `losses`.
+
+Three settings depart from run_small_towradgi.py, following the 2026 validation
+sensitivity runs:
+  * the creek inflow is 3 m^3/s, not 20. With 20 the Pioneer Rd gauge stays
+    about 0.7 m above the record after the peak; with 3 it follows it.
+  * the run starts at t = -3 h ([project] starttime), a burn-in that wets the
+    creek with the inflow before the rain, which starts at t = 0. Model time
+    then matches the rainfall clock; the Pioneer Rd logger runs 9 h ahead.
+  * the flow algorithm is DE_ader2, not DE1. It gives the same flood-mark
+    and gauge errors (peak levels within 0.05 m) and runs about 25% faster.
 """
 
 import glob
@@ -30,6 +40,10 @@ MAX_TRI_AREA = 1000.0
 BASE_FRICTION = 0.04
 CHANNEL_MANNING = 0.03
 SMOOTH_TS = 30.0
+INLET_Q = 3.0            # creek inflow [m^3/s]; run_small_towradgi.py uses 20
+# The inflow is in the file name, so a stale 20 m^3/s inlet_hydrograph.csv
+# from an older run of this script is not picked up by mistake.
+INLET_FILE = f'inlet_hydrograph_{INLET_Q:g}.csv'
 
 # ---- Manning value rules (from ManningList) ---------------------------------
 # Numbered Model/Mannings/<n>.csv are 0.15 unless listed here; named files and
@@ -190,8 +204,8 @@ def main():
                     [[W, S], [E, S], [E, N], [W, N]])
     _write_polyline('inlet_line.csv',
                     [[304000.0, 6194200.0], [304000.0, 6194600.0]])
-    with open('inlet_hydrograph.csv', 'w') as fh:
-        fh.write('time,discharge\n0.0,20.0\n1000000.0,20.0\n')
+    with open(INLET_FILE, 'w') as fh:
+        fh.write(f'time,discharge\n0.0,{INLET_Q}\n1000000.0,{INLET_Q}\n')
     with open('east_stage.csv', 'w') as fh:
         fh.write('time,stage\n0.0,0.0\n1000000.0,0.0\n')
 
@@ -215,11 +229,12 @@ def main():
     A('[project]')
     A('scenario               = "Towradgi_historic_flood"')
     A('output_base_directory  = "OUTPUT/"')
-    A('yieldstep              = 120.0')
-    A('finaltime              = 3600.0')
-    A('outputstep             = 120.0')
+    A('yieldstep              = "3*60"')
+    A('starttime              = "-3*3600"   # 3 h burn-in; the rain starts at t = 0')
+    A('finaltime              = "24*3600"')
+    A('outputstep             = "15*60"')
     A(f'projection_information = "EPSG:{EPSG}"')
-    A('flow_algorithm         = "DE1"')   # matches run_small_towradgi.py's default (-alg DE1)
+    A('flow_algorithm         = "DE_ader2"')   # run_small_towradgi.py uses DE1; see docstring
     A('compute_mode           = "unified"  # "legacy" (CPU OpenMP) or "unified" (CPU/GPU)')
     A('report_mass_conservation_statistics = true  # water balance each yieldstep')
     A('')
@@ -269,11 +284,11 @@ def main():
         A(f'polygon = "{poly}"')
         A(f'value   = {val}')
     A('')
-    A('# Inlet — constant 20 m^3/s creek inflow (script creek_inlet)')
+    A(f'# Inlet — constant {INLET_Q:g} m^3/s creek inflow (script creek_inlet uses 20)')
     A('[[inlets]]')
     A('name            = "Creek_Inlet_West"')
     A('line_file       = "inlet_line.csv"')
-    A('timeseries_file = "inlet_hydrograph.csv"')
+    A(f'timeseries_file = "{INLET_FILE}"')
     A('start_time      = 0.0')
     A('')
     A(f'# Culverts & bridges — {len(CULVERTS)} Boyd operators (exchange lines in culvert_exchange/).')

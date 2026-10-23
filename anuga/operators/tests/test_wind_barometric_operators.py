@@ -58,12 +58,15 @@ class TestBarometricPressureOperator:
             domain.quantities['ymomentum'].centroid_values,
             0.0, atol=1e-14)
 
-    def test_use_coordinates_false_raises(self):
-        """use_coordinates=False is not supported."""
+    def test_use_coordinates_false_needs_file_function(self):
+        """use_coordinates=False requires a single-quantity file_function."""
         from anuga.operators.barometric_pressure import Barometric_pressure_operator
         domain = _make_domain()
-        with pytest.raises(NotImplementedError):
+        with pytest.raises(ValueError):
             Barometric_pressure_operator(domain, use_coordinates=False)
+        with pytest.raises(ValueError):
+            Barometric_pressure_operator(domain, pressure=lambda t, x, y: x,
+                                         use_coordinates=False)
 
     def test_parallel_safe(self):
         from anuga.operators.barometric_pressure import Barometric_pressure_operator

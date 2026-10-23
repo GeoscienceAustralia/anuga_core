@@ -1,0 +1,269 @@
+
+\section{Dam-break over a sand bed around a pier: the Zaragoza Kinect experiments}
+
+Segovia-Burillo et al. \cite{SegoviaBurillo2026} released an 8~cm dam-break
+from an $81 \times 157$~cm reservoir down a dry 6~m $\times$ 24~cm PVC flume
+(Manning $n = 0.010$) whose bed, from 1.0 to 2.5~m past the gate, is a 5~cm
+layer of sand (0.7 and 1.3~mm in equal parts, $\rho_s = 2650$~kg/m$^3$,
+porosity 0.34) levelled with the PVC. A pier stands on the centreline 1.6~m
+from the gate: a 3~cm cylinder (case P1) or a $3 \times 6.5$~cm rounded
+rectangle (P2). The dam-break is repeated three times over the evolving
+bed. A Kinect sensor over the pier reach ($x = 1.12$--2.07~m) records the
+bed after each event and the water surface during each at 30~frames/s, on
+a 1.4~mm grid; the data are open (Zenodo, DOI 10.5281/zenodo.17777387).
+The flow over the sand is supercritical (Froude about 2), a few
+centimetres deep, and lasts a few seconds; the transport is bedload. The
+bed feature, the pier, is a few depths across and the scour hole many, so
+the case sits inside the depth-averaged assumption in a way van Rijn's
+trench does not, and it exercises the parts of the sediment model the
+trench did not: the Exner coupling under a transient, a rigid base under a
+finite layer, the angle of repose around a hole, and a wetting front over
+an erodible bed.
+
+\anuga{} meshes the reservoir and flume with the pier as a hole (reflective),
+holding the whole 24~cm channel at 15 cells across, 18 over the sand and
+43 around the pier, on a coarser reservoir; it releases the
+reservoir instantaneously (the gate opens in under 0.1~s, within the
+Lauber--Hager criterion the authors check), and lets the flow out through
+a transmissive boundary on the 4\,\% slope that follows the flat reach.
+One bedload fraction of 1.0~mm (the geometric mean of the mix) moves under
+Wong--Parker over a 5~cm erodible base with a 32$^\circ$ angle of repose;
+the suspended exchange is off, as the paper treats the transport as
+bedload. Manning $n$ on the sand is 0.015, the mean of the paper's values
+for the two sizes. Each dam-break runs for 5~s of flow, after which the
+water has left the pier reach; between events the reservoir is refilled and
+the flume dried with the bed kept, as in the flume.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{The Zaragoza flume: an 8~cm dam-break runs over a 5~cm sand layer past a pier, in side view above and in plan below.}
+\end{figure}
+
+\figifexists{mesh.png}{
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{mesh.png}
+\end{center}
+\caption{The mesh: the flume carries 15 cells across its 24~cm width from
+the gate to the exit, 18 over the erodible sand and 43 around the pier,
+which is cut out as a hole with reflective edges; the reservoir, where the
+flow is a slow drawdown, takes the overall cap of 26~mm. The three
+full-width reaches are delimited by breaklines and their resolution set by
+a marker point inside each, rather than by a region polygon inset from the
+walls, which would leave a sliver the mesher fills with a band of tiny
+triangles. The reservoir and the flume are one
+continuous mesh, so the mouth of the flume is interior: a breakline along
+it puts cell edges on the gate line, which keeps the contraction and the
+crest of the sill that \texttt{ZARAGOZA\_GATE\_TIME} raises from being
+ragged. The step either side of the mouth is a pair of wall segments.}
+\end{figure}
+}{}
+
+
+Bedload is ramped off below a depth of two grain diameters, the
+argument \texttt{min\_depth} of \texttt{set\_bedload}. Without it the film cells of the
+wetting front, which carry the front's momentum and a large nominal shear,
+dig steps into the sand as the front arrives and the time step collapses at
+0.94~s, with or without the angle of repose and under DE0 or DE1.
+
+The comparison is the bed change after each dam-break over the Kinect
+window, block-averaged to 5~mm (the two \texttt{kinect\_*\_bed.csv} files
+are that reduction of the Zenodo data, made by the script
+\texttt{extract\_kinect.py}), plus the water surface along the centreline
+during the first event. The Kinect bed change has an RMS of 3.6 (P1) and
+4.0~mm (P2) about zero, most of it a ripple-scale texture the model does
+not represent, so the provisional pass criterion is a bed-change RMS below
+6~mm over the window after the first dam-break: \anuga{} gives 3.2 and
+3.6~mm. What the case actually tests is the scour at the pier. Over a ring
+2--4~cm from the pier centre the flume lowered the bed by 10.4~mm (P1) and
+12.6~mm (P2) in the first event; with the pier-scour correction and the
+wake tail described below the model gives 7.9 and 11.8, with the pier
+correction alone 4.8 and 9.6, and with neither 2.9 and 6.0. It erodes 102
+and 115~cm$^3$ of the 190 and 143 the Kinect measures. The deepest points
+are 32 and 53~mm measured against 24 and 22 (the 53 exceeds the sand
+thickness and is a Kinect artefact at the pier's edge), and the wake
+deposit overshoots, +5.2 and +5.8 against +3.0 and +2.4: right behind the
+pier the flume scours where the model deposits (see \emph{The wake}). Neither a 40$^\circ$ angle of repose, nor a mesh
+twice as fine at the pier, nor turning the repose relaxation off moves the
+ring scour by more than a millimetre, so the shortfall is in the transport
+around the pier, not the discretisation: the horseshoe vortex that does
+most of the digging at a pier is a three-dimensional structure a
+depth-averaged model does not have, and the model's shear at the pier is
+the uniform-flow one. The water surface in the window is not the pier's doing: with the pier
+removed it is the same to 0.1~mm at 1.2 and 1.4~m, so the depth there is
+set by the reservoir release and the flume, and the pier only adds a bow
+wave (a 55~mm crest 20~cm upstream on a fixed bed at 4.7~s, absent once
+the bed can scour). Against the Kinect the model's front is earlier and
+blunter (21~mm at 1.2~m at 1.5~s against 9) and the later flow shallower
+(37~mm at 1.2~m from 3.7~s against 44) and laterally flat, where the flume
+shows cross-waves of $\pm 5$~mm from the contraction at the gate, a crest
+on the centreline at 1.2~m and a trough at 1.4~m. Resolving the whole flume
+at 1~cm, which the case now does, does not produce them. The model's reservoir drops from 80 to
+57~mm over the 5~s at a unit discharge of 0.027~m$^2$/s, between the
+Ritter value for the depth (0.021) and the critical-contraction value
+(0.038). Opening the gate over 0.15~s as a sill (\texttt{ZARAGOZA\_GATE\_TIME}),
+refining the contraction at the gate (\texttt{ZARAGOZA\_A\_GATE}) and
+raising the Manning $n$ of the sand were each tried: the gate delays the
+front by 0.2~s and changes nothing after 2~s, the refinement changes
+nothing, and $n = 0.025$ matches the later depth at 1.2~m to half a
+millimetre while overshooting at 1.8~m, and none of the three moves the
+ring scour past 4~mm. The shortfall is the transport at the pier itself.
+
+\subsection*{The pier-scour correction}
+
+The horseshoe vortex at a pier raises the bed shear to several times the
+approach value within about a diameter, and a depth-averaged model has no
+such structure. \anuga{} now carries a per-cell factor on the bed shear the
+sediment sees (\texttt{set\_shear\_amplification}, [T-12]), and the case
+sets it to $1 + A \exp[-(r - R)/(\ell R)]$ around the pier, $r$ the
+distance from its axis and $R$ its half-width, chosen by
+\texttt{ZARAGOZA\_PIER\_AMP} ($A$) and \texttt{ZARAGOZA\_PIER\_LEN} ($\ell$).
+Its effect on P1 after the first dam-break:
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{3.0cm}rrrrr}
+\hline
+$A$, $\ell$ & RMS & ring 2--4~cm & deepest & wake & upstream \\
+ & (mm) & (mm) & (mm) & (mm) & (mm) \\
+\hline
+measured & & $-10.4$ & 32 & +3.0 & $-1.4$ \\
+0 (no correction) & 3.4 & $-2.9$ & 16 & +2.3 & +1.8 \\
+2, 1 & 3.4 & $-3.6$ & & +3.6 & +0.7 \\
+4, 1 & 3.4 & $-4.3$ & & +4.7 & $-0.2$ \\
+8, 1 & 3.6 & $-5.5$ & & +6.3 & $-1.8$ \\
+8, 1, repose off & 3.8 & $-4.2$ & 47 & +6.0 & $-2.1$ \\
+8, 1, repose 45$^\circ$ & 3.6 & $-5.5$ & 31 & +6.4 & $-1.9$ \\
+\textbf{4, 2} (the case) & 3.5 & $-5.0$ & 22 & +6.1 & $-2.0$ \\
+8, 2 & 3.9 & $-7.0$ & 24 & +8.1 & $-4.8$ \\
+4, 3 & 3.6 & $-5.1$ & 21 & +6.8 & $-2.5$ \\
+8, 3 & 4.2 & $-7.4$ & 24 & +9.0 & $-5.4$ \\
+8, 2, front and flanks only & 3.6 & $-1.5$ & 15 & +5.0 & $-2.4$ \\
+\hline
+\end{tabular}
+\end{center}
+
+The amplification digs, but not the way the flume did: the material it
+lifts settles again within a pier length downstream, so the wake deposit
+overshoots as the ring deepens, and the hole is narrow and deep against
+the pier (a 45$^\circ$ repose gives the measured deepest point at $A = 8$)
+where the flume's is broad and 10~mm deep over the whole ring. Confining
+the amplification to the front and flanks, where the horseshoe vortex
+lives, loses the flank scour altogether. The case runs with $A = 4$,
+$\ell = 2$, which halves the ring deficit at no cost in RMS; a stronger
+setting buys ring scour with wake and upstream error. P1 runs routinely and
+P2 joins it under the long option.
+
+\subsection*{The wake}
+
+Along the centreline the difference is plain. Right behind the pier the
+flume scoured by 7--8~mm and deposited from about two diameters
+downstream, with a long tail of +4 to +7~mm to 1.9~m; the model, with the
+pier correction alone, deposited +7 to +9~mm right behind the pier and
+nothing beyond 1.8~m. Three explanations were tested, on P1 and P2 after
+the first dam-break.
+
+\emph{Suspension.} With entrainment on (Smith-McLean, critical Shields
+number 0.047, Rouse near-bed profile; \texttt{ZARAGOZA\_SUSPENSION=1}) the
+sand does go into suspension, at 1--2\% by volume, but the bed around the
+pier changes by under a millimetre: the bedload under the amplified shear
+sets the scour and the wake, and the suspended sand does not move them.
+
+\emph{The resolved wake.} The pier's shallow-wake number
+$S = c_f D / h \approx 0.013$ is well inside the vortex-shedding regime, so
+a depth-averaged model can shed. At the case's resolution (about five
+triangles across the pier) it barely does: the lateral velocity behind the
+pier varies by 5\% of the approach velocity, the same with \texttt{DE1}
+and \texttt{DE\_ader2}. With 1.5$\times10^{-6}$~m$^2$ triangles over a box
+to 1.95~m (103\,000 triangles; \texttt{ZARAGOZA\_A\_PIER},
+\texttt{ZARAGOZA\_BOX\_X1}) the model forms a recirculation behind the
+pier ($-0.15$~m/s) and sheds at 5.0~Hz, a Strouhal number of 0.20, the
+textbook value for a cylinder, with lateral velocities of 8--12\% of the
+approach. Its wake is right, and its bed is not: the ring scour moves by a
+millimetre and the lee still fills, because the recirculating flow is
+slow and its depth-averaged shear small.
+
+So the lee scour is not a depth-averaged effect left unresolved. It comes
+from the near-bed flow of the horseshoe vortex's legs and the upflow in the
+wake vortices, which are three-dimensional and non-hydrostatic; a
+multilayer hydrostatic model would not have them either.
+
+\emph{A wake tail on the amplification.} As an empirical stand-in for that
+near-bed shear, the case adds $A_w \exp(-s / (\ell_w D))\,
+\exp(-y'^2 / 2D^2)$ to the factor downstream of the pier, $s$ the
+distance from its rear face, $y'$ the distance from its axis and $D$ its
+diameter (\texttt{ZARAGOZA\_WAKE\_AMP}, \texttt{ZARAGOZA\_WAKE\_LEN}).
+Over the pier correction:
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{p{3.0cm}rrrrr}
+\hline
+$A_w$, $\ell_w$ & RMS & ring 2--4~cm & deepest & wake & eroded \\
+ & (mm) & (mm) & (mm) & (mm) & (cm$^3$) \\
+\hline
+\multicolumn{6}{l}{P1} \\
+measured & & $-10.4$ & 32 & +3.0 & 190 \\
+0 (no tail) & 3.5 & $-4.9$ & 21 & +5.9 & 77 \\
+1, 3 & 3.4 & $-6.2$ & 22 & +6.0 & 87 \\
+1, 5 & 3.4 & $-6.5$ & 22 & +5.7 & 89 \\
+2, 3 & 3.3 & $-7.3$ & 23 & +5.9 & 98 \\
+\textbf{2, 5} (the case) & 3.2 & $-7.9$ & 24 & +5.2 & 102 \\
+\multicolumn{6}{l}{P2} \\
+measured & & $-12.6$ & 53 & +2.4 & 143 \\
+0 (no tail) & 3.7 & $-9.3$ & 21 & +7.0 & 89 \\
+\textbf{2, 5} (the case) & 3.6 & $-11.8$ & 22 & +5.8 & 115 \\
+\hline
+\end{tabular}
+\end{center}
+
+The tail keeps the bedload moving through the wake: the ring deepens, the
+eroded volume rises towards the measured, the RMS falls in both cases and
+nothing gets worse, and the deposit moves downstream and gains the long
+tail the flume shows. It cannot make the lee scour, for the same reason as
+the resolved wake: a factor on a small shear is a small shear. The case
+runs with $A_w = 2$ over $\ell_w = 5$ diameters. It is a calibration,
+fitted to these two experiments, not a measured property of the flow, and
+the lee scour remains the open item.
+
+\figifexists{bed_change_P1_event1.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{bed_change_P1_event1.png}
+\end{center}
+\caption{P1: bed change after the first dam-break, Kinect (top) and \anuga{} (bottom).}
+\end{figure}
+}{}
+
+\figifexists{centreline_P1.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{centreline_P1.png}
+\end{center}
+\caption{P1: bed change along the flume centreline after each dam-break.}
+\end{figure}
+}{}
+
+\figifexists{wse_P1.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{wse_P1.png}
+\end{center}
+\caption{P1: water surface above the initial bed along the centreline during the first dam-break.}
+\end{figure}
+}{}
+
+\figifexists{bed_change_P2_event1.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{bed_change_P2_event1.png}
+\end{center}
+\caption{P2: bed change after the first dam-break, Kinect (top) and \anuga{} (bottom) (long run).}
+\end{figure}
+}{}
+
+\endinput

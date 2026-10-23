@@ -249,6 +249,16 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
     #---------------------------------------------------------------------------
     # Now Create parallel domain
     #---------------------------------------------------------------------------
+    # Tracers are not Quantity objects (#276), so the loop below cannot see
+    # them. They travelled as reserved entries in kwargs (names, shared beta)
+    # and in quantities (the concentrations, partitioned by the same machinery
+    # as everything else); take both out before the constructor and the loop
+    # meet them. #278
+    from anuga.parallel.distribute_mesh import (
+        TRACER_METADATA_KEY, pop_tracer_quantities, restore_tracers)
+    tracer_metadata = kwargs.pop(TRACER_METADATA_KEY, None)
+    tracer_values = pop_tracer_quantities(quantities)
+
     parallel_domain = Parallel_domain(points, vertices, boundary, **kwargs)
 
 
@@ -263,6 +273,15 @@ def distribute(domain, verbose=False, debug=False, parameters = None):
             from anuga import Quantity
             Q = Quantity(parallel_domain, name=q, register=True)
             parallel_domain.set_quantity(q, quantities[q], location='centroids')
+
+    #------------------------------------------------------------------------
+    # Re-create the tracers on this sub-domain
+    #------------------------------------------------------------------------
+    # After the quantities: set_tracer derives m = h*c from this sub-domain's
+    # own depth, so stage and elevation have to be in place first. The values
+    # cover ghost triangles too, so the halo starts correct rather than waiting
+    # for the first communicate_tracer_ghosts().
+    restore_tracers(parallel_domain, tracer_metadata, tracer_values)
 
     #------------------------------------------------------------------------
     # Transfer boundary conditions to each subdomain
@@ -824,6 +843,11 @@ def distribute_collaborative(domain, verbose=False, debug=False, parameters=None
     # Used by _shared_bcast_ndarray to avoid P copies of the mesh topology.
     node_comm = comm.Split_type(MPI.COMM_TYPE_SHARED)
 
+    # Tracers ride the quantity machinery under reserved keys (#278); the
+    # names and shared beta go in domain_attrs, which is broadcast.
+    from anuga.parallel.distribute_mesh import (
+        tracer_partition_metadata, pop_tracer_quantities, restore_tracers)
+
     # ── Step 1: rank 0 partitions ────────────────────────────────────────
     if myid == 0:
         new_mesh, tpp, quantities, _s2p, _p2s = partition_mesh(
@@ -851,6 +875,10 @@ def distribute_collaborative(domain, verbose=False, debug=False, parameters=None
             'boundary_map':             domain.boundary_map,
             'num_global_tri':           domain.number_of_triangles,
             'num_global_nodes':         domain.number_of_nodes,
+            # Tracer names and shared beta. The concentrations themselves are
+            # already in `quantities` under reserved keys, so they ride the
+            # Scatterv below like any other quantity. #278
+            'tracer_metadata':          tracer_partition_metadata(domain),
         }
         quant_keys = list(quantities.keys())
     else:
@@ -1027,6 +1055,10 @@ def distribute_collaborative(domain, verbose=False, debug=False, parameters=None
 
     parallel_domain = Parallel_domain(points, vertices, boundary_local, **kwargs)
 
+    # Out before the loop below, which would otherwise register each one as a
+    # Quantity called `__tracer__0`. #278
+    tracer_values = pop_tracer_quantities(quantities_local)
+
     for q in quantities_local:
         try:
             parallel_domain.set_quantity(q, quantities_local[q], location='centroids')
@@ -1034,6 +1066,10 @@ def distribute_collaborative(domain, verbose=False, debug=False, parameters=None
             from anuga import Quantity
             Q = Quantity(parallel_domain, name=q, register=True)
             parallel_domain.set_quantity(q, quantities_local[q], location='centroids')
+
+    # After the quantities: set_tracer derives m = h*c from the local depth.
+    restore_tracers(parallel_domain,
+                    domain_attrs.get('tracer_metadata'), tracer_values)
 
     boundary_map = domain_attrs['boundary_map'].copy()
     boundary_map['ghost'] = None

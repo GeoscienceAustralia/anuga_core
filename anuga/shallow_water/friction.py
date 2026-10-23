@@ -34,6 +34,9 @@ def manning_friction_semi_implicit(domain):
             # OpenMP version for flat mannings
             from .sw_domain_openmp_ext import manning_friction_flat_semi_implicit
             manning_friction_flat_semi_implicit(domain)
+        if getattr(domain, 'vegetation_mode', 0):
+            from .sw_domain_openmp_ext import vegetation_friction_semi_implicit
+            vegetation_friction_semi_implicit(domain)
 
 
     elif domain.multiprocessor_mode == MULTIPROCESSOR_GPU:
@@ -46,6 +49,9 @@ def manning_friction_semi_implicit(domain):
             # OpenMP version for flat mannings
             from .sw_domain_openmp_ext import manning_friction_flat_semi_implicit
             manning_friction_flat_semi_implicit(domain)
+        if getattr(domain, 'vegetation_mode', 0):
+            from .sw_domain_openmp_ext import vegetation_friction_semi_implicit
+            vegetation_friction_semi_implicit(domain)
     else:
         raise ValueError(f"""
 manning_friction_semi_implicit:

@@ -1,6 +1,6 @@
 # ANUGA Code & Documentation Improvement Progress
 
-Last updated: 2026-07-08 (session 47)
+Last updated: 2026-10-02 (session 58)
 Branch: `develop` (all feature branches merged)
 
 Full history of completed work: `claude/PROGRESS_ARCHIVE.md`
@@ -26,9 +26,10 @@ Future work recommendations: `claude/FUTURE_WORK.md`
 | Kinematic viscosity parallelisation | 4 | 4 | 0 |
 | Mode-2 test triage + isolated runner tooling | 4 | 4 | 0 |
 | Documentation overhaul (session 47) | 15 | 15 | 0 |
-| GPU mode-2 Time_boundary fix | 2 | 1 | 1 |
+| GPU mode-2 Time_boundary fix | 2 | 2 | 0 |
 | Operator-timing fixes (DE1 rk2, DE2 rk3) | 2 | 2 | 0 |
-| **Total** | **228** | **219** | **9** |
+| Validation reports per release (session 58) | 6 | 5 | 1 |
+| **Total** | **234** | **225** | **9** |
 
 ---
 
@@ -48,13 +49,27 @@ Future work recommendations: `claude/FUTURE_WORK.md`
 - [ ] **G4.2** Physical benchmark validation — Thacker paraboloid, dam break (Ritter), tide gauge comparison in GPU mode
 - [ ] **G4.3** Multi-node strong scaling — 20 M triangles, 1→64 GPUs; demonstrate ~50× runtime reduction
 
+### Validation reports per release (session 58)
+
+- [x] Roll-wave + stable cases in `rundown_mild_slope`, solver comparison (PR #407)
+- [x] DE_ader2 dt-dependent steady state documented (KNOWN_ISSUES)
+- [x] Release workflow: per-algorithm reports, release assets, Zenodo draft (PR #408)
+- [x] Zenodo sandbox dry run (create + new version), tokens, `anuga` community
+- [x] Combined three-algorithm report (PR #409); CITATION.cff valid and
+  checked in CI (#410, #412); 4.1.0 release notes (#413)
+- [ ] After the next develop→main merge, run the workflow by hand with
+  zenodo = sandbox to test its wiring; add the Zenodo community co-managers;
+  after the first release is archived, add the software record to the
+  `anuga` community.
+
 ### GPU correctness
 
-- [ ] **Time_boundary substep — option A** (issue #170): evaluate time-varying
-  boundaries per RK substep *inside* the single-call C RK loop (pass per-substep
-  values to `evolve_one_rk*_step_gpu`), so the fast C loop is correct for
-  time-varying boundaries and the option-B routing can be removed. Option B
-  (route such domains to the Python-orchestrated loop) is done (PR #171).
+- [x] **Time_boundary substep** (issue #170): option B, routing domains with
+  Python-evaluated boundaries to the Python-orchestrated GPU loop (PR #171), is
+  the kept design — decided 2026-09-19, issue closed. Option A (per-substep
+  values passed into the single-call C RK loop) was judged not worth its cost
+  for a measured ≤4% routing overhead. Reopen only if a tidal/file-boundary GPU
+  workload is dominated by it.
 
 ---
 

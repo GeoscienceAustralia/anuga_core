@@ -10,10 +10,14 @@ on:
       - develop_cupy
       - feat/sc26
 
+  # develop is deliberately absent: it only ever receives merges from pull
+  # requests, and the pull_request trigger above already tests the merge
+  # result -- so a push run there is the same commit tested twice, at 15 jobs
+  # a time. The branches below are worked on directly, without a PR, so push
+  # is their only coverage. develop is covered daily by scheduled-build.yml.
   push:
     branches:
       - main
-      - develop
       - develop_gpu
       - develop_cupy
       - jorge/unify_again
@@ -36,6 +40,19 @@ on:
         description: 'JSON list of runners. Lets a caller cover one OS more deeply than the others.'
         type: string
         default: '["ubuntu-latest", "macos-latest", "windows-latest"]'
+
+# One run per ref: updating a branch supersedes the run already going for it,
+# rather than leaving both to finish for a result nobody will read. Applies to
+# an open PR getting a fixup and to a directly-worked branch getting a second
+# push alike.
+#
+# Two things are never cancelled, because there is no later run coming to
+# replace them: a push to main, and a release publish (whose ref is the tag,
+# not main, so it needs saying separately).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: >-
+    ${{ github.event_name != 'release' && github.ref != 'refs/heads/main' }}
 
 jobs:
   test_conda:
@@ -192,24 +209,6 @@ jobs:
           conda list --explicit > "conda-explicit-py${{ matrix.python-version }}.txt" || true
           conda list                > "conda-list-py${{ matrix.python-version }}.txt"     || true
           echo "=== solved env: $(wc -l < "conda-explicit-py${{ matrix.python-version }}.txt") lines ==="
-
-      # Decisive isolation test for #255. The segfault's stack is
-      #   test_sww2vtu.py -> sww2vtu.py -> netCDF4/__init__.py:11 -> create_module
-      # i.e. it dies loading _netCDF4.pyd. If importing netCDF4 on its own also
-      # segfaults, then ANUGA and pytest are irrelevant and this is purely a bad
-      # netCDF4/hdf5/libnetcdf combination -- a known netCDF4 failure mode on
-      # win-64, where the DLL bundling is the fragile part.
-      # continue-on-error so this reports without masking the real test result.
-      - name: Probe netCDF4 in isolation (Windows, #255)
-        if: always() && runner.os == 'Windows'
-        continue-on-error: true
-        shell: bash -el {0}
-        run: |
-          conda activate anuga_env
-          echo "--- versions (segfault here => purely environmental) ---"
-          python -c "import netCDF4; print('netCDF4', netCDF4.__version__, '| hdf5', netCDF4.__hdf5libversion__, '| libnetcdf', netCDF4.__netcdf4libversion__)"
-          echo "--- import of the module that triggers it ---"
-          python -c "import anuga.file_conversion.sww2vtu as m; print('sww2vtu imported OK')"
 
       - name: Upload the solved environment (Windows, #255)
         if: always() && runner.os == 'Windows'

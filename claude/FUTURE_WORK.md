@@ -1,6 +1,6 @@
 # Future Work Recommendations
 
-Generated: 2026-04-24 (session 23). Last updated: 2026-07-19 (session 50).
+Generated: 2026-04-24 (session 23). Last updated: 2026-10-02 (session 58).
 Based on codebase investigation cross-referenced against 50 sessions of completed work.
 
 Items marked ~~strikethrough~~ have been invalidated (see notes).
@@ -163,19 +163,13 @@ while rk2/rk3/ader2 already fell back to host evaluation. Fixed by adding
 
 ## Priority 2 — Medium effort (1–2 weeks each)
 
-**P2.10 Remove the deprecated forcing-function classes** — `Wind_stress`, `Rainfall`,
-`Inflow`, `Barometric_pressure` (and `_fast` variants) in `shallow_water/forcing.py` were
-deprecated in session 25 (P1.5). Now driven by mode 2: the C step loop only applies
-Manning friction, so these are **silently skipped** in mode 2 (a one-time warning was
-added 2026-06-14 — `Domain._warn_unsupported_mode2_forcing`). Next phase = removal: (1)
-migrate any remaining `validation_tests/`, `examples/`, and unit tests off the forcing
-classes onto the operators (`Rate_operator.rainfall()`/`inflow()`, `Wind_stress_operator`,
-`Barometric_pressure_operator`); (2) the mode-2 unified-default suite has a handful of
-failures from forcing-as-forcing-term tests (`test_rainfall_forcing_with_evolve_1`,
-`test_volume_conservation_rain`) — migrate or scope to legacy; (3) delete the classes +
-their `pyproject.toml` `filterwarnings` entries after a release. Keep `manning_friction_
-semi_implicit` (in-step semi-implicit; not an operator). See `DECISIONS.md` → "Forcing-
-function classes → operators". Verify `_fast` variants carry the deprecation warning too.
+~~**P2.10 Remove the deprecated forcing-function classes**~~ — Done (2026-09-18).
+`Wind_stress`, `Rainfall`, `Inflow`, `Barometric_pressure`, the `_fast` variants and
+`General_forcing` deleted from `shallow_water/forcing.py` (only `Cross_section` remains);
+`anuga.Inflow/Rainfall/Wind_stress` exports and the `pyproject.toml` filterwarnings
+removed; tests ported to the operators (`test_forcing.py` rewritten). File-driven fields
+(`use_coordinates=False` + `file_function`) moved into `Wind_stress_operator` /
+`Barometric_pressure_operator`. `manning_friction_semi_implicit` kept as a forcing term.
 
 ~~**P2.1 Type hints on the public API**~~ — Done (session 33). Annotated ~130 public methods
 across four files using `from __future__ import annotations` (PEP 563, Python 3.10+ compatible).
@@ -230,6 +224,17 @@ Speculative future work: add EPSG/`Geo_reference` coordinate support to
 
 ---
 
+~~**P2.11 Overlaid algorithm comparisons for the key validation cases**~~ (session 58). **Not pursued** (decided 2026-10-02): the combined report's DE0 | DE1 | DE_ader2 panels are sufficient.
+The combined report (PR #409) shows each figure as DE0 | DE1 | DE_ader2 panels,
+which covers every case but compares less well than one plot with the three
+algorithms overlaid, as `rundown_mild_slope/compare_solvers.py` does. Convert
+the cases where the algorithms differ most (dam breaks, deep_wave, run-up,
+sediment) one at a time. The open design point: the CI combine job sees only
+the collected figures, so either each case's plot step writes a small data
+file (centreline profile, gauge series) that `collect` also copies, or the
+overlay is drawn inside the case by running all algorithms there, as
+compare_solvers does.
+
 ## Priority 3 — Larger initiatives (weeks to months)
 
 **P3.1 Implement local timestepping (GPU-compatible redesign)**
@@ -248,6 +253,20 @@ criterion mapping triangle velocity+size → activity level, (2) grouped sub-cyc
 (3) conservation validation against analytical solutions. Estimated 2–5× speedup on domains
 with large dry/slow areas. The 3.1.9 source in `/home/steve/anuga_core_3.1.9` is the
 algorithmic reference.
+
+**P3.0 Debris-flow mode from the Iverson & George (2014) dilatancy model (issue #391, added 2026-09-24)**
+The D-Claw physics: five unknowns (h, hu, hv, hm, basal pore pressure p_b), dilatancy
+`tan(psi) = m - m_crit/sqrt(1+N)`, Darcy dilation, pore-pressure relaxation on
+`alpha mu h^2/(3k)`, and Coulomb-Terzaghi friction `(rho g_z h - p_b) tan(phi + psi)` with a
+static threshold. With kappa = 1 the hyperbolic part is the SWE plus two contact fields, so
+the flux solver is reused as is; hm and h p_b go on the tracer machinery, the closures in a
+fractional-step operator like the sediment one. **The risk is static friction**: holding a
+pile at rest on a 30 degree slope until the driving force exceeds the cap, which the
+semi-implicit Manning factor cannot do (D-Claw needed a purpose-built Riemann treatment).
+Stage 1 (Coulomb friction + static pile + Savage-Hutter dam break) is the go/no-go; stages 2
+(m, p_b, consolidation solution, USGS gate-release flume) and 3 (mobilisation, loose/dense
+bifurcation) follow. Papers in `~/Projects/Sediment_Transport/References/`; design document
+linked from the issue. Does not bear on the suspended-sediment trench discrepancy (#389).
 
 **P3.2 Higher-order spatial reconstruction**
 Current extrapolation is linear (second-order smooth, first-order near gradients). Limited
@@ -306,6 +325,15 @@ Existing frame-generation pipeline as backend.
 `Rate_operator`, `File_boundary`, etc. Would reduce boilerplate for common operational setups.
 
 ---
+
+**Held timestep for DE_ader2** (session 58; see KNOWN_ISSUES "DE_ader2's
+steady state depends on dt"). Holding dt until the CFL limit forces it down,
+and meeting output times with equal steps, stops DE_ader2's self-sustained
+unsteadiness in unstable flow (unseeded roll waves went steady to 1e-13 at
+MARGIN 0.7-0.85). Not adopted: it is fragile (MARGIN 0.9, or a raise rule,
+re-establishes the loop), costs about 1/MARGIN more steps, and would have to go
+into the legacy, unified C and GPU step paths. The prototype is described in
+KNOWN_ISSUES. Revisit only if the effect matters in a real application.
 
 ## Invalidated suggestions
 

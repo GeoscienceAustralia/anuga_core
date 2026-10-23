@@ -10,7 +10,7 @@ concurrent runs corrupt the shared SWW, issue #232).
 
 Numbers verified against run_small_towradgi.py and the SWW at the time of
 writing: 256,688 triangles / 128,539 points at --scale 1.0.
-See claude/RELEASE_4.0.0rc1_ANNOUNCEMENT.md for the announcement it follows.
+See claude/archive/RELEASE_4.0.0rc1_ANNOUNCEMENT.md for the announcement it follows.
 -->
 
 Hi Petar,

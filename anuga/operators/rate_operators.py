@@ -38,7 +38,9 @@ class Rate_operator(Operator):
                  label = None,
                  logging = False,
                  verbose = False,
-                 monitor = False):
+                 monitor = False,
+                 tracer_concentrations = None,
+                 tracer_extraction = 'retain'):
         """Create a Rate_operator that adds water over a region at a specified rate.
 
         The applied rate is ``rate * factor`` in m/s (depth per second).
@@ -73,6 +75,15 @@ class Rate_operator(Operator):
             Rate to use outside the time interval of the rate function/xarray.
         description, label, logging, verbose, monitor :
             Passed to the base ``Operator``.
+        tracer_concentrations : dict, optional
+            Tracer name -> concentration (float or function of t) of the water
+            a positive rate adds. Tracers not named come in at zero: clean rain.
+        tracer_extraction : {'retain', 'carry'} or dict, optional
+            What a negative rate does with each tracer: ``'retain'`` (default,
+            the old behaviour) leaves it behind, as salt stays under
+            evaporation; ``'carry'`` removes it with the water at the cell's
+            concentration, as for pumping or drains. A dict gives one choice
+            per tracer name, the rest retaining.
         """
 
 
@@ -94,7 +105,20 @@ class Rate_operator(Operator):
                 'Rate_operator: rate must be a number, callable, Quantity, or '
                 'numpy array; got %s' % type(rate).__name__)
 
+        # Validate the tracer settings BEFORE Operator.__init__ registers the
+        # operator with the domain: a constructor that raised after that would
+        # leave a half-built operator in the fractional-step list.
+        from anuga.structures.inlet_tracers import RateTracers
+        tracers = RateTracers(domain, tracer_concentrations, tracer_extraction,
+                              label=label if label else '')
+
         Operator.__init__(self, domain, description, label, logging, verbose)
+        self.tracers = tracers
+        if getattr(domain, 'use_active_set', False):
+            log.warning('Rate operator attached while active-set stepping is '
+                        'enabled: results stay correct (wetted cells activate '
+                        'on the next step), but widespread rain activates the '
+                        'whole mesh and the active-set speedup degrades.')
 
         #-----------------------------------------------------
         # Make sure region is actually an instance of a region
@@ -307,6 +331,11 @@ class Rate_operator(Operator):
                 t = self.domain.get_time()
                 timestep = self.domain.get_timestep()
                 factor = self.get_factor(t)
+                # Tracers ride with the water (inlet_tracers.RateTracers).
+                gpu_tracers = self.tracers.needed()
+                if gpu_tracers:
+                    from anuga.shallow_water.sw_domain_gpu_ext import rate_operator_tracers_capture_gpu
+                    rate_operator_tracers_capture_gpu(self.domain.gpu_interface.gpu_dom, self._gpu_op_id)
 
                 # DEBUG: Confirm GPU path taken
                 #print(f"DEBUG Rate_operator: GPU path, op_id={self._gpu_op_id}, rate_type={self.rate_type}, t={t}, timestep={timestep}, factor={factor}")
@@ -399,6 +428,11 @@ class Rate_operator(Operator):
                     self.local_min = rate_scalar * factor if rate_scalar < 0 else 0.0
 
                 # Update tracking
+                if gpu_tracers:
+                    from anuga.shallow_water.sw_domain_gpu_ext import rate_operator_tracers_apply_gpu
+                    c_in, carry = self.tracers.settings(t, timestep)
+                    rate_operator_tracers_apply_gpu(self.domain.gpu_interface.gpu_dom,
+                                                    self._gpu_op_id, c_in, carry)
                 self.cumulative_influx += self.local_influx
                 self.domain.fractional_step_volume_integral += self.local_influx
 
@@ -445,6 +479,9 @@ class Rate_operator(Operator):
 
 
         fid = self.full_indices
+        host_tracers = self.tracers.needed()
+        if host_tracers:
+            tr_h_old = self.tracers.capture(indices)
         if num.all(rate >= 0.0):
             # Record the local flux for mass conservation tracking
             if indices is None:
@@ -491,6 +528,9 @@ class Rate_operator(Operator):
                 self.xmom_c[indices] = self.xmom_c[indices]*local_factors
                 self.ymom_c[indices] = self.ymom_c[indices]*local_factors
 
+
+        if host_tracers:
+            self.tracers.apply(indices, tr_h_old, t, timestep)
 
         try:
             arr = local_rates[fid]
@@ -774,7 +814,8 @@ class Rate_operator(Operator):
     def rainfall(cls, domain, rate, polygon=None, region=None,
                  center=None, radius=None, indices=None,
                  default_rate=0.0, label=None, description=None,
-                 logging=False, verbose=False, monitor=False):
+                 logging=False, verbose=False, monitor=False,
+                 tracer_concentrations=None, tracer_extraction='retain'):
         """Create a Rate_operator for rainfall.
 
         Parameters
@@ -804,13 +845,16 @@ class Rate_operator(Operator):
                    center=center, radius=radius, indices=indices,
                    default_rate=default_rate, label=label,
                    description=description, logging=logging,
-                   verbose=verbose, monitor=monitor)
+                   verbose=verbose, monitor=monitor,
+                   tracer_concentrations=tracer_concentrations,
+                   tracer_extraction=tracer_extraction)
 
     @classmethod
     def inflow(cls, domain, rate, polygon=None, region=None,
                center=None, radius=None, indices=None,
                default_rate=0.0, label=None, description=None,
-               logging=False, verbose=False, monitor=False):
+               logging=False, verbose=False, monitor=False,
+               tracer_concentrations=None, tracer_extraction='retain'):
         """Create a Rate_operator for a volumetric inflow.
 
         Parameters
@@ -840,7 +884,9 @@ class Rate_operator(Operator):
                  center=center, radius=radius, indices=indices,
                  default_rate=default_rate, label=label,
                  description=description, logging=logging,
-                 verbose=verbose, monitor=monitor)
+                 verbose=verbose, monitor=monitor,
+                 tracer_concentrations=tracer_concentrations,
+                 tracer_extraction=tracer_extraction)
 
         total_area = float(op.areas.sum()) if op.areas is not None and len(op.areas) > 0 else 0.0
         if total_area <= 0.0:

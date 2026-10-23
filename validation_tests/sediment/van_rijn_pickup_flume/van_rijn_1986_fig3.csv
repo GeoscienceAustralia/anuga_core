@@ -1,0 +1,14 @@
+# Van Rijn (1986c) "Applications of sediment pick-up function", J. Hydraul.
+# Eng. 112(9), Fig. 3: measured depth-integrated suspended load along the
+# Delft Hydraulics flume, initially clear water over a sand bed.
+# Flume 30 m x 0.5 m; d = 0.25 m; u = 0.67 m/s; D50 = 230 um, D90 = 320 um;
+# suspended size 200 um, w_s = 0.022 m/s at 9 C; u* = 0.0477 m/s;
+# tau'_b = 1.2 N/m2; k_s = 0.01 m; computed equilibrium suspended load
+# q_s_inf = 0.036 kg/s/m.  Same experiment as Fig. 15 of van Rijn (1986b).
+# Digitised from a 600 dpi scan of the paper (2026-09-22); reading
+# uncertainty about +-0.03 in the ratio and +-0.3 in x/d.
+# x_over_d, qs_over_qs_inf
+4, 0.51
+10, 0.85
+20, 1.07
+40, 1.33

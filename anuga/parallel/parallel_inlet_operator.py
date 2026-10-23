@@ -35,6 +35,7 @@ class Parallel_Inlet_operator(Inlet_operator):
                  velocity = None,
                  zero_velocity = False,
                  default = 0.0,
+                 tracer_concentrations = None,
                  description = None,
                  label = None,
                  logging = False,
@@ -97,6 +98,17 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         self.set_default(default)
 
+        # Tracers carried by the water (anuga/structures/inlet_tracers.py).
+        # The inlet is one level pool across all its ranks -- set_depths gives
+        # every rank the same depth, so water moves between ranks inside it --
+        # and extraction takes the GLOBAL pool concentration, summed over the
+        # inlet's ranks by _inlet_sum. A per-rank pool would give a rank that
+        # gains water its own concentration instead, which is not conservative
+        # unless the concentration happens to be uniform.
+        from anuga.structures.inlet_tracers import InletTracers
+        self.tracers = InletTracers(self.domain, tracer_concentrations,
+                                    label=self.label)
+
         # GPU state (lazy init on first __call__)
         self._gpu_op_id = None
         self._gpu_initialized = False
@@ -117,8 +129,9 @@ class Parallel_Inlet_operator(Inlet_operator):
             if op_id < 0:
                 raise RuntimeError(
                     f"Failed to register GPU parallel inlet operator '{getattr(self, 'label', repr(self))}': "
-                    f"slot limit exceeded (MAX_INLET_OPERATORS=32). "
-                    f"Reduce the number of Inlet_operator instances or increase MAX_INLET_OPERATORS in gpu_domain.h."
+                    f"the C init returned {op_id} (slot limit exceeded, out-of-range triangle "
+                    f"indices, or allocation failure; see stderr). If it is the slot limit, reduce "
+                    f"the number of Inlet_operator instances or increase MAX_INLET_OPERATORS in gpu_domain.h."
                 )
             self._gpu_op_id = op_id
             self._gpu_initialized = True
@@ -208,9 +221,17 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         if len(self.procs) == 1:
             # DISABLED FOR DEBUGGING - use sync fallback instead
+            c_in = dmass = None
+            if self.tracers.active():
+                c_in = self.tracers.inflow_concentrations(
+                    self.domain.get_time(), timestep)
+                dmass = numpy.zeros(self.domain.number_of_tracers)
             actual_volume = gpu_ext.inlet_apply_gpu(
                 gpu_dom, op_id, volume, current_volume, total_area,
-                vel_u, vel_v, has_velocity, ext_vel_u, ext_vel_v, zero_vel)
+                vel_u, vel_v, has_velocity, ext_vel_u, ext_vel_v, zero_vel,
+                c_in, dmass)
+            if dmass is not None:
+                self.tracers.record(dmass)
 
             if volume >= 0.0:
                 self._add_fractional_step_volume(volume)
@@ -229,6 +250,13 @@ class Parallel_Inlet_operator(Inlet_operator):
             # Sync inlet triangles from GPU to CPU, run CPU path, sync back
             # TODO: optimise with small-buffer MPI from GPU scratch buffers
             self.domain.gpu_interface.sync_from_device()
+
+            carry_tracers = self.tracers.active()
+            if carry_tracers:
+                tr_idx = self.inlet.triangle_indices
+                tr_areas = self.inlet.get_areas()
+                tr_h_old, tr_m_old = self.tracers.capture(tr_idx)
+            requested_volume = volume
 
             if volume >= 0.0:
                 self.inlet.set_stages_evenly(volume)
@@ -271,6 +299,11 @@ class Parallel_Inlet_operator(Inlet_operator):
                 self._add_fractional_step_volume(-current_volume)
                 self.inlet.set_xmoms(0.0)
                 self.inlet.set_ymoms(0.0)
+
+            if carry_tracers:
+                self.tracers.apply(tr_idx, tr_areas, tr_h_old, tr_m_old,
+                                   requested_volume, self.domain.get_time(), timestep,
+                                   global_sum=self._inlet_sum)
 
             self.domain.gpu_interface.sync_to_device()
 
@@ -335,6 +368,13 @@ class Parallel_Inlet_operator(Inlet_operator):
 
         u,v = self.inlet.get_velocities()
 
+        carry_tracers = self.tracers.active()
+        if carry_tracers:
+            tr_idx = self.inlet.triangle_indices
+            tr_areas = self.inlet.get_areas()
+            tr_h_old, tr_m_old = self.tracers.capture(tr_idx)
+        requested_volume = volume
+
         # Distribute positive volume so as to obtain flat surface otherwise
         # just pull water off to have a uniform depth.
         if volume >= 0.0 :
@@ -384,6 +424,34 @@ class Parallel_Inlet_operator(Inlet_operator):
             self.inlet.set_ymoms(0.0)
 
         self.total_applied_volume += volume
+
+        if carry_tracers:
+            self.tracers.apply(tr_idx, tr_areas, tr_h_old, tr_m_old,
+                               requested_volume, self.domain.get_time(), timestep,
+                               global_sum=self._inlet_sum)
+
+    def _inlet_sum(self, x):
+        """Sum an array over every rank holding part of this inlet.
+
+        COLLECTIVE over self.procs: every rank in the inlet must call it. The
+        master gathers and broadcasts, the pattern the volume and area sums
+        above use.
+        """
+        from anuga.utilities import parallel_abstraction as pypar
+        x = numpy.array(x, dtype=float, ndmin=1)
+        if len(self.procs) == 1:
+            return x
+        if self.myid == self.master_proc:
+            total = x.copy()
+            for i in self.procs:
+                if i != self.master_proc:
+                    total += numpy.asarray(pypar.receive(i), dtype=float)
+            for i in self.procs:
+                if i != self.master_proc:
+                    pypar.send(total, i)
+            return total
+        pypar.send(x, self.master_proc)
+        return numpy.asarray(pypar.receive(self.master_proc), dtype=float)
 
     def update_Q(self, t):
         """Virtual method allowing local modifications by writing an

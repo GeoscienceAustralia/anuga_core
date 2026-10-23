@@ -1,0 +1,18 @@
+/* Keep the bracketed physics labels -- [D-2], [T-7e] -- on one line.
+ *
+ * sphinx_rtd_theme sets `code { white-space: nowrap }` and then undoes it:
+ *
+ *     code.literal, .rst-content tt.literal { white-space: normal }
+ *
+ * Sphinx emits every inline literal with class "literal", so our labels match
+ * that second rule and become breakable. CSS then treats the hyphen as a break
+ * opportunity, and a narrow table column renders "[D-" on one line and "2]" on
+ * the next.
+ *
+ * Scoped to .spec-label so ordinary literals keep the theme's wrapping -- long
+ * paths and identifiers still need to break somewhere.
+ */
+.rst-content code.spec-label,
+.rst-content a.spec-ref code {
+    white-space: nowrap;
+}

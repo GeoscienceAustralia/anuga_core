@@ -1,6 +1,10 @@
 """
     Quick plot of the Yeh-Petroff dam break outputs
 """
+import setup_diagram
+
+setup_diagram.setup('Yeh_Petroff.png')
+
 #---------------
 # Import Modules
 #---------------

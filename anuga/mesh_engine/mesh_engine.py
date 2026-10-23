@@ -43,11 +43,19 @@ from anuga.anuga_exceptions import ANUGAError
 def generate_mesh(points=None,
                   segments=None,holes=None,regions=None,
                   pointatts=None,segatts=None,
-                  mode=None, dummy_test=None, verbose=False):
+                  mode=None, dummy_test=None, verbose=False,
+                  refinement_func=None):
     """
     pointatts can be a list of lists.
 
     generatedtriangleattributelist is used to represent tagged regions.
+
+    refinement_func, if given, is Triangle's user test (its -u switch): a
+    callable ``f(vertices, area) -> bool`` that Triangle calls for each
+    triangle it considers, where ``vertices`` holds the three corner points
+    and ``area`` is the triangle's area. The triangle is refined if it
+    returns True. It is applied as well as, not instead of, any area
+    constraints in ``mode``. It needs the meshpy backend.
     #FIXME (DSG-DSG): add comments
     """
     #FIXME (DSG-DSG): Catch parameters that are lists,
@@ -176,6 +184,29 @@ def generate_mesh(points=None,
 
     #print(points,segments,holes,regions, pointatts,segatts)
 
+    if refinement_func is not None:
+        if TRILIB != 'meshpy':
+            msg = ('A refinement function (size field) needs the meshpy '
+                   'triangulation backend, but the %s backend is in use. '
+                   'Install meshpy: pip install meshpy' % TRILIB)
+            raise ANUGAError(msg)
+        if 'u' not in mode:
+            mode = mode + 'u'   # u - apply the user test to each triangle
+
+        # An exception that escapes into Triangle aborts the interpreter.
+        # Hold on to the first one, stop refining, and raise it afterwards.
+        user_test = refinement_func
+        user_test_errors = []
+
+        def refinement_func(vertices, area):
+            if user_test_errors:
+                return False
+            try:
+                return user_test(vertices, area)
+            except Exception as exc:
+                user_test_errors.append(exc)
+                return False
+
     if TRILIB == 'triangle':
         in_tri = ({'vertices':points})
         if segments.size != 0:
@@ -298,11 +329,15 @@ def generate_mesh(points=None,
         try:
             out_tri = triang.MeshInfo()
             import meshpy._internals as internals
-            internals.triangulate(mode, in_tri, out_tri, triang.MeshInfo(), None)
+            internals.triangulate(mode, in_tri, out_tri, triang.MeshInfo(),
+                                  refinement_func)
         finally:
             # restore previous locale if we've changed it
             if have_locale:
                 locale.setlocale(locale.LC_NUMERIC, prev_num_locale)
+
+        if refinement_func is not None and user_test_errors:
+            raise user_test_errors[0]
 
         if verbose:
             print(70*'=')

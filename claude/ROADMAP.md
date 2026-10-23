@@ -16,6 +16,11 @@ Last updated: 2026-07-08
 > still works because it uses `git describe --tags`, but annotating future tags
 > makes plain `git describe` (and any tooling that relies on it) correct too.
 
+> **Validation reports (decided 2026-10-01):** publishing a GitHub release
+> also builds the validation reports (DE0, DE1, DE_ader2), attaches them to the
+> release and, for final releases, opens a Zenodo draft to review and publish.
+> Setup and per-release steps: `claude/RELEASE_VALIDATION_REPORTS.md`.
+
 ---
 
 ## Version 3.3.0 — Imminent

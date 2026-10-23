@@ -21,7 +21,7 @@ cdef extern from "pmesh2domain.c":
 		int64_t vol_id
 		int64_t edge_id
 		UT_hash_handle hh
-	void add_segment(segment_key_t key, int64_t vol_id, int64_t edge_id)
+	int64_t add_segment(segment_key_t key, int64_t vol_id, int64_t edge_id)
 	segment_t* find_segment(segment_key_t key)
 	void delete_segment(segment_t* segment)
 	void delete_segment_all()
@@ -75,7 +75,8 @@ def build_boundary_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles no
 			err = 1
 			break
 
-		add_segment(key, vol_id, edge_id)
+		if add_segment(key, vol_id, edge_id) != 0:
+			raise MemoryError("pmesh2domain: could not allocate a segment table entry")
 
 		# Add segment b,c to hashtable
 		key.i = b
@@ -89,7 +90,8 @@ def build_boundary_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles no
 			err = 1
 			break
 
-		add_segment(key, vol_id, edge_id)
+		if add_segment(key, vol_id, edge_id) != 0:
+			raise MemoryError("pmesh2domain: could not allocate a segment table entry")
 
 		# Add segment c,a to hashtable
 		key.i = c
@@ -103,7 +105,8 @@ def build_boundary_dictionary(np.ndarray[int64_t, ndim=2, mode="c"] triangles no
 			err = 1
 			break
 
-		add_segment(key, vol_id, edge_id)
+		if add_segment(key, vol_id, edge_id) != 0:
+			raise MemoryError("pmesh2domain: could not allocate a segment table entry")
 
 	if err == 1:
 		delete_segment_all()

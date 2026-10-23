@@ -89,11 +89,32 @@ class TestScenarioSummary(unittest.TestCase):
         self.assertNotIn('http://', html)
         self.assertNotIn('https://', html)
 
+    def test_sediment_fractions_counted(self):
+        html = build_summary_html(self._write(_BASE + """
+            [sediment]
+            porosity = 0.3
+            [[sediment.fractions]]
+            name = "sand"
+            diameter = 2.0e-4
+            [[sediment.fractions]]
+            name = "silt"
+            diameter = 2.0e-5
+        """))
+        self.assertIn('sediment fractions', html)
+        self.assertIn('sand, silt', html)
+
     def test_friction_breakdown_present(self):
         html = build_summary_html(self._write(_BASE))
         self.assertIn("Friction", html)
         # three distinct n-values -> three bars
         self.assertEqual(html.count('class="fbar"'), 3)
+
+    def test_quoted_times_and_starttime_badge(self):
+        body = _BASE.replace('finaltime = 3600.0',
+                             'finaltime = "3600"\nstarttime = "-3*600"')
+        html = build_summary_html(self._write(body))
+        self.assertIn('-1800 s', html)
+        self.assertIn('3600 s', html)
 
     def test_multiprocessor_mode_maps_to_compute_label(self):
         body = _BASE.replace('compute_mode = "unified"', 'multiprocessor_mode = 2')

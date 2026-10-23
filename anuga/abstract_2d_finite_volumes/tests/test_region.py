@@ -86,8 +86,12 @@ class Test_region(unittest.TestCase):
 
         region = Region(domain, polygon=[[0.0,0.0], [0.5,0.0], [0.5,0.5]], expand_polygon=True)
 
-        expected_indices = [0,1,2,3]
-        assert num.allclose(region.indices, expected_indices)
+        # Triangle 1 holds the polygon; the polygon's edges pass through 0
+        # and 2. Triangle 3 only touches the polygon at its corner (0.5, 0.5),
+        # which lies on the edge triangles 2 and 3 share: a point contact,
+        # not an overlap, so it is not selected (it used to be, by rounding).
+        expected_indices = [0,1,2]
+        assert num.allclose(sorted(region.indices), expected_indices)
 
 
 

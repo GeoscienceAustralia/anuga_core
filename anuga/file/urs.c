@@ -6,6 +6,7 @@ gcc -shared urs_ext.o  -o urs_ext.so
 #include "structure.h"
 #include "math.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <errno.h>
 #include <float.h>
@@ -21,11 +22,22 @@ gcc -shared urs_ext.o  -o urs_ext.so
 
 #define POFFSET 5 //Number of site_params
 
-static int32_t *fros=NULL;  // First recorded output step 
-static int32_t *lros=NULL;  // Last recorded output step 
-static struct tgsrwg* mytgs0=NULL;
+/* Header state shared between _read_mux2_headers and _read_mux2. This
+   used to be four file-scope statics, which made concurrent read_mux2 calls
+   corrupt each other; now _read_mux2 owns one of these on its stack. */
+struct mux2_headers {
+    int32_t *fros;           // First recorded output step
+    int32_t *lros;           // Last recorded output step
+    struct tgsrwg *mytgs0;
+    anuga_int numDataMax;
+};
 
-static anuga_int numDataMax=0;
+static void free_mux2_headers(struct mux2_headers *hd)
+{
+    free(hd->fros);   hd->fros = NULL;
+    free(hd->lros);   hd->lros = NULL;
+    free(hd->mytgs0); hd->mytgs0 = NULL;
+}
 
 
 /*The MUX file format 
@@ -173,16 +185,17 @@ int32_t _read_mux2_headers(int32_t numSrc,
                        int32_t* total_number_of_stations,
                        int32_t* number_of_time_steps,
                        double* delta_t,
-                       //anuga_int* numDataMax,
+                       struct mux2_headers *hd,
                        int32_t verbose)
 {
-    FILE *fp;
+    FILE *fp = NULL;
     int32_t numsta, i, j;
     struct tgsrwg *mytgs=0;
     char *muxFileName;                                                                  
     char susMuxFileName;
     anuga_int numData;
     size_t elements_read; // fread return value
+    int32_t rc = 0;      // error code handed to the fail path
     int32_t block_size;
 
     /* Allocate space for the names and the weights and pointers to the data*/
@@ -214,6 +227,17 @@ int32_t _read_mux2_headers(int32_t numSrc,
         printf("Reading mux header information\n");
     }
 
+    if (numSrc <= 0)
+    {
+        fprintf(stderr, "No mux2 source files given\n");
+        return -1;
+    }
+    if (hd->fros != NULL || hd->lros != NULL || hd->mytgs0 != NULL)
+    {
+        fprintf(stderr, "_read_mux2_headers: the header struct must start empty\n");
+        return -4;
+    }
+
     // Loop over all sources, read headers and check compatibility
     for (i = 0; i < numSrc; i++)
     {
@@ -225,30 +249,38 @@ int32_t _read_mux2_headers(int32_t numSrc,
             char *err_msg = strerror(errno);
 
             fprintf(stderr, "cannot open file '%s': %s\n", muxFileName, err_msg);
-            return -1;  
+            rc = -1; goto fail;
         }
 
-        if (!i)
+        // First file: read the station count and allocate the header arrays.
+        // Keyed on the arrays not existing yet rather than on i == 0, which is
+        // the same thing on every real run but lets gcc's analyser see that
+        // the allocation cannot happen twice.
+        if (hd->mytgs0 == NULL)
         {
             elements_read = fread(total_number_of_stations, sizeof(int32_t), 1, fp);
             if ((int32_t) elements_read == 0 && ferror(fp)){
                 fprintf(stderr, "Error reading total number of stations\n");
-                fclose(fp);
-                return -2;
+                rc = -2; goto fail;
             }
 
-            fros = (int32_t*) malloc(*total_number_of_stations*numSrc*sizeof(int32_t));
-            lros = (int32_t*) malloc(*total_number_of_stations*numSrc*sizeof(int32_t));
+            hd->fros = (int32_t*) malloc(*total_number_of_stations*numSrc*sizeof(int32_t));
+            hd->lros = (int32_t*) malloc(*total_number_of_stations*numSrc*sizeof(int32_t));
 
-            mytgs0 = (struct tgsrwg*) malloc(*total_number_of_stations*sizeof(struct tgsrwg));
+            hd->mytgs0 = (struct tgsrwg*) malloc(*total_number_of_stations*sizeof(struct tgsrwg));
             mytgs = (struct tgsrwg*) malloc(*total_number_of_stations*sizeof(struct tgsrwg));
+            if (!hd->fros || !hd->lros || !hd->mytgs0 || !mytgs)
+            {
+                fprintf(stderr, "Could not allocate header arrays for %d stations\n",
+                        (int)*total_number_of_stations);
+                rc = -3; goto fail;
+            }
 
             block_size = *total_number_of_stations*sizeof(struct tgsrwg);
-            elements_read = fread(mytgs0, block_size , 1, fp);
+            elements_read = fread(hd->mytgs0, block_size , 1, fp);
             if ((int32_t) elements_read == 0 && ferror(fp)){
-                fprintf(stderr, "Error reading mytgs0\n");
-                fclose(fp);
-                return -2;
+                fprintf(stderr, "Error reading hd->mytgs0\n");
+                rc = -2; goto fail;
             }
         }
         else
@@ -257,8 +289,7 @@ int32_t _read_mux2_headers(int32_t numSrc,
             elements_read = fread(&numsta, sizeof(int32_t), 1, fp);
             if ((int32_t) elements_read == 0 && ferror(fp)){
                 fprintf(stderr, "Error reading numsta\n");
-                fclose(fp);
-                return -2;
+                rc = -2; goto fail;
             }
 
             if(numsta != *total_number_of_stations)
@@ -266,39 +297,39 @@ int32_t _read_mux2_headers(int32_t numSrc,
                 fprintf(stderr,"%s has different number of stations to %s\n", 
                     muxFileName, 
                     muxFileNameArray[0]);
-                fclose(fp);
-                return -1;   
+                rc = -1; goto fail;   
             }
 
+            if (mytgs == NULL)   // cannot happen after the first file; keeps the analyser honest
+            {
+                rc = -4; goto fail;
+            }
             block_size = numsta*sizeof(struct tgsrwg);
             elements_read = fread(mytgs, block_size, 1, fp); 
             if ((int32_t) elements_read == 0 && ferror(fp)){
                 fprintf(stderr, "Error reading mgtgs\n");
-                fclose(fp);
-                return -2;
+                rc = -2; goto fail;
             }	    
 
 
             for (j = 0; j < numsta; j++)
             {
-                if (mytgs[j].dt != mytgs0[j].dt)
+                if (mytgs[j].dt != hd->mytgs0[j].dt)
                 {
                     fprintf(stderr, "%s has different sampling rate to %s\n", 
                         muxFileName, 
                         muxFileNameArray[0]);
-                    fclose(fp);
-                    return -1;            
+                    rc = -1; goto fail;            
                 }   
-                if (mytgs[j].nt != mytgs0[j].nt)
+                if (mytgs[j].nt != hd->mytgs0[j].nt)
                 {
                     fprintf(stderr, "%s has different series length to %s\n", 
                         muxFileName, 
                         muxFileNameArray[0]);
-                    fclose(fp);
-                    return -1;            
+                    rc = -1; goto fail;            
                 }
 
-                if (mytgs[j].nt != mytgs0[0].nt)
+                if (mytgs[j].nt != hd->mytgs0[0].nt)
                 {
                     printf("Station 0 has different series length to Station %d\n", j); 
                 }
@@ -306,53 +337,58 @@ int32_t _read_mux2_headers(int32_t numSrc,
         }
 
         /* Read the start and stop times for this source */
-        elements_read = fread(fros + i*(*total_number_of_stations), 
+        elements_read = fread(hd->fros + i*(*total_number_of_stations), 
             *total_number_of_stations*sizeof(int32_t), 1, fp);
         if ((int32_t) elements_read == 0 && ferror(fp)){
             fprintf(stderr, "Error reading start times\n");
-            fclose(fp);
-            return -3;
+            rc = -3; goto fail;
         }	    
 
 
-        elements_read = fread(lros + i*(*total_number_of_stations), 
+        elements_read = fread(hd->lros + i*(*total_number_of_stations), 
             *total_number_of_stations*sizeof(int32_t), 1, fp);
         if ((int32_t) elements_read == 0 && ferror(fp)){
             fprintf(stderr, "Error reading stop times\n");
-            fclose(fp);
-            return -3;
+            rc = -3; goto fail;
         }	    	      
 
         /* Compute the size of the data block for this source */
-        numData = getNumData(fros + i*(*total_number_of_stations), 
-            lros + i*(*total_number_of_stations), 
+        numData = getNumData(hd->fros + i*(*total_number_of_stations), 
+            hd->lros + i*(*total_number_of_stations), 
             (*total_number_of_stations));
 
         /* Sanity check */
         if (numData < 0)
         {
             fprintf(stderr,"Size of data block appears to be negative!\n");
-            return -1;        
+            rc = -1; goto fail;
         }
 
-        if (numDataMax < numData)
+        if (hd->numDataMax < numData)
         {
-            numDataMax = numData;
+            hd->numDataMax = numData;
         }
 
-        fclose(fp);          
+        fclose(fp);
+        fp = NULL;
     }
 
 
     // Store time resolution and number of timesteps    
     // These are the same for all stations as tested above, so 
     // we take the first one.
-    *delta_t = (double)mytgs0[0].dt;
-    *number_of_time_steps = mytgs0[0].nt;
+    *delta_t = (double)hd->mytgs0[0].dt;
+    *number_of_time_steps = hd->mytgs0[0].nt;
 
     free(mytgs);
 
     return 0; // Succesful execution
+
+fail:
+    if (fp) fclose(fp);
+    free(mytgs);
+    free_mux2_headers(hd);
+    return rc;
 }
 
 
@@ -375,8 +411,8 @@ float** _read_mux2(int32_t numSrc,
     anuga_int *permutation_temp = NULL;
 
     int32_t len_sts_data, error_code;
-    float **sts_data;
-    float *temp_sts_data;
+    float **sts_data = NULL;
+    float *temp_sts_data = NULL;
 
     anuga_int offset;
 
@@ -390,16 +426,20 @@ float** _read_mux2(int32_t numSrc,
     int32_t *lros_per_source=NULL;         
 
 
+    struct mux2_headers headers = {NULL, NULL, NULL, 0};
+    struct mux2_headers *hd = &headers;
+
     error_code = _read_mux2_headers(numSrc, 
         muxFileNameArray, 
         &total_number_of_stations,
         &number_of_time_steps,
         &delta_t,
+        hd,
         verbose);
     if (error_code != 0) {
         printf("urs.c: Internal function _read_mux2_headers failed: Error code = %d\n", 
             error_code);
-
+        free_mux2_headers(hd);   // already released on that path; harmless and explicit
         return NULL;
     }
 
@@ -420,7 +460,7 @@ float** _read_mux2(int32_t numSrc,
         if (permutation_temp == NULL)
         {
             printf("ERROR: Memory for permutation_temp could not be allocated.\n");
-            return NULL;
+            goto fail;
         }
         
         for (i = 0; i < number_of_selected_stations; i++)
@@ -442,11 +482,11 @@ float** _read_mux2(int32_t numSrc,
 
     // Make array(s) to hold demuxed data for stations given in the 
     // permutation file 
-    sts_data = (float**) malloc(number_of_selected_stations*sizeof(float*));
+    sts_data = (float**) calloc(number_of_selected_stations, sizeof(float*));
     if (sts_data == NULL)
     {
         printf("ERROR: Memory for sts_data could not be allocated.\n");
-        return NULL;
+        goto fail;
     }
 
     // For each selected station, allocate space for its data
@@ -458,7 +498,7 @@ float** _read_mux2(int32_t numSrc,
         if (sts_data[i] == NULL)
         {
             printf("ERROR: Memory for sts_data could not be allocated.\n");
-            return NULL;
+            goto fail;
         }
     }
 
@@ -466,14 +506,14 @@ float** _read_mux2(int32_t numSrc,
     if (temp_sts_data == NULL)
     {
         printf("ERROR: Memory for temp_sts_data could not be allocated.\n");
-        return NULL;
+        goto fail;
     }
 
-    muxData = (float*) calloc(numDataMax, sizeof(float));
+    muxData = (float*) calloc(hd->numDataMax, sizeof(float));
     if (temp_sts_data == NULL)
     {
         printf("ERROR: Memory for muxData could not be allocated.\n");
-        return NULL;
+        goto fail;
     }
 
     // Loop over all sources
@@ -481,8 +521,8 @@ float** _read_mux2(int32_t numSrc,
     {
 
         // Shorthands to local memory
-        fros_per_source = (int32_t*) fros + isrc*total_number_of_stations; 
-        lros_per_source = (int32_t*) lros + isrc*total_number_of_stations; 	    
+        fros_per_source = (int32_t*) hd->fros + isrc*total_number_of_stations; 
+        lros_per_source = (int32_t*) hd->lros + isrc*total_number_of_stations; 	    
 
 
         // Read in data block from mux2 file
@@ -490,10 +530,7 @@ float** _read_mux2(int32_t numSrc,
         if((fp = fopen(muxFileName, "rb")) == NULL)
         {
             fprintf(stderr, "cannot open file %s\n", muxFileName);
-            free(muxData);
-            free(temp_sts_data);
-
-            return NULL;                    
+            goto fail;                    
         }
 
         if (verbose){
@@ -520,10 +557,7 @@ float** _read_mux2(int32_t numSrc,
             }
 
             fclose(fp);
-            free(muxData);
-            free(temp_sts_data);
-
-            return NULL;
+            goto fail;
         }	
 
         fclose(fp);  
@@ -540,7 +574,7 @@ float** _read_mux2(int32_t numSrc,
             fillDataArray(ista, 
                 total_number_of_stations, 
                 number_of_time_steps,
-                mytgs0[ista].ig, // Grid number (if -1 fill with zeros)
+                hd->mytgs0[ista].ig, // Grid number (if -1 fill with zeros)
                 fros_per_source, 
                 lros_per_source, 
                 temp_sts_data, 
@@ -549,7 +583,7 @@ float** _read_mux2(int32_t numSrc,
                 muxData);
 
             // Weight appropriately and add
-            for(k = 0; k < mytgs0[ista].nt; k++)
+            for(k = 0; k < hd->mytgs0[ista].nt; k++)
             {
                 if((isdata(sts_data[i][k])) && isdata(temp_sts_data[k]))
                 {
@@ -569,9 +603,9 @@ float** _read_mux2(int32_t numSrc,
 
             if (isrc == 0) {
                 // Assign values for first source
-                sts_data[i][N] = (float)mytgs0[ista].geolat;
-                sts_data[i][N+1] = (float)mytgs0[ista].geolon;
-                sts_data[i][N+2] = (float)mytgs0[ista].z;
+                sts_data[i][N] = (float)hd->mytgs0[ista].geolat;
+                sts_data[i][N+1] = (float)hd->mytgs0[ista].geolon;
+                sts_data[i][N+2] = (float)hd->mytgs0[ista].z;
                 sts_data[i][N+3] = (float)fros_per_source[ista];
                 sts_data[i][N+4] = (float)lros_per_source[ista];
             } else {
@@ -605,14 +639,20 @@ float** _read_mux2(int32_t numSrc,
 
     free(muxData);
     free(temp_sts_data);
-    free(fros);
-    free(lros);
-    free(mytgs0);
-
-    if (permutation_temp)
-    {
-        free(permutation_temp);
-    }
+    free_mux2_headers(hd);
+    free(permutation_temp);
 
     return sts_data;
+
+fail:
+    free(muxData);
+    free(temp_sts_data);
+    if (sts_data)
+    {
+        for (i = 0; i < number_of_selected_stations; i++) free(sts_data[i]);
+        free(sts_data);
+    }
+    free(permutation_temp);
+    free_mux2_headers(hd);
+    return NULL;
 }

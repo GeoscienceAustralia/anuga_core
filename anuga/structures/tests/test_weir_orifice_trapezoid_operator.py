@@ -149,9 +149,12 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         #v_expected = 1.116
         #d_expected = 0.692
 
-        Q_expected = 4.95
-        v_expected = 1.14
-        d_expected = 0.40
+        # These used to be the old code's own output (4.95, 1.14, 0.40). With
+        # the outlet-control and perimeter fixes the result is back within 1%
+        # of the spreadsheet above.
+        Q_expected = 8.70
+        v_expected = 1.16
+        d_expected = 0.66
 
 
 
@@ -251,9 +254,12 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         #v_expected = 0.231
         #d_expected = 2.410
 
-        Q_expected = 0.82
-        v_expected = 0.22
-        d_expected = 0.35
+        # Old code: 0.82, 0.22, 0.35 (10x below the spreadsheet). The fixed
+        # code matches its velocity; Q and depth stay 15-18% low, as this
+        # function uses critical depth where the spreadsheet uses the slope.
+        Q_expected = 6.80
+        v_expected = 0.231
+        d_expected = 2.08
 
 
 
@@ -343,9 +349,11 @@ class Test_weir_orifice_trapezoid_operator(unittest.TestCase):
         #v_expected = 2.361
         #d_expected = 3.0
 
-        Q_expected = 67.64
-        v_expected = 2.36
-        d_expected = 2.04
+        # Old code: 67.64, 2.36, 2.04 (Q 40% below the spreadsheet); the fixed
+        # code is within 0.5% of the spreadsheet.
+        Q_expected = 112.76
+        v_expected = 2.35
+        d_expected = 3.00
 
 
         if verbose:

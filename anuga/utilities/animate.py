@@ -2,6 +2,7 @@
 A module to allow interactive plotting in a Jupyter notebook of quantities and mesh
 associated with an ANUGA domain and SWW file.
 """
+import functools
 import warnings
 import numpy as np
 import os
@@ -723,6 +724,15 @@ class SWW_plotter:
 
     Plotting based on matplotlib's tripcolor and triplot functions.
 
+    The (time, triangle) quantities -- stage, xmom, ymom, depth, xvel, yvel,
+    speed, speed_depth, tracers, and elev when it changes with time -- are
+    read from the file as they are used rather than held in memory, so a
+    long run opens quickly and in little memory.  Indexing a timestep
+    (``depth[frame]``), a few triangles over time (``depth[:, ids]``) and
+    ``min``/``max`` (including ``max(axis=0)``) read only what they need;
+    anything else, such as ``np.asarray(depth)`` or arithmetic on the whole
+    array, reads every timestep.  ``close()`` closes the file.
+
     Example:
 
         Open an SWW file and plot various quantities.
@@ -791,7 +801,8 @@ class SWW_plotter:
         self.xllcorner = p.xllcorner
         self.yllcorner = p.yllcorner
         self.zone = p.zone
-        self.timezone = p.timezone
+        # Older files have no timezone; the writer's default is UTC.
+        self.timezone = getattr(p, 'timezone', 'UTC')
         self.starttime = p.starttime
 
         try:
@@ -821,30 +832,70 @@ class SWW_plotter:
             self.triang_abs = self.triang
 
 
-        self.elev = p.variables['elevation_c'][:]
-        self.stage = p.variables['stage_c'][:]
-        self.xmom = p.variables['xmomentum_c'][:]
-        self.ymom = p.variables['ymomentum_c'][:]
-
-        self.depth = np.zeros_like(self.stage)
-        if(len(self.elev.shape) == 2):
-            self.depth = self.stage - self.elev
-        else:
-            for i in range(self.depth.shape[0]):
-                self.depth[i, :] = self.stage[i, :]-self.elev
-
-
-        with np.errstate(invalid='ignore'):
-            self.xvel = np.where(self.depth > self.min_depth,
-                             self.xmom / self.depth, 0.0)
-            self.yvel = np.where(self.depth > self.min_depth,
-                             self.ymom / self.depth, 0.0)
-
-        self.speed = np.sqrt(self.xvel**2 + self.yvel**2)
-
-        self.speed_depth = self.speed*self.depth
-
         self.time = p.variables['time'][:]
+
+        # The (time, triangle) quantities are read and derived a timestep at
+        # a time as they are used, rather than all held in memory: see
+        # _sww_frames.  A static elevation is small, so it is read now.
+        from anuga.utilities._sww_frames import FrameArray, SWWSource
+        self._source = source = SWWSource(swwfile)
+        shape = (len(self.time), len(self.triangles))
+
+        def quantity(compute):
+            return FrameArray(source, compute, *shape)
+
+        min_depth = self.min_depth
+
+        def depth(get):
+            return get('stage_c') - get('elevation_c')
+
+        def velocity(get, momentum):
+            d = depth(get)
+            with np.errstate(invalid='ignore', divide='ignore'):
+                return np.where(d > min_depth, get(momentum) / d, 0.0)
+
+        def speed(get):
+            return np.sqrt(velocity(get, 'xmomentum_c')**2
+                           + velocity(get, 'ymomentum_c')**2)
+
+        if p.variables['elevation_c'].ndim == 2:
+            self.elev = quantity(lambda get: get('elevation_c'))
+        else:
+            self.elev = p.variables['elevation_c'][:]
+        self.stage = quantity(lambda get: get('stage_c'))
+        self.xmom = quantity(lambda get: get('xmomentum_c'))
+        self.ymom = quantity(lambda get: get('ymomentum_c'))
+        self.depth = quantity(depth)
+        self.xvel = quantity(lambda get: velocity(get, 'xmomentum_c'))
+        self.yvel = quantity(lambda get: velocity(get, 'ymomentum_c'))
+        self.speed = quantity(speed)
+        self.speed_depth = quantity(lambda get: speed(get) * depth(get))
+
+        # Tracers -- and suspended sediment classes, which are tracers -- are
+        # stored one dynamic centroid variable each. The file names them in a
+        # tracer_names attribute, since <name>_c is indistinguishable from
+        # stage_c otherwise.
+        from anuga.utilities.plot_utils import _tracer_names_from
+        self.tracers = {}
+        self.max_tracers = {}
+        self._tracer_frame_count = {}
+        for _tname in _tracer_names_from(p):
+            if _tname + '_c' not in p.variables:
+                continue
+            self.tracers[_tname] = quantity(
+                lambda get, name=_tname + '_c': get(name))
+            self._tracer_frame_count[_tname] = 0
+            # Named attribute and bound save method per tracer, so a caller
+            # that drives this class by attribute name -- anuga_sww_gui does
+            # -- reaches a tracer the same way it reaches stage.
+            setattr(self, 'tracer_' + _tname, self.tracers[_tname])
+            setattr(self, 'save_tracer_%s_frame' % _tname,
+                    functools.partial(self._save_tracer_frame, _tname))
+            if 'max_' + _tname + '_c' in p.variables:
+                self.max_tracers[_tname] = p.variables['max_' + _tname + '_c'][:]
+                setattr(self, 'max_tracer_' + _tname, self.max_tracers[_tname])
+                setattr(self, 'save_max_tracer_%s_frame' % _tname,
+                        functools.partial(self._save_max_tracer_frame, _tname))
 
         # Load precomputed max quantities if stored by Collect_max_quantities_operator
         pvars = p.variables
@@ -866,6 +917,12 @@ class SWW_plotter:
 
         self._basemap_cache = {}
         self._figure_cache = {}
+
+        p.close()
+
+    def close(self):
+        """Close the SWW file.  It is opened again if a quantity is read."""
+        self._source.close()
 
     #------------------------------------------
     # General plots
@@ -891,6 +948,69 @@ class SWW_plotter:
     # Frame rendering helpers (figure reuse)
     #------------------------------------------
 
+
+    #------------------------------------------
+    # Tracer procedures
+    #
+    # One pair of methods for every tracer rather than a hand-written pair
+    # per name: a tracer is user-defined, so there is no fixed list to write
+    # out. __init__ binds `save_tracer_<name>_frame` for each.
+    #------------------------------------------
+    def _tracer_frame(self, tracer, frame, figsize, dpi, vmin, vmax,
+                      cmap='viridis', basemap=False, alpha=1.0,
+                      basemap_provider=BASEMAP_DEFAULT,
+                      xlim=None, ylim=None, smooth=False,
+                      show_elev=False, elev_levels=10, show_mesh=False):
+        return self._animated_frame(
+            frame, 'tracer_' + tracer, self.tracers[tracer][frame, :],
+            tracer, figsize, dpi, vmin, vmax, cmap, basemap, alpha,
+            basemap_provider, xlim=xlim, ylim=ylim, smooth=smooth,
+            show_elev=show_elev, elev_levels=elev_levels, show_mesh=show_mesh)
+
+    def _save_tracer_frame(self, tracer, frame=-1, figsize=(10, 6), dpi=160,
+                           vmin=0.0, vmax=1.0, cmap='viridis', basemap=False,
+                           alpha=1.0, basemap_provider=BASEMAP_DEFAULT,
+                           xlim=None, ylim=None, smooth=False,
+                           show_elev=False, elev_levels=10, show_mesh=False):
+        frame_num = self._tracer_frame_count[tracer]
+        fig, ax = self._tracer_frame(tracer, frame, figsize, dpi, vmin, vmax,
+                                     cmap, basemap, alpha, basemap_provider,
+                                     xlim=xlim, ylim=ylim, smooth=smooth,
+                                     show_elev=show_elev,
+                                     elev_levels=elev_levels,
+                                     show_mesh=show_mesh)
+        fname = '%s_tracer_%s_%010d.png' % (self.name, tracer, frame_num)
+        if self.plot_dir is None:
+            fig.savefig(fname)
+        else:
+            fig.savefig(os.path.join(self.plot_dir, fname))
+        plt.close(fig)
+        self._tracer_frame_count[tracer] += 1
+
+    def _save_max_tracer_frame(self, tracer, frame=None, figsize=(10, 6),
+                               dpi=160, vmin=0.0, vmax=1.0, cmap='viridis',
+                               basemap=False, alpha=1.0,
+                               basemap_provider=BASEMAP_DEFAULT,
+                               xlim=None, ylim=None, smooth=False,
+                               show_elev=False, elev_levels=10,
+                               show_mesh=False):
+        """The running maximum, if the run stored one. Time-independent, so
+        `frame` is accepted and ignored, as for the other max quantities."""
+        data = self.max_tracers[tracer]
+        # Stored flag-4, i.e. overwritten each yield step: the last slice is
+        # the maximum over the whole run.
+        values = data[-1, :] if data.ndim == 2 else data
+        fig, ax = self._animated_frame(
+            -1, 'max_tracer_' + tracer, values, 'Max ' + tracer,
+            figsize, dpi, vmin, vmax, cmap, basemap, alpha, basemap_provider,
+            xlim=xlim, ylim=ylim, smooth=smooth, show_elev=show_elev,
+            elev_levels=elev_levels, show_mesh=show_mesh)
+        fname = self.name + '_max_tracer_%s_0000000000.png' % tracer
+        if self.plot_dir is None:
+            fig.savefig(fname)
+        else:
+            fig.savefig(os.path.join(self.plot_dir, fname))
+        plt.close(fig)
 
     def _animated_frame(self, frame, qty_name, qty_data, qty_label,
                         figsize, dpi, vmin, vmax, cmap, basemap, alpha,
@@ -919,10 +1039,7 @@ class SWW_plotter:
                      tuple(ylim) if ylim is not None else None,
                      show_elev, elev_levels, show_mesh)
 
-        if cache_key not in self._figure_cache:
-            self._figure_cache[cache_key] = plt.figure(figsize=figsize, dpi=dpi)
-
-        fig = self._figure_cache[cache_key]
+        fig = self._cached_figure(cache_key, figsize, dpi)
         fig.clf()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
@@ -1043,6 +1160,23 @@ class SWW_plotter:
                          cache=self._basemap_cache)
 
         return fig, ax
+
+    def _cached_figure(self, cache_key, figsize, dpi):
+        """The figure kept for cache_key, or a new one if pyplot has
+        closed it.
+
+        A closed figure must not be drawn on again: with an interactive
+        backend (anuga_sww_gui's TkAgg) its toolbar has been destroyed, and
+        clearing the figure updates that toolbar.
+        """
+        import matplotlib.pyplot as plt
+        from matplotlib._pylab_helpers import Gcf
+        fig = self._figure_cache.get(cache_key)
+        if fig is None or not any(m.canvas.figure is fig
+                                  for m in Gcf.get_all_fig_managers()):
+            fig = plt.figure(figsize=figsize, dpi=dpi)
+            self._figure_cache[cache_key] = fig
+        return fig
 
     def _clear_figure_cache(self):
         """Close all cached figures and release their memory."""
@@ -1283,10 +1417,7 @@ class SWW_plotter:
                      tuple(ylim) if ylim is not None else None,
                      show_mesh)
 
-        if cache_key not in self._figure_cache:
-            self._figure_cache[cache_key] = plt.figure(figsize=figsize, dpi=dpi)
-
-        fig = self._figure_cache[cache_key]
+        fig = self._cached_figure(cache_key, figsize, dpi)
         fig.clf()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
@@ -1404,9 +1535,15 @@ class SWW_plotter:
     @property
     def elev_delta(self):
         """Bed elevation change from t=0: shape (n_time, n_tri), or None for static."""
-        if self.elev.ndim == 2:
-            return self.elev - self.elev[0, :]
-        return None
+        if self.elev.ndim != 2:
+            return None
+        if getattr(self, '_elev_delta', None) is None:
+            from anuga.utilities._sww_frames import FrameArray
+            first = self.elev[0, :]
+            self._elev_delta = FrameArray(
+                self._source, lambda get: get('elevation_c') - first,
+                *self.elev.shape)
+        return self._elev_delta
 
     def _elev_delta_frame(self, frame, figsize, dpi, vmin, vmax, cmap='RdBu_r',
                           basemap=False, alpha=1.0,
@@ -1429,10 +1566,7 @@ class SWW_plotter:
                      tuple(ylim) if ylim is not None else None,
                      show_mesh)
 
-        if cache_key not in self._figure_cache:
-            self._figure_cache[cache_key] = plt.figure(figsize=figsize, dpi=dpi)
-
-        fig = self._figure_cache[cache_key]
+        fig = self._cached_figure(cache_key, figsize, dpi)
         fig.clf()
         ax = fig.add_subplot(111)
         ax.set_aspect('equal')
@@ -1622,8 +1756,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_depth_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     def save_max_stage_frame(self, frame=None, figsize=(10, 6), dpi=160,
                              vmin=-20.0, vmax=20.0, cmap='viridis', basemap=False,
@@ -1663,8 +1796,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_stage_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     def save_max_speed_frame(self, frame=None, figsize=(10, 6), dpi=160,
                              vmin=0.0, vmax=10.0, cmap='viridis', basemap=False,
@@ -1704,8 +1836,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_speed_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     def save_max_speed_depth_frame(self, frame=None, figsize=(10, 6), dpi=160,
                                    vmin=0.0, vmax=20.0, cmap='viridis', basemap=False,
@@ -1747,8 +1878,7 @@ class SWW_plotter:
         path = fname if self.plot_dir is None else os.path.join(self.plot_dir, fname)
         fig.savefig(path)
         self._max_speed_depth_frame_count += 1
-        plt.close()
-        fig.clf()
+        plt.close(fig)
 
     #------------------------------------------
     # Animation procedures

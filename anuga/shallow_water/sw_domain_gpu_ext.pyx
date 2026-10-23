@@ -40,6 +40,9 @@ cdef extern from "gpu_domain.h" nogil:
         double maximum_allowed_speed
         double evolve_max_timestep
         int64_t low_froude
+        int64_t reconstruct_edge_bed
+        int64_t num_owned_edges
+        int64_t* owned_edges
         int64_t extrapolate_velocity_second_order
         # Beta values for gradient limiting
         double beta_w
@@ -101,6 +104,93 @@ cdef extern from "gpu_domain.h" nogil:
         int64_t* tri_full_flag
         # Riverwall arrays
         int64_t number_of_riverwall_edges
+        int64_t number_of_tracers
+        double beta_tracer
+        int64_t n_sediment_classes
+        double* sediment_settling_velocity
+        double* sediment_d_star
+        double sediment_c_max
+        double* sediment_diameter
+        double* sediment_R
+        double* sediment_tau_c_star
+        double sediment_gamma0
+        int64_t sediment_erosion_mode
+        double sediment_K_partheniades
+        double sediment_dl_A
+        double sediment_dl_alpha
+        double sediment_dl_beta
+        double sediment_dl_threshold
+        double sediment_dl_ks
+        double sediment_dl_ks_factor
+        int64_t sediment_vegetation_shear
+        int64_t sediment_deposition_mode
+        double sediment_tau_d
+        double sediment_tau_crit
+        double sediment_K_e
+        double sediment_rho_w
+        int64_t sediment_shear_closure
+        double sediment_max_slope
+        int64_t sediment_slope_frozen
+        double* tracer_external_source
+        int64_t sediment_d_star_mode
+        double* sediment_reference_height
+        double sediment_a_h_floor
+        int64_t sediment_rouse_beta_mode
+        double sediment_rouse_scale
+        int64_t sediment_adaptation_mode
+        double sediment_adaptation_alpha
+        int64_t sediment_nearbed_base
+        double sediment_layer_fraction
+        double sediment_exchange_factor
+        int64_t sediment_velocity_profile
+        double sediment_porosity
+        double sediment_morphological_factor
+        int64_t sediment_bed_evolution
+        int64_t sediment_bedload_mode
+        double sediment_bedload_K
+        double sediment_bedload_m
+        double sediment_bedload_tau_c_star
+        double sediment_bedload_h_min
+        double* sediment_z_base
+        double* sediment_shear_factor
+        int64_t sediment_has_z_base
+        int64_t sediment_bed_composition
+        double sediment_active_layer
+        double* sediment_bed_active
+        double* sediment_bed_substrate
+        double* sediment_repose_dz
+        double sediment_repose_tan
+        double sediment_repose_relax
+        int64_t sediment_repose_max_sweeps
+        double* sediment_source_limited
+        double* sediment_slope_work
+        int64_t* sediment_bed_exhausted
+        int64_t* sediment_bedload_open
+        double* sediment_bedload_supply
+        double* sediment_qbx
+        double* sediment_qba
+        double* sediment_qby
+        double sediment_c_pack
+        int64_t vegetation_mode
+        int64_t use_sloped_mannings
+        double vegetation_Cd
+        double vegetation_bed_chezy
+        double* veg_density_centroid_values
+        double* veg_diameter_centroid_values
+        double* veg_height_centroid_values
+        int64_t sediment_friction_mode
+        double sediment_manning_ll
+        int64_t sediment_wilson_bed
+        double sediment_wilson_D
+        double* tracer_centroid_values
+        double* tracer_edge_values
+        double* tracer_boundary_values
+        double* tracer_explicit_update
+        double* tracer_conserved_values
+        double* tracer_backup_values
+        double* tracer_boundary_flux
+        double* tracer_speed_factor
+        double* tracer_boundary_flux_sum
         int64_t ncol_riverwall_hydraulic_properties
         int64_t nrow_riverwall_hydraulic_properties
         int64_t* edge_flux_type
@@ -146,6 +236,8 @@ cdef extern from "gpu_domain.h" nogil:
         double *max_depth
         double *max_speed
         double *max_uh
+        double *max_tracer
+        int n_tracers
         int initialized
         int mapped
 
@@ -158,6 +250,7 @@ cdef extern from "gpu_domain.h" nogil:
         int device_id
         int gpu_aware_mpi
         int verbose
+        char last_error[512]
         halo_exchange halo
         inlet_operators inlet_ops
         max_quantities_info max_qty
@@ -166,6 +259,8 @@ cdef extern from "gpu_domain.h" nogil:
         double fixed_flux_timestep
         double recorded_flux_timestep
         int use_sloped_mannings
+        int use_active_set
+        long as_samples
 
     # Function declarations - initialization and cleanup
     int gpu_domain_init(gpu_domain *GD, MPI_Comm comm, int rank, int nprocs)
@@ -186,6 +281,8 @@ cdef extern from "gpu_domain.h" nogil:
     void gpu_domain_sync_all_from_device(gpu_domain *GD)
     void gpu_sync_boundary_values(gpu_domain *GD)
     void gpu_sync_riverwall_to_device(gpu_domain *GD)
+    void gpu_sync_tracer_source_to_device(gpu_domain *GD)
+    void gpu_sync_tracer_boundary_to_device(gpu_domain *GD)
     void gpu_sync_edge_values_from_device(gpu_domain *GD)
     int gpu_boundary_edge_sync_init(gpu_domain *GD, int num_boundary_cells, int *boundary_cell_ids)
     void gpu_boundary_edge_sync_finalize(gpu_domain *GD)
@@ -193,6 +290,7 @@ cdef extern from "gpu_domain.h" nogil:
 
     # MPI ghost exchange
     void gpu_exchange_ghosts(gpu_domain *GD)
+    void gpu_exchange_bed_ghosts(gpu_domain *GD)
 
     # Reflective boundary
     int gpu_reflective_init(gpu_domain *GD, int num_edges,
@@ -267,6 +365,7 @@ cdef extern from "gpu_domain.h" nogil:
     void gpu_saxpy3_conserved_quantities(gpu_domain *GD, double a, double b, double c)
     double gpu_protect(gpu_domain *GD)
     double gpu_compute_water_volume(gpu_domain *GD)
+    double gpu_active_set_mean_fraction(gpu_domain *GD)
     void gpu_manning_friction(gpu_domain *GD)
 
     # ADER-2 Cauchy-Kovalewski predictor — centroid variant
@@ -302,6 +401,9 @@ cdef extern from "gpu_domain.h" nogil:
                                double *areas, int *full_indices, int num_full)
     void gpu_rate_operator_finalize(gpu_domain *GD, int op_id)
     void gpu_rate_operators_finalize_all(gpu_domain *GD)
+    int gpu_rate_operator_tracers_capture(gpu_domain *GD, int op_id)
+    void gpu_rate_operator_tracers_apply(gpu_domain *GD, int op_id,
+                                         const double *c_in, const int *carry, int ns)
     double gpu_rate_operator_apply(gpu_domain *GD, int op_id,
                                    double rate, double factor, double timestep)
     double gpu_rate_operator_apply_array(gpu_domain *GD, int op_id,
@@ -326,7 +428,8 @@ cdef extern from "gpu_domain.h" nogil:
                            double current_volume, double total_area,
                            double *vel_u, double *vel_v, int num_vel,
                            int has_velocity, double ext_vel_u, double ext_vel_v,
-                           int zero_velocity)
+                           int zero_velocity,
+                           const double *c_in, int n_cin, double *dmass_out)
 
     # Culvert operators (Boyd box/pipe/weir_trapezoid - batched GPU gather/scatter)
     struct culvert_params:
@@ -365,7 +468,7 @@ cdef extern from "gpu_domain.h" nogil:
                          double init_smooth_Q, double init_smooth_delta_total_energy)
     void gpu_culvert_finalize(gpu_domain *GD, int culvert_id)
     void gpu_culverts_finalize_all(gpu_domain *GD)
-    void gpu_culverts_map(gpu_domain *GD)
+    int gpu_culverts_map(gpu_domain *GD)
     void gpu_culverts_apply_all(gpu_domain *GD, double timestep)
     int gpu_culverts_get_report(gpu_domain *GD, int culvert_id, double *out)
 
@@ -375,6 +478,7 @@ cdef extern from "gpu_domain.h" nogil:
     void gpu_max_quantities_get(gpu_domain *GD,
                                 double *out_stage, double *out_depth,
                                 double *out_speed, double *out_uh)
+    void gpu_max_tracers_get(gpu_domain *GD, double *out_tracer)
     void gpu_max_quantities_finalize(gpu_domain *GD)
 
     # FLOP counters (Gordon Bell performance profiling)
@@ -399,6 +503,12 @@ cdef extern from "gpu_domain.h" nogil:
     uint64_t gpu_flop_counters_get_global_total(gpu_domain *GD)
     double gpu_flop_counters_get_global_flops(gpu_domain *GD)
     void gpu_flop_counters_print_global(gpu_domain *GD)
+
+
+cdef extern from "core_kernels.h" nogil:
+    void core_apply_sediment_source(domain* D, double timestep)
+    void core_apply_bedload(domain* D, double timestep)
+    int64_t core_apply_repose(domain* D)
 
 
 cdef extern from "gpu_culvert_operator.h" nogil:
@@ -640,7 +750,13 @@ cdef void get_domain_pointers(gpu_domain *GD, object domain_object):
     fft = getattr(domain_object, 'fixed_flux_timestep', None)
     GD.fixed_flux_timestep = fft if fft is not None else -1.0
     GD.use_sloped_mannings = 1 if getattr(domain_object, 'use_sloped_mannings', False) else 0
+    GD.use_active_set = 1 if getattr(domain_object, 'use_active_set', False) else 0
     D.low_froude = domain_object.low_froude
+    # Explicit even though GPUDomain's memory is zero-initialized: bed-edge
+    # reconstruction in compute_fluxes is opt-in and stays off for ANUGA.
+    D.reconstruct_edge_bed = 0
+    D.num_owned_edges = 0
+    D.owned_edges = NULL
     D.extrapolate_velocity_second_order = domain_object.extrapolate_velocity_second_order
 
     # Beta values for gradient limiting
@@ -800,6 +916,215 @@ cdef void get_domain_pointers(gpu_domain *GD, object domain_object):
     else:
         D.edge_flux_type = NULL
 
+    # Generic tracers. number_of_tracers MUST be set explicitly -- the mode-2
+    # struct is PyMem_Malloc'd and not reliably zeroed, and a garbage count makes
+    # the kernel guard fire on the device (CUDA_ERROR_ILLEGAL_ADDRESS).
+    D.number_of_tracers = getattr(domain_object, 'number_of_tracers', 0)
+    D.beta_tracer = getattr(domain_object, 'beta_tracer', 1.0)
+    # Sediment: set explicitly here too -- see the note in
+    # sw_domain_openmp_ext.pyx. Missing the mode-2 initialisation of
+    # number_of_tracers previously produced CUDA_ERROR_ILLEGAL_ADDRESS.
+    D.n_sediment_classes = getattr(domain_object, 'n_sediment_classes', 0)
+    D.sediment_c_max = getattr(domain_object, 'sediment_c_max', 0.3)
+    D.sediment_gamma0 = getattr(domain_object, 'sediment_gamma0', 0.0024)
+    D.sediment_erosion_mode = getattr(domain_object, 'sediment_erosion_mode', 0)
+    D.sediment_K_partheniades = getattr(domain_object, 'sediment_K_partheniades', 1.0e-4)
+    D.sediment_dl_A = getattr(domain_object, 'sediment_dl_A', 0.000474)
+    D.sediment_dl_alpha = getattr(domain_object, 'sediment_dl_alpha', 1.5)
+    D.sediment_dl_beta = getattr(domain_object, 'sediment_dl_beta', 1.18)
+    D.sediment_dl_threshold = getattr(domain_object, 'sediment_dl_threshold', 0.015)
+    D.sediment_dl_ks = getattr(domain_object, 'sediment_dl_ks', 0.0)
+    D.sediment_dl_ks_factor = getattr(domain_object, 'sediment_dl_ks_factor', 3.0)
+    D.sediment_vegetation_shear = getattr(domain_object, 'sediment_vegetation_shear', 1)
+    D.sediment_deposition_mode = getattr(domain_object, 'sediment_deposition_mode', 0)
+    D.sediment_tau_d = getattr(domain_object, 'sediment_tau_d', 0.0)
+    D.sediment_tau_crit = getattr(domain_object, 'sediment_tau_crit', 0.088)
+    D.sediment_K_e = getattr(domain_object, 'sediment_K_e', 0.2e-6/0.088**0.5)
+    D.sediment_rho_w = getattr(domain_object, 'sediment_rho_w', 1000.0)
+    D.sediment_shear_closure = getattr(domain_object, 'sediment_shear_closure', 0)
+    D.sediment_max_slope = getattr(domain_object, 'sediment_max_slope', 0.0)
+    D.sediment_slope_frozen = getattr(domain_object, 'sediment_slope_frozen', 0)
+    D.sediment_d_star_mode = getattr(domain_object, 'sediment_d_star_mode', 0)
+    D.sediment_a_h_floor = getattr(domain_object, 'sediment_a_h_floor', 0.01)
+    D.sediment_adaptation_mode = getattr(domain_object, 'sediment_adaptation_mode', 0)
+    D.sediment_rouse_beta_mode = getattr(domain_object, 'sediment_rouse_beta_mode', 0)
+    D.sediment_rouse_scale = getattr(domain_object, 'sediment_rouse_scale', 1.0)
+    D.sediment_adaptation_alpha = getattr(domain_object, 'sediment_adaptation_alpha', 1.0)
+    D.sediment_nearbed_base = getattr(domain_object, 'sediment_nearbed_base', -1)
+    D.sediment_layer_fraction = getattr(domain_object, 'sediment_layer_fraction', 0.0)
+    D.sediment_exchange_factor = getattr(domain_object, 'sediment_exchange_factor', 1.0)
+    D.sediment_velocity_profile = getattr(domain_object, 'sediment_velocity_profile', 0)
+    D.sediment_c_pack = getattr(domain_object, 'sediment_c_pack', 0.65)
+    D.sediment_porosity = getattr(domain_object, 'sediment_porosity', 0.3)
+    D.sediment_morphological_factor = getattr(domain_object, 'sediment_morphological_factor', 1.0)
+    D.sediment_bed_evolution = 1 if getattr(domain_object, 'sediment_bed_evolution', True) else 0
+    D.sediment_bedload_mode = getattr(domain_object, 'sediment_bedload_mode', 0)
+    # [L-5]. Set UNCONDITIONALLY, outside the n_sediment_classes guard
+    # below: the kernels test this flag before dereferencing
+    # sediment_z_base, so leaving it uninitialised makes a NULL
+    # pointer look like a configured base.
+    D.sediment_has_z_base = getattr(domain_object, 'sediment_has_z_base', 0)
+    # Bed composition: flag and thickness unconditionally, like the base;
+    # the kernel also requires both arrays before it dereferences them.
+    D.sediment_bed_composition = getattr(domain_object, 'sediment_bed_composition', 0)
+    D.sediment_active_layer = getattr(domain_object, 'sediment_active_layer', 0.0)
+    # spec 7 repose. Scalars again set unconditionally -- the kernel
+    # tests sediment_repose_tan before touching sediment_repose_dz.
+    D.sediment_repose_tan = getattr(domain_object, 'sediment_repose_tan', 0.0)
+    D.sediment_repose_relax = getattr(domain_object, 'sediment_repose_relax', 1.0)
+    D.sediment_repose_max_sweeps = getattr(domain_object, 'sediment_repose_max_sweeps', 0)
+    D.sediment_bedload_K = getattr(domain_object, 'sediment_bedload_K', 3.97)
+    D.sediment_bedload_m = getattr(domain_object, 'sediment_bedload_m', 1.5)
+    D.sediment_bedload_tau_c_star = getattr(domain_object, 'sediment_bedload_tau_c_star', 0.0495)
+    D.sediment_bedload_h_min = getattr(domain_object, 'sediment_bedload_h_min', 0.0)
+    cdef double[::1] veg1
+    D.vegetation_mode = getattr(domain_object, 'vegetation_mode', 0)
+    D.use_sloped_mannings = 1 if getattr(domain_object, 'use_sloped_mannings', False) else 0
+    D.vegetation_Cd = getattr(domain_object, 'vegetation_Cd', 1.68)
+    D.vegetation_bed_chezy = getattr(domain_object, 'vegetation_bed_chezy', 65.0)
+    if D.vegetation_mode > 0:
+        veg1 = domain_object.quantities['veg_density'].centroid_values
+        D.veg_density_centroid_values = &veg1[0]
+        veg1 = domain_object.quantities['veg_diameter'].centroid_values
+        D.veg_diameter_centroid_values = &veg1[0]
+        veg1 = domain_object.quantities['veg_height'].centroid_values
+        D.veg_height_centroid_values = &veg1[0]
+    else:
+        D.veg_density_centroid_values = NULL
+        D.veg_diameter_centroid_values = NULL
+        D.veg_height_centroid_values = NULL
+    D.sediment_friction_mode = getattr(domain_object, 'sediment_friction_mode', 0)
+    D.sediment_manning_ll = getattr(domain_object, 'sediment_manning_ll', 0.065)
+    D.sediment_wilson_bed = getattr(domain_object, 'sediment_wilson_bed', 0)
+    D.sediment_wilson_D = getattr(domain_object, 'sediment_wilson_D', 1.0e-3)
+    cdef double[::1] sed1
+    cdef double[:,::1] sed2
+    cdef int64_t[::1] sedi
+    if D.n_sediment_classes > 0:
+        sed1 = domain_object.sediment_settling_velocity
+        D.sediment_settling_velocity = &sed1[0]
+        sed1 = domain_object.sediment_d_star
+        D.sediment_d_star = &sed1[0]
+        sed1 = domain_object.sediment_diameter
+        D.sediment_diameter = &sed1[0]
+        sed1 = domain_object.sediment_R
+        D.sediment_R = &sed1[0]
+        sed1 = domain_object.sediment_tau_c_star
+        D.sediment_tau_c_star = &sed1[0]
+        sed1 = domain_object.sediment_reference_height
+        D.sediment_reference_height = &sed1[0]
+        sed1 = domain_object.sediment_qbx
+        D.sediment_qbx = &sed1[0]
+        sed1 = domain_object.sediment_qby
+        D.sediment_qby = &sed1[0]
+        sed1 = domain_object.sediment_qba
+        D.sediment_qba = &sed1[0]
+        # [L-5]. See the note in the OpenMP binding: the scratch is
+        # dereferenced whenever a class exists, the base only when set.
+        sed2 = domain_object.sediment_source_limited
+        D.sediment_source_limited = &sed2[0,0]
+        sed1 = domain_object.sediment_slope_work
+        D.sediment_slope_work = &sed1[0]
+        sedi = domain_object.sediment_bed_exhausted
+        D.sediment_bed_exhausted = &sedi[0]
+        sed1 = domain_object.sediment_repose_dz
+        D.sediment_repose_dz = &sed1[0]
+        sedi = domain_object.sediment_bedload_open
+        if sedi.shape[0] > 0:
+            D.sediment_bedload_open = &sedi[0]
+        else:
+            D.sediment_bedload_open = NULL
+            D.sediment_bedload_supply = NULL
+        sed1 = domain_object.sediment_bedload_supply
+        if sed1.shape[0] > 0:
+            D.sediment_bedload_supply = &sed1[0]
+        else:
+            D.sediment_bedload_supply = NULL
+        if getattr(domain_object, 'sediment_bed_composition', 0):
+            sed2 = domain_object.sediment_bed_active
+            D.sediment_bed_active = &sed2[0,0]
+            sed2 = domain_object.sediment_bed_substrate
+            D.sediment_bed_substrate = &sed2[0,0]
+        else:
+            D.sediment_bed_active = NULL
+            D.sediment_bed_substrate = NULL
+        if domain_object.sediment_has_z_base:
+            sed1 = domain_object.sediment_z_base
+            D.sediment_z_base = &sed1[0]
+        else:
+            D.sediment_z_base = NULL
+        sfa = getattr(domain_object, 'sediment_shear_factor', None)
+        if sfa is not None:
+            sed1 = sfa
+            D.sediment_shear_factor = &sed1[0]
+        else:
+            D.sediment_shear_factor = NULL
+    else:
+        D.sediment_settling_velocity = NULL
+        D.sediment_d_star = NULL
+        D.sediment_diameter = NULL
+        D.sediment_R = NULL
+        D.sediment_tau_c_star = NULL
+        D.sediment_reference_height = NULL
+        D.sediment_qbx = NULL
+        D.sediment_qby = NULL
+        D.sediment_qba = NULL
+        D.sediment_z_base = NULL
+        D.sediment_shear_factor = NULL
+        D.sediment_source_limited = NULL
+        D.sediment_bed_active = NULL
+        D.sediment_bed_substrate = NULL
+        D.sediment_slope_work = NULL
+        D.sediment_bed_exhausted = NULL
+        D.sediment_repose_dz = NULL
+        D.sediment_bedload_open = NULL
+        D.sediment_bedload_supply = NULL
+    # Phase 2: wire the tracer arrays for the device. The pointers must be set
+    # whenever number_of_tracers > 0 -- the shared kernels guard on that count
+    # and dereference all six, so a NULL here is CUDA_ERROR_ILLEGAL_ADDRESS on
+    # the device, not a degraded result. gpu_domain_core.c maps them.
+    cdef double[:, ::1] tr2
+    cdef double[::1] tr1
+    if D.number_of_tracers > 0:
+        tr2 = domain_object.tracer_centroid_values
+        D.tracer_centroid_values = &tr2[0, 0]
+        tr2 = domain_object.tracer_edge_values
+        D.tracer_edge_values = &tr2[0, 0]
+        tr2 = domain_object.tracer_boundary_values
+        D.tracer_boundary_values = &tr2[0, 0]
+        tr2 = domain_object.tracer_explicit_update
+        D.tracer_explicit_update = &tr2[0, 0]
+        tr2 = domain_object.tracer_conserved_values
+        D.tracer_conserved_values = &tr2[0, 0]
+        tr2 = domain_object.tracer_backup_values
+        D.tracer_backup_values = &tr2[0, 0]
+        if domain_object.tracer_external_source is not None:
+            tr2 = domain_object.tracer_external_source
+            D.tracer_external_source = &tr2[0, 0]
+        else:
+            D.tracer_external_source = NULL
+        tr2 = domain_object.tracer_boundary_flux
+        D.tracer_boundary_flux = &tr2[0, 0]
+        tsf = getattr(domain_object, 'tracer_speed_factor', None)
+        if tsf is not None:
+            tr2 = tsf
+            D.tracer_speed_factor = &tr2[0, 0]
+        else:
+            D.tracer_speed_factor = NULL
+        tr1 = domain_object.tracer_boundary_flux_sum
+        D.tracer_boundary_flux_sum = &tr1[0]
+    else:
+        D.tracer_centroid_values = NULL
+        D.tracer_edge_values = NULL
+        D.tracer_boundary_values = NULL
+        D.tracer_explicit_update = NULL
+        D.tracer_conserved_values = NULL
+        D.tracer_backup_values = NULL
+        D.tracer_external_source = NULL
+        D.tracer_boundary_flux = NULL
+        D.tracer_speed_factor = NULL
+        D.tracer_boundary_flux_sum = NULL
+
     # Extract riverwall arrays (may be empty if no riverwalls)
     D.number_of_riverwall_edges = getattr(domain_object, 'number_of_riverwall_edges', 0)
     D.ncol_riverwall_hydraulic_properties = riverwallData.ncol_hydraulic_properties
@@ -916,6 +1241,15 @@ cdef void build_halo_from_dicts(gpu_domain *GD, object domain_object):
 # ============================================================================
 # Public Python API
 # ============================================================================
+
+def get_last_error(GPUDomain gpu_dom):
+    """The last error message recorded by the C layer (gpu_set_error).
+
+    Every C init function that returns an error code records the reason
+    here first; the wrappers include it in the exception they raise.
+    """
+    return gpu_dom.GD.last_error.decode('utf-8', 'replace')
+
 
 def init_gpu_domain(object domain_object, bint verbose=True):
     """
@@ -1248,6 +1582,26 @@ def sync_riverwall_to_device(GPUDomain gpu_dom):
     gpu_sync_riverwall_to_device(&gpu_dom.GD)
 
 
+def sync_tracer_source_to_device(GPUDomain gpu_dom):
+    """Push the tracer external source to the device.
+
+    set_tracer_source writes the host array; a time-varying source rewrites it
+    every step, so the device copy has to be refreshed or it goes stale. One
+    array, not the whole state. #288
+    """
+    gpu_sync_tracer_source_to_device(&gpu_dom.GD)
+
+
+def sync_tracer_boundary_to_device(GPUDomain gpu_dom):
+    """Push the tracer boundary concentrations to the device.
+
+    set_tracer_boundary writes the host array, and a callable boundary is
+    re-evaluated every step; the per-step boundary push carries only the
+    hydrodynamic values, so this one has its own. One small array.
+    """
+    gpu_sync_tracer_boundary_to_device(&gpu_dom.GD)
+
+
 def sync_edge_values_from_device(GPUDomain gpu_dom):
     """
     Sync ALL edge values from device to host.
@@ -1297,6 +1651,14 @@ def exchange_ghosts(GPUDomain gpu_dom):
     gpu_exchange_ghosts(&gpu_dom.GD)
 
 
+
+def exchange_bed_ghosts_gpu(GPUDomain gpu_dom):
+    """Give every ghost cell its owner's bed (centroid, edges shifted with it).
+
+    Called after the sediment step in parallel runs whose bed evolves (#424).
+    """
+    gpu_exchange_bed_ghosts(&gpu_dom.GD)
+
 def init_reflective_boundary(GPUDomain gpu_dom, object domain_object):
     """
     Initialize reflective boundary for GPU evaluation.
@@ -1340,8 +1702,9 @@ def init_reflective_boundary(GPUDomain gpu_dom, object domain_object):
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
     # Call C init
-    gpu_reflective_init(&gpu_dom.GD, num_edges,
-                        &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0])
+    if     gpu_reflective_init(&gpu_dom.GD, num_edges,
+                           &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0]) != 0:
+        raise RuntimeError('init_reflective_boundary: ' + get_last_error(gpu_dom))
 
 
 def evaluate_reflective_boundary_gpu(GPUDomain gpu_dom):
@@ -1406,9 +1769,10 @@ def init_dirichlet_boundary(GPUDomain gpu_dom, object domain_object):
     xmom_values_arr = np.ascontiguousarray(all_xmom, dtype=np.float64)
     ymom_values_arr = np.ascontiguousarray(all_ymom, dtype=np.float64)
 
-    gpu_dirichlet_init(&gpu_dom.GD, num_edges,
-                       &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0],
-                       &stage_values_arr[0], &xmom_values_arr[0], &ymom_values_arr[0])
+    if     gpu_dirichlet_init(&gpu_dom.GD, num_edges,
+                          &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0],
+                          &stage_values_arr[0], &xmom_values_arr[0], &ymom_values_arr[0]) != 0:
+        raise RuntimeError('init_dirichlet_boundary: ' + get_last_error(gpu_dom))
 
 
 def evaluate_dirichlet_boundary_gpu(GPUDomain gpu_dom):
@@ -1457,9 +1821,10 @@ def init_transmissive_boundary(GPUDomain gpu_dom, object domain_object):
     vol_ids_arr = np.ascontiguousarray(domain_object.boundary_cells[ids], dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_transmissive_init(&gpu_dom.GD, num_edges,
-                          &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0],
-                          use_centroid)
+    if     gpu_transmissive_init(&gpu_dom.GD, num_edges,
+                             &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0],
+                             use_centroid) != 0:
+        raise RuntimeError('init_transmissive_boundary: ' + get_last_error(gpu_dom))
 
 
 def evaluate_transmissive_boundary_gpu(GPUDomain gpu_dom):
@@ -1505,8 +1870,9 @@ def init_transmissive_n_zero_t_boundary(GPUDomain gpu_dom, object domain_object)
     vol_ids_arr = np.ascontiguousarray(domain_object.boundary_cells[ids], dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_transmissive_n_zero_t_init(&gpu_dom.GD, num_edges,
-                                   &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0])
+    if     gpu_transmissive_n_zero_t_init(&gpu_dom.GD, num_edges,
+                                      &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0]) != 0:
+        raise RuntimeError('init_transmissive_n_zero_t_boundary: ' + get_last_error(gpu_dom))
 
 
 def set_transmissive_n_zero_t_stage(GPUDomain gpu_dom, double stage_value):
@@ -1573,8 +1939,9 @@ def init_file_boundary(GPUDomain gpu_dom, object domain_object):
     vol_ids_arr  = np.ascontiguousarray(domain_object.boundary_cells[ids],  dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_file_boundary_init(&gpu_dom.GD, num_edges,
-                           &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0])
+    if     gpu_file_boundary_init(&gpu_dom.GD, num_edges,
+                              &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0]) != 0:
+        raise RuntimeError('init_file_boundary_boundary: ' + get_last_error(gpu_dom))
 
     # Store edge metadata for per-timestep Python evaluation
     # List of (B, vol_id, edge_id) in the same order as boundary_indices
@@ -1652,8 +2019,9 @@ def init_time_boundary(GPUDomain gpu_dom, object domain_object):
     vol_ids_arr = np.ascontiguousarray(domain_object.boundary_cells[ids], dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_time_boundary_init(&gpu_dom.GD, num_edges,
-                           &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0])
+    if     gpu_time_boundary_init(&gpu_dom.GD, num_edges,
+                              &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0]) != 0:
+        raise RuntimeError('init_time_boundary_boundary: ' + get_last_error(gpu_dom))
 
 
 def set_time_boundary_values(GPUDomain gpu_dom,
@@ -1715,8 +2083,9 @@ def init_absorbing_wave_boundary(GPUDomain gpu_dom, object domain_object):
     vol_ids_arr  = np.ascontiguousarray(domain_object.boundary_cells[ids],  dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_absorbing_wave_init(&gpu_dom.GD, num_edges,
-                            &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0])
+    if     gpu_absorbing_wave_init(&gpu_dom.GD, num_edges,
+                               &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0]) != 0:
+        raise RuntimeError('init_absorbing_wave_boundary: ' + get_last_error(gpu_dom))
     return num_edges
 
 
@@ -1769,9 +2138,10 @@ def init_characteristic_wave_boundary(GPUDomain gpu_dom, object domain_object):
     vol_ids_arr  = np.ascontiguousarray(domain_object.boundary_cells[ids],  dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_characteristic_wave_init(&gpu_dom.GD, num_edges,
-                                 &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0],
-                                 bg_stage)
+    if     gpu_characteristic_wave_init(&gpu_dom.GD, num_edges,
+                                    &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0],
+                                    bg_stage) != 0:
+        raise RuntimeError('init_characteristic_wave_boundary: ' + get_last_error(gpu_dom))
     return num_edges
 
 
@@ -1823,8 +2193,9 @@ def init_flather_boundary(GPUDomain gpu_dom, object domain_object):
     vol_ids_arr  = np.ascontiguousarray(domain_object.boundary_cells[ids],  dtype=np.intc)
     edge_ids_arr = np.ascontiguousarray(domain_object.boundary_edges[ids], dtype=np.intc)
 
-    gpu_flather_init(&gpu_dom.GD, num_edges,
-                     &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0])
+    if     gpu_flather_init(&gpu_dom.GD, num_edges,
+                        &boundary_indices[0], &vol_ids_arr[0], &edge_ids_arr[0]) != 0:
+        raise RuntimeError('init_flather_boundary: ' + get_last_error(gpu_dom))
     return num_edges
 
 
@@ -2046,6 +2417,27 @@ def saxpy3_conserved_quantities_gpu(GPUDomain gpu_dom, double a, double b, doubl
     gpu_saxpy3_conserved_quantities(&gpu_dom.GD, a, b, c)
 
 
+def apply_sediment_source_gpu(GPUDomain gpu_dom, double timestep):
+    """Fractional step on the device: apply E-D to m and the bed change to z.
+
+    Runs the same core kernel as mode 1; on a GPU build its loop is an
+    'omp target' region, so the tracer and bed arrays are updated in place on
+    the device with no host round trip. That is what keeps this operator
+    GPU-safe and off the _gpu_host_writes_suppressed fallback path.
+    """
+    core_apply_sediment_source(&gpu_dom.GD.D, timestep)
+
+
+def apply_bedload_gpu(GPUDomain gpu_dom, double timestep):
+    """Bedload divergence [G-5] on the device."""
+    core_apply_bedload(&gpu_dom.GD.D, timestep)
+
+
+def apply_repose_gpu(GPUDomain gpu_dom):
+    """Angle-of-repose relaxation on the device. Returns sweeps used."""
+    return core_apply_repose(&gpu_dom.GD.D)
+
+
 def protect_gpu(GPUDomain gpu_dom):
     """
     Protect against negative water depths.
@@ -2073,6 +2465,21 @@ def compute_water_volume_gpu(GPUDomain gpu_dom):
         Local water volume (m^3)
     """
     return gpu_compute_water_volume(&gpu_dom.GD)
+
+
+def set_use_active_set_gpu(GPUDomain gpu_dom, int flag):
+    """Push the active-set flag into an already-initialized GPU domain."""
+    gpu_dom.GD.use_active_set = flag
+
+
+def active_set_stats_gpu(GPUDomain gpu_dom):
+    """Return (mean_active_fraction, n_rebuilds) for active-set stepping.
+
+    mean_active_fraction is 1.0 when the active set never engaged (disabled,
+    MPI fallback, or no rebuild has run yet).
+    """
+    return (gpu_active_set_mean_fraction(&gpu_dom.GD),
+            int(gpu_dom.GD.as_samples))
 
 
 def manning_friction_gpu(GPUDomain gpu_dom):
@@ -2121,8 +2528,11 @@ def init_rate_operator(GPUDomain gpu_dom,
         num_full = len(full_indices)
         full_ptr = &full_indices[0]
 
-    return gpu_rate_operator_init(&gpu_dom.GD, num_indices, &indices[0],
+    ret = gpu_rate_operator_init(&gpu_dom.GD, num_indices, &indices[0],
                                   &areas[0], full_ptr, num_full)
+    if ret < 0:
+        raise RuntimeError('init_rate_operator: ' + get_last_error(gpu_dom))
+    return ret
 
 
 def finalize_rate_operator(GPUDomain gpu_dom, int op_id):
@@ -2146,6 +2556,25 @@ def finalize_all_rate_operators(GPUDomain gpu_dom):
     Call this during domain cleanup.
     """
     gpu_rate_operators_finalize_all(&gpu_dom.GD)
+
+
+def rate_operator_tracers_capture_gpu(GPUDomain gpu_dom, int op_id):
+    """Record the depths a rate operator's cells have before it is applied."""
+    return gpu_rate_operator_tracers_capture(&gpu_dom.GD, op_id)
+
+
+def rate_operator_tracers_apply_gpu(GPUDomain gpu_dom, int op_id, object c_in, object carry):
+    """Move the tracers with the water the rate added or removed.
+
+    `c_in` (ns,) is each tracer's inflow concentration, `carry` (ns,) 1 where
+    the tracer leaves with removed water. See gpu_rate_operator.c.
+    """
+    cdef np.ndarray[double, ndim=1, mode="c"] c_np = np.ascontiguousarray(c_in, dtype=np.float64)
+    cdef np.ndarray[int, ndim=1, mode="c"] k_np = np.ascontiguousarray(carry, dtype=np.intc)
+    cdef int ns = c_np.shape[0]
+    if ns == 0:
+        return
+    gpu_rate_operator_tracers_apply(&gpu_dom.GD, op_id, &c_np[0], &k_np[0], ns)
 
 
 def apply_rate_operator_gpu(GPUDomain gpu_dom, int op_id,
@@ -2232,7 +2661,10 @@ def init_max_quantities_gpu(GPUDomain gpu_dom, int n, double velocity_zero_heigh
 
     Returns 0 on success, -1 on allocation failure.
     """
-    return gpu_max_quantities_init(&gpu_dom.GD, n, velocity_zero_height)
+    ret = gpu_max_quantities_init(&gpu_dom.GD, n, velocity_zero_height)
+    if ret < 0:
+        raise RuntimeError('init_max_quantities_gpu: ' + get_last_error(gpu_dom))
+    return ret
 
 
 def update_max_quantities_gpu(GPUDomain gpu_dom):
@@ -2261,6 +2693,21 @@ def get_max_quantities_gpu(GPUDomain gpu_dom,
     gpu_max_quantities_get(&gpu_dom.GD,
                            &max_stage[0], &max_depth[0],
                            &max_speed[0], &max_uh[0])
+
+
+def get_max_tracers_gpu(GPUDomain gpu_dom,
+                        np.ndarray[double, ndim=2, mode="c"] max_tracer):
+    """
+    Sync the per-tracer running maxima from device to host.
+
+    max_tracer must be (n_tracers, number_of_elements) and C-contiguous --
+    the same layout the tracer arrays use, which is what the kernel writes.
+    Like get_max_quantities_gpu this is a device-to-host transfer; call it
+    only at yield steps or on export.
+    """
+    if max_tracer.shape[0] == 0:
+        return
+    gpu_max_tracers_get(&gpu_dom.GD, &max_tracer[0, 0])
 
 
 def finalize_max_quantities_gpu(GPUDomain gpu_dom):
@@ -2297,7 +2744,10 @@ def init_inlet_operator(GPUDomain gpu_dom,
         Returns -1 on error
     """
     cdef int num_indices = len(indices)
-    return gpu_inlet_operator_init(&gpu_dom.GD, num_indices, &indices[0], &areas[0])
+    ret = gpu_inlet_operator_init(&gpu_dom.GD, num_indices, &indices[0], &areas[0])
+    if ret < 0:
+        raise RuntimeError('init_inlet_operator: ' + get_last_error(gpu_dom))
+    return ret
 
 
 def finalize_inlet_operator(GPUDomain gpu_dom, int op_id):
@@ -2351,13 +2801,29 @@ def inlet_apply_gpu(GPUDomain gpu_dom, int op_id, double volume,
                     double current_volume, double total_area,
                     object vel_u_arr, object vel_v_arr,
                     int has_velocity, double ext_vel_u, double ext_vel_v,
-                    int zero_velocity):
+                    int zero_velocity, object c_in_arr=None, object dmass_arr=None):
     """
     Apply inlet operator on GPU - main entry point.
 
-    Handles all 3 cases (positive volume, negative sustainable, drain).
-    Returns actual applied volume.
+    Handles all 3 cases (positive volume, negative sustainable, drain), and
+    the tracers the water carries: `c_in_arr` is the inflow concentration of
+    each tracer (None: all zero); `dmass_arr`, if given, receives the change
+    in each tracer's volume in the inlet. Returns actual applied volume.
     """
+    cdef np.ndarray[double, ndim=1, mode="c"] cin_np
+    cdef np.ndarray[double, ndim=1, mode="c"] dm_np
+    cdef const double *cin_ptr = NULL
+    cdef double *dm_ptr = NULL
+    cdef int n_cin = 0
+    if c_in_arr is not None:
+        cin_np = np.ascontiguousarray(c_in_arr, dtype=np.float64)
+        if cin_np.shape[0] > 0:
+            cin_ptr = &cin_np[0]
+            n_cin = cin_np.shape[0]
+    if dmass_arr is not None:
+        dm_np = dmass_arr
+        if dm_np.shape[0] > 0:
+            dm_ptr = &dm_np[0]
     cdef np.ndarray[double, ndim=1, mode="c"] u_np
     cdef np.ndarray[double, ndim=1, mode="c"] v_np
     cdef double *u_ptr = NULL
@@ -2375,7 +2841,7 @@ def inlet_apply_gpu(GPUDomain gpu_dom, int op_id, double volume,
                            current_volume, total_area,
                            u_ptr, v_ptr, n_vel,
                            has_velocity, ext_vel_u, ext_vel_v,
-                           zero_velocity)
+                           zero_velocity, cin_ptr, n_cin, dm_ptr)
 
 
 # ============================================================================
@@ -2472,7 +2938,7 @@ def init_culvert_operator(GPUDomain gpu_dom,
     cdef int *p_inlet1 = &inlet1_indices[0] if n1 > 0 else NULL
     cdef double *p_area1 = &inlet1_areas[0] if n1 > 0 else NULL
 
-    return gpu_culvert_init(&gpu_dom.GD, &p,
+    ret = gpu_culvert_init(&gpu_dom.GD, &p,
                             enquiry_index_0, enquiry_index_1,
                             n0, p_inlet0, p_area0,
                             n1, p_inlet1, p_area1,
@@ -2480,6 +2946,9 @@ def init_culvert_operator(GPUDomain gpu_dom,
                             inlet_master_proc_0, inlet_master_proc_1,
                             is_local, mpi_tag_base,
                             init_smooth_Q, init_smooth_delta_total_energy)
+    if ret < 0:
+        raise RuntimeError('init_culvert_operator: ' + get_last_error(gpu_dom))
+    return ret
 
 
 def finalize_culvert_operator(GPUDomain gpu_dom, int culvert_id):
@@ -2494,7 +2963,8 @@ def finalize_all_culvert_operators(GPUDomain gpu_dom):
 
 def map_culvert_operators(GPUDomain gpu_dom):
     """Map culvert scratch buffers to GPU. Call after all culverts registered."""
-    gpu_culverts_map(&gpu_dom.GD)
+    if gpu_culverts_map(&gpu_dom.GD) != 0:
+        raise RuntimeError('map_culverts: ' + get_last_error(gpu_dom))
 
 
 def apply_all_culvert_operators(GPUDomain gpu_dom, double timestep):

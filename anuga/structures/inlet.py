@@ -278,6 +278,11 @@ class Inlet:
         old uniform write.
         """
 
+        if self.area <= 0.0:
+            # A rank that takes part in a parallel inlet for its enquiry
+            # point alone holds none of the inlet's triangles: nothing to
+            # write, and nothing to divide by.
+            return
         depths = num.maximum(self.get_stages() - self.get_elevations(), 0.0)
         average_depth = float(num.dot(depths, self.get_areas())) / self.area
         if average_depth <= 0.0:

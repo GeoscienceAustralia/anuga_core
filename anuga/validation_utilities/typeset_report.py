@@ -22,7 +22,7 @@ def typeset_report(report_name='report', verbose=True):
 
     try:
         out = subprocess.check_output(cmd, shell=True)
-        out = subprocess.check_output('bibtex %s' % report_name)
+        out = subprocess.check_output('bibtex %s' % report_name, shell=True)
         out = subprocess.check_output(cmd, shell=True)
         out = subprocess.check_output(cmd, shell=True)
     except (subprocess.CalledProcessError, OSError):

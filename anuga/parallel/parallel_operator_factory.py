@@ -13,6 +13,7 @@ from math import pi, pow, sqrt
 import numpy as num
 from .parallel_inlet_operator import Parallel_Inlet_operator
 from .parallel_structure_operator import Parallel_Structure_operator
+from .parallel_structure_operator import inlet_polygons
 from .parallel_boyd_box_operator import Parallel_Boyd_box_operator
 from .parallel_boyd_pipe_operator import Parallel_Boyd_pipe_operator
 from .parallel_weir_orifice_trapezoid_operator import Parallel_Weir_orifice_trapezoid_operator
@@ -48,6 +49,7 @@ def Inlet_operator(domain,
                    velocity = None,
                    zero_velocity = False,
                    default = 0.0,
+                   tracer_concentrations = None,
                    description = None,
                    label = None,
                    logging = False,
@@ -63,6 +65,8 @@ def Inlet_operator(domain,
     :param velocity: Optional [u,v] to set velocity of applied discharge
     :param zero_velocity: If set to True, velocity of inlet region set to 0
     :param default: If outside time domain of the Q function, use this default discharge
+    :param tracer_concentrations: dict of tracer name -> concentration (float or
+        function of t) of the water the inlet adds; see Inlet_operator
     :param description: Describe the Inlet_operator
     :param label: Give Inlet_operator a label (name)
     :param verbose: Provide verbose output
@@ -116,6 +120,7 @@ def Inlet_operator(domain,
                                        velocity = velocity,
                                        zero_velocity = zero_velocity,
                                        default = default,
+                                       tracer_concentrations = tracer_concentrations,
                                        description = description,
                                        label = label,
                                        logging = logging,
@@ -217,19 +222,21 @@ def Boyd_box_operator(domain,
             exchange_lines_tmp = pypar.receive(master_proc)
             enquiry_points_tmp = pypar.receive(master_proc)
 
-    # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0]
+    # Determine processors associated with each inlet, from the region the
+    # inlet will actually use: the exchange line extended back by the apron,
+    # as Structure_operator and Parallel_Structure_operator build it.
+    line0, line1 = exchange_lines_tmp[0], exchange_lines_tmp[1]
+    poly0, poly1 = inlet_polygons(exchange_lines_tmp, end_points, apron)
     enquiry_point0 = enquiry_points_tmp[0]
 
-    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
+    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, poly0, enquiry_point =  enquiry_point0,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
     # Determine processors associated with second inlet
-    line1 = exchange_lines_tmp[1]
     enquiry_point1 = enquiry_points_tmp[1]
 
-    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, line1, enquiry_point =  enquiry_point1,
+    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, poly1, enquiry_point =  enquiry_point1,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
@@ -387,19 +394,21 @@ def Boyd_pipe_operator(domain,
             exchange_lines_tmp = pypar.receive(master_proc)
             enquiry_points_tmp = pypar.receive(master_proc)
 
-    # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0]
+    # Determine processors associated with each inlet, from the region the
+    # inlet will actually use: the exchange line extended back by the apron,
+    # as Structure_operator and Parallel_Structure_operator build it.
+    line0, line1 = exchange_lines_tmp[0], exchange_lines_tmp[1]
+    poly0, poly1 = inlet_polygons(exchange_lines_tmp, end_points, apron)
     enquiry_point0 = enquiry_points_tmp[0]
 
-    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
+    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, poly0, enquiry_point =  enquiry_point0,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
     # Determine processors associated with second inlet
-    line1 = exchange_lines_tmp[1]
     enquiry_point1 = enquiry_points_tmp[1]
 
-    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, line1, enquiry_point =  enquiry_point1,
+    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, poly1, enquiry_point =  enquiry_point1,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
@@ -573,19 +582,21 @@ def Weir_orifice_trapezoid_operator(domain,
             exchange_lines_tmp = pypar.receive(master_proc)
             enquiry_points_tmp = pypar.receive(master_proc)
 
-    # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0]
+    # Determine processors associated with each inlet, from the region the
+    # inlet will actually use: the exchange line extended back by the apron,
+    # as Structure_operator and Parallel_Structure_operator build it.
+    line0, line1 = exchange_lines_tmp[0], exchange_lines_tmp[1]
+    poly0, poly1 = inlet_polygons(exchange_lines_tmp, end_points, apron)
     enquiry_point0 = enquiry_points_tmp[0]
 
-    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
+    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, poly0, enquiry_point =  enquiry_point0,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
     # Determine processors associated with second inlet
-    line1 = exchange_lines_tmp[1]
     enquiry_point1 = enquiry_points_tmp[1]
 
-    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, line1, enquiry_point =  enquiry_point1,
+    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, poly1, enquiry_point =  enquiry_point1,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
@@ -750,19 +761,21 @@ def Internal_boundary_operator(domain,
             exchange_lines_tmp = pypar.receive(master_proc)
             enquiry_points_tmp = pypar.receive(master_proc)
 
-    # Determine processors associated with first inlet
-    line0 = exchange_lines_tmp[0]
+    # Determine processors associated with each inlet, from the region the
+    # inlet will actually use: the exchange line extended back by the apron,
+    # as Structure_operator and Parallel_Structure_operator build it.
+    line0, line1 = exchange_lines_tmp[0], exchange_lines_tmp[1]
+    poly0, poly1 = inlet_polygons(exchange_lines_tmp, end_points, apron)
     enquiry_point0 = enquiry_points_tmp[0]
 
-    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, line0, enquiry_point =  enquiry_point0,
+    alloc0, inlet0_master_proc, inlet0_procs, enquiry0_proc = allocate_inlet_procs(domain, poly0, enquiry_point =  enquiry_point0,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
     # Determine processors associated with second inlet
-    line1 = exchange_lines_tmp[1]
     enquiry_point1 = enquiry_points_tmp[1]
 
-    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, line1, enquiry_point =  enquiry_point1,
+    alloc1, inlet1_master_proc, inlet1_procs, enquiry1_proc = allocate_inlet_procs(domain, poly1, enquiry_point =  enquiry_point1,
                                                                                    master_proc = master_proc,
                                                                                    procs = procs, verbose=verbose)
 
@@ -897,7 +910,11 @@ def allocate_inlet_procs(domain, region, enquiry_point = None, master_proc = 0, 
 
     myid = pypar.rank()
     vertex_coordinates = domain.get_full_vertex_coordinates(absolute=True)
-    domain_centroids = domain.centroid_coordinates
+    # Absolute, like the polygon and the vertex coordinates above, and full
+    # triangles only, like the inlet's own Region: a rank whose only
+    # triangles in the region are ghosts has no inlet area.
+    domain_centroids = domain.get_centroid_coordinates(absolute=True)
+    full = num.where(domain.tri_full_flag == 1)[0]
     size = 0
     has_enq_point = False
     numprocs = pypar.size()
@@ -917,9 +934,14 @@ def allocate_inlet_procs(domain, region, enquiry_point = None, master_proc = 0, 
         tri_id = line_intersect(vertex_coordinates, region)
     else: # region is a polygon
         if verbose : print("+++++++++++++++++++++++")
-        tris_0 = line_intersect(vertex_coordinates, [region[0],region[1]])
-        tris_1 = inside_polygon(domain_centroids, region)
-        tri_id = num.union1d(tris_0, tris_1)
+        # The same selection as Region(poly=region, expand_polygon=True),
+        # which is what the inlet will build: centroids inside, plus the
+        # triangles every edge passes through.
+        tri_id = num.intersect1d(inside_polygon(domain_centroids, region), full)
+        n_pts = len(region)
+        for j in range(n_pts):
+            tris_j = line_intersect(vertex_coordinates, [region[j], region[(j+1) % n_pts]])
+            tri_id = num.union1d(tris_j, tri_id)
 
 
     if verbose:

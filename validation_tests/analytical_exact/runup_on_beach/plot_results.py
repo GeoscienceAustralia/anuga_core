@@ -3,7 +3,7 @@
 #---------------
 # Import Modules
 #---------------
-import scipy
+import numpy
 import anuga
 from anuga.utilities import plot_utils as util
 import matplotlib
@@ -17,7 +17,7 @@ p=util.get_centroids(p2, velocity_extrapolation=True)
 #------------------
 # Select line
 #------------------
-py_central=p.y[scipy.argmin(abs(p.y-0.5))]
+py_central=numpy.argmin(abs(p.y-0.5))
 v=(p.y==p.y[py_central])
 
 #--------------------

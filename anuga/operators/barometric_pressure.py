@@ -3,6 +3,7 @@
 import numpy as np
 from anuga.config import rho_w
 from anuga.operators.base_operator import Operator
+from anuga.utilities.function_utils import evaluate_file_function_all_points
 from anuga.utilities.numerical_tools import gradient
 
 
@@ -26,9 +27,10 @@ class Barometric_pressure_operator(Operator):
         coordinate arrays, and the return value must be broadcastable to
         shape ``(number_of_nodes,)``.
     use_coordinates : bool, optional
-        Must be ``True`` (default).  ``False`` is not yet supported; use
-        :class:`~anuga.shallow_water.forcing.Barometric_pressure` with a
-        ``file_function`` for that case.
+        ``True`` (default): a callable *pressure* takes ``(t, x, y)``.
+        ``False``: *pressure* is a :func:`anuga.file_function` with the single
+        quantity ``barometric_pressure`` precomputed at the mesh nodes
+        (``interpolation_points=domain.get_nodes()``); see the example below.
     description, label, logging, verbose : passed to :class:`Operator`.
 
     Examples
@@ -44,6 +46,13 @@ class Barometric_pressure_operator(Operator):
             return (p_max - (p_max - p_min) * np.exp(-r2 / R**2)).reshape(1, -1)
 
         P = Barometric_pressure_operator(domain, storm_pressure, use_coordinates=True)
+
+    Pressure field read from a file::
+
+        F = anuga.file_function('pressure.sww', domain,
+                                quantities=['barometric_pressure'],
+                                interpolation_points=domain.get_nodes())
+        P = Barometric_pressure_operator(domain, F, use_coordinates=False)
     """
 
     def __init__(self, domain, pressure=101325.0, use_coordinates=True,
@@ -53,11 +62,21 @@ class Barometric_pressure_operator(Operator):
                           description=description, label=label,
                           logging=logging, verbose=verbose)
 
-        if not use_coordinates:
-            raise NotImplementedError(
-                'use_coordinates=False is not supported in Barometric_pressure_operator. '
-                'Use anuga.shallow_water.forcing.Barometric_pressure with a '
-                'file_function for node-indexed input.')
+        self.use_coordinates = bool(use_coordinates)
+        if not self.use_coordinates:
+            names = getattr(pressure, 'quantity_names', None)
+            if names is None or len(names) != 1:
+                raise ValueError(
+                    'Barometric_pressure_operator(use_coordinates=False) '
+                    'expects a file_function with exactly one quantity; '
+                    'got %r' % (names,))
+            pts = getattr(pressure, 'interpolation_points', None)
+            if pts is not None and len(pts) != domain.get_number_of_nodes():
+                raise ValueError(
+                    'Barometric_pressure_operator(use_coordinates=False): the '
+                    'file_function has %d interpolation points but the mesh '
+                    'has %d nodes; interpolate at domain.get_nodes()'
+                    % (len(pts), domain.get_number_of_nodes()))
 
         self.pressure = pressure
 
@@ -68,7 +87,13 @@ class Barometric_pressure_operator(Operator):
         N = domain.number_of_elements
 
         # Evaluate pressure at each mesh node (unique vertices)
-        if callable(self.pressure):
+        if not self.use_coordinates:
+            field = evaluate_file_function_all_points(self.pressure, t)
+            if field.ndim == 1:      # time-only file: uniform over the mesh
+                p_nodes = np.full(domain.get_number_of_nodes(), field[0])
+            else:
+                p_nodes = field[0]
+        elif callable(self.pressure):
             node_coords = domain.get_nodes()
             p_nodes = np.asarray(
                 self.pressure(t, node_coords[:, 0], node_coords[:, 1]),

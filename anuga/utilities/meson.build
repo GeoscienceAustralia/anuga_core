@@ -49,6 +49,7 @@ py3.extension_module('util_ext',
 
 python_sources = [
 '_animate_worker.py',
+'_sww_frames.py',
 'animate.py',
 'argparsing.py',
 'cg_solve.py',

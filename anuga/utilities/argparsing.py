@@ -79,6 +79,12 @@ def create_standard_parser():
                    help='include long-running validation tests (the HEC-RAS bridge/weir '
                         'behaviour cases) that run_auto_validation_tests.py skips by default')
 
+    parser.add_argument('-nr', '--no-run', '--no_run', dest='no_run',
+                   nargs='?', type=bool, const=True, default=False,
+                   help='do not run the simulation: reuse the sww files already '
+                        'in the case directory and only replot and typeset. Used '
+                        'by produce_results.py and validations_produce_results.py')
+
     parser.add_argument('-cp', '--checkpointing', nargs='?', type=bool, const=True, default=False,
                    help='turn on checkpointing')
 

@@ -75,10 +75,10 @@ void boyd_box_discharge(const struct culvert_params *p,
     if (dcrit > depth) {
         dcrit = depth;
         flow_area = bf * width * dcrit * barrels;
-        perimeter = 2.0 * (bf * width * barrels + dcrit);
+        perimeter = barrels * 2.0 * (bf * width + dcrit);
     } else {
         flow_area = bf * width * barrels * dcrit;
-        perimeter = 2.0 * dcrit + bf * width * barrels;
+        perimeter = barrels * (bf * width + 2.0 * dcrit);
     }
 
     double outlet_culvert_depth = dcrit;
@@ -90,10 +90,10 @@ void boyd_box_discharge(const struct culvert_params *p,
     if (outlet_culvert_depth > depth) {
         outlet_culvert_depth = depth;
         flow_area = bf * width * barrels * depth;
-        perimeter = 2.0 * (bf * width * barrels + depth);
+        perimeter = barrels * 2.0 * (bf * width + depth);
     } else {
         flow_area = bf * width * barrels * outlet_culvert_depth;
-        perimeter = bf * width * barrels + 2.0 * outlet_culvert_depth;
+        perimeter = barrels * (bf * width + 2.0 * outlet_culvert_depth);
     }
 
     double hyd_rad = flow_area / perimeter;
@@ -107,17 +107,17 @@ void boyd_box_discharge(const struct culvert_params *p,
             // Outlet submerged
             outlet_culvert_depth = depth;
             flow_area = bf * width * barrels * depth;
-            perimeter = 2.0 * (bf * width * barrels + depth);
+            perimeter = barrels * 2.0 * (bf * width + depth);
         } else {
             dcrit = pow(Q * Q / p->g / pow(bf * width * barrels, 2.0), 0.333333);
             outlet_culvert_depth = dcrit;
             if (outlet_culvert_depth > depth) {
                 outlet_culvert_depth = depth;
                 flow_area = bf * width * barrels * depth;
-                perimeter = 2.0 * (bf * width * barrels + depth);
+                perimeter = barrels * 2.0 * (bf * width + depth);
             } else {
                 flow_area = bf * width * barrels * outlet_culvert_depth;
-                perimeter = bf * width * barrels + 2.0 * outlet_culvert_depth;
+                perimeter = barrels * (bf * width + 2.0 * outlet_culvert_depth);
             }
         }
 
@@ -126,6 +126,11 @@ void boyd_box_discharge(const struct culvert_params *p,
                                 (manning * manning * length) / pow(hyd_rad, 1.33333)));
         Q_outlet_tailwater = flow_area * culvert_velocity;
 
+        if (Q_outlet_tailwater < Q)
+            Q = Q_outlet_tailwater;
+    } else {
+        /* Head difference at or above the driving energy: the barrel's
+         * friction still limits the flow, as for pipes (see the Python). */
         if (Q_outlet_tailwater < Q)
             Q = Q_outlet_tailwater;
     }
@@ -137,6 +142,31 @@ void boyd_box_discharge(const struct culvert_params *p,
     *barrel_velocity_out = barrel_velocity;
     *outlet_culvert_depth_out = outlet_culvert_depth;
     *flow_area_out = flow_area;
+}
+
+// ============================================================================
+// Critical depth in a circular conduit (per barrel).
+// Same algorithm as boyd_pipe_operator.py:circular_critical_depth(): solve
+// Q^2/g = A^3/T exactly by fixed-iteration bisection on the central angle
+// theta, with A = D^2/8 (theta - sin theta), T = D sin(theta/2). A^3/T is
+// monotone from 0 (dry) to infinity (full), so the root is unique and < D.
+// ============================================================================
+
+static double circular_critical_depth(double Q, double diameter, double g) {
+    if (Q <= 0.0 || diameter <= 0.0) return 0.0;
+    double target = Q * Q / g;
+    double lo = 0.0, hi = 2.0 * M_PI;
+    for (int it = 0; it < 60; it++) {
+        double theta = 0.5 * (lo + hi);
+        double area = diameter * diameter / 8.0 * (theta - sin(theta));
+        double top_width = diameter * sin(0.5 * theta);
+        if (area * area * area > target * top_width)
+            hi = theta;
+        else
+            lo = theta;
+    }
+    double theta = 0.5 * (lo + hi);
+    return 0.5 * diameter * (1.0 - cos(0.5 * theta));
 }
 
 // ============================================================================
@@ -180,16 +210,8 @@ void boyd_pipe_discharge(const struct culvert_params *p,
 
     double Q = (Q_inlet_unsubmerged < Q_inlet_submerged) ? Q_inlet_unsubmerged : Q_inlet_submerged;
 
-    // Critical depth estimation (two formulas)
-    double dcrit1 = (bf * diameter) / 1.26 * pow(Q / sqrt(p->g) * pow(bf * diameter, 2.5), 1.0 / 3.75);
-    double dcrit2 = (bf * diameter) / 0.95 * pow(Q / sqrt(p->g) * pow(bf * diameter, 2.5), 1.0 / 1.95);
-
-    double outlet_culvert_depth;
-    if (dcrit1 / (bf * diameter) > 0.85) {
-        outlet_culvert_depth = dcrit2;
-    } else {
-        outlet_culvert_depth = dcrit1;
-    }
+    // Critical depth of the adopted flow, per barrel (exact solve)
+    double outlet_culvert_depth = circular_critical_depth(Q / barrels, bf * diameter, p->g);
 
     double flow_area, perimeter;
     double alpha;
@@ -215,14 +237,8 @@ void boyd_pipe_discharge(const struct culvert_params *p,
             flow_area = barrels * (bd / 2.0) * (bd / 2.0) * M_PI;
             perimeter = barrels * bd * M_PI;
         } else {
-            // Partial flow - recalculate critical depth
-            dcrit1 = bd / 1.26 * pow(Q / sqrt(p->g) * pow(bd, 2.5), 1.0 / 3.75);
-            dcrit2 = bd / 0.95 * pow(Q / sqrt(p->g) * pow(bd, 2.5), 1.0 / 1.95);
-
-            if (dcrit1 / bd > 0.85)
-                outlet_culvert_depth = dcrit2;
-            else
-                outlet_culvert_depth = dcrit1;
+            // Partial flow - recalculate critical depth (per barrel)
+            outlet_culvert_depth = circular_critical_depth(Q / barrels, bd, p->g);
 
             if (outlet_culvert_depth > bd) {
                 outlet_culvert_depth = bd;
@@ -286,6 +302,19 @@ static double trapezoid_critical_depth(double Q, double bf_barrels_w,
 }
 
 
+// Total flow area and wetted perimeter of `barrels` trapezoidal barrels, each
+// filled to depth y: bottom + sloping sides, plus the roof (as wide as the top
+// of the section) when running full.
+static void trapezoid_section(double y, int full, double bottom, double z12,
+                              double slant, double barrels,
+                              double *area, double *perimeter) {
+    double a = bottom * y + 0.5 * z12 * y * y;
+    double p = bottom + slant * y + (full ? bottom + z12 * y : 0.0);
+    *area = barrels * a;
+    *perimeter = barrels * p;
+}
+
+
 void weir_orifice_trapezoid_discharge(const struct culvert_params *p,
                                       double driving_energy,
                                       double delta_total_energy,
@@ -314,56 +343,36 @@ void weir_orifice_trapezoid_discharge(const struct culvert_params *p,
     }
 
     double bf = 1.0 - blockage;
-    // bf * barrels * width — used throughout
-    double bfw = bf * barrels * width;
+    // Every area and perimeter is that of ONE barrel times the number of
+    // barrels (each barrel has its own sides and, running full, its own roof);
+    // blockage narrows the bottom width. Same as the Python reference.
+    double bottom = bf * width;
+    double slant = sqrt(z1 * z1 + 1.0) + sqrt(z2 * z2 + 1.0);
 
-    // Pre-compute slant lengths for perimeter
-    double sqrt_z1 = sqrt(z1 * z1 + 1.0);
-    double sqrt_z2 = sqrt(z2 * z2 + 1.0);
-
-    // Inlet control estimates
-    // Weir flow (unsubmerged): Q = 1.7 * bfw_eff * driving_energy^1.5
-    //   where bfw_eff = average of bottom and top widths = (2*width + depth*(z1+z2))/2
+    // Inlet control, per barrel times the number of barrels
+    // Weir flow (unsubmerged): Q = 1.7 * mean width * driving_energy^1.5
     double top_w  = 2.0 * width + depth * z12;
     double Q_inlet_unsubmerged = 1.7 * bf * barrels * (top_w / 2.0)
                                  * pow(driving_energy, 1.5);
-    // Orifice flow (submerged): Q = 0.8 * bfw_eff_area * sqrt(g) * sqrt(driving_energy)
-    double full_area = 0.5 * depth * (bfw + bfw + z12 * depth);
+    // Orifice flow (submerged): Q = 0.8 * full area * sqrt(g * driving_energy).
+    // The area is one unblocked barrel's: blockage and barrels are applied once.
+    double full_area = 0.5 * depth * (2.0 * width + z12 * depth);
     double Q_inlet_submerged = 0.8 * bf * barrels * sqrt(g) * full_area
                                * sqrt(driving_energy);
 
-    double Q;
-    if (Q_inlet_unsubmerged < Q_inlet_submerged) {
-        Q = Q_inlet_unsubmerged;
-    } else {
-        Q = Q_inlet_submerged;
-    }
+    double Q = (Q_inlet_unsubmerged < Q_inlet_submerged) ? Q_inlet_unsubmerged
+                                                         : Q_inlet_submerged;
 
-    // Critical depth for inlet-control Q
-    double dcrit = trapezoid_critical_depth(Q, bfw, z12, sqrt_z1, sqrt_z2, depth, g);
-
+    // Critical depth of the inlet-control flow (per barrel) and its section
+    double outlet_culvert_depth = trapezoid_critical_depth(Q / barrels, bottom, z12,
+                                                           0.0, 0.0, depth, g);
     double flow_area, perimeter;
-    if (dcrit >= depth) {
-        dcrit = depth;
-        flow_area = bfw * depth + 0.5 * z12 * depth * depth;
-        perimeter = 2.0 * bfw + z12 * depth + sqrt_z1 * depth + sqrt_z2 * depth;
-    } else {
-        flow_area = bfw * dcrit + 0.5 * z12 * dcrit * dcrit;
-        perimeter = bfw + sqrt_z1 * dcrit + sqrt_z2 * dcrit;
-    }
-
-    double outlet_culvert_depth = dcrit;
-
-    // Re-solve critical depth (same as Python — redundant for rect but kept for fidelity)
-    dcrit = trapezoid_critical_depth(Q, bfw, z12, sqrt_z1, sqrt_z2, depth, g);
-    outlet_culvert_depth = dcrit;
     if (outlet_culvert_depth >= depth) {
         outlet_culvert_depth = depth;
-        flow_area = bfw * depth + 0.5 * z12 * depth * depth;
-        perimeter = 2.0 * bfw + z12 * depth + sqrt_z1 * depth + sqrt_z2 * depth;
+        trapezoid_section(depth, 1, bottom, z12, slant, barrels, &flow_area, &perimeter);
     } else {
-        flow_area = bfw * outlet_culvert_depth + 0.5 * z12 * outlet_culvert_depth * outlet_culvert_depth;
-        perimeter = bfw + sqrt_z1 * outlet_culvert_depth + sqrt_z2 * outlet_culvert_depth;
+        trapezoid_section(outlet_culvert_depth, 0, bottom, z12, slant, barrels,
+                          &flow_area, &perimeter);
     }
 
     // Outlet-control velocity and Q
@@ -377,23 +386,20 @@ void weir_orifice_trapezoid_discharge(const struct culvert_params *p,
     if (delta_total_energy < driving_energy) {
         // Outlet control
         if (outlet_enquiry_depth > depth) {
-            // Outlet submerged — use full section
+            // Outlet submerged: the barrel runs full
             outlet_culvert_depth = depth;
-            flow_area = bfw * depth + 0.5 * z12 * depth * depth;
-            perimeter = bfw + sqrt_z1 * depth + sqrt_z2 * depth;
+            trapezoid_section(depth, 1, bottom, z12, slant, barrels, &flow_area, &perimeter);
         } else {
-            Q = fmin(Q, Q_outlet_tailwater);
-            dcrit = trapezoid_critical_depth(Q, bfw, z12, sqrt_z1, sqrt_z2, depth, g);
-            outlet_culvert_depth = dcrit;
+            // Critical depth of the inlet-control flow, as in the box and pipe
+            // (see the Python for why Q is no longer cut first).
+            outlet_culvert_depth = trapezoid_critical_depth(Q / barrels, bottom, z12,
+                                                            0.0, 0.0, depth, g);
             if (outlet_culvert_depth >= depth) {
                 outlet_culvert_depth = depth;
-                flow_area = bfw * depth + 0.5 * z12 * depth * depth;
-                perimeter = bfw + sqrt_z1 * depth + sqrt_z2 * depth;
+                trapezoid_section(depth, 1, bottom, z12, slant, barrels, &flow_area, &perimeter);
             } else {
-                flow_area = bfw * outlet_culvert_depth
-                            + 0.5 * z12 * outlet_culvert_depth * outlet_culvert_depth;
-                perimeter = bfw + sqrt_z1 * outlet_culvert_depth
-                            + sqrt_z2 * outlet_culvert_depth;
+                trapezoid_section(outlet_culvert_depth, 0, bottom, z12, slant, barrels,
+                                  &flow_area, &perimeter);
             }
         }
 
@@ -403,6 +409,10 @@ void weir_orifice_trapezoid_discharge(const struct culvert_params *p,
                                    + (manning * manning * length)
                                      / pow(hyd_rad, 1.33333)));
         Q_outlet_tailwater = flow_area * culvert_velocity;
+        Q = fmin(Q, Q_outlet_tailwater);
+    } else {
+        /* Head difference at or above the driving energy: the barrel's
+         * friction still limits the flow, as for pipes (see the Python). */
         Q = fmin(Q, Q_outlet_tailwater);
     }
 
@@ -564,7 +574,7 @@ int gpu_culvert_init(struct gpu_domain *GD,
         struct culvert_state *ns = (struct culvert_state*)
             realloc(CO->state, new_cap * sizeof(struct culvert_state));
         if (!np || !ni || !ns) {
-            fprintf(stderr, "ERROR: Failed to grow culvert_operators to %d slots\n", new_cap);
+            gpu_set_error(GD, "ERROR: Failed to grow culvert_operators to %d slots", new_cap);
             // The realloc that DID succeed owns the surviving copy of the inlet
             // staging pointers; free them through whichever array that is, so the
             // teardown below does not leak them.
@@ -609,7 +619,7 @@ int gpu_culvert_init(struct gpu_domain *GD,
                                    &ci->inlet0_indices, &ci->inlet0_areas) != 0 ||
         culvert_copy_inlet_staging(inlet1_num, inlet1_indices, inlet1_areas,
                                    &ci->inlet1_indices, &ci->inlet1_areas) != 0) {
-        fprintf(stderr, "ERROR: Failed to allocate inlet staging for %d/%d triangles\n",
+        gpu_set_error(GD, "ERROR: Failed to allocate inlet staging for %d/%d triangles",
                 inlet0_num, inlet1_num);
         culvert_free_inlet_staging(ci);
         return -1;
@@ -685,6 +695,17 @@ void gpu_culverts_finalize_all(struct gpu_domain *GD) {
             double *sa = CO->scratch_inlet_areas;
             #pragma omp target exit data map(delete: si[0:nt], sa[0:nt])
         }
+        if (CO->tracer_scratch_ns > 0) {
+            int ne_t = 2 * CO->num_culverts;
+            int nt_t = CO->total_inlet_triangles;
+            int nk = CO->tracer_scratch_ns;
+            double *th = CO->scratch_tr_hold;
+            double *tT = CO->scratch_tr_T;
+            double *tG = CO->scratch_tr_G;
+            double *tc = CO->scratch_tr_c;
+            #pragma omp target exit data map(delete: th[0:nt_t], tT[0:ne_t*nk], \
+                tG[0:ne_t], tc[0:CO->num_culverts*nk])
+        }
         CO->mapped = 0;
     }
 
@@ -704,6 +725,11 @@ void gpu_culverts_finalize_all(struct gpu_domain *GD) {
     if (CO->scratch_inlet_areas) { free(CO->scratch_inlet_areas); CO->scratch_inlet_areas = NULL; }
     if (CO->scratch_slot_start) { free(CO->scratch_slot_start); CO->scratch_slot_start = NULL; }
     if (CO->scratch_slot_count) { free(CO->scratch_slot_count); CO->scratch_slot_count = NULL; }
+    free(CO->scratch_tr_hold); CO->scratch_tr_hold = NULL;
+    free(CO->scratch_tr_T);    CO->scratch_tr_T = NULL;
+    free(CO->scratch_tr_G);    CO->scratch_tr_G = NULL;
+    free(CO->scratch_tr_c);    CO->scratch_tr_c = NULL;
+    CO->tracer_scratch_ns = 0;
 
     culvert_host_scratch_free(CO);
 
@@ -725,11 +751,11 @@ void gpu_culverts_finalize_all(struct gpu_domain *GD) {
 // Call AFTER all culverts are registered AND GPU domain is initialized
 // ============================================================================
 
-void gpu_culverts_map(struct gpu_domain *GD) {
+int gpu_culverts_map(struct gpu_domain *GD) {
     struct culvert_operators *CO = &GD->culvert_ops;
 
-    if (CO->num_culverts == 0) return;
-    if (CO->mapped) return;
+    if (CO->num_culverts == 0) return 0;
+    if (CO->mapped) return 0;
 
     omp_set_default_device(gpu_compute_device(GD));
 
@@ -742,6 +768,11 @@ void gpu_culverts_map(struct gpu_domain *GD) {
     CO->scratch_xmom = (double*)calloc(ne, sizeof(double));
     CO->scratch_ymom = (double*)calloc(ne, sizeof(double));
     CO->scratch_elev = (double*)calloc(ne, sizeof(double));
+    if (!CO->scratch_enquiry_indices || !CO->scratch_stage || !CO->scratch_xmom ||
+        !CO->scratch_ymom || !CO->scratch_elev) {
+        gpu_set_error(GD, "gpu_culverts_map: could not allocate enquiry scratch for %d culverts", nc);
+        return -1;
+    }
 
     // Enquiry indices are constant for the life of the domain. Remote enquiry
     // points (index < 0) are parked at 0; their gathered values are overwritten
@@ -761,6 +792,12 @@ void gpu_culverts_map(struct gpu_domain *GD) {
     CO->scratch_slot_shift = (double*)calloc(ne, sizeof(double));
     CO->scratch_slot_xmom  = (double*)calloc(ne, sizeof(double));
     CO->scratch_slot_ymom  = (double*)calloc(ne, sizeof(double));
+    if (!CO->scratch_avg_stage || !CO->scratch_avg_depth || !CO->scratch_avg_xmom ||
+        !CO->scratch_avg_ymom || !CO->scratch_slot_shift || !CO->scratch_slot_xmom ||
+        !CO->scratch_slot_ymom) {
+        gpu_set_error(GD, "gpu_culverts_map: could not allocate inlet accumulators for %d culverts", nc);
+        return -1;
+    }
 
     // --- Flattened inlet-triangle metadata (constant) ---
     CO->total_inlet_triangles = 0;
@@ -773,6 +810,11 @@ void gpu_culverts_map(struct gpu_domain *GD) {
     CO->scratch_inlet_areas = (double*)calloc(nt, sizeof(double));
     CO->scratch_slot_start = (int*)calloc(ne, sizeof(int));
     CO->scratch_slot_count = (int*)calloc(ne, sizeof(int));
+    if (!CO->scratch_inlet_indices || !CO->scratch_inlet_areas ||
+        !CO->scratch_slot_start || !CO->scratch_slot_count) {
+        gpu_set_error(GD, "gpu_culverts_map: could not allocate inlet index scratch for %d culverts", nc);
+        return -1;
+    }
 
     // Flatten inlet indices/areas and record each inlet's contiguous range.
     int offset = 0;
@@ -824,6 +866,7 @@ void gpu_culverts_map(struct gpu_domain *GD) {
 
     CO->mapped = 1;
     CO->initialized = 1;
+    return 0;
 }
 
 // ============================================================================
@@ -1093,6 +1136,39 @@ static void culvert_level_inlet_surface(const int * restrict idx,
 #pragma omp end declare target
 
 
+// Tracer scratch for the transfer, sized for ns tracers and mapped once.
+// Returns 0 on success; on failure the caller carries no tracers this step.
+static int culvert_tracer_scratch(struct gpu_domain *GD, int ns) {
+    struct culvert_operators *CO = &GD->culvert_ops;
+    if (CO->tracer_scratch_ns == ns) return 0;
+    int nc = CO->num_culverts, ne = 2 * nc, nt = CO->total_inlet_triangles;
+    if (CO->tracer_scratch_ns > 0) {
+        int nk = CO->tracer_scratch_ns;
+        double *th = CO->scratch_tr_hold, *tT = CO->scratch_tr_T;
+        double *tG = CO->scratch_tr_G, *tc = CO->scratch_tr_c;
+        #pragma omp target exit data map(delete: th[0:nt], tT[0:ne*nk], tG[0:ne], tc[0:nc*nk])
+        free(th); free(tT); free(tG); free(tc);
+        CO->tracer_scratch_ns = 0;
+    }
+    CO->scratch_tr_hold = (double*)calloc(nt > 0 ? nt : 1, sizeof(double));
+    CO->scratch_tr_T = (double*)calloc((size_t)ne * ns, sizeof(double));
+    CO->scratch_tr_G = (double*)calloc(ne, sizeof(double));
+    CO->scratch_tr_c = (double*)calloc((size_t)nc * ns, sizeof(double));
+    if (!CO->scratch_tr_hold || !CO->scratch_tr_T || !CO->scratch_tr_G || !CO->scratch_tr_c) {
+        gpu_set_error(GD, "culvert tracers: could not allocate scratch for %d tracers", ns);
+        free(CO->scratch_tr_hold); free(CO->scratch_tr_T);
+        free(CO->scratch_tr_G); free(CO->scratch_tr_c);
+        CO->scratch_tr_hold = CO->scratch_tr_T = CO->scratch_tr_G = CO->scratch_tr_c = NULL;
+        return -1;
+    }
+    double *th = CO->scratch_tr_hold, *tT = CO->scratch_tr_T;
+    double *tG = CO->scratch_tr_G, *tc = CO->scratch_tr_c;
+    int ntm = nt > 0 ? nt : 1;
+    #pragma omp target enter data map(alloc: th[0:ntm], tT[0:ne*ns], tG[0:ne], tc[0:nc*ns])
+    CO->tracer_scratch_ns = ns;
+    return 0;
+}
+
 static void gpu_culvert_scatter(struct gpu_domain *GD,
                                 struct culvert_transfer *transfers) {
     struct culvert_operators *CO = &GD->culvert_ops;
@@ -1148,11 +1224,97 @@ static void gpu_culvert_scatter(struct gpu_domain *GD,
 
     double *sa = CO->scratch_inlet_areas;
 
+    // Tracers ride with the water (anuga/structures/inlet_tracers.py,
+    // StructureTracers): record each inlet cell's depth before it is levelled.
+    // Only culverts local to this rank reach here with tracers present; the
+    // Python manager leaves cross-boundary ones to the host MPI path.
+    const anuga_int ns_tr = GD->D.number_of_tracers;
+    const anuga_int N_tr = GD->D.number_of_elements;
+    int carry = (ns_tr > 0 && GD->D.tracer_conserved_values != NULL);
+    if (carry && culvert_tracer_scratch(GD, (int)ns_tr) != 0) carry = 0;
+    double *hold = CO->scratch_tr_hold;
+    if (carry) {
+        #pragma omp target teams distribute parallel for
+        for (int j = 0; j < nt; j++) {
+            int i = si[j];
+            double dj = stage_c[i] - bed_c[i];
+            hold[j] = dj > 0.0 ? dj : 0.0;
+        }
+    }
+
     #pragma omp target teams distribute parallel for
     for (int s = 0; s < ne; s++) {
         culvert_level_inlet_surface(si + sst[s], sa + sst[s], scn[s],
                                     nd[s], nx[s], ny[s],
                                     stage_c, bed_c, xmom_c, ymom_c);
+    }
+
+    if (carry) {
+        // Cells that lost water keep their concentration; sum the tracer they
+        // gave up and the water gained, per inlet (one thread per inlet).
+        const anuga_int ns = ns_tr, N = N_tr;
+        const double hmin = GD->D.minimum_allowed_height;
+        double * restrict t_cons = GD->D.tracer_conserved_values;
+        double * restrict t_cv = GD->D.tracer_centroid_values;
+        double *tT = CO->scratch_tr_T;
+        double *tG = CO->scratch_tr_G;
+        double *tc = CO->scratch_tr_c;
+        #pragma omp target teams distribute parallel for
+        for (int s = 0; s < ne; s++) {
+            double g = 0.0;
+            for (anuga_int k = 0; k < ns; k++) tT[s * ns + k] = 0.0;
+            for (int j = sst[s]; j < sst[s] + scn[s]; j++) {
+                int i = si[j];
+                double hn = stage_c[i] - bed_c[i];
+                if (hn < 0.0) hn = 0.0;
+                double dh = hn - hold[j];
+                if (dh < 0.0) {
+                    double keep = hold[j] > 0.0 ? hn / hold[j] : 0.0;
+                    double inv_h = hn > hmin ? 1.0 / hn : 0.0;
+                    for (anuga_int k = 0; k < ns; k++) {
+                        double mo = t_cons[k * N + i];
+                        double mn = mo * keep;
+                        tT[s * ns + k] += (mo - mn) * sa[j];
+                        t_cons[k * N + i] = mn;
+                        t_cv[k * N + i] = mn * inv_h;
+                    }
+                } else if (dh > 0.0) {
+                    g += dh * sa[j];
+                }
+            }
+            tG[s] = g;
+        }
+        #pragma omp target update from(tT[0:ne*ns], tG[0:ne])
+
+        // Each culvert carries (tracer given up) / (water gained).
+        for (int c = 0; c < nc; c++) {
+            double G = tG[2 * c] + tG[2 * c + 1];
+            for (anuga_int k = 0; k < ns; k++) {
+                double T = tT[(2 * c) * ns + k] + tT[(2 * c + 1) * ns + k];
+                tc[c * ns + k] = (G > 0.0) ? T / G : 0.0;
+            }
+        }
+        #pragma omp target update to(tc[0:nc*ns])
+
+        // Cells that gained water receive it at that concentration.
+        #pragma omp target teams distribute parallel for
+        for (int s = 0; s < ne; s++) {
+            int c = s / 2;
+            for (int j = sst[s]; j < sst[s] + scn[s]; j++) {
+                int i = si[j];
+                double hn = stage_c[i] - bed_c[i];
+                if (hn < 0.0) hn = 0.0;
+                double dh = hn - hold[j];
+                if (dh > 0.0) {
+                    double inv_h = hn > hmin ? 1.0 / hn : 0.0;
+                    for (anuga_int k = 0; k < ns; k++) {
+                        double mn = t_cons[k * N + i] + tc[c * ns + k] * dh;
+                        t_cons[k * N + i] = mn;
+                        t_cv[k * N + i] = mn * inv_h;
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -1824,6 +1986,7 @@ void gpu_culverts_apply_all(struct gpu_domain *GD, double timestep) {
 
     // Per-culvert working data, sized to the actual culvert count.
     if (culvert_host_scratch_ensure(CO, nc) != 0) {
+        gpu_set_error(GD, "host scratch for %d culverts could not be allocated; culverts not applied this step", nc);
         NVTX_POP();
         return;
     }

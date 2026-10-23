@@ -1,0 +1,8 @@
+# outputs of a run; the sources are the *.py, report.tex, results.tex and parameters.tex
+*.png
+*.json
+*.pdf
+*.log
+*.aux
+*.stdout
+*.msh

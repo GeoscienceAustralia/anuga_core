@@ -233,8 +233,30 @@ def not_polygon_overlap(triangles, polygon, verbose=False):
 
 
 def line_intersect(triangles, line, verbose=False):
-    """Determine which of a list of triangles intersect a line
+    """Determine which of a list of triangles a line segment passes through.
 
+    A triangle is selected when the part of the segment inside it has
+    positive length: the segment crosses its interior, ends inside it, or
+    runs along one of its edges. A segment lying along an edge shared by two
+    triangles selects both, so the selection depends only on the geometry.
+    A segment that merely touches a triangle at a vertex, or ends exactly on
+    one of its edges from outside, does not select it: that contact has no
+    length. The decision is made with tolerances relative to the segment and
+    triangle size, so a segment within rounding of a mesh line is treated as
+    on it, and the answer does not depend on the compiler (#231).
+
+    Parameters
+    ----------
+    triangles : array-like, (3*M, 2)
+        Vertex coordinates of M triangles, three consecutive rows each, as
+        ``domain.get_vertex_coordinates()`` returns them.
+    line : array-like, (2, 2)
+        The two end points of the segment.
+
+    Returns
+    -------
+    ndarray of int
+        Indices of the selected triangles, in mesh order.
     """
     line = ensure_numeric(line, float)
     triangles = ensure_numeric(triangles, float)
@@ -567,7 +589,9 @@ def in_and_outside_polygon(points, polygon, closed=True, verbose=False):
 def separate_points_by_polygon(points, polygon,
                                closed=True,
                                check_input=True,
-                               verbose=False):
+                               verbose=False,
+                               rtol=0.0,
+                               atol=0.0):
     """Determine whether points are inside or outside a polygon
 
     Input:
@@ -577,6 +601,11 @@ def separate_points_by_polygon(points, polygon,
        regarded as belonging to the polygon (closed = True)
        or not (closed = False)
        check_input: Allows faster execution if set to False
+       rtol, atol - (optional) tolerances for deciding that a point lies ON
+       a polygon edge, as in point_on_line. The defaults of 0.0 mean exact
+       arithmetic, which is what this function has always used; pass e.g.
+       rtol=1.0e-5, atol=1.0e-8 to treat points within rounding of an edge
+       as on it (and so inside when closed=True).
 
     Outputs:
        indices: array of same length as points with indices of points falling
@@ -662,7 +691,8 @@ def separate_points_by_polygon(points, polygon,
     indices = num.zeros(M, int)
 
     count = _separate_points_by_polygon(points, polygon, indices,
-                                        int(closed), int(verbose))
+                                        int(closed), int(verbose),
+                                        float(rtol), float(atol))
 
     if verbose:
         log.info('Found %d points (out of %d) inside polygon' % (count, M))
@@ -878,7 +908,7 @@ def write_polygon(polygon, filename=None):
 
     fid = open(filename, 'w')
     for point in polygon:
-        fid.write('%f, %f\n' % point)
+        fid.write('%f, %f\n' % tuple(point))   # a list or array row, not only a tuple
     fid.close()
 
 

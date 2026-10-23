@@ -67,6 +67,41 @@ degrade gracefully to the CPU path — ``set_gpu_offload(True)`` warns and retur
 :ref:`use_gpu_offloading` for hardware/compiler requirements and build steps).
 
 
+Strict mode: fail instead of falling back
+-----------------------------------------
+
+Every fallback above is a warning by default, which is right for interactive
+use and wrong for a batch queue: a "GPU job" that quietly runs on the CPU, or
+a 'unified' run that quietly became 'legacy', burns its allocation before
+anyone reads the log. Strict mode turns each of those into a ``RuntimeError``
+raised at setup, before any time is spent:
+
+.. code-block:: python
+
+   anuga.set_gpu_offload(True, strict=True)          # no offload support -> error
+   domain.set_compute_mode('unified', strict=True)   # see below
+
+or, for a whole job without touching the script:
+
+.. code-block:: bash
+
+   export ANUGA_STRICT_COMPUTE_MODE=1
+
+With strict set on a domain, three things that would otherwise downgrade
+silently are refused:
+
+* the MPI fallback from 'unified' to 'legacy' on a build whose unified
+  kernels were compiled without MPI;
+* running on the CPU through the OpenMP target host fallback when GPU offload
+  is enabled but no device was found;
+* boundary types the device path cannot evaluate, which otherwise run on the
+  host every step with a host<->device sync each time.
+
+The setting is per domain and persists across later ``set_compute_mode``
+calls until you pass ``strict=False``. The environment variable sets the
+default for every domain and for ``set_gpu_offload``.
+
+
 When is parallelism worth it? (mesh-size guidance)
 --------------------------------------------------
 
@@ -177,3 +212,5 @@ The standard argument parser (used by the benchmark/example scripts) exposes:
    :ref:`use_parallel_openmp`, :ref:`use_parallel_mpi`
       Multi-threaded and multi-process parallelism (independent of the
       legacy/unified choice).
+
+.. include:: /appendices/gpu_acknowledgement.inc

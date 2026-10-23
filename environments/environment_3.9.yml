@@ -28,6 +28,7 @@ dependencies:
   - pytest=8.4.1
   - pytest-regressions
   - scipy=1.13.1
+  - sympy
   - utm=0.7.0
   - wheel=0.45.1
   - xarray=2024.7.0

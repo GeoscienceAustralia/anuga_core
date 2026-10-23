@@ -28,6 +28,7 @@ release = anuga.__version__
 import os
 import sys
 sys.path.insert(0, os.path.abspath("../../anuga"))
+sys.path.insert(0, os.path.abspath("_ext"))
 
 # -- General configuration ---------------------------------------------------
 
@@ -50,7 +51,14 @@ extensions = [
     'sphinx.ext.autosectionlabel',
     'sphinx_copybutton',
     'nbsphinx',
+    'spec_label',
+    'myst_parser',      # renders the Markdown physics specification
 ]
+
+# MathJax 4 breaks inline maths at relations and operators, so a paragraph can
+# end with "S_s" and start the next line with "= E_s - D_s". Keep each inline
+# expression on one line; long displayed equations may still break.
+mathjax4_config = {'output': {'linebreaks': {'inline': False}}}
 
 def linkcode_resolve(domain, info):
     if domain != 'py':
@@ -109,3 +117,6 @@ html_theme = 'sphinx_rtd_theme'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+# Keeps the bracketed physics labels from breaking mid-token; see the file.
+html_css_files = ['anuga-spec-labels.css']

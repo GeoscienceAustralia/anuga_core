@@ -11,12 +11,14 @@ and momentum updates — to a GPU using
 `OpenMP target offloading <https://www.openmp.org/spec-html/5.0/openmpsu57.html>`_.
 No CUDA or Python GPU libraries are required.
 
+.. include:: /appendices/gpu_acknowledgement.inc
+
 .. note::
 
    The GPU backend is experimental and under active development.  The API
-   (``set_multiprocessor_mode``, operator support) may change in future
+   (``set_compute_mode``, operator support) may change in future
    releases.  For production runs where result reproducibility matters,
-   validate GPU output against ``mode=1`` before switching.
+   validate GPU output against ``'legacy'`` before switching.
 
 .. seealso::
 
@@ -77,12 +79,12 @@ evolve loop:
 
    # ... set quantities, boundaries, operators as normal ...
 
-   domain.set_multiprocessor_mode(2)   # enable GPU mode
+   domain.set_compute_mode('unified')   # enable GPU mode
 
    for t in domain.evolve(yieldstep=60., finaltime=3600.):
        domain.print_timestepping_statistics()
 
-``set_multiprocessor_mode(2)`` initialises the GPU interface and switches the
+``set_compute_mode('unified')`` initialises the GPU interface and switches the
 evolve loop to a C-side Runge-Kutta loop that keeps all data resident on the
 GPU between timesteps.  Data is only transferred back to the host at each
 ``yieldstep`` for Python I/O.
@@ -229,7 +231,7 @@ for a future release (G2.2).
    # 4 MPI ranks, each using one GPU
    mpiexec -np 4 python my_parallel_gpu_script.py
 
-In the script each rank calls ``set_multiprocessor_mode(2)`` independently
+In the script each rank calls ``set_compute_mode('unified')`` independently
 after domain decomposition.
 
 
@@ -249,7 +251,7 @@ Checking the build and device
 
    domain = anuga.rectangular_cross_domain(100, 100)
    domain.set_flow_algorithm('DE0')
-   domain.set_multiprocessor_mode(2)
+   domain.set_compute_mode('unified')
 
    # Check device memory (prints estimate and device info if CUDA/HIP available)
    # Raises RuntimeError if estimated memory exceeds device capacity.
@@ -257,7 +259,7 @@ Checking the build and device
    from anuga.shallow_water.sw_domain_gpu_ext import check_device_memory
    check_device_memory(domain.gpu_interface.gpu_dom)
 
-   print(f"Mode: {domain.get_multiprocessor_mode()}")   # 2
+   print(f"Mode: {domain.get_compute_mode()}")   # unified
 
 
 Performance tips
@@ -285,6 +287,73 @@ Performance tips
 5. **Yieldstep interval.**  The D→H sync at each yieldstep is fast (~10 ms for
    a 1M-triangle domain), so yieldstep granularity has minimal impact on
    throughput.
+
+6. **Active-set stepping, on mostly-dry domains.**  See below.
+
+
+Active-set stepping
+-------------------
+
+A mostly-dry domain spends most of its time integrating cells that cannot
+change: dry, and surrounded by dry.  Active-set stepping skips them.
+
+.. code-block:: python
+
+   domain.set_use_active_set(True)     # off by default
+
+On mostly-dry flood problems -- a dam break, a levee breach, a storm surge
+over dry land -- this is the largest single speedup measured for the GPU path.
+It costs nothing in accuracy: a cell is skipped only when it is dry and its
+whole two-ring neighbourhood is dry, so there is nothing to integrate.  Water
+added by rate operators is never lost either; a newly wetted cell activates on
+the next step.
+
+.. warning::
+
+   **The flag is a request, not a guarantee.**  Several configurations turn it
+   off again, and they do so with a log notice rather than an error -- so a run
+   that quietly gets no speedup looks exactly like one that does.  Check the
+   log, or ask the domain:
+
+   .. code-block:: python
+
+      frac, rebuilds = domain.get_active_set_stats()
+      # frac == 1.0 means the active set never engaged
+
+   ``get_active_set_stats()`` returns the mean active fraction and the number
+   of rebuilds, and reports ``1.0`` whenever the active set did not engage.
+
+The flag is ignored, with a notice, when:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 34 66
+
+   * - Condition
+     - Why
+   * - compute mode is ``'legacy'``
+     - only the unified (GPU) path implements it
+   * - flow algorithm is ``DE2`` (rk3)
+     - implemented for ``DE0``/euler, ``DE1``/rk2 and ``DE_ader2``
+   * - passive tracers or sediment are registered
+     - the active path uses the single-solve scatter flux kernel, which does
+       not advect tracers; only the cell-based kernel does
+   * - the domain has riverwalls
+     - the scatter kernel does not carry them
+   * - Manning friction varies across a cell
+     - likewise
+   * - running under MPI
+     - serial domains only for now
+
+Enabling it alongside **rate operators** is allowed and correct, but widespread
+rainfall wets the whole mesh, which activates every cell and erodes the speedup
+toward zero.  That combination also logs a notice.
+
+.. note::
+
+   Active-set stepping switches the flux kernel to single-solve scatter mode.
+   Results differ from the default cell-based kernel only at floating-point
+   roundoff.
 
 
 Troubleshooting

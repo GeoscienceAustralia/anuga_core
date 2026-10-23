@@ -5,6 +5,7 @@ python_sources = [
 '__init__.py',
 'inlet_enquiry.py',
 'inlet_operator.py',
+'inlet_tracers.py',
 'inlet.py',
 'internal_boundary_functions.py',
 'internal_boundary_operator.py',

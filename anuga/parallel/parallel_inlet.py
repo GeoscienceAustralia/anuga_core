@@ -134,7 +134,10 @@ class Parallel_Inlet(Inlet):
     def get_average_stage(self):
         # LOCAL
 
-        return num.sum(self.get_stages()*self.get_areas())/self.area
+        if self.area > 0:
+            return num.sum(self.get_stages()*self.get_areas())/self.area
+        else:
+            return 0.0
 
     def get_global_average_stage(self):
         # GLOBAL: Master processor gathers stages from all child processors, and returns average
@@ -252,7 +255,10 @@ class Parallel_Inlet(Inlet):
 
     def get_average_ymom(self):
         # LOCAL
-        return num.sum(self.get_ymoms()*self.get_areas())/self.area
+        if self.area > 0:
+            return num.sum(self.get_ymoms()*self.get_areas())/self.area
+        else:
+            return 0.0
 
     def get_global_average_ymom(self):
         # GLOBAL: master proc gathers all ymom values and returns average
@@ -354,6 +360,8 @@ class Parallel_Inlet(Inlet):
 
     def get_average_speed(self):
         #LOCAL
+        if self.area <= 0:
+            return 0.0
         u, v = self.get_velocities()
 
         average_u = num.sum(u*self.get_areas())/self.area

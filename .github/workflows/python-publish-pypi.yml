@@ -6,8 +6,11 @@
 name: Build and Publish to PyPI
 
 on:
+  # develop omitted: the pull_request trigger below already builds every wheel
+  # against the merge result, so building them again on merge is 21 jobs for
+  # an answer we have. Publishing is gated on the release event regardless.
   push:
-    branches: [main, develop]
+    branches: [main]
   pull_request:
     branches: [main, develop]
   release:
@@ -25,6 +28,19 @@ on:
         description: 'Version for this build, e.g. 4.0.0rc1. Required when publish_to=testpypi. Empty = derive from git describe.'
         type: string
         default: ''
+
+# One run per ref: updating a branch supersedes the run already going for it,
+# rather than leaving both to finish for a result nobody will read. Applies to
+# an open PR getting a fixup and to a directly-worked branch getting a second
+# push alike.
+#
+# Two things are never cancelled, because there is no later run coming to
+# replace them: a push to main, and a release publish (whose ref is the tag,
+# not main, so it needs saying separately).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: >-
+    ${{ github.event_name != 'release' && github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: read
@@ -49,7 +65,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
 
     steps:
       - uses: actions/checkout@v7
@@ -59,7 +75,14 @@ jobs:
         with:
           miniforge-version: latest
           use-mamba: true
-          python-version: ${{ matrix.python-version }}
+          # No python-version here. The action would create its own 'test' env
+          # from conda-forge alone, which cannot resolve a CPython release
+          # candidate: 3.15 failed with "_python_rc does not exist (perhaps a
+          # missing channel)" before any of our steps ran. Nothing uses that
+          # env -- every later step activates anuga_env, built below with the
+          # right channels -- so it is simply not asked for. This is what
+          # build-wheels-osx64 already does, and why it passed on 3.15 when
+          # these three did not.
           auto-update-conda: true
           conda-remove-defaults: true
 
@@ -73,7 +96,10 @@ jobs:
           # (GIL) build: python_abi uses the cp3XX tag consistently across
           # versions, so this excludes cp3XXt and is a no-op for 3.10-3.13.
           pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
-          conda create -n anuga_env -c conda-forge \
+          # conda-forge/label/python_rc carries the CPython release candidates
+          # (3.15 until it ships). It is empty of released versions, so listing
+          # it is a no-op for 3.10-3.14; drop it once 3.15 is final.
+          conda create -n anuga_env -c conda-forge/label/python_rc -c conda-forge \
             python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config
 
@@ -159,10 +185,16 @@ jobs:
           done
           repairwheel "${libdirs[@]}" -o dist dist-wheel/*.whl
 
+      # 3.15 is built to prove it compiles, but NOT published: the wheel
+      # would be built against a release candidate. Its artifact is named
+      # outside the `wheel-*` pattern the publish jobs collect. Rename it
+      # back to wheel-py... once 3.15 is final.
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
-          name: wheel-py${{ matrix.python-version }}-${{ matrix.os }}
+          name: ${{ matrix.python-version == '3.15'
+                    && format('unpublished-py{0}-{1}', matrix.python-version, matrix.os)
+                    || format('wheel-py{0}-{1}', matrix.python-version, matrix.os) }}
           path: dist/*.whl
 
   # ---------------------------------------------------------------------------
@@ -179,7 +211,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14']
+        python-version: ['3.10', '3.11', '3.12', '3.13', '3.14', '3.15']
 
     steps:
       - uses: actions/checkout@v7
@@ -201,7 +233,8 @@ jobs:
         run: |
           # Pin the standard (GIL) CPython ABI (see build-wheels above).
           pytag=$(echo "${{ matrix.python-version }}" | tr -d .)
-          CONDA_SUBDIR=osx-64 conda create -n anuga_env -c conda-forge \
+          CONDA_SUBDIR=osx-64 conda create -n anuga_env \
+            -c conda-forge/label/python_rc -c conda-forge \
             python=${{ matrix.python-version }} "python_abi=${{ matrix.python-version }}=*_cp${pytag}" pip \
             meson-python meson ninja cython pybind11 numpy pkg-config compilers
           conda activate anuga_env
@@ -221,10 +254,14 @@ jobs:
           pip install repairwheel
           repairwheel -l "$CONDA_PREFIX/lib" -o dist dist-wheel/*.whl
 
+      # Built but not published while 3.15 is a release candidate; see the
+      # note on the build-wheels job above.
       - name: Upload wheel artifact
         uses: actions/upload-artifact@v7
         with:
-          name: wheel-osx64-py${{ matrix.python-version }}
+          name: ${{ matrix.python-version == '3.15'
+                    && format('unpublished-osx64-py{0}', matrix.python-version)
+                    || format('wheel-osx64-py{0}', matrix.python-version) }}
           path: dist/*.whl
 
   # ---------------------------------------------------------------------------

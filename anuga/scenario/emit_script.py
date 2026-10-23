@@ -47,8 +47,11 @@ from anuga.scenario import (
     setup_rainfall,
     setup_inlets,
     setup_bridges,
+    setup_culverts,
+    setup_weirs,
     setup_pumping_stations,
     setup_erosion,
+    setup_sediment,
     setup_boundary_conditions,
 )
 
@@ -66,6 +69,7 @@ project = PrepareData({config!r}, output_log='Simulation_logfile.log')
 # Mesh (build + partition/distribute under MPI)
 # ---------------------------------------------------------------------------
 domain = setup_mesh.setup_mesh(project)
+domain.set_starttime(getattr(project, 'starttime', 0.0))   # negative = burn-in before t=0
 
 # Compute path: 'legacy' (CPU OpenMP) or 'unified' (shared CPU/GPU kernels).
 domain.set_compute_mode(getattr(project, 'compute_mode', 'legacy'))
@@ -86,8 +90,14 @@ setup_riverwalls.setup_riverwalls(domain, project)
 setup_rainfall.setup_rainfall(domain, project)
 setup_inlets.setup_inlets(domain, project)
 setup_bridges.setup_bridges(domain, project)
+setup_culverts.setup_culverts(domain, project)
+setup_weirs.setup_weirs(domain, project)
 setup_pumping_stations.setup_pumping_stations(domain, project)
 setup_erosion.setup_erosion(domain, project)
+
+# Sediment transport (suspended load, optional bedload and bed evolution),
+# from the [sediment] table. A no-op without one.
+setup_sediment.setup_sediment(domain, project)
 
 # ---------------------------------------------------------------------------
 # Boundary conditions (tags -> boundary objects, from the TOML)

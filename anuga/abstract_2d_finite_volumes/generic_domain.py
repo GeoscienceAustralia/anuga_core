@@ -551,6 +551,14 @@ class Generic_Domain:
         # mesh.reorder() calls build_boundary_neighbours() internally, which
         # creates NEW boundary_cells/edges/enumeration/tag_boundary_cells objects
         # on the mesh.  The domain caches these from __init__ — rebind after.
+        #
+        # A boundary index is a position in the sorted (triangle, edge) order,
+        # so renumbering triangles renumbers the boundary edges too. Anything
+        # indexed by boundary edge and NOT recomputed each timestep has to be
+        # permuted to match, and that needs the old enumeration -- capture it
+        # before it is thrown away.
+        old_boundary_enumeration = dict(self.mesh.boundary_enumeration)
+
         self.mesh.reorder(new_order, in_place=True)
         self.boundary_enumeration = self.mesh.boundary_enumeration
         self.boundary_cells       = self.mesh.boundary_cells
@@ -560,6 +568,17 @@ class Generic_Domain:
         # --- domain flags ---
         self.tri_full_flag = self.tri_full_flag[new_order]
         self.number_of_full_triangles = int(num.sum(self.tri_full_flag))
+
+        # --- tracers ---
+        # Tracers are not Quantity objects, so the loop below cannot see them:
+        # they live in contiguous (ns, N) / (ns, 3N) blocks so the C kernel can
+        # stride them. Without this hook their blocks would keep the OLD
+        # ordering while the mesh moved underneath -- cell k's concentration
+        # landing on whichever triangle used to be at k, silently. The shallow
+        # water domain knows the layout, so it does the permuting.
+        reorder_tracers = getattr(self, '_reorder_tracer_arrays', None)
+        if reorder_tracers is not None:
+            reorder_tracers(new_order, inv_order, old_boundary_enumeration)
 
         # --- quantities ---
         # Reorder centroid_values and any cached per-triangle arrays.

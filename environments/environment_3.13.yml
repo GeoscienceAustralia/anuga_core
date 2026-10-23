@@ -33,6 +33,7 @@ dependencies:
   - pytest
   - pytest-regressions
   - scipy
+  - sympy
   - utm
   - wheel
   - xarray

@@ -39,6 +39,33 @@ This creates a directory `anuga_core`.
 
         git clone git@github.com:anuga-community/anuga_core.git
 
+Choose a branch
+^^^^^^^^^^^^^^^
+
+The clone leaves you on ``main``, which is the released line -- currently
+ANUGA 4.0.0. Work that has not been released yet lives on ``develop``:
+
+.. code-block:: bash
+
+    cd anuga_core
+    git checkout develop
+
+Take ``develop`` if you want the passive tracer and sediment transport
+modules, :ref:`tracers` and :ref:`sediment`, which are not in 4.0.0 and are
+the parts we would most like tested before the next release. Stay on ``main``
+if you want the released code.
+
+.. note::
+
+    The documentation is published for both branches, and they describe
+    different code:
+
+    * https://anuga.readthedocs.io/en/latest/ follows ``main``
+    * https://anuga.readthedocs.io/en/develop/ follows ``develop``
+
+    Read the one that matches the branch you built, or the API you find in
+    the documentation may not be the API you have installed.
+
 Install ANUGA using Script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 

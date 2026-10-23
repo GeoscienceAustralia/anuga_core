@@ -737,6 +737,11 @@ class Kinematic_viscosity_operator(Operator):
 
             if err == -1:
                 raise ConvergenceError('parabolic_solve: conjugate gradient did not converge')
+            elif err != 0:
+                raise ConvergenceError(
+                    'parabolic_solve: conjugate gradient broke down '
+                    '(C error code %d): the operator matrix is singular, '
+                    'indefinite, or contains NaN' % err)
 
             u_out.set_values(x0, location='centroids')
 

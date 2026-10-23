@@ -9,7 +9,6 @@ from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.shallow_water.boundaries import Reflective_boundary
 from anuga.coordinate_transforms.geo_reference import Geo_reference
-from anuga.shallow_water.forcing import *
 from anuga.utilities.numerical_tools import ensure_numeric
 
 from anuga.file.sww import Write_sww

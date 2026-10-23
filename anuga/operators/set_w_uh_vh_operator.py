@@ -38,6 +38,7 @@ class Set_w_uh_vh_operator(Operator, Region):
     def __init__(self,
                  domain,
                  w_uh_vh=None,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -50,6 +51,13 @@ class Set_w_uh_vh_operator(Operator, Region):
 
         Operator.__init__(self, domain, description, label, logging, verbose)
 
+        if region is not None:
+            # A ready-made anuga.Region: take its triangles
+            if any(x is not None for x in (indices, polygon, center, radius)):
+                raise ValueError('%s: cannot specify both a Region object and '
+                                 'polygon/center/radius/indices -- the Region '
+                                 'already encodes location' % type(self).__name__)
+            indices = region.get_indices(full_only=False)
         Region.__init__(self, domain,
                         indices=indices,
                         polygon=polygon,

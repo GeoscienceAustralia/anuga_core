@@ -173,7 +173,7 @@ GPU without requiring Python-level changes to your script:
 
 .. code-block:: python
 
-   domain.set_multiprocessor_mode(2)   # enable GPU mode
+   domain.set_compute_mode('unified')   # enable GPU mode
 
 See :ref:`use_gpu_offloading` for hardware requirements, supported operators,
 slot limits, and troubleshooting.

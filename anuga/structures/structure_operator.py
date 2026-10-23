@@ -358,6 +358,19 @@ class Structure_operator(anuga.Operator):
 
 
     def __call__(self):
+        # Tracers ride with the water (anuga/structures/inlet_tracers.py):
+        # capture both regions, move the water, then move the tracer.
+        tracers = getattr(self, '_structure_tracers', None)
+        if tracers is None:
+            from anuga.structures.inlet_tracers import StructureTracers
+            tracers = self._structure_tracers = StructureTracers(self.domain)
+        state = tracers.capture(self.inlets) if tracers.active() else None
+        self._transfer_water()
+        if state is not None:
+            tracers.apply(state)
+
+    def _transfer_water(self):
+        """One step of the structure's water transfer (no tracers)."""
 
         if _can_use_c_culvert(self):
             _call_c_culvert(self)

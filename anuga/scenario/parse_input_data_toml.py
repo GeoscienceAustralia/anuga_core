@@ -313,6 +313,7 @@ class ProjectDataTOML:
         self._parse_culverts(cfg.get('culverts', []), _v)
         self._parse_weirs(cfg.get('weirs', []), _v)
         self._parse_erosion(cfg.get('erosion', []), _v)
+        self._parse_sediment(cfg.get('sediment', None), _v)
 
         _v.raise_if_errors(filename)
 
@@ -334,6 +335,14 @@ class ProjectDataTOML:
         finaltime = _v.to_float(p, 'finaltime', 'project')
         _v.positive(finaltime, 'finaltime', 'project')
         self.finaltime = finaltime if finaltime is not None else float('inf')
+
+        # Model time at the start of the run. A negative value runs a burn-in
+        # before the forcing data (which start at t=0) begin.
+        self.starttime = _num(p.get('starttime', 0.0))
+        if self.starttime >= self.finaltime:
+            _v.errors.append(
+                '[project] starttime must be < finaltime'
+                f' (got {self.starttime}, finaltime={self.finaltime})')
 
         raw_proj = _v.require(p, 'projection_information', 'project')
         if raw_proj is None:
@@ -688,6 +697,272 @@ class ProjectDataTOML:
                     stacklevel=2)
             else:
                 # Not set by the user: adopt the erosion-appropriate default.
+                self.store_elevation_every_timestep = True
+
+    # -----------------------------------------------------------------------
+    # Sediment transport (suspended load with optional bedload and bed
+    # evolution): the [sediment] table maps onto Domain.initialize_sediment_
+    # operator and its setters, and each [[sediment.fractions]] onto
+    # Domain.add_sediment_fraction. Every key is optional except a fraction's
+    # name and diameter; an absent key leaves the domain's own default.
+    # -----------------------------------------------------------------------
+    SEDIMENT_SHEAR_CLOSURES = ('quadratic_drag', 'depth_slope', 'energy_slope')
+    SEDIMENT_BED_MATERIALS = ('noncohesive', 'cohesive', 'partheniades')
+    SEDIMENT_DEPOSITION_LAWS = ('d_star', 'threshold')
+    SEDIMENT_NEAR_BED = ('constant', 'rouse')
+    SEDIMENT_FRICTION_MODES = ('constant', 'larsen_lamb', 'wilson')
+    SEDIMENT_WILSON_BEDS = ('sand', 'gravel', 'boulder')
+    SEDIMENT_BEDLOAD = ('off', 'wong_parker_eq24', 'wong_parker_eq23',
+                        'engelund_hansen', 'grass')
+    SEDIMENT_KEYS = (
+        'porosity', 'c_max', 'c_pack', 'bed_evolution', 'rho_w',
+        'shear_closure', 'max_slope', 'freeze_slope', 'bed_material', 'tau_crit', 'K_e',
+        'entrainment', 'de_leeuw_fit', 'skin_roughness',
+        'deposition_law', 'tau_d', 'near_bed', 'reference_height_floor',
+        'friction_mode', 'k_s', 'sigma_br', 'r_d', 'r_br', 'bed', 'grain_size',
+        'bedload', 'bedload_K', 'bedload_m', 'bedload_tau_c_star',
+        'bedload_open_boundaries',
+        'angle_of_repose', 'repose_relax', 'repose_max_sweeps',
+        'erodible_base_elevation', 'erodible_base_depth',
+        'fractions', 'erodible_regions')
+    SEDIMENT_FRACTION_KEYS = (
+        'name', 'diameter', 'rho_s', 'tau_c_star', 'd_star',
+        'initial_concentration', 'reference_height', 'nu', 'C1', 'C2',
+        'boundary')
+
+    def _parse_sediment(self, sed, _v):
+        self.sediment_data = None
+        if sed is None:
+            return
+        sec = 'sediment'
+        if not isinstance(sed, dict):
+            _v.errors.append(f'[{sec}]: expected a table, got {type(sed).__name__}')
+            return
+
+        for key in sed:
+            if key not in self.SEDIMENT_KEYS:
+                _v.errors.append(f'[{sec}] unknown key {key!r}')
+
+        d = {}
+
+        def opt_float(key, check=None):
+            if key in sed:
+                try:
+                    val = _num(sed[key])
+                except (TypeError, ValueError):
+                    _v.errors.append(
+                        f'[{sec}] {key!r}: expected a number, got {sed[key]!r}')
+                    return
+                if check is not None:
+                    check(val, key, sec)
+                d[key] = float(val)
+
+        def opt_choice(key, choices):
+            if key in sed:
+                _v.one_of(sed[key], choices, key, sec)
+                d[key] = sed[key]
+
+        opt_float('porosity', lambda v, k, s: _v.in_range(v, 0.0, 0.99, k, s))
+        opt_float('c_max', _v.positive)
+        opt_float('c_pack', _v.positive)
+        opt_float('rho_w', _v.positive)
+        if 'bed_evolution' in sed:
+            d['bed_evolution'] = bool(sed['bed_evolution'])
+
+        opt_choice('shear_closure', self.SEDIMENT_SHEAR_CLOSURES)
+        opt_float('max_slope', _v.non_negative)
+        if 'freeze_slope' in sed:
+            d['freeze_slope'] = bool(sed['freeze_slope'])
+            if d['freeze_slope'] and sed.get('shear_closure') != 'depth_slope':
+                _v.errors.append(
+                    f"[{sec}] 'freeze_slope' applies to shear_closure "
+                    f"'depth_slope' only")
+        if ('max_slope' in sed) and sed.get('shear_closure', 'quadratic_drag') == 'quadratic_drag':
+            _v.errors.append(
+                f"[{sec}] 'max_slope' applies to shear_closure 'depth_slope' "
+                f"or 'energy_slope'; quadratic_drag uses no slope")
+        opt_choice('bed_material', self.SEDIMENT_BED_MATERIALS)
+        opt_float('tau_crit', _v.positive)
+        opt_float('K_e', _v.positive)
+        if ('tau_crit' in sed or 'K_e' in sed) and \
+                sed.get('bed_material', 'noncohesive') == 'noncohesive':
+            _v.errors.append(
+                f"[{sec}] 'tau_crit' / 'K_e' apply to bed_material 'cohesive' "
+                f"or 'partheniades'; the noncohesive route uses each "
+                f"fraction's 'tau_c_star'")
+
+        opt_choice('entrainment', ('smith_mclean', 'de_leeuw'))
+        opt_choice('de_leeuw_fit', ('de_leeuw_2020', 'nghiem_2022'))
+        opt_float('skin_roughness', _v.positive)
+        if sed.get('entrainment') == 'de_leeuw' and \
+                sed.get('bed_material', 'noncohesive') != 'noncohesive':
+            _v.errors.append(
+                f"[{sec}] entrainment 'de_leeuw' is a non-cohesive relation; "
+                f"use it with bed_material 'noncohesive'")
+        if ('de_leeuw_fit' in sed or 'skin_roughness' in sed) and \
+                sed.get('entrainment') != 'de_leeuw':
+            _v.errors.append(
+                f"[{sec}] 'de_leeuw_fit' / 'skin_roughness' apply to "
+                f"entrainment 'de_leeuw'")
+
+        opt_choice('deposition_law', self.SEDIMENT_DEPOSITION_LAWS)
+        opt_float('tau_d', _v.non_negative)
+        opt_choice('near_bed', self.SEDIMENT_NEAR_BED)
+        opt_float('reference_height_floor', _v.non_negative)
+
+        opt_choice('friction_mode', self.SEDIMENT_FRICTION_MODES)
+        for key in ('k_s', 'sigma_br', 'r_d', 'r_br', 'grain_size'):
+            opt_float(key, _v.positive)
+        opt_choice('bed', self.SEDIMENT_WILSON_BEDS)
+        mode = sed.get('friction_mode', 'constant')
+        if mode == 'larsen_lamb' and 'k_s' not in sed and 'sigma_br' not in sed:
+            _v.errors.append(
+                f"[{sec}] friction_mode 'larsen_lamb' needs 'k_s' or 'sigma_br' "
+                f"(site-measured; there is no default)")
+        if mode == 'wilson' and 'grain_size' not in sed:
+            _v.errors.append(
+                f"[{sec}] friction_mode 'wilson' needs 'grain_size' "
+                f"(D50 for sand, D84 for gravel/boulder)")
+
+        opt_choice('bedload', self.SEDIMENT_BEDLOAD)
+        opt_float('bedload_K', _v.positive)
+        opt_float('bedload_m', _v.positive)
+        opt_float('bedload_tau_c_star', _v.non_negative)
+        if sed.get('bedload') == 'grass' and 'bedload_K' not in sed:
+            _v.errors.append(
+                f"[{sec}] bedload 'grass' needs 'bedload_K', the Grass "
+                f"coefficient A_g (a calibration; there is no default)")
+        if 'bedload_open_boundaries' in sed:
+            tags = sed['bedload_open_boundaries']
+            if isinstance(tags, str):
+                tags = [tags]
+            if not isinstance(tags, list) or \
+                    not all(isinstance(t, str) for t in tags):
+                _v.errors.append(
+                    f"[{sec}] 'bedload_open_boundaries': expected a list of "
+                    f"boundary tags, got {sed['bedload_open_boundaries']!r}")
+            else:
+                d['bedload_open_boundaries'] = list(tags)
+
+        opt_float('angle_of_repose',
+                  lambda v, k, s: _v.in_range(v, 0.0, 90.0, k, s))
+        opt_float('repose_relax', lambda v, k, s: _v.in_range(v, 0.0, 1.0, k, s))
+        if 'repose_max_sweeps' in sed:
+            d['repose_max_sweeps'] = int(sed['repose_max_sweeps'])
+            _v.positive(d['repose_max_sweeps'], 'repose_max_sweeps', sec)
+
+        opt_float('erodible_base_elevation')
+        opt_float('erodible_base_depth', _v.positive)
+        if 'erodible_base_elevation' in sed and 'erodible_base_depth' in sed:
+            _v.errors.append(
+                f"[{sec}]: give 'erodible_base_elevation' or "
+                f"'erodible_base_depth', not both")
+
+        # Fractions: at least one, each with a name and a diameter
+        fractions = sed.get('fractions', [])
+        if not isinstance(fractions, list) or not fractions:
+            _v.errors.append(
+                f'[{sec}]: needs at least one [[sediment.fractions]] entry '
+                f'(name and diameter)')
+            fractions = []
+        d['fractions'] = []
+        names = set()
+        for i, fr in enumerate(fractions):
+            fsec = f'sediment.fractions[{i}]'
+            for key in fr:
+                if key not in self.SEDIMENT_FRACTION_KEYS:
+                    _v.errors.append(f'[{fsec}] unknown key {key!r}')
+            row = {}
+            name = _v.require(fr, 'name', fsec)
+            if name is not None:
+                name = str(name)
+                if name in names:
+                    _v.errors.append(f'[{fsec}] duplicate fraction name {name!r}')
+                names.add(name)
+            row['name'] = name
+            diameter = _v.to_float(fr, 'diameter', fsec)
+            _v.positive(diameter, 'diameter', fsec)
+            row['diameter'] = diameter
+            for key, check in (('rho_s', _v.positive), ('tau_c_star', _v.non_negative),
+                               ('d_star', _v.positive),
+                               ('initial_concentration', _v.non_negative),
+                               ('reference_height', _v.positive),
+                               ('nu', _v.positive), ('C1', _v.positive),
+                               ('C2', _v.positive)):
+                if key in fr:
+                    try:
+                        val = _num(fr[key])
+                    except (TypeError, ValueError):
+                        _v.errors.append(
+                            f'[{fsec}] {key!r}: expected a number, got {fr[key]!r}')
+                        continue
+                    check(val, key, fsec)
+                    row[key] = float(val)
+            boundary = fr.get('boundary')
+            if boundary is not None:
+                if not isinstance(boundary, dict):
+                    _v.errors.append(
+                        f"[{fsec}] 'boundary': expected a table of tag = "
+                        f"concentration, got {boundary!r}")
+                else:
+                    row['boundary'] = {}
+                    for tag, val in boundary.items():
+                        try:
+                            c = float(_num(val))
+                        except (TypeError, ValueError):
+                            _v.errors.append(
+                                f"[{fsec}] boundary {tag!r}: expected a "
+                                f"concentration, got {val!r}")
+                            continue
+                        _v.non_negative(c, f'boundary.{tag}', fsec)
+                        row['boundary'][str(tag)] = c
+            d['fractions'].append(row)
+
+        # Erodible regions: polygon OR center+radius, as [[erosion]] takes them
+        regions = sed.get('erodible_regions', [])
+        d['erodible_regions'] = []
+        for i, r in enumerate(regions if isinstance(regions, list) else []):
+            rsec = f'sediment.erodible_regions[{i}]'
+            polygon = r.get('polygon')
+            center, radius = r.get('center'), r.get('radius')
+            has_poly = polygon is not None
+            has_circle = center is not None or radius is not None
+            if has_poly and has_circle:
+                _v.errors.append(
+                    f"[{rsec}]: give either 'polygon' or 'center'+'radius', not both")
+            elif not has_poly and not has_circle:
+                _v.errors.append(
+                    f"[{rsec}]: needs a region — either 'polygon' or 'center'+'radius'")
+            if has_circle:
+                if center is None or radius is None:
+                    _v.errors.append(
+                        f"[{rsec}]: 'center' and 'radius' must be given together")
+                else:
+                    if not (isinstance(center, (list, tuple)) and len(center) == 2):
+                        _v.errors.append(
+                            f"[{rsec}] 'center': expected [x, y], got {center!r}")
+                    _v.positive(float(radius), 'radius', rsec)
+            d['erodible_regions'].append({
+                'polygon': _normpath(str(polygon)) if has_poly else None,
+                'center': list(center) if has_circle and center is not None else None,
+                'radius': float(radius) if has_circle and radius is not None else None,
+                'erodible': bool(r.get('erodible', True)),
+            })
+
+        self.sediment_data = d
+
+        # Sediment transport moves the bed unless bed_evolution is false; as
+        # for [[erosion]], record the bed every timestep unless the user
+        # explicitly chose static storage.
+        if d.get('bed_evolution', True) and not self.store_elevation_every_timestep:
+            if getattr(self, '_store_elevation_explicit', False):
+                warnings.warn(
+                    'Scenario defines [sediment] with bed evolution but '
+                    '[project] store_elevation_every_timestep is explicitly '
+                    'false: elevation will be written once at t=0, so the '
+                    'evolving bed will not appear in the .sww.',
+                    stacklevel=2)
+            else:
                 self.store_elevation_every_timestep = True
 
     def _parse_rainfall(self, rainfall):

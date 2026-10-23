@@ -18,7 +18,6 @@ import anuga
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.shallow_water_domain import Domain
-from anuga.shallow_water.forcing import Rainfall, Inflow
 #from anuga.shallow_water.forcing import Reflective_boundary
 #from anuga.shallow_water.forcing import Dirichlet_boundary
 #from anuga.shallow_water.forcing import Transmissive_boundary, Time_boundary

@@ -4,6 +4,7 @@ import numpy as np
 from math import pi
 from anuga.config import rho_a, rho_w, eta_w
 from anuga.operators.base_operator import Operator
+from anuga.utilities.function_utils import evaluate_file_function_all_points
 
 
 class Wind_stress_operator(Operator):
@@ -29,6 +30,11 @@ class Wind_stress_operator(Operator):
     phi : float or callable
         Wind direction in degrees (standard mathematical convention:
         0° = east, 90° = north).  If callable, same signature as *speed*.
+    use_coordinates : bool, optional
+        ``True`` (default): callables take ``(t, x, y)``.  ``False``: *speed*
+        is a :func:`anuga.file_function` whose quantities are
+        ``[speed, angle]``, precomputed at the mesh centroids, and *phi* is
+        ignored (see the file example below).
     description, label, logging, verbose : passed to :class:`Operator`.
 
     Examples
@@ -47,19 +53,42 @@ class Wind_stress_operator(Operator):
 
         W = Wind_stress_operator(domain, my_speed, my_phi)
 
-    Two positional arguments are accepted for compatibility with the
-    legacy ``Wind_stress`` calling convention::
+    Wind field read from a file (``use_coordinates=False``)::
 
-        W = Wind_stress_operator(domain, my_speed, my_phi)
+        F = anuga.file_function('wind.sww', domain,
+                                quantities=['wind_speed', 'wind_angle'],
+                                interpolation_points=domain.get_centroid_coordinates())
+        W = Wind_stress_operator(domain, F, use_coordinates=False)
+
+    Here *speed* is the ``file_function`` object itself, its two quantities
+    are taken as (speed, angle) in that order, and *phi* is ignored.  The
+    interpolation points must be the centroid coordinates.  A time-only
+    ``.tms`` file (two attribute columns) works the same way and applies a
+    spatially uniform, time-varying wind.
     """
 
-    def __init__(self, domain, speed=0.0, phi=0.0,
+    def __init__(self, domain, speed=0.0, phi=0.0, use_coordinates=True,
                  description=None, label=None, logging=False, verbose=False):
 
         Operator.__init__(self, domain,
                           description=description, label=label,
                           logging=logging, verbose=verbose)
 
+        self.use_coordinates = bool(use_coordinates)
+        if not self.use_coordinates:
+            names = getattr(speed, 'quantity_names', None)
+            if names is None or len(names) != 2:
+                raise ValueError(
+                    'Wind_stress_operator(use_coordinates=False) expects a '
+                    'file_function with exactly two quantities (speed, angle); '
+                    'got %r' % (names,))
+            pts = getattr(speed, 'interpolation_points', None)
+            if pts is not None and len(pts) != domain.number_of_elements:
+                raise ValueError(
+                    'Wind_stress_operator(use_coordinates=False): the '
+                    'file_function has %d interpolation points but the mesh '
+                    'has %d triangles; interpolate at the centroids'
+                    % (len(pts), domain.number_of_elements))
         self.speed = speed
         self.phi = phi
         self.const = eta_w * rho_a / rho_w
@@ -71,13 +100,23 @@ class Wind_stress_operator(Operator):
         xc = domain.centroid_coordinates
         N = domain.number_of_elements
 
-        if callable(self.speed):
+        if not self.use_coordinates:
+            field = evaluate_file_function_all_points(self.speed, t)
+            if field.ndim == 1:      # time-only file: uniform over the mesh
+                s_vec = np.full(N, field[0])
+                phi_vec = np.full(N, field[1])
+            else:
+                s_vec = field[0]
+                phi_vec = field[1]
+        elif callable(self.speed):
             s_vec = np.asarray(
                 self.speed(t, xc[:, 0], xc[:, 1]), dtype=float).ravel()
         else:
             s_vec = np.full(N, float(self.speed))
 
-        if callable(self.phi):
+        if not self.use_coordinates:
+            pass
+        elif callable(self.phi):
             phi_vec = np.asarray(
                 self.phi(t, xc[:, 0], xc[:, 1]), dtype=float).ravel()
         else:

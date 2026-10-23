@@ -392,6 +392,23 @@ class Test_CG_Solve(unittest.TestCase):
 
         assert num.allclose(x, xe)
 
+    def test_breakdown_on_singular_matrix_using_c_ext(self):
+        """A singular matrix makes d'Ad vanish; the C solver must report
+        it rather than divide by zero and return NaN."""
+
+        A = [[1.0, 1.0],
+             [1.0, 1.0]]
+        A = Sparse_CSR(Sparse(A))
+        b = num.array([1.0, -1.0])
+
+        for precon in (None, 'Jacobi'):
+            try:
+                conjugate_gradient(A, b, use_c_cg=True, precon=precon)
+            except ConvergenceError as e:
+                assert 'broke down' in str(e), str(e)
+            else:
+                raise Exception('Should have raised ConvergenceError')
+
     def test_max_iter_using_c_ext_with_jacobi(self):
         """Test max iteration Small Sparse Matrix"""
 

@@ -85,19 +85,19 @@ anuga_int _build_smoothing_matrix(anuga_int n,
         key.i = v0;
         key.j = v0;
         smoothing_val = (a0*a0 + b0*b0)*area;
-        add_dok_entry(smoothing_mat,key,smoothing_val);
+        if (add_dok_entry(smoothing_mat,key,smoothing_val) != 0) return -1;
 
         // v1,v1
         key.i = v1;
         key.j = v1;
         smoothing_val = (a1*a1 + b1*b1)*area;
-        add_dok_entry(smoothing_mat,key,smoothing_val);
+        if (add_dok_entry(smoothing_mat,key,smoothing_val) != 0) return -1;
 
         // v2,v2
         key.i = v2;
         key.j = v2;
         smoothing_val = (a2*a2 + b2*b2)*area;
-        add_dok_entry(smoothing_mat,key,smoothing_val);
+        if (add_dok_entry(smoothing_mat,key,smoothing_val) != 0) return -1;
 
 
         // insert off diagonal contributions
@@ -105,28 +105,28 @@ anuga_int _build_smoothing_matrix(anuga_int n,
         // v0,v1 (v1,v0)
         key.i = v0;
         key.j = v1;
-        add_dok_entry(smoothing_mat,key,e01);
+        if (add_dok_entry(smoothing_mat,key,e01) != 0) return -1;
         key.i = v1;
         key.j = v0;
-        add_dok_entry(smoothing_mat,key,e01);
+        if (add_dok_entry(smoothing_mat,key,e01) != 0) return -1;
 
         e12 = (a1*a2 + b1*b2)*area;
         // v1,v2 (v2,v1)
         key.i = v1;
         key.j = v2;
-        add_dok_entry(smoothing_mat,key,e12);
+        if (add_dok_entry(smoothing_mat,key,e12) != 0) return -1;
         key.i = v2;
         key.j = v1;
-        add_dok_entry(smoothing_mat,key,e12);
+        if (add_dok_entry(smoothing_mat,key,e12) != 0) return -1;
 
         e20 = (a2*a0 + b2*b0)*area;
         // v2,v0 (v0,v2)
         key.i = v2;
         key.j = v0;
-        add_dok_entry(smoothing_mat,key,e20);
+        if (add_dok_entry(smoothing_mat,key,e20) != 0) return -1;
         key.i = v0;
         key.j = v2;
-        add_dok_entry(smoothing_mat,key,e20);
+        if (add_dok_entry(smoothing_mat,key,e20) != 0) return -1;
     }
 
     return err;
@@ -146,6 +146,7 @@ quad_tree * _build_quad_tree(anuga_int n,
 
     // set up quad tree and allocate memory
     quad_tree * tree = new_quad_tree(extents[0],extents[1],extents[2],extents[3]);
+    if (!tree) return NULL;
     
     // iterate through triangles
     for(k=0; k<n; k++) {
@@ -159,7 +160,15 @@ quad_tree * _build_quad_tree(anuga_int n,
         x2 = vertex_coordinates[k6 + 4];
         y2 = vertex_coordinates[k6 + 5];
         triangle * T = new_triangle(k,x0,y0,x1,y1,x2,y2);
-        quad_tree_insert_triangle(tree,T);
+        if (!T) {
+            delete_quad_tree(tree);
+            return NULL;
+        }
+        if (quad_tree_insert_triangle(tree,T) != 0) {
+            free(T);   // not owned by the tree when insert fails
+            delete_quad_tree(tree);
+            return NULL;
+        }
     }
   
     // return pointer to new tree struct
@@ -184,6 +193,7 @@ anuga_int _build_matrix_AtA_Atz_points(anuga_int N,
 
     anuga_int k;
     anuga_int i,w;
+    anuga_int err = 0;   // set inside the critical section only
     
     for(w=0;w<zdims;w++){
         for(i=0;i<N;i++){
@@ -205,7 +215,8 @@ anuga_int _build_matrix_AtA_Atz_points(anuga_int N,
         triangle * T = search(quadtree,x,y);
 
         if(T!=NULL){
-            double * sigma = calculate_sigma(T,x,y);
+            double sigma[3];
+            calculate_sigma(T,x,y,sigma);
             anuga_int js[3];
             for(i=0;i<3;i++){
                 js[i]=triangles[3*(T->index)+i];
@@ -224,29 +235,28 @@ anuga_int _build_matrix_AtA_Atz_points(anuga_int N,
                     key.i=js[i];
                     key.j=js[w];
 
-                   add_dok_entry(AtA,key,sigma[i]*sigma[w]);
+                   if (add_dok_entry(AtA,key,sigma[i]*sigma[w]) != 0) err = -1;
                 }                        
             }
             }
-            free(sigma);
-            sigma=NULL;
 
        } 
     }
 
-    return 0;
+    return err;
 }
 
 // Combines two sparse_dok matricies and two vectors of doubles. 
-void _combine_partial_AtA_Atz(sparse_dok * dok_AtA1,sparse_dok * dok_AtA2,
+anuga_int _combine_partial_AtA_Atz(sparse_dok * dok_AtA1,sparse_dok * dok_AtA2,
                              double* Atz1,
                              double* Atz2,
                              anuga_int n, anuga_int zdim){
 
-    add_sparse_dok(dok_AtA1,1,dok_AtA2,1);
+    if (add_sparse_dok(dok_AtA1,1,dok_AtA2,1) != 0) return -1;
 
     anuga_int i;
     for(i=0;i<n*zdim;i++){
         Atz1[i]+=Atz2[i];
     }
+    return 0;
 }

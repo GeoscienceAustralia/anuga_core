@@ -132,6 +132,11 @@ def conjugate_gradient(A, b, x0=None, imax=10000, tol=1.0e-8, atol=1.0e-14,
         log.warning('max number of iterations attained from c cg')
         msg = 'Conjugate gradient solver did not converge'
         raise ConvergenceError(msg)
+    elif err != 0:
+        msg = ('Conjugate gradient solver broke down (C error code %d): '
+               "d'Ad was zero or NaN, which means the matrix is singular, "
+               'indefinite, or contains NaN' % err)
+        raise ConvergenceError(msg)
 
     if output_stats:
         return x0, stats

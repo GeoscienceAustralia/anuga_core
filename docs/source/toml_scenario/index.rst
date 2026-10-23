@@ -218,6 +218,14 @@ Top-level simulation settings.
    # Total simulation duration [seconds]
    finaltime = 21600.0
 
+   # Model time at the start of the run [seconds]. default: 0.0
+   # A negative value runs a burn-in before the forcing data, which start at
+   # t = 0: inlet and stage-boundary series hold their first value and rain is
+   # zero until t = 0. Model times then match the forcing and observation
+   # clocks, with no shift. finaltime is on the same clock, so
+   # starttime = "-3*3600" with finaltime = "24*3600" evolves 27 h.
+   # starttime = "-3*3600"
+
    # SWW output interval [seconds].
    # Must be an integer multiple of yieldstep.
    # Omit to write SWW output at every yieldstep (the default).
@@ -251,7 +259,7 @@ Top-level simulation settings.
    max_quantity_update_frequency = 1
 
    # Time from which maximum-quantity tracking begins [seconds]
-   # Must be < finaltime.  default: 0.0
+   # Must be < finaltime.  default: 0.0 (so a negative starttime burn-in is excluded)
    max_quantity_collection_starttime = 0.0
 
    # Store each triangle's three vertex values separately.
@@ -260,7 +268,8 @@ Top-level simulation settings.
    store_vertices_uniquely = false
 
    # Re-write elevation at every yieldstep.
-   # Only needed if elevation changes during the run (e.g. erosion operators).
+   # Only needed if elevation changes during the run (erosion operators,
+   # sediment transport with bed evolution); those default it to true.
    # default: false
    store_elevation_every_timestep = false
 
@@ -279,8 +288,11 @@ Top-level simulation settings.
    # Number of OpenMP threads.  Omit to read OMP_NUM_THREADS env var (default 1).
    # omp_num_threads = 4
 
-   # Multiprocessor mode: 1 = OpenMP CPU (default), 2 = OpenMP GPU offload (experimental, branch sp26)
-   multiprocessor_mode = 1
+   # Compute mode: "legacy" = OpenMP CPU (default), "unified" = shared
+   # CPU/GPU kernels, offloading only when GPU offload is enabled
+   # process-wide (experimental).  The older integer multiprocessor_mode
+   # (1 or 2) is still accepted.
+   compute_mode = "legacy"
 
 .. _toml-mesh:
 
@@ -756,6 +768,125 @@ Bed erosion / scour operators. Multiple ``[[erosion]]`` entries are supported.
    true`` in ``[project]`` when using erosion operators. A warning is issued if
    ``[[erosion]]`` is present without it.
 
+[sediment]
+~~~~~~~~~~
+
+Sediment transport: suspended load carried as tracers, with deposition and
+entrainment, and optionally bedload and an evolving bed. The table maps onto
+:meth:`~anuga.Domain.initialize_sediment_operator` and its setters, each
+``[[sediment.fractions]]`` onto :meth:`~anuga.Domain.add_sediment_fraction`.
+See :doc:`/setup_anuga_script/sediment` for what every choice means and its
+default; an absent key leaves that default.
+
+.. code-block:: toml
+
+   [sediment]
+
+   # ── Domain-wide ──────────────────────────────────────────────────────────
+   porosity      = 0.3      # bed porosity                          default: 0.3
+   c_max         = 0.3      # ceiling on depth-averaged concentration  default: 0.3
+   bed_evolution = true     # move the bed; false = fixed-bed stage   default: true
+   # c_pack = 0.65          # near-bed packing ceiling
+   # rho_w  = 1000.0        # water density [kg/m^3]
+
+   # How bed shear stress is formed: quadratic_drag (default; velocity based),
+   # depth_slope (bed slope; for reproducing anugaSed) or energy_slope
+   # (free-surface slope; what the old Bed_shear_erosion_operator used).
+   # For the two slope closures, max_slope caps the slope, and for
+   # depth_slope freeze_slope = true takes the slope from the initial bed
+   # and keeps it, so the bed can evolve without the closure feeding on the
+   # roughness it creates.
+   shear_closure = "quadratic_drag"
+   # max_slope = 0.05
+   # freeze_slope = true
+
+   # Which erosion law, by naming the bed: noncohesive (default; Shields
+   # entrainment, threshold per fraction via tau_c_star), cohesive
+   # (Hanson & Simon excess shear) or partheniades. tau_crit [Pa] and K_e
+   # apply to the cohesive and partheniades routes only.
+   bed_material = "noncohesive"
+   # tau_crit = 0.088
+   # K_e = 1.0e-6
+   # Non-cohesive entrainment: smith_mclean (default) or de_leeuw [E-6], with
+   # de_leeuw_fit = de_leeuw_2020 (default) or nghiem_2022 and an optional
+   # skin_roughness [m] (default 3 x each fraction's diameter).
+   # entrainment = "de_leeuw"
+   # de_leeuw_fit = "nghiem_2022"
+   # skin_roughness = 0.002
+
+   # Deposition: d_star (default) or threshold (with tau_d [Pa]); the
+   # near-bed profile factor constant (default) or rouse.
+   deposition_law = "d_star"
+   near_bed       = "constant"
+   # tau_d = 0.0
+   # reference_height_floor = 0.01
+
+   # Friction feeding the sediment shear: constant (default; the domain's
+   # Manning n), larsen_lamb (needs k_s or sigma_br) or wilson (needs
+   # grain_size, and bed = sand | gravel | boulder).
+   # friction_mode = "constant"
+
+   # Bedload: off (default), wong_parker_eq24, wong_parker_eq23,
+   # engelund_hansen or grass; bedload_K, bedload_m, bedload_tau_c_star
+   # override the formula's constants (grass needs bedload_K, its A_g).
+   # Boundary tags through which bedload passes (zero gradient); all other
+   # boundaries are closed to it.
+   # bedload = "wong_parker_eq24"
+   # bedload_open_boundaries = ["inflow", "outflow"]
+
+   # Relax bed slopes steeper than this [degrees]; absent = off.
+   # angle_of_repose = 35.0
+   # repose_relax = 1.0
+   # repose_max_sweeps = 50
+
+   # Bedrock: erosion never cuts below it. Give ONE of an elevation [m] or an
+   # erodible thickness [m] below the initial bed.
+   # erodible_base_elevation = -2.0
+   # erodible_base_depth = 1.5
+
+   # ── Fractions (at least one) ─────────────────────────────────────────────
+   [[sediment.fractions]]
+   name     = "sand"
+   diameter = 2.0e-4        # grain diameter [m]
+   # rho_s = 2650.0         # particle density [kg/m^3]
+   # tau_c_star = 0.04      # critical Shields stress (noncohesive route); 0 = no entrainment
+   # d_star = 1.0           # near-bed / depth-averaged concentration ratio
+   # initial_concentration = 0.0   # volumetric
+   # reference_height = 4.0e-4     # [m], for near_bed = "rouse"
+   # nu = 1.0e-6            # settling-velocity constants (Ferguson & Church)
+   # C1 = 18.0
+   # C2 = 0.4
+   # Concentration carried in where water enters across a boundary tag;
+   # unset tags bring clean water.
+   [sediment.fractions.boundary]
+   left = 0.01
+
+   [[sediment.fractions]]
+   name     = "silt"
+   diameter = 2.0e-5
+   tau_c_star = 0.11
+
+   # ── Erodible regions (optional) ──────────────────────────────────────────
+   # Restrict erosion to part of the domain, or lock part of it
+   # (erodible = false). A polygon file OR center + radius, as for [[erosion]].
+   # [[sediment.erodible_regions]]
+   # polygon = "sediment/channel.csv"
+   # erodible = true
+
+.. note::
+
+   With bed evolution on, elevation is stored every timestep by default
+   (``store_elevation_every_timestep`` in ``[project]``), so the evolving bed
+   appears in the ``.sww``; a warning is issued if it is explicitly set to
+   ``false``. Each fraction's concentration is stored as ``<name>_c``.
+
+.. warning::
+
+   Nothing prevents ``[sediment]`` and ``[[erosion]]`` in the same scenario.
+   Both write elevation and the bed changes simply add; one conserves mass and
+   the other does not. Pick one.
+
+
 Input Validation
 -----------------
 
@@ -845,6 +976,6 @@ Excel Compatibility
 
 The Excel format is described in the ``cairns_toml_excel`` example directory.
 Attributes that exist only in the TOML interface
-(``multiprocessor_mode``, ``omp_num_threads``, ``outputstep``,
+(``compute_mode``, ``omp_num_threads``, ``outputstep``,
 ``report_operator_statistics``) are set to sensible defaults when reading
 Excel files.

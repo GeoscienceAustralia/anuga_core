@@ -28,3 +28,4 @@ nbsphinx
 sphinx_rtd_theme
 sphinx-copybutton
 sphinx
+myst-parser   # renders appendices/physics_spec.md

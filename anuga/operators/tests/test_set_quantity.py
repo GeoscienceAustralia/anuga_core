@@ -394,26 +394,14 @@ class Test_set_quantity(unittest.TestCase):
 
 
 
-        stage_ex = [-1.        , -1.        ,  0.41666667,  0.25      , -1.        ,
-        0.25      ,  0.41666667, -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        ,  0.58333333, -1.        , -1.        ,  0.75      ,
-        0.58333333,  0.75      ,  0.91666667, -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        ,  1.08333333,  1.25      ,  1.41666667, -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        ,  1.58333333, -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        ]
-
-
-        #from pprint import pprint
-#         pprint(domain.quantities['stage'].centroid_values)
-#        pprint(domain.quantities['stage'].centroid_values)
-
-
+        # The line starts at the mesh vertex (0.5, 0.5), runs through
+        # triangles 21, 22, 36, 37 and ends on an edge of 38 at (1.5, 0.75).
+        # The triangles that only meet it at that vertex or that endpoint
+        # (a point contact, no length) are not selected. stage = x at t < 10.
+        line_triangles = [21, 22, 36, 37, 38]
+        assert sorted(operator.indices) == line_triangles
+        stage_ex = -1.0 * num.ones(domain.number_of_elements)
+        stage_ex[line_triangles] = domain.centroid_coordinates[line_triangles, 0]
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)
@@ -425,81 +413,9 @@ class Test_set_quantity(unittest.TestCase):
 
 
 
-        stage_ex = [-1.        , -1.        ,  0.25      ,  0.41666667, -1.        ,
-        0.58333333,  0.75      , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        ,  0.25      , -1.        , -1.        ,  0.41666667,
-        0.75      ,  0.58333333,  0.75      , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        ,  0.75      ,  0.58333333,  0.75      , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        ,  0.75      , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        , -1.        ,
-       -1.        , -1.        , -1.        , -1.        ]
-
-
-
-
-
-
-
-        Plot = False
-        if Plot:
-            operator.plot_region()
-
-            cellsize = 0.01
-            domain.quantities['stage'].extrapolate_second_order_and_limit_by_vertex()
-
-            from pprint import pprint
-
-            pprint(domain.quantities['stage'].centroid_values)
-
-            x,y,z = domain.quantities['stage'].save_to_array(cellsize=cellsize, smooth=False)
-
-            #pprint(z)
-
-            import pylab
-            import numpy
-            #a = numpy.where(a == -9999, numpy.nan, a)
-            #a = numpy.where(a > 10.0, numpy.nan, a)
-
-            #z = z[::-1,:]
-
-            """
-            print z
-            print z.shape
-            print x
-            print y
-            """
-
-            nrows = z.shape[0]
-            ncols = z.shape[1]
-
-
-            ratio = float(nrows)/float(ncols)
-            print(ratio)
-
-            #y = numpy.arange(nrows)*cellsize
-            #x = numpy.arange(ncols)*cellsize
-
-            #Setup fig size to correpond to array size
-            fig = pylab.figure(figsize=(10, 10*ratio))
-
-            levels = numpy.arange(-2.0, 2, 0.01)
-            CF = pylab.contourf(x,y,z, levels=levels)
-            CB = pylab.colorbar(CF, shrink=0.8, extend='both')
-            #CC = pylab.contour(x,y,a, levels=levels)
-
-            pylab.show()
-
-
-        from pprint import pprint
-        #pprint(domain.quantities['stage'].centroid_values)
-#        print domain.quantities['xmomentum'].centroid_values
-#        print domain.quantities['ymomentum'].centroid_values
-
+        # stage = y at t >= 10, on the same five triangles
+        stage_ex = -1.0 * num.ones(domain.number_of_elements)
+        stage_ex[line_triangles] = domain.centroid_coordinates[line_triangles, 1]
         assert num.allclose(domain.quantities['stage'].centroid_values, stage_ex)
         assert num.allclose(domain.quantities['xmomentum'].centroid_values, 0.0)
         assert num.allclose(domain.quantities['ymomentum'].centroid_values, 0.0)

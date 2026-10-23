@@ -393,91 +393,58 @@ def weir_orifice_trapezoid_function(
         flow_area = 0.00001
         case = '100% blocked culvert'
         return Q, barrel_velocity, outlet_culvert_depth, flow_area, case
-    else:
-        Q_inlet_unsubmerged = 1.7*bf*barrels*((2*width+depth*(z1+z2))/2)*driving_energy**1.50 # Flow based on Inlet Ctrl Inlet Unsubmerged (weir flow equation)
-        Q_inlet_submerged = 0.8*bf*barrels*g**0.5*(0.5*depth*(2*width+depth*(z1+z2)))*driving_energy**0.5  # Flow based on Inlet Ctrl Inlet Submerged (orifice equation)
 
+    # Inlet control: weir (unsubmerged) and orifice (submerged) equations, each
+    # per barrel times the number of barrels.
+    Q_inlet_unsubmerged = 1.7*bf*barrels*((2*width+depth*(z1+z2))/2)*driving_energy**1.50  # weir equation
+    Q_inlet_submerged = 0.8*bf*barrels*g**0.5*(0.5*depth*(2*width+depth*(z1+z2)))*driving_energy**0.5  # orifice equation
 
+    # Every area and perimeter below is that of ONE barrel times the number of
+    # barrels: each barrel has its own sides (and, running full, its own roof),
+    # so N barrels are not one wide trapezoid. Blockage narrows the bottom width.
+    bottom = bf*width
+    slant = (1.0 + z1**2)**0.5 + (1.0 + z2**2)**0.5
+
+    def section(y, full):
+        """Total flow area and wetted perimeter at depth y in each barrel;
+        running full adds the roof (as wide as the top of the section)."""
+        area = bottom*y + 0.5*(z1+z2)*y**2
+        perimeter = bottom + slant*y + ((bottom + (z1+z2)*y) if full else 0.0)
+        return barrels*area, barrels*perimeter
+
+    def critical_depth(Q_total):
+        """Critical depth in one barrel carrying its share of Q_total:
+        A**1.5/T**0.5 = Q/sqrt(g), by Newton iteration."""
+        q = Q_total/barrels
+        dcrit = 0.00001
+        dyc = 0.001
+        while abs(dyc) > 0.00001:
+            Tc = bottom + (z1+z2)*dcrit
+            Ac = 0.5*dcrit*(bottom + Tc)
+            fc = Ac**1.5*Tc**-0.5 - q/(g**0.5)
+            ffc = Ac**1.5*-0.5*Tc**-1.5*(z1+z2) + Tc**-0.5*1.5*Ac**0.5*Tc
+            dyc = -fc/ffc
+            dcrit = dcrit + dyc
+        return dcrit
 
     # FIXME(Ole): Are these functions really for inlet control?
     if Q_inlet_unsubmerged < Q_inlet_submerged:
         Q = Q_inlet_unsubmerged
-        # Critical Depths Calculation
-        dcrit=0.00001
-        ic=0
-        dyc=0.001
-        while abs(dyc)>0.00001:
-            Tc=bf*barrels*width+(z1+z2)*dcrit
-            Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(bf*barrels*width+Tc)
-            Rc=Ac/Pc
-            fc=Ac**1.5*Tc**-0.5-Q/(g**0.5)
-            ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
-            dyc=-fc/ffc
-            dcrit=dcrit+dyc
-            ic=ic+1
-        dcrit = dcrit
-        if dcrit > depth:
-            dcrit = depth
-            flow_area = bf*barrels*width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= 2.0*bf*barrels*width+(z1+z2)*dcrit + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        else: # dcrit < depth
-            flow_area = bf*barrels*width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= bf*barrels*width + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        outlet_culvert_depth = dcrit
         case = 'Inlet unsubmerged Box Acts as Weir'
-    else: # Inlet Submerged but check internal culvert flow depth
+    else:  # Inlet Submerged but check internal culvert flow depth
         Q = Q_inlet_submerged
-        # Critical Depths Calculation
-        dcrit=0.00001
-        ic=0
-        dyc=0.001
-        while abs(dyc)>0.00001:
-            Tc=bf*barrels*width+(z1+z2)*dcrit
-            Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-            Ac=0.5*dcrit*(bf*barrels*width+Tc)
-            Rc=Ac/Pc
-            fc=Ac**1.5*Tc**-0.5-Q/(g**0.5)
-            ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
-            dyc=-fc/ffc
-            dcrit=dcrit+dyc
-            ic=ic+1
-        dcrit = dcrit
-        if dcrit > depth:
-            dcrit = depth
-            flow_area = bf*barrels*width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= 2.0*bf*barrels*width+(z1+z2)*dcrit + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        else: # dcrit < depth
-            flow_area = bf*barrels*width*dcrit+0.5*(z1+z2)*dcrit**2
-            perimeter= bf*barrels*width + (dcrit**2+(z1*dcrit)**2)**0.5 + (dcrit**2+(z2*dcrit)**2)**0.5
-        outlet_culvert_depth = dcrit
         case = 'Inlet submerged Box Acts as Orifice'
-    # Critical Depths Calculation
-    dcrit=0.00001
-    ic=0
-    dyc=0.001
-    while abs(dyc)>0.00001:
-        Tc=bf*barrels*width+(z1+z2)*dcrit
-        Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-        Ac=0.5*dcrit*(bf*barrels*width+Tc)
-        Rc=Ac/Pc
-        fc=Ac**1.5*Tc**-0.5-Q/(g**0.5)
-        ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
-        dyc=-fc/ffc
-        dcrit=dcrit+dyc
-        ic=ic+1
-    dcrit = dcrit
-    # May not need this .... check if same is done above
-    outlet_culvert_depth = dcrit
+
+    # Critical depth of the inlet-control flow, and the section it fills
+    outlet_culvert_depth = critical_depth(Q)
     if outlet_culvert_depth > depth:
-        outlet_culvert_depth = depth  # Once again the pipe is flowing full not partfull
-        flow_area = bf*barrels*width*depth+0.5*(z1+z2)*(depth)**2  # Cross sectional area of flow in the culvert
-        perimeter = 2.0*bf*barrels*width+(z1+z2)*depth + ((depth)**2+(z1*(depth))**2)**0.5 + ((depth)**2+(z2*(depth))**2)**0.5
+        outlet_culvert_depth = depth  # the barrel is running full
+        flow_area, perimeter = section(depth, full=True)
         case = 'Inlet CTRL Outlet unsubmerged PIPE PART FULL'
     else:
-        flow_area = bf*barrels*width*outlet_culvert_depth+0.5*(z1+z2)*outlet_culvert_depth**2
-        perimeter = 2.0*bf*barrels*width+(z1+z2)*outlet_culvert_depth + (outlet_culvert_depth**2+(z1*outlet_culvert_depth)**2)**0.5 + (outlet_culvert_depth**2+(z2*outlet_culvert_depth)**2)**0.5
+        flow_area, perimeter = section(outlet_culvert_depth, full=False)
         case = 'INLET CTRL Culvert is open channel flow we will for now assume critical depth'
+
     # Initial Estimate of Flow for Outlet Control using energy slope
     #( may need to include Culvert Bed Slope Comparison)
     hyd_rad = flow_area/perimeter
@@ -485,59 +452,28 @@ def weir_orifice_trapezoid_function(
                                                           +(manning**2*length)/hyd_rad**1.33333))
     Q_outlet_tailwater = flow_area * culvert_velocity
 
-
     if delta_total_energy < driving_energy:
         # Calculate flows for outlet control
 
         # Determine the depth at the outlet relative to the depth of flow in the Culvert
         if outlet_enquiry_depth > depth:        # The Outlet is Submerged
-            outlet_culvert_depth=depth
-            flow_area=bf*barrels*width*depth+0.5*(z1+z2)*(depth)**2  # Cross sectional area of flow in the culvert
-            perimeter=bf*barrels*width + ((depth)**2+(z1*(depth))**2)**0.5 + ((depth)**2+(z2*(depth))**2)**0.5
+            outlet_culvert_depth = depth
+            flow_area, perimeter = section(depth, full=True)
             case = 'Outlet submerged'
         else:
-            Q = min(Q, Q_outlet_tailwater)
-            # Critical Depths Calculation
-            dcrit=0.00001
-            ic=0
-            dyc=0.001
-            while abs(dyc)>0.00001:
-                Tc=bf*barrels*width+(z1+z2)*dcrit
-                Pc=bf*barrels*width+((z1**2+1)**0.5+(z2**2+1)**0.5)*dcrit
-                Ac=0.5*dcrit*(bf*barrels*width+Tc)
-                Rc=Ac/Pc
-                fc=Ac**1.5*Tc**-0.5-Q/(g**0.5)
-                ffc=Ac**1.5*-0.5*Tc**-1.5*(z1+z2)+Tc**-0.5*1.5*Ac**0.5*Tc
-                dyc=-fc/ffc
-                dcrit=dcrit+dyc
-                ic=ic+1
-            dcrit = dcrit
-            outlet_culvert_depth = dcrit
-
-##calculate normal depth based on culverts slope, i can't work out how to get culvert_slope, so for now just use critical depth instead as we do in boyd_box and boyd_pipe
-            #dnorm=0.00001
-            #idn=1
-            #dyn=0.001
-            #while abs(dyn)>0.0001:
-                #Tn=width+(z1+z2)*dnorm
-                #An=0.5*dnorm*(width+Tn)
-                #Pn=width+2*dnorm*((z1**2+z2**2)**0.5)
-                #Rn=An/Pn
-                #fn=((culvert_slope**0.5*An*Rn**0.67)/manning) - Q
-                #ffn=((culvert_slope**0.5)/manning)*(((Rn**0.67)*Tn)+(Tn/Pn)-(2*dnorm*Rn/Pn))
-                #dnorm=dnorm-fn/ffn
-                #dyn=-fn/ffn
-                #idn=idn+1
-            #outlet_culvert_depth = dnorm
-
+            # Critical depth of the inlet-control flow, as in boyd_box and
+            # boyd_pipe. (Normal depth would need the culvert slope, which is not
+            # known here.) This used to cut Q to the first friction estimate
+            # before taking the depth, which compounded the friction limit only
+            # while delta_total_energy < driving_energy, so Q jumped at the
+            # switch and a rectangular section disagreed with the Boyd box.
+            outlet_culvert_depth = critical_depth(Q)
             if outlet_culvert_depth > depth:
-                outlet_culvert_depth=depth
-                flow_area=bf*barrels*width*depth+0.5*(z1+z2)*(depth)**2
-                perimeter=bf*barrels*width + ((depth)**2+(z1*(depth))**2)**0.5 + ((depth)**2+(z2*(depth))**2)**0.5
+                outlet_culvert_depth = depth
+                flow_area, perimeter = section(depth, full=True)
                 case = 'Outlet is Flowing Full'
             else:
-                flow_area=bf*barrels*width*outlet_culvert_depth+0.5*(z1+z2)*outlet_culvert_depth**2
-                perimeter=bf*barrels*width + (outlet_culvert_depth**2+(z1*outlet_culvert_depth)**2)**0.5 + (outlet_culvert_depth**2+(z2*outlet_culvert_depth)**2)**0.5
+                flow_area, perimeter = section(outlet_culvert_depth, full=False)
                 case = 'Outlet is open channel flow'
 
         hyd_rad = flow_area/perimeter
@@ -549,9 +485,10 @@ def weir_orifice_trapezoid_function(
 
         Q = min(Q, Q_outlet_tailwater)
     else:
-
-        pass
-        #FIXME(Ole): What about inlet control?
+        # The head difference has reached the driving energy (a free or
+        # drawn-down outlet). The barrel's friction still limits the flow,
+        # as boyd_pipe_function applies in every regime.
+        Q = min(Q, Q_outlet_tailwater)
 
     if  flow_area <= 0.0 :
         culv_froude = 0.0

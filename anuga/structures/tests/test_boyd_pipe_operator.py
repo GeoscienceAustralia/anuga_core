@@ -5,10 +5,12 @@ import unittest
 
 from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
 from anuga.structures.boyd_pipe_operator import boyd_pipe_function
+from anuga.structures.boyd_pipe_operator import circular_critical_depth
 
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross
 from anuga.shallow_water.shallow_water_domain import Domain
 import numpy
+import math
 
 verbose = False
 #diameter = width
@@ -129,10 +131,13 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert_apron = 0.0
         enquiry_gap = 5.0
 
-
+        # v and d re-baselined when the critical depth became the exact
+        # circular-section solution (Q unchanged). The original culvertw
+        # values (v=0.78, d=0.66) imply Froude 0.34 at a depth labelled
+        # critical, i.e. they encoded the Q/sqrt(g)*D**2.5 transcription.
         expected_Q = 0.50
-        expected_v = 0.78
-        expected_d = 0.66
+        expected_v = 1.64
+        expected_d = 0.38
 
 
         domain = self._create_domain(d_length=domain_length,
@@ -207,10 +212,13 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert_apron = 0.0
         enquiry_gap = 5.0
 
-
+        # v and d re-baselined when the critical depth became the exact
+        # circular-section solution (Q unchanged). The original culvertw
+        # values (v=2.13, d=0.96) imply Froude 0.68 at a depth labelled
+        # critical, i.e. they encoded the Q/sqrt(g)*D**2.5 transcription.
         expected_Q = 2.08
-        expected_v = 2.13
-        expected_d = 0.96
+        expected_v = 2.62
+        expected_d = 0.79
 
 
         domain = self._create_domain(d_length=domain_length,
@@ -285,10 +293,13 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert_apron = 0.0
         enquiry_gap = 5.0
 
-
+        # v and d re-baselined when the critical depth became the exact
+        # circular-section solution (Q unchanged). The original culvertw
+        # values (v=4.94, d=1.20) had the pipe forced full; the exact
+        # critical depth at this discharge is 0.965*D.
         expected_Q = 5.59
-        expected_v = 4.94
-        expected_d = 1.20
+        expected_v = 5.00
+        expected_d = 1.16
 
 
         domain = self._create_domain(d_length=domain_length,
@@ -364,10 +375,13 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         culvert_apron = 0.0
         enquiry_gap = 5.0
 
-
+        # v and d re-baselined when the critical depth became the exact
+        # circular-section solution (Q unchanged). The original culvertw
+        # values (v=2.13, d=0.96) imply Froude 0.68 at a depth labelled
+        # critical, i.e. they encoded the Q/sqrt(g)*D**2.5 transcription.
         expected_Q = 2.08
-        expected_v = 2.13
-        expected_d = 0.96
+        expected_v = 2.62
+        expected_d = 0.79
 
 
         domain = self._create_domain(d_length=domain_length,
@@ -654,6 +668,93 @@ class Test_boyd_pipe_operator(unittest.TestCase):
         assert numpy.allclose(Q, expected_Q, rtol=1.0e-2, atol=1.0e-5) #inflow
         assert numpy.allclose(v, expected_v, rtol=1.0e-2, atol=1.0e-5) #outflow velocity
         assert numpy.allclose(d, expected_d, rtol=1.0e-2, atol=1.0e-5) #depth at outlet used to calc v
+
+
+class Test_boyd_pipe_function_physics(unittest.TestCase):
+    """Physics checks on boyd_pipe_function that do not depend on reference
+    tables: exact critical depth, dimensional (Froude) similarity, barrel
+    additivity and critical-flow consistency."""
+
+    g = 9.8
+
+    @staticmethod
+    def _segment(y, D):
+        theta = 2.0*math.acos(1.0 - 2.0*y/D)
+        area = D*D/8.0*(theta - math.sin(theta))
+        top_width = D*math.sin(theta/2.0)
+        return area, top_width
+
+    def test_circular_critical_depth_exact(self):
+        """Q**2/g == A**3/T at the returned depth, and close to Straub."""
+        import anuga
+        g = anuga.g
+        for D in [0.3, 0.6, 0.9, 1.5, 2.1]:
+            for q_star in [0.05, 0.2, 0.5, 0.8]:
+                Q = q_star*math.sqrt(g)*D**2.5
+                y = circular_critical_depth(Q, D, g)
+                self.assertTrue(0.0 < y < D)
+                A, T = self._segment(y, D)
+                self.assertAlmostEqual(A**3/T/(Q*Q/g), 1.0, places=8)
+                # Straub (SI): dc = 1.01/D**0.264 * (Q/sqrt(g))**0.506,
+                # stated valid for 0.02 < dc/D < 0.85
+                y_straub = 1.01/D**0.264*(Q/math.sqrt(g))**0.506
+                if 0.02 < y_straub/D < 0.85:
+                    self.assertLess(abs(y/y_straub - 1.0), 0.05)
+        self.assertEqual(circular_critical_depth(0.0, 1.0, g), 0.0)
+
+    def _cases(self):
+        # (driving_energy, delta_total_energy, outlet_enquiry_depth) for a
+        # D = 0.9 m pipe; hits inlet control part-full, outlet control
+        # part-full and outlet control with a submerged outlet.
+        return [(0.6, 1.0, 0.0),
+                (1.2, 0.3, 0.3),
+                (1.5, 0.2, 1.2)]
+
+    def test_froude_similarity(self):
+        """Scaling all lengths by s (manning by s**(1/6)) must scale
+        Q by s**2.5, velocity by s**0.5 and depth by s. Every term in the
+        Boyd method is dimensionally consistent, so this holds exactly; a
+        non-dimensionless critical-depth group breaks it."""
+        D, L, n, losses = 0.9, 20.0, 0.013, 1.5
+        for E, dE, tw in self._cases():
+            Q0, v0, d0, a0, case0 = boyd_pipe_function(
+                0.0, D, 0.0, 1.0, L, E, dE, tw, losses, n)
+            for s in [0.5, 2.0]:
+                Q1, v1, d1, a1, case1 = boyd_pipe_function(
+                    0.0, s*D, 0.0, 1.0, s*L, s*E, s*dE, s*tw, losses,
+                    n*s**(1.0/6.0))
+                self.assertEqual(case1, case0)
+                # barrel_velocity carries an absolute regularisation
+                # (velocity_protection), so allow 1e-3 rather than exact.
+                self.assertAlmostEqual(Q1/(Q0*s**2.5), 1.0, delta=1.0e-3)
+                self.assertAlmostEqual(v1/(v0*s**0.5), 1.0, delta=1.0e-3)
+                self.assertAlmostEqual(d1/(d0*s), 1.0, delta=1.0e-3)
+
+    def test_barrels_are_additive(self):
+        """N identical barrels carry exactly N times the flow of one, at the
+        same velocity and depth."""
+        D, L, n, losses = 0.9, 20.0, 0.013, 1.5
+        for E, dE, tw in self._cases():
+            Q1, v1, d1, a1, _ = boyd_pipe_function(
+                0.0, D, 0.0, 1.0, L, E, dE, tw, losses, n)
+            Q3, v3, d3, a3, _ = boyd_pipe_function(
+                0.0, D, 0.0, 3.0, L, E, dE, tw, losses, n)
+            self.assertAlmostEqual(Q3/(3.0*Q1), 1.0, delta=1.0e-3)
+            self.assertAlmostEqual(v3/v1, 1.0, delta=1.0e-3)
+            self.assertAlmostEqual(d3/d1, 1.0, delta=1.0e-3)
+
+    def test_inlet_control_outlet_is_critical(self):
+        """Inlet control with a free outlet: the reported depth and discharge
+        are a critical-flow pair (Froude number 1)."""
+        import anuga
+        D, L, n, losses = 0.9, 20.0, 0.013, 1.5
+        Q, v, d, area, case = boyd_pipe_function(
+            0.0, D, 0.0, 1.0, L, 0.6, 1.0, 0.0, losses, n)
+        self.assertIn('INLET CTRL', case)
+        A, T = self._segment(d, D)
+        self.assertAlmostEqual(A, area, places=9)
+        self.assertAlmostEqual(Q*Q*T/(anuga.g*A**3), 1.0, places=6)
+
 
 # =========================================================================
 if __name__ == "__main__":

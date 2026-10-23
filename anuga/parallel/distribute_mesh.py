@@ -48,6 +48,103 @@ verbose = False
 # The keys of the quantities that are to be saved and reordered.
 DEFAULT_DISTRIBUTE_QUANTITY_NAMES = ["stage", "xmomentum", "ymomentum", "elevation", "friction"]
 
+# Tracers are deliberately not Quantity objects (#276), so nothing that walks
+# domain.quantities sees them -- which is why distribute() used to hand the
+# sub-domains no tracers at all (#278). Rather than build a second partitioning
+# path for them, their centroid values ride the existing one under reserved
+# keys: the same reordering, ghost layer and MPI transfer, for free.
+#
+# Keyed by SLOT, not by name. The order is what carries meaning (class s must
+# land back in slot s, which add_sediment_fraction relies on), and a
+# tracer name is free text that has no business in a dict key. The names travel
+# beside the values, in the metadata below.
+TRACER_QUANTITY_PREFIX = '__tracer__'
+
+# The names and the shared beta, carried in the kwargs dict that already
+# travels with each partition. Popped before the Domain constructor sees it.
+# Old partition files simply lack the key, which reads as "no tracers".
+TRACER_METADATA_KEY = '__tracer_metadata__'
+
+
+def tracer_partition_quantities(domain):
+    """Reserved-key entries carrying each tracer's concentration `c`.
+
+    `c` rather than the conserved `m = h*c`: the sub-domain reseeds through
+    set_tracer, which recomputes m from its OWN depth, so the two stay
+    consistent even though h is rebuilt from the partitioned stage/elevation.
+    """
+    ns = getattr(domain, 'number_of_tracers', 0)
+    if not ns:
+        return {}
+    return {'%s%d' % (TRACER_QUANTITY_PREFIX, s): domain.tracer_centroid_values[s]
+            for s in range(ns)}
+
+
+def tracer_partition_metadata(domain):
+    """The tracer description to carry alongside the values, or None."""
+    ns = getattr(domain, 'number_of_tracers', 0)
+    if not ns:
+        return None
+    return {'names': list(domain.get_tracer_names()),
+            'beta': float(domain.beta_tracer)}
+
+
+def pop_tracer_quantities(quantities):
+    """Take the reserved tracer entries out of a partition's quantity dict.
+
+    Must be called BEFORE the set_quantity loop: left in, each one would be
+    created as a Quantity named `__tracer__0`, which is exactly the confusion
+    keeping tracers out of domain.quantities is meant to avoid.
+
+    Returns the concentration arrays in slot order, or None if there are none.
+    """
+    keys = [k for k in quantities if k.startswith(TRACER_QUANTITY_PREFIX)]
+    if not keys:
+        return None
+
+    slots = sorted(int(k[len(TRACER_QUANTITY_PREFIX):]) for k in keys)
+    if slots != list(range(len(slots))):
+        raise ValueError(
+            'tracer slots in this partition are not 0..n-1: %r -- the tracer '
+            'order would not survive the partition' % (slots,))
+
+    return [num.asarray(quantities.pop('%s%d' % (TRACER_QUANTITY_PREFIX, s))
+                        ).reshape(-1)
+            for s in slots]
+
+
+def restore_tracers(domain, metadata, values):
+    """Re-create the tracers on a sub-domain and seed them (#278).
+
+    Call AFTER the quantities are set: set_tracer derives m = h*c from the
+    sub-domain's own depth, so stage and elevation have to be in place first.
+
+    `values` covers full AND ghost triangles, because the tracer arrays rode
+    the same partitioning as the quantities -- so the halo starts correct
+    rather than waiting for the first communicate_tracer_ghosts().
+    """
+    if metadata is None and values is None:
+        return
+    if metadata is None or values is None:
+        raise ValueError(
+            'this partition carries tracer %s but not the other; it cannot be '
+            'reconstructed' % ('values' if metadata is None else 'metadata'))
+
+    names = metadata['names']
+    if len(names) != len(values):
+        raise ValueError(
+            'partition carries %d tracer name(s) but %d value array(s)'
+            % (len(names), len(values)))
+
+    beta = metadata['beta']
+    for s, name in enumerate(names):
+        # initial_value=None: seeded from the partitioned values just below,
+        # rather than filled and then immediately overwritten.
+        index = domain.add_tracer(name, beta=beta, initial_value=None)
+        assert index == s, 'tracer %r landed in slot %d, expected %d' % (
+            name, index, s)
+        domain.set_tracer(name, values[s])
+
 #=========================================================================
 #
 # If the triangles list is reordered, the quantities
@@ -109,8 +206,12 @@ def reorder_quantities(quantities, epart_order):
     # Reorder each quantity according to the new ordering
 
     for k in quantities:
+        q = quantities[k]
+        # Quantity objects for the real quantities; plain centroid arrays for
+        # the reserved tracer entries, which are not Quantity objects (#276).
+        values = q.centroid_values if hasattr(q, 'centroid_values') else num.asarray(q)
         q_reord[k] = num.zeros((N, 1), float)
-        q_reord[k][:,0] = quantities[k].centroid_values[epart_order]
+        q_reord[k][:,0] = values[epart_order]
 
     return q_reord
 
@@ -214,6 +315,10 @@ def partition_mesh(domain, n_procs,
                                  if k in domain.quantities}
     else:
         distribute_quantities = {}
+
+    # Tracers are not in domain.quantities, so the comprehension above cannot
+    # see them; add them under reserved keys so they ride the same machinery.
+    distribute_quantities.update(tracer_partition_quantities(domain))
 
     from anuga.parallel.partitioning import metis_partition, morton_partition, hilbert_partition, rcm_partition
 

@@ -27,17 +27,28 @@ int gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_h
     MQ->n                   = n;
     MQ->velocity_zero_height = velocity_zero_height;
     MQ->mapped              = 0;
+    // Fixed at init: a tracer added later would need a differently-sized
+    // array, and could not get an sww variable anyway (the file's variables
+    // are defined when it is created). The Python operator refuses that case.
+    MQ->n_tracers           = (int)GD->D.number_of_tracers;
+    MQ->max_tracer          = NULL;
 
     MQ->max_stage = (double*)malloc(n * sizeof(double));
     MQ->max_depth = (double*)malloc(n * sizeof(double));
     MQ->max_speed = (double*)malloc(n * sizeof(double));
     MQ->max_uh    = (double*)malloc(n * sizeof(double));
 
-    if (!MQ->max_stage || !MQ->max_depth || !MQ->max_speed || !MQ->max_uh) {
-        fprintf(stderr, "ERROR: gpu_max_quantities_init: allocation failed\n");
+    if (MQ->n_tracers > 0) {
+        MQ->max_tracer = (double*)malloc((size_t)MQ->n_tracers * n * sizeof(double));
+    }
+
+    if (!MQ->max_stage || !MQ->max_depth || !MQ->max_speed || !MQ->max_uh
+            || (MQ->n_tracers > 0 && !MQ->max_tracer)) {
+        gpu_set_error(GD, "ERROR: gpu_max_quantities_init: allocation failed");
         free(MQ->max_stage); free(MQ->max_depth);
-        free(MQ->max_speed); free(MQ->max_uh);
+        free(MQ->max_speed); free(MQ->max_uh); free(MQ->max_tracer);
         MQ->max_stage = MQ->max_depth = MQ->max_speed = MQ->max_uh = NULL;
+        MQ->max_tracer = NULL;
         return -1;
     }
 
@@ -49,6 +60,13 @@ int gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_h
         MQ->max_uh[i]    = 0.0;
     }
 
+    // Concentration is non-negative, so 0 is the floor rather than a sentinel.
+    if (MQ->max_tracer != NULL) {
+        for (int k = 0; k < MQ->n_tracers * n; k++) {
+            MQ->max_tracer[k] = 0.0;
+        }
+    }
+
     if (GD->gpu_initialized) {
         int ni = n;
         double *ms  = MQ->max_stage;
@@ -56,6 +74,11 @@ int gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_h
         double *msp = MQ->max_speed;
         double *mu  = MQ->max_uh;
         #pragma omp target enter data map(to: ms[0:ni], md[0:ni], msp[0:ni], mu[0:ni])
+        if (MQ->n_tracers > 0) {
+            double *mt = MQ->max_tracer;
+            int nt = MQ->n_tracers * ni;
+            #pragma omp target enter data map(to: mt[0:nt])
+        }
         MQ->mapped = 1;
     }
 
@@ -100,6 +123,35 @@ void gpu_max_quantities_update(struct gpu_domain *GD)
         if (d  > max_depth[i]) max_depth[i] = d;
         if (v  > max_speed[i]) max_speed[i] = v;
     }
+
+    // Tracers, in their own pass so the loop above is untouched when there
+    // are none. Base pointers are taken HERE, at function scope, not inside
+    // the target region: GD is not mapped to the device, so a GD->... load
+    // inside the region reads a host address and silently does nothing.
+    // Same rule as the tracer arrays in core_kernels.c.
+    const int ns = MQ->n_tracers;
+    if (ns > 0) {
+        // DERIVE c = m/h rather than reading tracer_centroid_values: that
+        // array is only refreshed during extrapolation, at the START of a
+        // step, so when this operator runs it is one step behind the
+        // conserved m. Mirrors the CPU path, and the kernel's own rule that
+        // a dry cell carries no concentration.
+        double * restrict t_cons     = GD->D.tracer_conserved_values;
+        double * restrict max_tracer = MQ->max_tracer;
+        const double mah = GD->D.minimum_allowed_height;
+        if (t_cons != NULL && max_tracer != NULL) {
+            OMP_PARALLEL_LOOP
+            for (int i = 0; i < n; i++) {
+                double d = stage_c[i] - bed_c[i];
+                if (d < 0.0) d = 0.0;
+                double inv_h = (d > mah) ? (1.0 / d) : 0.0;
+                for (int s = 0; s < ns; s++) {
+                    double c = t_cons[s * n + i] * inv_h;
+                    if (c > max_tracer[s * n + i]) max_tracer[s * n + i] = c;
+                }
+            }
+        }
+    }
 }
 
 // Sync the four max arrays from device to host, then copy into caller-supplied
@@ -127,6 +179,24 @@ void gpu_max_quantities_get(struct gpu_domain *GD,
     memcpy(out_uh,    MQ->max_uh,    n * sizeof(double));
 }
 
+// Sync the per-tracer maxima from device to host and copy them out.
+// out_tracer must hold n_tracers * n doubles, laid out as [s*n + i].
+// Separate from the call above so a domain with no tracers never pays for it.
+void gpu_max_tracers_get(struct gpu_domain *GD, double *out_tracer)
+{
+    struct max_quantities_info *MQ = &GD->max_qty;
+    if (!MQ->initialized || MQ->n_tracers <= 0 || MQ->max_tracer == NULL) return;
+
+    int nt = MQ->n_tracers * MQ->n;
+
+    if (MQ->mapped) {
+        double *mt = MQ->max_tracer;
+        #pragma omp target update from(mt[0:nt])
+    }
+
+    memcpy(out_tracer, MQ->max_tracer, (size_t)nt * sizeof(double));
+}
+
 // Unmap device arrays, free host memory.
 void gpu_max_quantities_finalize(struct gpu_domain *GD)
 {
@@ -140,6 +210,11 @@ void gpu_max_quantities_finalize(struct gpu_domain *GD)
         double *msp = MQ->max_speed;
         double *mu  = MQ->max_uh;
         #pragma omp target exit data map(delete: ms[0:n], md[0:n], msp[0:n], mu[0:n])
+        if (MQ->n_tracers > 0 && MQ->max_tracer != NULL) {
+            double *mt = MQ->max_tracer;
+            int nt = MQ->n_tracers * n;
+            #pragma omp target exit data map(delete: mt[0:nt])
+        }
         MQ->mapped = 0;
     }
 
@@ -147,8 +222,11 @@ void gpu_max_quantities_finalize(struct gpu_domain *GD)
     free(MQ->max_depth);
     free(MQ->max_speed);
     free(MQ->max_uh);
+    free(MQ->max_tracer);
 
     MQ->max_stage = MQ->max_depth = MQ->max_speed = MQ->max_uh = NULL;
+    MQ->max_tracer  = NULL;
+    MQ->n_tracers   = 0;
     MQ->n           = 0;
     MQ->initialized = 0;
 }

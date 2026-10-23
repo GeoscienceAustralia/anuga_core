@@ -1373,13 +1373,15 @@ class Test_GPU_Culvert(unittest.TestCase):
         """Boyd *pipe* culvert: reported discharge and barrel velocity agree
         between mode=1 and mode=2.
 
-        Regression guard for a critical-depth translation bug in
-        boyd_pipe_discharge: it divided by ``(bf*diameter)**2.5`` where the
-        Python reference multiplies, leaving the GPU flow_area — and hence the
-        reported barrel velocity — ~8% off mode=1, while the (inlet-controlled)
-        discharge still matched. Comparing the operator velocity catches it; a
-        stage-only comparison (test_culvert_cpu_gpu_match, box only) does not.
-        Also covers the GPUCulvertManager stats write-back onto the Python op.
+        Regression guard for CPU/GPU drift in the pipe critical-depth /
+        flow-area path: a mismatch there leaves the reported barrel velocity
+        off between modes while the (inlet-controlled) discharge still
+        matches. Both paths now use the same exact circular critical-depth
+        solve (circular_critical_depth); physical correctness of that solve is
+        tested in anuga/structures/tests/test_boyd_pipe_operator.py. Comparing
+        the operator velocity catches drift; a stage-only comparison
+        (test_culvert_cpu_gpu_match, box only) does not. Also covers the
+        GPUCulvertManager stats write-back onto the Python op.
         """
         cpu_domain, cpu_op = self._create_pipe_domain('pipe_cpu')
         cpu_domain.set_multiprocessor_mode(1)
@@ -2932,15 +2934,13 @@ class Test_GPU_ForcingOperators(unittest.TestCase):
     """Wind_stress / Barometric_pressure / Rate OPERATORS must give identical
     results in mode 1 (legacy) and mode 2 (unified).
 
-    These fractional-step operators are the supported replacements for the
-    deprecated Wind_stress / Barometric_pressure / Rainfall FORCING-FUNCTION
-    classes. Mode 2 silently skips the forcing-function classes (it applies
-    forcing in C and only handles Manning friction — see
-    _warn_unsupported_mode2_forcing and the warnings under
-    ANUGA_DEFAULT_COMPUTE_MODE=unified), but fractional-step operators are
-    applied by apply_fractional_steps() in BOTH modes. This mirrors
-    test_forcing.py's wind/pressure evolve tests, but for the operators and
-    across both compute modes — confirming the operators really are applied in
+    These fractional-step operators replaced the Wind_stress /
+    Barometric_pressure / Rainfall forcing-function classes (removed in 4.1).
+    Mode 2 skips Python forcing_terms (it applies forcing in C and only
+    handles Manning friction — see _warn_unsupported_mode2_forcing), but
+    fractional-step operators are applied by apply_fractional_steps() in BOTH
+    modes. This mirrors test_forcing.py's wind/pressure evolve tests across
+    both compute modes — confirming the operators really are applied in
     unified mode and agree with legacy.
     """
 
@@ -3462,8 +3462,12 @@ class Test_GPU_LargeInlet(unittest.TestCase):
     the actual total at map time, so the cap only ever constrained the host-side
     staging.
 
-    The geometry below gives 79 triangles per inlet — comfortably over the old
-    cap. apron=5.0 keeps the enquiry points clear of the (wide) inlet regions.
+    The geometry below gives 72 triangles per inlet — comfortably over the old
+    cap: a 40 m exchange line at x = 61, off the mesh lines (3.33 m apart), so
+    it cuts three of the four triangles in each of the 24 rectangles it
+    crosses. (On a mesh line it would select only the 48 along it, since
+    line-region selection is geometric, #231.) apron=5.0 keeps the enquiry
+    points clear of the (wide) inlet regions.
     """
 
     def _run(self, mode):
@@ -3482,8 +3486,8 @@ class Test_GPU_LargeInlet(unittest.TestCase):
         domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
         culvert = Boyd_box_operator(
-            domain, end_points=[[60.0, 25.0], [140.0, 25.0]],
-            losses=1.5, width=20.0, height=3.0, apron=5.0,
+            domain, end_points=[[61.0, 25.0], [139.0, 25.0]],
+            losses=1.5, width=40.0, height=3.0, apron=5.0,
             use_momentum_jet=False, use_velocity_head=False,
             manning=0.013, verbose=False)
         domain.set_multiprocessor_mode(mode)
@@ -3498,7 +3502,7 @@ class Test_GPU_LargeInlet(unittest.TestCase):
                 float(culvert.discharge))
 
     def test_inlet_larger_than_the_old_cap(self):
-        """An inlet of 79 triangles must register and give the mode-1 answer."""
+        """An inlet of 72 triangles must register and give the mode-1 answer."""
         sizes_1, stage_1, q_1 = self._run(1)
         sizes_2, stage_2, q_2 = self._run(2)
 

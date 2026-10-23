@@ -5,6 +5,8 @@ import math
 
 import numpy as num
 
+from anuga.structures.inlet_enquiry import warn_enquiry_point_in_inlet
+
 from . import parallel_inlet
 
 class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
@@ -65,10 +67,7 @@ class Parallel_Inlet_enquiry(parallel_inlet.Parallel_Inlet):
             self.enquiry_index = k
 
             if self.enquiry_index in self.triangle_indices:
-                msg = 'Enquiry point %s' % (self.enquiry_pt)
-                msg += 'is in an inlet triangle'
-                import warnings
-                warnings.warn(msg)
+                warn_enquiry_point_in_inlet(self.enquiry_pt, self.verbose)
 
 
             if self.enquiry_proc >= 0:

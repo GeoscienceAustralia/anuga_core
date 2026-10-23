@@ -171,11 +171,71 @@ arch_compiles() {
     return $rc
 }
 
+# nvidia-smi is the only way we have to see a GPU, and it is not always cheap.
+# Being ON PATH says nothing: an HPC login node typically ships the binary
+# without a driver for it to talk to, where it fails with
+#
+#     NVIDIA-SMI has failed because it couldn't communicate with the NVIDIA
+#     driver.
+#
+# but takes its time about it. The script used to call nvidia-smi three times
+# with no timeout, right after announcing the test suite, which is
+# indistinguishable from a hung test run. Probe ONCE, bounded, and reuse it.
+nvidia_smi_query() {
+    command -v nvidia-smi >/dev/null 2>&1 || return 1
+    if command -v timeout >/dev/null 2>&1; then
+        timeout 10 nvidia-smi --query-gpu="$1" --format=csv,noheader 2>/dev/null
+    else
+        nvidia-smi --query-gpu="$1" --format=csv,noheader 2>/dev/null
+    fi
+}
+
+if command -v nvidia-smi >/dev/null 2>&1; then
+    echo "# Looking for a GPU (nvidia-smi)..."
+fi
+# Require BOTH a zero exit status and a plausible device name. Exit status
+# alone is not enough (some builds report success with an empty list), and a
+# non-empty line alone is not enough either: a failing nvidia-smi may still
+# print something -- "[Not Supported]", "[N/A]", or an error -- on stdout,
+# which a bare -n test reads as a GPU and sends the script on to run the GPU
+# test suite on a machine that has none.
+# NB capture the status BEFORE piping: `$?` after a pipeline is the status of
+# the last element, so `nvidia_smi_query ... | head -1` would always report
+# head's 0 and the check below would never fire.
+GPU_PROBE_RAW="$(nvidia_smi_query name)"
+GPU_PROBE_RC=$?
+GPU_NAME_PROBE="$(printf '%s\n' "$GPU_PROBE_RAW" | head -1)"
+case "$GPU_NAME_PROBE" in
+    ''|'['*|*'Not Supported'*|*'N/A'*|*'failed'*|*'Error'*|*'error'*)
+        GPU_NAME_PROBE="" ;;
+esac
+[ "$GPU_PROBE_RC" -ne 0 ] && GPU_NAME_PROBE=""
+if [ -n "$GPU_NAME_PROBE" ]; then
+    HAVE_GPU=1
+    echo "# GPU detected: ${GPU_NAME_PROBE}"
+else
+    HAVE_GPU=0
+    if command -v nvidia-smi >/dev/null 2>&1; then
+        echo "# No usable GPU here: nvidia-smi is installed but reports no"
+        echo "# device (no driver loaded, or none allocated to this node)."
+        echo "# This is normal on an HPC login node. Building anyway."
+    else
+        echo "# No GPU here: nvidia-smi is not installed. Building anyway."
+    fi
+fi
+
 GPU_ARCH_EXPLICIT=1
 [ "$GPU_ARCH" = "auto" ] && GPU_ARCH_EXPLICIT=0
 
 if [ "$GPU_ARCH" = "auto" ]; then
-    CAP=$(nvidia-smi --query-gpu=compute_cap --format=csv,noheader 2>/dev/null | head -1 | tr -d ' ')
+    # Only ask again if the first probe actually saw a device; otherwise this
+    # is a second guaranteed-to-fail call, and on a driverless node a second
+    # wait for it.
+    if [ "$HAVE_GPU" = "1" ]; then
+        CAP=$(nvidia_smi_query compute_cap | head -1 | tr -d ' ')
+    else
+        CAP=""
+    fi
     if [[ "$CAP" =~ ^[0-9]+\.[0-9]+$ ]]; then
         GPU_ARCH="cc${CAP//./}"
         echo "# GPU_ARCH=auto -> ${GPU_ARCH} (detected: compute capability ${CAP})"
@@ -191,6 +251,16 @@ if [ "$GPU_ARCH" = "auto" ]; then
         # both, the CUDA 13 default must be overridden explicitly.  So ASK the
         # compiler: try the widest list first and keep the first that builds.
         echo "# GPU_ARCH=auto -> no GPU visible here; probing what this nvc can build."
+        echo "#"
+        echo "#   NOTE: this is the SLOW path, and it is the usual one on a login"
+        echo "#   node. Probing compiles a test file once per candidate list, and"
+        echo "#   the build that follows then generates device code for EVERY"
+        echo "#   architecture in the winning list -- up to seven. Expect tens of"
+        echo "#   minutes, with long silences from nvc. It is working, not hung."
+        echo "#"
+        echo "#   If you know the compute nodes you are targeting, naming them is"
+        echo "#   much faster, e.g. GPU_ARCH=cc80 (A100) or GPU_ARCH=cc90 (H100)."
+        echo "#"
         ALL="cc75,cc80,cc86,cc89,cc90,cc120"
         GPU_ARCH=""
         for CANDIDATE in "cc70,${ALL}" \
@@ -385,7 +455,12 @@ echo "#============================================================"
 echo "# Building ANUGA with GPU offloading"
 echo "#   CC=$NVC"
 echo "#   CXX=${CXX:-<system default; no C++ sources today>}"
-echo "#   gpu_offload=true  gpu_arch=${GPU_ARCH}  gpu_aware_mpi=${GPU_AWARE_MPI:-0}"
+echo "#   gpu_offload=true  gpu_arch=${GPU_ARCH}"
+echo "#   gpu_aware_mpi=${GPU_AWARE_MPI:-0}  (halo BUFFER allocation only --"
+echo "#     ANUGA never hands device pointers to MPI, on either setting, so"
+echo "#     this says nothing about whether your MPI is CUDA-aware.  A 0 here"
+echo "#     is not a failed detection: it is the default, and it is unrelated"
+echo "#     to what 'ompi_info | grep cuda' reports.  See issue #223.)"
 echo "#============================================================"
 echo " "
 
@@ -452,6 +527,59 @@ echo " "
 # fine: nvc embeds PTX, which the driver JIT-compiles forward, so a build for an
 # older architecture runs on a newer GPU.)
 # ---------------------------------------------------------------------------
+
+# ------------------------------------------------------------------
+# Post-build check: does this toolchain track header dependencies?
+#
+# On NVHPC, meson's PGI compiler mixin does not implement
+# get_dependency_gen_args(), so the compile line never gets -MD/-MF even though
+# meson still writes "deps = gcc" and a depfile into the ninja rule. Ninja then
+# records ZERO dependencies for every object and NO header change ever triggers
+# a rebuild.
+#
+# That is a silent-wrong-binary bug, not a slow-build bug. struct gpu_domain
+# embeds struct domain, so when only some translation units are rebuilt they
+# disagree about member offsets: observed as fixed_flux_timestep aliasing
+# evolve_max_timestep, which made mode 2 print "Using a fixed timestep!" and
+# hang, with no compile error. Editing a header does it; so does merely
+# switching to a branch whose headers differ, which is easier to hit because
+# nobody edited anything.
+#
+# This script always does a clean configure, so THIS build is correct either
+# way. The check exists to say whether a plain incremental
+# `pip install -e .` is safe afterwards.
+# ------------------------------------------------------------------
+BUILD_DIR=$(ls -d "${ANUGA_CORE_PATH}"/build/cp* 2>/dev/null | head -1)
+if [ -n "$BUILD_DIR" ] && command -v ninja >/dev/null 2>&1; then
+    DEP_TOTAL=$(ninja -C "$BUILD_DIR" -t deps 2>/dev/null \
+                | grep -cE '^[^ ]+\.o: #deps [1-9]' || true)
+    if [ "${DEP_TOTAL:-0}" -eq 0 ]; then
+        echo "#=================================================================="
+        echo "# WARNING: this build has NO header dependency tracking."
+        echo "#"
+        echo "#   ninja recorded zero header dependencies for every object, so a"
+        echo "#   changed header will NOT trigger a rebuild. An incremental"
+        echo "#   'pip install --no-build-isolation -e .' can then produce a"
+        echo "#   SILENTLY WRONG binary whose translation units disagree about"
+        echo "#   struct layout - no compile error, no crash, wrong answers or"
+        echo "#   a hang."
+        echo "#"
+        echo "#   Cause: meson's PGI/NVHPC compiler mixin does not implement"
+        echo "#   get_dependency_gen_args(), so -MD/-MF is never passed. nvc"
+        echo "#   supports the flags; meson simply does not ask for them."
+        echo "#"
+        echo "#   UNTIL THAT IS FIXED UPSTREAM: after ANY header edit or branch"
+        echo "#   switch, re-run this script. Never a plain incremental"
+        echo "#   'pip install -e .'."
+        echo "#=================================================================="
+        echo " "
+    else
+        echo "# Header dependency tracking: OK (${DEP_TOTAL} objects with recorded deps)."
+        echo "#   Incremental 'pip install -e .' is safe after a header change."
+        echo " "
+    fi
+fi
+
 echo "#============================================================"
 echo "# Build report"
 echo "#============================================================"
@@ -465,29 +593,10 @@ if ! $CONDA_RUN python "${ANUGA_CORE_PATH}/tools/anuga_build_report.py" --check;
 fi
 echo " "
 
-echo "#============================================================"
-echo "# Running GPU test suite (isolated runner)"
-echo "#   One fresh process per test.  A plain 'pytest' on this file"
-echo "#   auto-skips on a GPU build: the NVHPC OpenMP-target runtime"
-echo "#   aborts once many mode-2 GPU domains are created in a single"
-echo "#   process, so the tests must each run in their own process."
-echo "#   scripts/anuga_run_isolated_tests.py defaults to test_DE_gpu_omp.py"
-echo "#   and opts in via ANUGA_GPU_TESTS_ISOLATED=1.  Run the script"
-echo "#   directly (not the installed console command, which an editable"
-echo "#   'pip install -e .' does not place on PATH)."
-echo "#============================================================"
-echo " "
-
 # Do not run the GPU tests where there is no GPU.  The usual case is an HPC
 # login node: every test would fail or skip after a long wait, and running a
 # heavy suite there is antisocial (many sites forbid it outright).  The build is
 # still complete and usable -- the tests just have to happen where the GPUs are.
-HAVE_GPU=0
-if nvidia-smi --query-gpu=name --format=csv,noheader >/dev/null 2>&1 && \
-   [ -n "$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null)" ]; then
-    HAVE_GPU=1
-fi
-
 if [ "${SKIP_TESTS:-0}" = "1" ]; then
     echo "SKIP_TESTS=1 - skipping the GPU test suite."
 elif [ "$HAVE_GPU" = "0" ] && [ "${FORCE_TESTS:-0}" != "1" ]; then
@@ -509,6 +618,18 @@ elif [ "$HAVE_GPU" = "0" ] && [ "${FORCE_TESTS:-0}" != "1" ]; then
     echo "# FORCE_TESTS=1 runs them here regardless."
     echo "#=================================================================="
 else
+    echo "#============================================================"
+    echo "# Running GPU test suite (isolated runner)"
+    echo "#   One fresh process per test.  A plain 'pytest' on this file"
+    echo "#   auto-skips on a GPU build: the NVHPC OpenMP-target runtime"
+    echo "#   aborts once many mode-2 GPU domains are created in a single"
+    echo "#   process, so the tests must each run in their own process."
+    echo "#   scripts/anuga_run_isolated_tests.py defaults to test_DE_gpu_omp.py"
+    echo "#   and opts in via ANUGA_GPU_TESTS_ISOLATED=1.  Run the script"
+    echo "#   directly (not the installed console command, which an editable"
+    echo "#   'pip install -e .' does not place on PATH)."
+    echo "#============================================================"
+    echo " "
     $CONDA_RUN \
         python "${ANUGA_CORE_PATH}/scripts/anuga_run_isolated_tests.py"
 fi

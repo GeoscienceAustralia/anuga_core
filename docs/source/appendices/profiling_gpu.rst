@@ -8,7 +8,7 @@ Profiling the GPU build
 .. note::
 
    This applies to a **GPU (nvc) build** running in mode 2 (``-mpm 2`` /
-   ``multiprocessor_mode=2`` / ``set_gpu_offload(True)``). See
+   ``compute_mode = "unified"`` / ``set_gpu_offload(True)``). See
    :doc:`install_gpu` and :ref:`compute_modes`.
 
 The NVIDIA HPC SDK ships the two NVIDIA profilers, plus a memory checker:
@@ -124,3 +124,5 @@ Nsight GUIs there. For a quick terminal summary of an ``ncu`` report:
 .. code-block:: bash
 
    ncu --import my_profile_anuga_fluxes.ncu-rep --page details | less
+
+.. include:: /appendices/gpu_acknowledgement.inc

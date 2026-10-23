@@ -310,6 +310,7 @@ def build_summary_html(config_path, base_dir=None):
     bridges = cfg.get('bridges', [])
     pumps = cfg.get('pumping_stations', [])
     erosion = cfg.get('erosion', [])
+    sediment = cfg.get('sediment', {})
     irs = m.get('interior_regions', [])
 
     scenario = str(p.get('scenario', os.path.splitext(os.path.basename(config_path))[0]))
@@ -360,6 +361,10 @@ def build_summary_html(config_path, base_dir=None):
         stats.append(_stat(len(pumps), 'pumping stations'))
     if erosion:
         stats.append(_stat(len(erosion), 'erosion operators'))
+    if sediment:
+        fractions = sediment.get('fractions', [])
+        note = ', '.join(str(f.get('name', '?')) for f in fractions)
+        stats.append(_stat(len(fractions), 'sediment fractions', note))
 
     # ---- badges ----------------------------------------------------------
     badges = []
@@ -369,10 +374,14 @@ def build_summary_html(config_path, base_dir=None):
         badges.append(_badge('algorithm', p['flow_algorithm']))
     if compute:
         badges.append(_badge('compute', compute))
+    # Times may be quoted arithmetic ("24*3600"), as the parser allows.
+    from anuga.scenario.parse_input_data_toml import _num
+    if p.get('starttime'):
+        badges.append(_badge('start time', f"{_num(p['starttime']):g} s"))
     if 'finaltime' in p:
-        badges.append(_badge('final time', f"{float(p['finaltime']):g} s"))
+        badges.append(_badge('final time', f"{_num(p['finaltime']):g} s"))
     if 'yieldstep' in p:
-        badges.append(_badge('yield', f"{float(p['yieldstep']):g} s"))
+        badges.append(_badge('yield', f"{_num(p['yieldstep']):g} s"))
 
     sections = []
 

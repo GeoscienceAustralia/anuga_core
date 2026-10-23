@@ -18,6 +18,7 @@
 	
 #include "math.h"
 #include "stdio.h"
+#include <stdlib.h>
 #include <stdint.h>
 #include "anuga_typedefs.h"
 
@@ -144,7 +145,10 @@ void cg_zDinx(double * z, double * D, double * x, anuga_int M){
    
     #pragma omp parallel for private(i)
     for (i=0; i<M; i++){
-      z[i]=1.0/D[i]*x[i];              
+      /* A zero diagonal has no Jacobi inverse; treat it as 1 (the identity
+         preconditioner for that row) rather than dividing by zero. This
+         matches what _jacobi_precon_c already does when it builds D. */
+      z[i] = (D[i] != 0.0) ? x[i]/D[i] : x[i];
     }
   
 
@@ -225,7 +229,8 @@ anuga_int _jacobi_precon_c(double* data,
 //        imax: maximum number of iterations
 //        tol: error tollerance for stopping criteria
 //        M: length of vectors x and b
-// @return: 0 on success  
+// @return: 0 on success, -1 if imax iterations were reached without
+//          converging, -2 on breakdown (d'Ad zero or NaN)
 anuga_int _cg_solve_c(double* data, 
                 anuga_int* colind,
                 anuga_int* row_ptr,
@@ -237,7 +242,7 @@ anuga_int _cg_solve_c(double* data,
                 anuga_int M){
 
   anuga_int i = 1;
-  double alpha,rTr,rTrOld,bt,rTr0;
+  double alpha,rTr,rTrOld,bt,rTr0,dq;
 
   double * d = malloc(sizeof(double)*M);
   double * r = malloc(sizeof(double)*M);
@@ -253,7 +258,14 @@ anuga_int _cg_solve_c(double* data,
   while((i<imax) && (rTr>pow(tol,2)*rTr0) && (rTr > pow(a_tol,2))){
 
     cg_zAx(q,data,colind,row_ptr,d,M);
-    alpha = rTr/cg_ddot(M,d,q);
+    dq = cg_ddot(M,d,q);
+    if (dq == 0.0 || dq != dq) {
+      /* Breakdown: d'Ad is zero (singular or indefinite A) or NaN. The
+         next step would be 0/0. Report it instead of returning Inf/NaN. */
+      free(d); free(r); free(q); free(xold);
+      return -2;
+    }
+    alpha = rTr/dq;
     cg_dcopy(M,x,xold);
     cg_daxpy(M,alpha,d,x);
 
@@ -309,7 +321,7 @@ anuga_int _cg_solve_c_precon(double* data,
                 double * precon){
 
   anuga_int i = 1;
-  double alpha,rTr,rTrOld,bt,rTr0;
+  double alpha,rTr,rTrOld,bt,rTr0,dq;
 
   double * d = malloc(sizeof(double)*M);
   double * r = malloc(sizeof(double)*M);
@@ -328,7 +340,13 @@ anuga_int _cg_solve_c_precon(double* data,
   while((i<imax) && (rTr>pow(tol,2)*rTr0) && (rTr > pow(a_tol,2))){
 
     cg_zAx(q,data,colind,row_ptr,d,M);
-    alpha = rTr/cg_ddot(M,d,q);
+    dq = cg_ddot(M,d,q);
+    if (dq == 0.0 || dq != dq) {
+      /* Breakdown, as in _cg_solve_c. */
+      free(temp); free(rhat); free(d); free(r); free(q); free(xold);
+      return -2;
+    }
+    alpha = rTr/dq;
     cg_dcopy(M,x,xold);
     cg_daxpy(M,alpha,d,x);
 

@@ -58,6 +58,23 @@ directly to the domain for convenience.
    domain.set_plotter(plot_dir='_plot', min_depth=0.01)
    # Now domain.plot_depth_frame(), domain.save_depth_frame(), etc. are available
 
+It also returns the plotter it attached, so you can name it in the same
+line rather than reaching for ``domain.dplotter`` afterwards:
+
+.. code-block:: python
+
+   dplotter = domain.set_plotter(absolute=True)
+
+The plotter is created on the first call and kept as ``domain.dplotter``;
+a later call returns that same one and ignores its arguments.
+
+Either way the domain gains the plotter's arrays and plotting methods, so
+``domain.plot_depth_frame()`` and ``dplotter.plot_depth_frame()`` are the
+same call. The derived quantities ``depth``, ``xvel``, ``yvel``, ``speed``
+and ``speed_depth`` are computed on access, so reading ``domain.speed``
+inside an evolve loop gives the speed at that yieldstep, not at the moment
+``set_plotter`` was called.
+
 .. list-table:: Constructor arguments
    :header-rows: 1
    :widths: 25 15 60

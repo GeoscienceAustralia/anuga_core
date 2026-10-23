@@ -42,69 +42,17 @@ def topography(x,y):
 
 
 #-------------------------------------------------------------------------------
-# Inherit from erosion operator
+# Erosion operator
 #-------------------------------------------------------------------------------
+# This used to subclass Polygonal_erosion_operator and re-implement
+# update_quantities(), because the library version could not run under
+# discontinuous elevation -- every DE algorithm -- and silently did nothing
+# without a polygon (anuga-community/anuga_core#301, #302). Both are fixed, and
+# the library operator now produces a bed identical to the copy that lived here,
+# so the copy is gone. It also keeps max_change up to date, which the override
+# never did: print_operator_timestepping_statistics() reported
+# "max(Delta Elev) 0" at every step regardless of what the bed was doing.
 from anuga.operators.erosion_operators import Polygonal_erosion_operator
-
-class My_polygon_erosion_operator(Polygonal_erosion_operator):
-    """
-    Local version of erosion confined to a polygon
-
-    """
-
-    def __init__(self, domain,
-                 threshold=0.0,
-                 base=0.0,
-                 polygon=None,
-                 verbose=False):
-
-
-        Polygonal_erosion_operator.__init__(self, domain, threshold, base, polygon, verbose)
-
-
-
-    def update_quantities(self):
-        """Update the vertex values of the quantities to model erosion
-        """
-        import numpy as num
-        
-        t = self.get_time()
-        dt = self.get_timestep()
-
-        updated = True
-
-        if self.indices is None:
-
-            #--------------------------------------
-            # Update all three vertices for each cell
-            #--------------------------------------
-            self.elev_v[:] = self.elev_v + 0.0
-
-        else:
-            ind = self.indices
-            m = num.sqrt(self.xmom_c[ind]**2 + self.ymom_c[ind]**2)
-            
-            if self.domain.get_using_discontinuous_elevation():
-                height = self.stage_c[ind] - self.elev_c[ind]
-                
-                m = num.where(m>self.threshold, m, 0.0)
-                self.elev_c[ind] = num.maximum(self.elev_c[ind] - m*dt, self.base)
-
-                self.stage_c[ind] = self.elev_c[ind] + height
-            else:
-            #--------------------------------------
-            # Update all three vertices for each cell
-            #--------------------------------------
-            
-            
-                m = num.vstack((m,m,m)).T
-                m = num.where(m>self.threshold, m, 0.0)
-                self.elev_v[ind] = num.maximum(self.elev_v[ind] - m*dt, self.base)
-                #num.maximum(self.elev_v[ind] - momentum*dt, Z)
-
-
-        return updated
-
 
 
 #===============================================================================
@@ -154,7 +102,7 @@ domain.set_boundary({'left': Bi, 'right': Bo, 'top': Br, 'bottom': Br})
 # Setup erosion operator in the middle of dam
 #-------------------------------------------------------------------------------
 polygon1 = [ [12., 0.0], [13., 0.0], [13., 5.0], [12., 5.0] ]
-op1 = My_polygon_erosion_operator(domain, threshold=0.0, base=-0.1, polygon=polygon1)
+op1 = Polygonal_erosion_operator(domain, threshold=0.0, base=-0.1, polygon=polygon1)
 
 
 

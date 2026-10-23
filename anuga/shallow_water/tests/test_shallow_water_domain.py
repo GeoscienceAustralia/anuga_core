@@ -15,8 +15,8 @@ from anuga.geospatial_data.geospatial_data import Geospatial_data
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, \
                                             rectangular
 from anuga.abstract_2d_finite_volumes.quantity import Quantity
-from anuga.shallow_water.forcing import Inflow, Cross_section
-from anuga.shallow_water.forcing import Rainfall
+from anuga.shallow_water.forcing import Cross_section
+from anuga.operators.rate_operators import Rate_operator
 
 from anuga.utilities.system_tools import get_pathname_from_package
 
@@ -1465,19 +1465,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, constant inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
-        domain.forcing_terms = []
+        I = Rate_operator.inflow(domain, rate=2.0, center=(1,1), radius=1)
 
-        I = Inflow(domain, rate=2.0, center=(1,1), radius=1)
-        domain.forcing_terms.append(I)
-        domain.compute_forcing_terms()
-
-
-        A = I.exchange_area
+        A = I.areas.sum()
         assert num.allclose(A, 4) # Two triangles
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        stage0 = domain.quantities['stage'].centroid_values.copy()
+        domain.timestep = 1.0
+        I()
+        dstage = domain.quantities['stage'].centroid_values - stage0
+
+        assert num.allclose(dstage[1], 2.0/A)
+        assert num.allclose(dstage[0], 2.0/A)
+        assert num.allclose(dstage[2:], 0)
 
 
     def test_inflow_using_circle_function(self):
@@ -1506,18 +1506,19 @@ class Test_Shallow_Water(unittest.TestCase):
 
         # Setup only one forcing term, time dependent inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
-        domain.forcing_terms = []
-        I = Inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
-        domain.forcing_terms.append(I)
+        I = Rate_operator.inflow(domain, rate=lambda t: 2., center=(1,1), radius=1)
 
-        domain.compute_forcing_terms()
-
-        A = I.exchange_area
+        A = I.areas.sum()
         assert num.allclose(A, 4) # Two triangles
 
-        assert num.allclose(domain.quantities['stage'].explicit_update[1], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[0], 2.0/A)
-        assert num.allclose(domain.quantities['stage'].explicit_update[2:], 0)
+        stage0 = domain.quantities['stage'].centroid_values.copy()
+        domain.timestep = 1.0
+        I()
+        dstage = domain.quantities['stage'].centroid_values - stage0
+
+        assert num.allclose(dstage[1], 2.0/A)
+        assert num.allclose(dstage[0], 2.0/A)
+        assert num.allclose(dstage[2:], 0)
 
 
     def test_inflow_catch_too_few_triangles(self):
@@ -1552,7 +1553,7 @@ class Test_Shallow_Water(unittest.TestCase):
         # Setup only one forcing term, constant inflow of 2 m^3/s
         # on a circle affecting triangles #0 and #1 (bac and bce)
         try:
-            Inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
+            Rate_operator.inflow(domain, rate=2.0, center=(1,1.1), radius=0.01)
         except Exception:
             pass
         else:
@@ -2751,7 +2752,6 @@ friction  \n \
         from anuga.abstract_2d_finite_volumes.mesh_factory \
                 import rectangular_cross
         from anuga.shallow_water.shallow_water_domain import Domain
-        from anuga.shallow_water.forcing import Inflow
 
         #----------------------------------------------------------------------
         # Setup computational domain
@@ -2862,10 +2862,6 @@ friction  \n \
 
         domain = Domain(points, vertices, boundary)
         domain.set_name('Inflow_volume_test')              # Output name
-        # Inflow is a legacy forcing-function class; multiprocessor_mode=2
-        # ('unified') applies forcing in C (Manning only) and skips it. Pin
-        # legacy so this test exercises the machinery it is written for.
-        domain.set_compute_mode('legacy')
 
 
         #----------------------------------------------------------------------
@@ -2888,12 +2884,11 @@ friction  \n \
         #--------------------------------------------------------------
 
         # Fixed Flowrate onto Area
-        fixed_inflow = Inflow(domain,
-                              center=(10.0, 10.0),
-                              radius=5.00,
-                              rate=10.00)
-
-        domain.forcing_terms.append(fixed_inflow)
+        inflow_rate = 10.00   # m^3/s
+        Rate_operator.inflow(domain,
+                             center=(10.0, 10.0),
+                             radius=5.00,
+                             rate=inflow_rate)
 
         #----------------------------------------------------------------------
         # Setup boundary conditions
@@ -2920,7 +2915,7 @@ friction  \n \
 
 
             # Update reference volume
-            ref_volume += ys * fixed_inflow.rate
+            ref_volume += ys * inflow_rate
 
 
         os.remove('Inflow_volume_test.sww')
@@ -2957,10 +2952,6 @@ friction  \n \
 
         domain = Domain(points, vertices, boundary)
         domain.set_name('Rain_volume_test')              # Output name
-        # Rainfall is a legacy forcing-function class; multiprocessor_mode=2
-        # ('unified') applies forcing in C (Manning only) and skips it. Pin
-        # legacy so this test exercises the machinery it is written for.
-        domain.set_compute_mode('legacy')
 
 
         #----------------------------------------------------------------------
@@ -2983,12 +2974,11 @@ friction  \n \
         #--------------------------------------------------------------
 
         # Fixed rain onto small circular area
-        fixed_rain = Rainfall(domain,
-                              center=(10.0, 10.0),
-                              radius=5.00,
-                              rate=10.00)   # 10 mm/s
-
-        domain.forcing_terms.append(fixed_rain)
+        rain_rate = 10.00   # mm/s
+        fixed_rain = Rate_operator.rainfall(domain,
+                                            center=(10.0, 10.0),
+                                            radius=5.00,
+                                            rate=rain_rate*3600)   # mm/hr
 
         #----------------------------------------------------------------------
         # Setup boundary conditions
@@ -3017,12 +3007,8 @@ friction  \n \
                 print(V)
 
 
-            # Update reference volume.
-            # FIXME: Note that rate has now been redefined
-            # as m/s internally. This is a little confusing
-            # when it was specfied as mm/s.
-
-            delta_V = fixed_rain.rate*fixed_rain.exchange_area
+            # Update reference volume (mm/s -> m/s over the rained area)
+            delta_V = rain_rate/1000.0*fixed_rain.areas.sum()
             ref_volume += ys * delta_V
 
         os.remove('Rain_volume_test.sww')
@@ -3167,10 +3153,6 @@ friction  \n \
 
                 domain = Domain(points, vertices, boundary)
                 domain.set_name('inflow_flowline_test')     # Output name
-                # Inflow is a legacy forcing-function class; multiprocessor_mode=2
-                # ('unified') applies forcing in C (Manning only) and skips it.
-                # Pin legacy so this test exercises the machinery it is written for.
-                domain.set_compute_mode('legacy')
 
                 #--------------------------------------------------------------
                 # Setup initial conditions
@@ -3192,16 +3174,16 @@ friction  \n \
                 #--------------------------------------------------------------
 
                 # Fixed Flowrate onto Area
-                fixed_inflow = Inflow(domain,
-                                      center=(10.0, 10.0),
-                                      radius=5.00,
-                                      rate=10.00)
+                inflow_rate = 10.00   # m^3/s
 
                 # Stack this flow
                 for i in range(number_of_inflows):
-                    domain.forcing_terms.append(fixed_inflow)
+                    Rate_operator.inflow(domain,
+                                         center=(10.0, 10.0),
+                                         radius=5.00,
+                                         rate=inflow_rate)
 
-                ref_flow = fixed_inflow.rate*number_of_inflows
+                ref_flow = inflow_rate*number_of_inflows
 
                 # Compute normal depth on plane using Mannings equation
                 # v=1/n*(r^2/3)*(s^0.5) or r=(Q*n/(s^0.5*W))^0.6

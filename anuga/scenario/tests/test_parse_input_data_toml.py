@@ -403,6 +403,17 @@ class TestProjectSection(unittest.TestCase):
         with self.assertRaises(ValueError):
             self._make(project_extra=extra)
 
+    def test_starttime_defaults_to_zero(self):
+        self.assertAlmostEqual(self._make().starttime, 0.0)
+
+    def test_negative_starttime_expression(self):
+        p = self._make(project_extra='starttime = "-3*600"')
+        self.assertAlmostEqual(p.starttime, -1800.0)
+
+    def test_starttime_not_before_finaltime_raises(self):
+        with self.assertRaises(ValueError):
+            self._make(project_extra='starttime = 3600.0')
+
     def test_config_filename_attribute(self):
         p = self._make()
         self.assertEqual(p.config_filename, self.toml_path)
@@ -2162,3 +2173,239 @@ class TestArithmeticValues(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class TestSediment(unittest.TestCase):
+    """[sediment] and [[sediment.fractions]]."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.toml_path = os.path.join(self.tmp, 'cfg.toml')
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp, ignore_errors=True)
+
+    def _make(self, sediment_toml='', project_extra=''):
+        content = textwrap.dedent("""\
+            [project]
+            scenario = "test_scenario"
+            output_base_directory = "OUTPUT/"
+            yieldstep = 60.0
+            finaltime = 3600.0
+            projection_information = -55
+            flow_algorithm = "DE0"
+        """) + textwrap.dedent(project_extra) + textwrap.dedent("""
+            [mesh]
+            bounding_polygon = "extent.shp"
+            default_res = 1000000.0
+        """) + textwrap.dedent(sediment_toml)
+        _write_toml(self.toml_path, content)
+        return ProjectDataTOML(self.toml_path)
+
+    ONE_FRACTION = """
+        [sediment]
+        [[sediment.fractions]]
+        name = "sand"
+        diameter = 2.0e-4
+    """
+
+    def test_absent_by_default(self):
+        p = self._make()
+        self.assertIsNone(p.sediment_data)
+        self.assertFalse(p.store_elevation_every_timestep)
+
+    def test_minimal_parses_and_leaves_defaults_to_the_domain(self):
+        p = self._make(self.ONE_FRACTION)
+        d = p.sediment_data
+        self.assertEqual(d['fractions'], [{'name': 'sand', 'diameter': 2.0e-4}])
+        self.assertEqual(d['erodible_regions'], [])
+        for key in ('porosity', 'shear_closure', 'bed_material', 'bedload'):
+            self.assertNotIn(key, d)
+
+    def test_grass_needs_its_coefficient(self):
+        with self.assertRaises(Exception) as cm:
+            self._make(self.ONE_FRACTION.replace(
+                '[sediment]', '[sediment]\nbedload = "grass"'))
+        self.assertIn('bedload_K', str(cm.exception))
+
+    def test_grass_and_open_boundaries_parse(self):
+        p = self._make(self.ONE_FRACTION.replace(
+            '[sediment]',
+            '[sediment]\nbedload = "grass"\nbedload_K = 0.001\n'
+            'bedload_open_boundaries = ["left", "right"]'))
+        d = p.sediment_data
+        self.assertEqual(d['bedload'], 'grass')
+        self.assertAlmostEqual(d['bedload_K'], 0.001)
+        self.assertEqual(d['bedload_open_boundaries'], ['left', 'right'])
+
+    def test_open_boundaries_must_be_tags(self):
+        with self.assertRaises(Exception) as cm:
+            self._make(self.ONE_FRACTION.replace(
+                '[sediment]', '[sediment]\nbedload_open_boundaries = 3'))
+        self.assertIn('bedload_open_boundaries', str(cm.exception))
+
+    def test_de_leeuw_entrainment_parses(self):
+        p = self._make(self.ONE_FRACTION.replace(
+            '[sediment]',
+            '[sediment]\nentrainment = "de_leeuw"\nde_leeuw_fit = "nghiem_2022"\n'
+            'skin_roughness = 0.002'))
+        d = p.sediment_data
+        self.assertEqual(d['entrainment'], 'de_leeuw')
+        self.assertEqual(d['de_leeuw_fit'], 'nghiem_2022')
+        self.assertAlmostEqual(d['skin_roughness'], 0.002)
+
+    def test_de_leeuw_needs_a_noncohesive_bed(self):
+        with self.assertRaises(Exception) as cm:
+            self._make(self.ONE_FRACTION.replace(
+                '[sediment]', '[sediment]\nentrainment = "de_leeuw"\nbed_material = "cohesive"'))
+        self.assertIn('de_leeuw', str(cm.exception))
+
+    def test_full_table_parses(self):
+        p = self._make("""
+            [sediment]
+            porosity = 0.28
+            c_max = 0.25
+            bed_evolution = true
+            rho_w = 1025.0
+            shear_closure = "energy_slope"
+            bed_material = "cohesive"
+            tau_crit = 0.088
+            deposition_law = "threshold"
+            tau_d = 0.1
+            near_bed = "rouse"
+            friction_mode = "wilson"
+            bed = "gravel"
+            grain_size = 0.02
+            bedload = "wong_parker_eq24"
+            bedload_K = 3.97
+            angle_of_repose = 34.0
+            erodible_base_depth = "3/2"
+
+            [[sediment.fractions]]
+            name = "sand"
+            diameter = 2.0e-4
+            tau_c_star = 0.045
+            initial_concentration = 0.001
+            [sediment.fractions.boundary]
+            left = 0.01
+            right = "1/100"
+
+            [[sediment.fractions]]
+            name = "silt"
+            diameter = 2.0e-5
+
+            [[sediment.erodible_regions]]
+            polygon = "channel.csv"
+            [[sediment.erodible_regions]]
+            center = [10.0, 20.0]
+            radius = 5.0
+            erodible = false
+        """)
+        d = p.sediment_data
+        self.assertAlmostEqual(d['porosity'], 0.28)
+        self.assertEqual(d['shear_closure'], 'energy_slope')
+        self.assertEqual(d['bed_material'], 'cohesive')
+        self.assertAlmostEqual(d['tau_crit'], 0.088)
+        self.assertEqual(d['deposition_law'], 'threshold')
+        self.assertEqual(d['friction_mode'], 'wilson')
+        self.assertEqual(d['bed'], 'gravel')
+        self.assertEqual(d['bedload'], 'wong_parker_eq24')
+        self.assertAlmostEqual(d['bedload_K'], 3.97)
+        self.assertAlmostEqual(d['angle_of_repose'], 34.0)
+        self.assertAlmostEqual(d['erodible_base_depth'], 1.5)   # arithmetic string
+        self.assertEqual(len(d['fractions']), 2)
+        sand = d['fractions'][0]
+        self.assertAlmostEqual(sand['tau_c_star'], 0.045)
+        self.assertEqual(sand['boundary'], {'left': 0.01, 'right': 0.01})
+        self.assertEqual(d['fractions'][1], {'name': 'silt', 'diameter': 2.0e-5})
+        regions = d['erodible_regions']
+        self.assertEqual(regions[0]['polygon'], 'channel.csv')
+        self.assertTrue(regions[0]['erodible'])
+        self.assertEqual(regions[1]['center'], [10.0, 20.0])
+        self.assertFalse(regions[1]['erodible'])
+        self.assertTrue(p.store_elevation_every_timestep)
+
+    def test_needs_a_fraction(self):
+        with self.assertRaises(ValueError) as cm:
+            self._make("""
+                [sediment]
+                porosity = 0.3
+            """)
+        self.assertIn('at least one [[sediment.fractions]]', str(cm.exception))
+
+    def test_bad_values_are_all_reported(self):
+        with self.assertRaises(ValueError) as cm:
+            self._make("""
+                [sediment]
+                porosity = 1.5
+                shear_closure = "bed_slope"
+                friction_mode = "larsen_lamb"
+                tau_crit = 0.1
+                erodible_base_elevation = 0.0
+                erodible_base_depth = 1.0
+                nonsense = 3
+                [[sediment.fractions]]
+                name = "sand"
+                diameter = -1.0
+                [[sediment.fractions]]
+                name = "sand"
+                diameter = 1.0e-4
+            """)
+        msg = str(cm.exception)
+        for fragment in ("'porosity'", "'shear_closure'", "larsen_lamb",
+                         "'tau_crit' / 'K_e'", "not both", "unknown key 'nonsense'",
+                         "'diameter'", "duplicate fraction name"):
+            self.assertIn(fragment, msg)
+
+    def test_slope_bounds_parse_and_are_checked(self):
+        p = self._make("""
+            [sediment]
+            shear_closure = "depth_slope"
+            max_slope = 0.05
+            freeze_slope = true
+            [[sediment.fractions]]
+            name = "sand"
+            diameter = 2.0e-4
+        """)
+        self.assertAlmostEqual(p.sediment_data['max_slope'], 0.05)
+        self.assertTrue(p.sediment_data['freeze_slope'])
+        with self.assertRaises(ValueError) as cm:
+            self._make("""
+                [sediment]
+                shear_closure = "energy_slope"
+                freeze_slope = true
+                max_slope = -1.0
+                [[sediment.fractions]]
+                name = "sand"
+                diameter = 2.0e-4
+            """)
+        self.assertIn("'freeze_slope' applies", str(cm.exception))
+        self.assertIn("'max_slope'", str(cm.exception))
+        with self.assertRaises(ValueError) as cm:
+            self._make("""
+                [sediment]
+                max_slope = 0.1
+                [[sediment.fractions]]
+                name = "sand"
+                diameter = 2.0e-4
+            """)
+        self.assertIn("quadratic_drag uses no slope", str(cm.exception))
+
+    def test_fixed_bed_does_not_flip_elevation_storage(self):
+        p = self._make("""
+            [sediment]
+            bed_evolution = false
+            [[sediment.fractions]]
+            name = "sand"
+            diameter = 2.0e-4
+        """)
+        self.assertFalse(p.store_elevation_every_timestep)
+
+    def test_warns_when_elevation_explicitly_static_with_bed_evolution(self):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            p = self._make(self.ONE_FRACTION,
+                           project_extra='store_elevation_every_timestep = false\n')
+        self.assertFalse(p.store_elevation_every_timestep)
+        self.assertTrue(any('sediment' in str(x.message) for x in w))
+

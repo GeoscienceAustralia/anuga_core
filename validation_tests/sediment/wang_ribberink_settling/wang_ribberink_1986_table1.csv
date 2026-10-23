@@ -1,0 +1,26 @@
+# Wang & Ribberink (1986) "The validity of a depth-integrated model for
+# suspended sediment transport", J. Hydraul. Res. 24(1) 53-67, Table 1:
+# measured concentrations (ppm = mg/l) in the test section of the Delft
+# flume, two measuring runs. Flume 30 m x 0.5 m; uniform flow, depth
+# 0.2155 m, Q = 60.1 l/s (u = 0.558 m/s), slope 0.97e-3, u* = 0.034 m/s
+# (bed hydraulic radius, Knight side-wall correction); sand D50 = 100 um,
+# w_s = 0.7 cm/s at 15 C, feed 70.8 kg/h. The bed of the test section
+# (x = 0 to 16 m) is perforated plate: grains that reach it fall through
+# and are not re-entrained, so the bed flux is -w_s c(0). The inflow
+# section (10 m, rigid, roughened) carries the uniform equilibrium profile.
+# z is the height above the bed of each sample point; the row 'mean' is
+# the depth-averaged concentration from the 8 points.
+# run, x_m, z_0.30cm, z_0.97, z_2.03, z_4.47, z_6.98, z_10.86, z_15.10, z_19.92, mean
+1, 0.1, 403.6, 342.8, 269.9, 192.9, 146.5, 116.9, 88.0, 50.0, 138.9
+1, 1.0, 154.1, 149.3, 148.0, 146.0, 129.5, 108.7, 82.6, 33.8, 102.3
+1, 3.0, 148.0, 135.0, 129.5, 126.6, 121.0, 106.3, 81.0, 42.3, 97.4
+1, 6.0, 89.5, 94.1, 92.9, 92.3, 76.3, 64.5, 40.3, 20.1, 60.1
+1, 11.0, 54.3, 52.1, 53.0, 53.3, 44.0, 33.1, 26.5, 21.3, 36.3
+1, 13.8, 47.0, 50.9, 47.2, 46.2, 40.2, 35.7, 29.5, 21.1, 35.3
+1, 15.5, 45.1, 45.9, 44.7, 42.4, 40.1, 35.7, 28.2, 21.6, 34.2
+2, 0.1, 455.5, 369.5, 283.5, 199.4, 154.4, 112.3, 92.7, 47.8, 143.8
+2, 1.0, 207.2, 193.3, 190.7, 176.4, 150.1, 114.6, 80.9, 39.5, 117.1
+2, 4.5, 102.0, 99.7, 102.1, 98.8, 85.6, 66.2, 50.1, 17.9, 65.4
+2, 8.0, 77.0, 78.2, 65.3, 69.0, 62.7, 51.0, 32.4, 15.9, 47.1
+2, 10.0, 57.2, 60.3, 57.1, 58.4, 50.2, 40.6, 28.5, 18.3, 39.8
+2, 16.0, 38.5, 38.7, 41.0, 38.8, 33.4, 30.7, 23.8, 15.2, 29.0

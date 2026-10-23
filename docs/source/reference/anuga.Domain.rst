@@ -15,36 +15,45 @@
    
       ~Domain.__init__
       ~Domain.add_quantity
+      ~Domain.add_sediment_fraction
+      ~Domain.add_tracer
       ~Domain.apply_fractional_steps
       ~Domain.apply_protection_against_isolated_degenerate_timesteps
       ~Domain.backup_conserved_quantities
-
+      ~Domain.bed_slope_magnitude
       ~Domain.boundary_statistics
+      ~Domain.build_boundary_dictionary
       ~Domain.build_tagged_elements_dictionary
       ~Domain.centroid_norm
       ~Domain.check_integrity
+      ~Domain.check_tracer_conservation
       ~Domain.compute_boundary_flows
-
+      ~Domain.compute_capabilities
       ~Domain.compute_fluxes
       ~Domain.compute_forcing_terms
       ~Domain.compute_total_volume
       ~Domain.conserved_values_to_evolved_values
       ~Domain.create_quantity_from_expression
+      ~Domain.diagnose_timestep
       ~Domain.distribute_edges_to_vertices
       ~Domain.distribute_to_edges
       ~Domain.distribute_to_vertices_and_edges
-
+      ~Domain.domain_memory_stats
+      ~Domain.domain_struct_stats
       ~Domain.dump_triangulation
+      ~Domain.erodible_thickness
       ~Domain.evolve
+      ~Domain.evolve_one_ader2_step
       ~Domain.evolve_one_euler_step
       ~Domain.evolve_one_rk2_step
       ~Domain.evolve_one_rk3_step
       ~Domain.evolve_to_end
-
       ~Domain.get_CFL
+      ~Domain.get_active_set_stats
       ~Domain.get_algorithm_parameters
       ~Domain.get_area
       ~Domain.get_areas
+      ~Domain.get_bed_composition
       ~Domain.get_beta
       ~Domain.get_boundary_flux_integral
       ~Domain.get_boundary_polygon
@@ -53,14 +62,15 @@
       ~Domain.get_centroid_transmissive_bc
       ~Domain.get_cfl
       ~Domain.get_compute_fluxes_method
+      ~Domain.get_compute_mode
       ~Domain.get_conserved_quantities
       ~Domain.get_datadir
       ~Domain.get_datetime
       ~Domain.get_disconnected_triangles
-
       ~Domain.get_edge_midpoint_coordinate
       ~Domain.get_edge_midpoint_coordinates
       ~Domain.get_energy_through_cross_section
+      ~Domain.get_epsg
       ~Domain.get_evolve_max_timestep
       ~Domain.get_evolve_min_timestep
       ~Domain.get_evolve_starttime
@@ -74,7 +84,10 @@
       ~Domain.get_full_triangles
       ~Domain.get_full_vertex_coordinates
       ~Domain.get_georeference
+      ~Domain.get_global_max_speed
+      ~Domain.get_global_max_stage
       ~Domain.get_global_name
+      ~Domain.get_global_wet_element_count
       ~Domain.get_hemisphere
       ~Domain.get_interpolation_object
       ~Domain.get_intersecting_segments
@@ -86,6 +99,7 @@
       ~Domain.get_minimum_storable_height
       ~Domain.get_multiprocessor_mode
       ~Domain.get_name
+      ~Domain.get_negative_volume_warning_fraction
       ~Domain.get_nodes
       ~Domain.get_normal
       ~Domain.get_number_of_full_triangles
@@ -96,6 +110,7 @@
       ~Domain.get_quantity_names
       ~Domain.get_radii
       ~Domain.get_relative_time
+      ~Domain.get_sediment_names
       ~Domain.get_starttime
       ~Domain.get_store
       ~Domain.get_store_centroids
@@ -104,12 +119,19 @@
       ~Domain.get_timestep
       ~Domain.get_timestepping_method
       ~Domain.get_timezone
+      ~Domain.get_tracer
+      ~Domain.get_tracer_boundary
+      ~Domain.get_tracer_boundary_flux_integral
+      ~Domain.get_tracer_index
+      ~Domain.get_tracer_mass
+      ~Domain.get_tracer_names
       ~Domain.get_tri_map
       ~Domain.get_triangle_containing_point
       ~Domain.get_triangles
       ~Domain.get_triangles_and_vertices_per_node
       ~Domain.get_triangles_inside_polygon
       ~Domain.get_unique_vertices
+      ~Domain.get_use_active_set
       ~Domain.get_using_centroid_averaging
       ~Domain.get_using_discontinuous_elevation
       ~Domain.get_vertex_coordinate
@@ -118,33 +140,56 @@
       ~Domain.get_wet_elements
       ~Domain.get_zone
       ~Domain.initialise_storage
+      ~Domain.initialize_sediment_operator
+      ~Domain.load_balance_statistics
       ~Domain.log_operator_timestepping_statistics
       ~Domain.maximum_quantity
+      ~Domain.memory_stats
       ~Domain.minimum_quantity
       ~Domain.print_algorithm_parameters
       ~Domain.print_boundary_statistics
+      ~Domain.print_domain_memory_stats
+      ~Domain.print_domain_struct_stats
+      ~Domain.print_load_balance_statistics
+      ~Domain.print_memory_stats
       ~Domain.print_operator_statistics
       ~Domain.print_operator_timestepping_statistics
+      ~Domain.print_quantity_memory_stats
       ~Domain.print_statistics
       ~Domain.print_timestepping_statistics
       ~Domain.print_volumetric_balance_statistics
       ~Domain.protect_against_infinitesimal_and_negative_heights
+      ~Domain.quantity_memory_stats
       ~Domain.quantity_statistics
+      ~Domain.reorder
       ~Domain.report_cells_with_small_local_timestep
       ~Domain.report_water_volume_statistics
+      ~Domain.rouse_centroid
+      ~Domain.rouse_d_star
+      ~Domain.save_mesh_to_file
+      ~Domain.save_mesh_to_tsh
       ~Domain.saxpy_conserved_quantities
+      ~Domain.sediment_summary
       ~Domain.set_CFL
+      ~Domain.set_angle_of_repose
+      ~Domain.set_bed_composition
+      ~Domain.set_bed_material
+      ~Domain.set_bedload
       ~Domain.set_beta
       ~Domain.set_betas
       ~Domain.set_boundary
       ~Domain.set_centroid_transmissive_bc
-      ~Domain.set_collect_max_quantities
       ~Domain.set_cfl
       ~Domain.set_checkpointing
+      ~Domain.set_collect_max_quantities
       ~Domain.set_compute_fluxes_method
+      ~Domain.set_compute_mode
       ~Domain.set_datadir
       ~Domain.set_default_order
-
+      ~Domain.set_deposition
+      ~Domain.set_epsg
+      ~Domain.set_erodible_base
+      ~Domain.set_erodible_region
       ~Domain.set_evolve_max_timestep
       ~Domain.set_evolve_min_timestep
       ~Domain.set_evolve_starttime
@@ -156,13 +201,13 @@
       ~Domain.set_gpu_interface
       ~Domain.set_hemisphere
       ~Domain.set_institution
-
       ~Domain.set_low_froude
       ~Domain.set_maximum_allowed_speed
       ~Domain.set_minimum_allowed_height
       ~Domain.set_minimum_storable_height
       ~Domain.set_multiprocessor_mode
       ~Domain.set_name
+      ~Domain.set_negative_volume_warning_fraction
       ~Domain.set_omp_num_threads
       ~Domain.set_plotter
       ~Domain.set_points_file_block_line_size
@@ -171,6 +216,10 @@
       ~Domain.set_quantity
       ~Domain.set_quantity_vertices_dict
       ~Domain.set_relative_time
+      ~Domain.set_sediment_friction
+      ~Domain.set_sediment_parameters
+      ~Domain.set_shear_amplification
+      ~Domain.set_shear_closure
       ~Domain.set_sloped_mannings_function
       ~Domain.set_starttime
       ~Domain.set_store
@@ -181,12 +230,17 @@
       ~Domain.set_time
       ~Domain.set_timestepping_method
       ~Domain.set_timezone
-
+      ~Domain.set_tracer
+      ~Domain.set_tracer_boundary
+      ~Domain.set_tracer_source
+      ~Domain.set_use_active_set
       ~Domain.set_use_kinematic_viscosity
       ~Domain.set_use_optimise_dry_cells
+      ~Domain.set_vegetation_drag
       ~Domain.set_using_centroid_averaging
       ~Domain.set_using_discontinuous_elevation
       ~Domain.set_zone
+      ~Domain.settling_velocity
       ~Domain.statistics
       ~Domain.store_timestep
       ~Domain.sww_merge
@@ -199,18 +253,18 @@
       ~Domain.update_centroids_of_momentum_from_velocity
       ~Domain.update_centroids_of_velocities_and_height
       ~Domain.update_conserved_quantities
+      ~Domain.update_domain_c_struct
       ~Domain.update_extrema
       ~Domain.update_ghosts
       ~Domain.update_other_quantities
       ~Domain.update_special_conditions
       ~Domain.update_timestep
+      ~Domain.update_tracer_boundary_values
       ~Domain.volumetric_balance_statistics
       ~Domain.write_boundary_statistics
       ~Domain.write_time
    
-   
 
-   
    
    .. rubric:: Attributes
 

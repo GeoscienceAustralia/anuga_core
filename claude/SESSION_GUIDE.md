@@ -26,7 +26,9 @@ Key files to read first:
 |-----------|--------|--------|
 | **v3.3.2** | `develop` → `main` | **SHIPPED 2026-04-05** — tagged, PyPI + conda-forge published; propagated to GA remote |
 | **v3.3.8** | cherry-picks → `main` | **SHIPPED 2026-07-11** — latest 3.3.x patch; tagged + PyPI (see session 48) |
-| **v4.0.0** | `feat/sc26` → `develop` → `main` | In progress — feat/sc26 merged into develop |
+| **v4.0.0** | `develop` → `main` | **SHIPPED 2026-08-30** — tagged, PyPI (see `RELEASE_PLAN_4.0.0.md`) |
+| **v4.0.1** | `main` | **Tagged 2026-09-17** |
+| **v4.1.0** | `develop` → `main` | Next. Users test tracers, sediment and docs first. The first release with validation reports + a Zenodo draft (`RELEASE_VALIDATION_REPORTS.md`) |
 
 **v3.3.2:** Shipped. Includes EPSG/CRS support, utm→pyproj replacement, sww_merge fixes,
 sww2vtu converter, pyproj DeprecationWarning fixes, ruff linting, riverwall throughflow,
@@ -449,7 +451,70 @@ Findings:
 
 ---
 
-## Recent session summaries (sessions 21–57)
+## Recent session summaries (sessions 21–58)
+
+**Session 58 (2026-10-01/03):** Roll waves in the validation suite, why
+DE_ader2 never quite settles, and validation reports as part of every
+release. (Work between sessions 57 and 58, including 4.0.0 shipping and the
+sediment cases, is not summarised here; see the git log and `ROADMAP.md`.)
+
+- **rundown_mild_slope shows roll waves (PR #407, merged).** The oscillation
+  DE_ader2 showed down the slope is not the outflow boundary: q = 0.2,
+  n = 0.03 gives Froude 2.26, above the Manning roll-wave threshold of 1.5.
+  In 100/200/400 m channels the onset stays the same distance from the
+  inflow. The case now runs a stable n = 0.06 case (Froude 1.21, analytic)
+  and a 200 m roll-wave case with a 1% inflow seed (period 3.3 s, chosen to
+  avoid aliasing with the 2 s yieldstep). `compare_solvers.py` runs the
+  roll-wave case for DE0/DE1/DE2/DE_ader2: with the same seed the
+  second-order schemes grow it at about 0.055/m, and DE0 about 8x slower.
+- **DE_ader2's leftover unsteadiness (KNOWN_ISSUES).** Unseeded, DE0, DE1 and
+  DE2 reach a bit-exact steady state, while DE_ader2 does not, because its
+  fluxes are taken on Q + (dt/2) Q_t. Its steady state therefore moves with
+  dt (4e-3 h0 at the boundary cells for dt 0.04 vs 0.08), and every dt
+  change (output clipping; the roll waves swinging the CFL dt) sends a pulse.
+  Two prototypes were tried and not adopted: using the current dt in the
+  predictor (cuts the noise only about 3x), and holding dt (works, but fragile,
+  and costs 15-40% more steps).
+- **Validation reports per release (PR #408, merged).**
+  `validation-report.yml` builds DE0/DE1/DE_ader2 reports from the tag on a
+  published release, attaches them, and for final releases makes a Zenodo
+  DRAFT (`.github/scripts/zenodo_validation_reports.py`, never
+  auto-publishes). It is a gate, which needed `produce_report()` and
+  `validations_produce_results.py` to stop swallowing failures. Zenodo:
+  personal accounts plus the `anuga` community. Tokens are set, and the
+  sandbox dry run (run locally) passed both the create and new-version paths.
+  Setup and steps: `claude/RELEASE_VALIDATION_REPORTS.md`.
+- **Combined report (PR #409, merged).** One report with every case once and
+  each differing figure as DE0 | DE1 | DE_ader2 panels, plus a run-time
+  summary. `validations_report_body.tex` is now shared by both reports
+  (add new cases there). `validations_combine_algs.py collect/combine`.
+  Report runs use `reports/matplotlibrc` (13 pt, 200 dpi) so legends survive
+  the third-width panels. `subcritical_depth_expansion` was being run but had
+  never been in the report; it is now.
+- **Citation and Zenodo software DOI (#410, #412, merged).** Zenodo's GitHub
+  integration is on, so each published release is archived as software from
+  `CITATION.cff`. The file was invalid (the licence must be SPDX `Apache-2.0`)
+  and is fixed, with the title "ANUGA: hydrodynamic modelling of floods, storm
+  surges and tsunamis". The lint workflow now validates it (`cffconvert`).
+- **4.1.0 preparation.** The call for testing is pinned issue #411. The
+  release notes are completed (#413): an opening, highlights, DE_ader2's
+  changed results, the audit fixes, Requirements, Known issues, and Thanks
+  with a placeholder for the testers. #406 (the corrected DE0 wave-damping
+  figures) is merged. The merged branches are cleaned up.
+- **Zaragoza pier wake (#414, merged).** Right behind the pier the flume
+  scours where the model deposits. Suspension changes the bed by under 1 mm,
+  and a resolved wake (103k triangles, St 0.20, recirculation) still fills
+  the lee, so the lee scour is 3D. The case now adds a wake tail on the
+  shear amplification (A_w = 2 over 5 D, a calibration): ring 7.9/11.8 mm
+  against 10.4/12.6, RMS 3.2/3.6.
+- **Lessons.** `workflow_dispatch` only works for workflows on the default
+  branch (`main`), so test a new release workflow's script locally. The GPU
+  build in unified mode is no faster on the validation suite (17-24 min per
+  algorithm against 19 on 8 CPU threads), because the meshes are small. For small
+  meshes (the Zaragoza case, 18.8k triangles: 30 s on the CPU) say so before
+  choosing the CPU; the user expects the GPU for runs.
+  `/tmp` is a 16 GB tmpfs with a quota, so full report runs belong in an on-disk worktree.
+  `gh pr merge` is blocked by the permission classifier, so the user merges.
 
 **Session 57 (2026-08-21/23):** **4.0.0 release engineering** — Phases 1 and 2
 complete, RC published, and three separate upstream breakages absorbed along the
@@ -1733,6 +1798,10 @@ suite: 58.13% → 58.68%.
 | TOML scenario config | `anuga/scenario/`, `scripts/anuga_toml_run.py`, `examples/run_toml/` (simple/complex/cairns; shared DEM in `examples/data/cairns/`); legacy Excel front-end in `examples/cairns_toml_excel/` |
 | Single-process benchmark | `benchmarks/run_benchmarks.py` + `benchmarks/compare_benchmarks.py` |
 | MPI distribution benchmark | `benchmarks/distribute_benchmarks.py` + `benchmarks/run_benchmark_grid.py` |
+| Validation report (one algorithm) | `validation_tests/reports/validations_produce_results.py -alg X [-l] [-nr]` |
+| Combined validation report | `validation_tests/reports/validations_combine_algs.py collect -alg X` then `combine` |
+| Add a case to the reports | `validation_tests/reports/validations_report_body.tex` (`\inputresults{../dir/case}`) |
+| Release reports + Zenodo | `.github/workflows/validation-report.yml`, `.github/scripts/zenodo_validation_reports.py`, `claude/RELEASE_VALIDATION_REPORTS.md` |
 
 ---
 

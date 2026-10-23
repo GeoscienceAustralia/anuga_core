@@ -100,6 +100,7 @@ class Sanddune_erosion_operator(Operator, Region)  :
                  domain,
                  threshold= 0.0,
                  base=0.0,
+                 region=None,
                  indices=None,
                  polygon=None,
                  center=None,
@@ -122,6 +123,13 @@ class Sanddune_erosion_operator(Operator, Region)  :
 
 
 
+        if region is not None:
+            # A ready-made anuga.Region: take its triangles
+            if any(x is not None for x in (indices, polygon, center, radius)):
+                raise ValueError('%s: cannot specify both a Region object and '
+                                 'polygon/center/radius/indices -- the Region '
+                                 'already encodes location' % type(self).__name__)
+            indices = region.get_indices(full_only=False)
         Region.__init__(self, domain,
                         indices=indices,
                         polygon=polygon,
@@ -234,8 +242,11 @@ class Sanddune_erosion_operator(Operator, Region)  :
             # no scour though if Tau_bed < Tau_crit ie if de is <= 0
             de = num.where(de > 0.0, de, 0.0)                                    # de=de whenever de>0 vector
 
-            # Also ensure we don't erode below the base surface level
-            self.elev_c[ind] = num.maximum(elev_c_ind - de, base_ind )
+            # Also ensure we don't erode below the base surface level.
+            # The outer minimum keeps this a LIMIT on erosion: without it a bed
+            # that already sits below base_ind is lifted up to it.
+            self.elev_c[ind] = num.minimum(
+                elev_c_ind, num.maximum(elev_c_ind - de, base_ind))
 
             #-------------------------------------------------------------------------------------------
             # Reduce triangles elevations in any area where erosion has created unstable face slopes, so

@@ -851,6 +851,7 @@ class Quantity:
                    location: str = 'vertices',
                    polygon: ArrayLike | None = None,
                    indices: list[int] | num.ndarray | None = None,
+                   region=None,
                    smooth: bool = False,
                    verbose: bool = False,
                    use_cache: bool = False) -> None:
@@ -897,6 +898,11 @@ class Quantity:
           Otherwise it will be ignored.
 
 
+        region:
+          An anuga.Region (built from a polygon, a circle or explicit
+          triangle indices). Like polygon, restricts the assignment to that
+          region's triangles and (currently) requires a constant numeric.
+          Exactly one of polygon, region and indices may be given.
         location: Where values are to be stored.
                   Permissible options are: vertices, edges, centroids
                   Default is 'vertices'
@@ -957,12 +963,13 @@ class Quantity:
 
         # See ticket:275, ticket:250, ticeket:254 for refactoring plan
 
-        if polygon is not None:
-            if indices is not None:
-                msg = 'Only one of polygon and indices can be specified'
+        if polygon is not None or region is not None:
+            if sum(x is not None for x in (polygon, region, indices)) > 1:
+                msg = 'Only one of polygon, region and indices can be specified'
                 raise Exception(msg)
 
-            msg = 'With polygon selected, set_quantity must provide '
+            which = 'polygon' if polygon is not None else 'region'
+            msg = 'With %s selected, set_quantity must provide ' % which
             msg += 'the keyword numeric and it must (currently) be '
             msg += 'a constant.'
             if numeric is None:
@@ -973,8 +980,12 @@ class Quantity:
 
             location = 'centroids'
 
-            points = self.domain.get_centroid_coordinates(absolute=True)
-            indices = inside_polygon(points, polygon)
+            if polygon is not None:
+                points = self.domain.get_centroid_coordinates(absolute=True)
+                indices = inside_polygon(points, polygon)
+            else:
+                # A Region's indices are triangle (centroid) indices
+                indices = num.asarray(region.get_indices(full_only=False), dtype=int)
 
             self.set_values_from_constant(numeric, location, indices, verbose)
 

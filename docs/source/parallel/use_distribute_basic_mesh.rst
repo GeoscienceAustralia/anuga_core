@@ -11,7 +11,7 @@ Overview
 The ``distribute_basic_mesh`` workflow is the recommended way to start a
 parallel ANUGA simulation when your mesh can be described as a structured grid
 (rectangular or rectangular-cross) or when you have a ``Pmesh`` object from
-``create_mesh_from_regions``.
+``create_pmesh_from_regions``.
 
 The key idea is that **only rank 0 builds the mesh**.  All other ranks pass
 ``None`` to ``distribute_basic_mesh`` and receive their submesh automatically
@@ -83,7 +83,7 @@ Both functions accept an optional ``origin=(x0, y0)`` keyword argument.
 Polygon regions
 ~~~~~~~~~~~~~~~
 
-For meshes created with ``create_mesh_from_regions``, use
+For meshes created with ``create_pmesh_from_regions``, use
 ``pmesh_to_basic_mesh`` to obtain a ``Basic_mesh`` without building a full
 ``Domain``:
 
@@ -92,7 +92,7 @@ For meshes created with ``create_mesh_from_regions``, use
    import anuga
    from anuga.abstract_2d_finite_volumes.pmesh2domain import pmesh_to_basic_mesh
 
-   pmesh = anuga.create_mesh_from_regions(
+   pmesh = anuga.create_pmesh_from_regions(
        bounding_polygon,
        boundary_tags={'left': [0], 'right': [1], 'top': [2], 'bottom': [3]},
        maximum_triangle_area=0.01,

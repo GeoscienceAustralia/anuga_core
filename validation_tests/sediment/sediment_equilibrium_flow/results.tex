@@ -1,0 +1,55 @@
+
+\section{Equilibrium suspended load in normal flow}
+
+Water flows down a plane channel 300~m long and 10~m wide of slope
+$S = 2\times10^{-4}$ with Manning roughness $n = 0.03$ at its normal depth
+$h = 1$~m, so that gravity and friction balance and the flow is uniform,
+$u = h^{2/3} S^{1/2}/n = 0.47$~m/s; Dirichlet boundaries at both ends hold
+the normal state. Under the quadratic-drag shear closure with the Manning
+friction factor, $\tau_b/\rho = f_c u^2$ with $f_c = g n^2 h^{-1/3}$, the
+bed stress in normal flow is exactly $g h S$, so the Shields stress of the
+100~$\mu$m sand is closed-form, $\tau^* = hS/(Rd) = 1.2$, thirty times the
+critical value. That fixes the non-cohesive entrainment rate
+$E = v_s\, 0.65\,\gamma_0 X/(1+\gamma_0 X)$, $X = \tau^*/\tau_c^* - 1$, and
+against the well-mixed deposition $D = d^{*} v_s c$ the equilibrium
+concentration $c_{eq} = E/(d^{*} v_s) = 0.043$. Clear water enters at the
+inflow and the load relaxes to the equilibrium along the channel,
+\begin{equation}
+c(x) = c_{eq}\left(1 - e^{-x/L_s}\right), \qquad
+L_s = \frac{q}{d^{*} v_s} = 59~\mathrm{m} .
+\end{equation}
+The bed is held fixed: the net exchange $E - D$ is largest at the inflow
+and would otherwise scour the reach in minutes and take the depth, the
+stress and the reference with it.
+
+The case checks the quadratic-drag closure with the Manning friction
+factor, the entrainment law and its balance with deposition in the
+sediment mass balance under advection, that the flow stays the normal
+flow, and that a fixed bed stays fixed. The steady profile is compared
+cell by cell at the end of the run; the tracer advection is first-order
+upwind, so the profile carries an error of order $\Delta x / L_s$.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{concentration_plot.png}
+\end{center}
+\caption{Steady concentration along the channel, every cell, against
+$c_{eq}(1 - e^{-x/L_s})$.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{depth_plot.png}
+\end{center}
+\caption{Depth along the channel at the end of the run against the normal
+depth.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{approach_plot.png}
+\end{center}
+\caption{Approach to the steady state at four stations along the channel.}
+\end{figure}
+
+\endinput

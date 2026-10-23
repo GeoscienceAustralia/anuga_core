@@ -273,8 +273,16 @@ class GPUCulvertManager:
         """
         n_local = 0
         n_parallel = 0
+        # With tracers, a culvert split across ranks is left to the host MPI
+        # path (Parallel_Structure_operator), which sums the tracer it carries
+        # over the structure's ranks; the batched kernel only carries tracers
+        # for culverts local to one rank. Unregistered, it is synced like any
+        # other CPU operator.
+        tracers = getattr(self.domain, 'number_of_tracers', 0) > 0
         for op in self.domain.fractional_step_operators:
             if self.is_boyd_operator(op):
+                if tracers and not self._is_fully_local(op):
+                    continue
                 self.register_operator(op)
                 if self._is_fully_local(op):
                     n_local += 1

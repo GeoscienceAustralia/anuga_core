@@ -121,6 +121,19 @@ _QTY_TITLE = {
 }
 
 
+# Tracers are user-defined, so unlike everything above they cannot be listed
+# here: which ones exist is a property of the SWW file being opened. Loading a
+# file appends its tracers (and their maxima, when the run stored them) to this
+# list and to the five tables above, keyed 'tracer_<name>' / 'max_tracer_<name>'.
+# Everything downstream then treats a tracer exactly like stage or depth.
+_TRACER_QUANTITIES = []
+
+
+def _all_quantities():
+    """The fixed quantities plus whatever tracers the open file carries."""
+    return tuple(_QUANTITIES) + tuple(_TRACER_QUANTITIES)
+
+
 _CMAPS = ['viridis', 'plasma', 'inferno', 'magma', 'cividis',
           'Blues', 'Greens', 'Oranges', 'Reds', 'YlOrRd',
           'RdBu_r', 'coolwarm', 'seismic', 'jet', 'turbo',
@@ -163,7 +176,7 @@ def _apply_config_to_gui(data, gui):
         if not isinstance(v, dict):
             cfg[k] = v
 
-    if 'qty' in cfg and cfg['qty'] in _QUANTITIES:
+    if 'qty' in cfg and cfg['qty'] in _all_quantities():
         gui._qty_var.set(cfg['qty'])
     if 'vmin' in cfg:
         gui._vmin_var.set(str(cfg['vmin']))
@@ -287,7 +300,7 @@ class SWWAnimationGUI:
         self._build_ui()
 
         # Apply render-tab params (independent of SWW file)
-        if initial_qty and initial_qty in _QUANTITIES:
+        if initial_qty and initial_qty in _all_quantities():
             self._qty_var.set(initial_qty)
         if initial_vmin is not None:
             self._vmin_var.set(str(initial_vmin))
@@ -416,8 +429,10 @@ class SWWAnimationGUI:
         ttk.Label(rA, text='Quantity:').pack(side=tk.LEFT)
         self._qty_var = tk.StringVar(value='depth')
         qty_combo = ttk.Combobox(rA, textvariable=self._qty_var,
-                                 values=list(_QUANTITIES), width=13,
+                                 values=list(_all_quantities()), width=13,
                                  state='readonly')
+        # Kept so a newly loaded file can add its tracers to the list.
+        self._qty_combo = qty_combo
         qty_combo.pack(side=tk.LEFT, padx=(2, 8))
         qty_combo.bind('<<ComboboxSelected>>', lambda _e: self._on_qty_change())
 
@@ -793,7 +808,52 @@ class SWWAnimationGUI:
         epsg_val = self._splotter.epsg
         self._epsg_var.set(str(epsg_val) if epsg_val is not None else '')
 
+        self._register_tracer_quantities()
+
         self._refresh_basemap_state()
+
+    def _register_tracer_quantities(self):
+        """Add the open file's tracers to the quantity menu.
+
+        Called after the plotter is built, which is where the tracer names and
+        data become known. SWW_plotter has already bound a `tracer_<name>`
+        attribute and a `save_tracer_<name>_frame` method for each, so the
+        existing lookup tables are all that need filling in.
+        """
+        global _TRACER_QUANTITIES
+
+        # Rebuild rather than append: opening a second file must not leave the
+        # first file's tracers in the menu.
+        for key in _TRACER_QUANTITIES:
+            for table in (_QTY_DEFAULTS, _QTY_DATA_ATTR, _QTY_SAVE_METHOD,
+                          _QTY_CBAR_LABEL, _QTY_TITLE):
+                table.pop(key, None)
+        _TRACER_QUANTITIES = []
+
+        splotter = self._splotter
+        for name in getattr(splotter, 'tracers', {}):
+            for key, attr, label in (
+                    ('tracer_' + name, 'tracer_' + name, name),
+                    ('max_tracer_' + name, 'max_tracer_' + name, 'Max ' + name)):
+                data = getattr(splotter, attr, None)
+                if data is None:
+                    continue          # no stored maximum for this tracer
+                _TRACER_QUANTITIES.append(key)
+                # A concentration's scale is the model's business -- sediment
+                # runs at 1e-2, a normalised tracer at 1 -- so take the range
+                # from the data rather than guessing a default.
+                _QTY_DEFAULTS[key] = dict(vmin=float(data.min()),
+                                          vmax=float(data.max()))
+                _QTY_DATA_ATTR[key] = attr
+                _QTY_SAVE_METHOD[key] = 'save_%s_frame' % key
+                _QTY_CBAR_LABEL[key] = '%s (concentration)' % label
+                _QTY_TITLE[key] = label
+
+        if getattr(self, '_qty_combo', None) is not None:
+            self._qty_combo.config(values=list(_all_quantities()))
+            # A tracer selected for the previous file may not exist in this one.
+            if self._qty_var.get() not in _all_quantities():
+                self._qty_var.set('depth')
 
     def _refresh_basemap_state(self):
         """Enable/disable the basemap checkbox based on current EPSG + contextily."""

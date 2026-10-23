@@ -1,0 +1,97 @@
+
+\section{A suspension settling out through a porous bed: Wang and Ribberink's flume}
+
+Wang and Ribberink \cite{WangRibberink1986} built an experiment whose only
+sediment process is deposition. In a 30~m Delft flume 0.5~m wide, a uniform
+flow 0.2155~m deep at 0.558~m/s ($u_* = 0.034$~m/s, energy slope
+$0.97\times10^{-3}$) carries 100~$\mu$m sand ($w_s = 0.7$~cm/s, fed at
+70.8~kg/h, below capacity so that no bedforms develop) in equilibrium over a
+10~m rigid roughened bed. It then crosses onto 16~m of perforated aluminium
+plate (3~mm holes, 33\,\% open) through which every grain that reaches the
+bed falls into a compartmented chamber below and is not re-entrained, so the
+bed boundary condition is exactly $\phi_z = -w_s c(0)$ with no pick-up. The
+depth-averaged concentration decays along the test section, and the shape of
+the concentration profile settles into a self-preserving form within about
+2~m ($\bar u h/u_* = 3.5$~m). Eight-point siphon profiles at seven or six
+stations in each of two runs are their Table~1, digitised here in full.
+
+What makes the case worth running is that it isolates the deposition closure
+and its adaptation from everything else: no entrainment, no bedload, no bed
+evolution, no flow non-uniformity. \anuga{} holds the normal flow with
+Dirichlet boundaries on a two-row mesh of 0.1~m cells, with the Manning $n$
+that reproduces the measured $u_*$ (0.0151) and the slope normal for it, the
+settling velocity set by the fraction's diameter (93~$\mu$m under
+Ferguson--Church gives the measured 0.7~cm/s), the critical stress set
+beyond reach so that nothing is entrained, and the inflow carrying the
+measured depth mean at the first station.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{Wang and Ribberink's flume: a suspension in equilibrium crosses onto perforated plate, through which every grain that reaches the bed is lost.}
+\end{figure}
+
+
+The measured concentration decays exponentially from 1~m on. Writing the
+decay as $\bar c \propto \exp(-\lambda w_s x/\bar u h)$, the paper's own
+asymptotic theory gives $\lambda = 1.83$ to first order and 1.47 to second
+order, the latter agreeing with a full two-dimensional solution by van Rijn's
+SUTRENCH; the measurements give 1.44 (run~1) and 1.55 (run~2). \anuga{}'s
+closures give the following, the RMS being that of
+$\ln(\text{model}/\text{measured})$ over the stations from 1~m on:
+
+\begin{center}
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{p{4.6cm}rrrr}
+\hline
+closure & $\lambda$ & \multicolumn{2}{c}{ln-ratio RMS} & bias \\
+ & & run 1 & run 2 & \\
+\hline
+measured & 1.44, 1.55 & & & \\
+instantaneous exchange [D-1] (the old default) & 2.99 & 0.73 & 0.58 & $-0.52$, $-0.38$ \\
+carried near-bed ratio [D-4] & 2.99 & 0.73 & 0.58 & $-0.52$, $-0.38$ \\
+Galappatti lag [D-3] & 1.49 & 0.24 & 0.34 & $+0.21$, $+0.31$ \\
+\textbf{two-layer, velocity split [D-5]} (the default) & \textbf{1.50} & \textbf{0.11} & \textbf{0.08} & $-0.03$, $+0.07$ \\
+\hline
+\end{tabular}
+\end{center}
+
+The instantaneous exchange deposits at $D = d^{*} w_s c$ with the fitted
+Rouse ratio $d^{*} = 2.99$ at this Rouse number (0.50) and reference height
+($0.1h$), so it decays at exactly that rate, twice as fast as the flume did:
+by 16~m it has removed 93\,\% of the load where the flume removed 76\,\%.
+That is the same fault the van Rijn trench shows as filling too fast, here
+with no other process to hide it. The carried near-bed ratio [D-4] is
+identical to it, correctly: the ratio it carries relaxes only when the flow
+decelerates, and this flow is uniform. The Galappatti lag recovers the
+decay rate almost exactly (its $\alpha = 1.49$ against the paper's
+second-order 1.47) but decays uniformly from the transition and so misses
+the sharp drop in the first metre, leaving it 20 to 30\,\% high throughout.
+The two-layer suspension with the log-law velocity split gets both: the
+first metre deposits fast out of the near-bed layer the equilibrium profile
+arrives with, and the column then settles into the self-preserving shape and
+decays at 1.50. The case runs it, and since [D-5] with the velocity split is now the
+default closure the case simply takes the defaults. It requires
+$\mathrm{RMS}\,\ln(\text{model}/\text{measured}) < 0.15$ from 1~m on; run~1
+runs routinely and run~2 joins it under the long option.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{concentration_run1.png}
+\end{center}
+\caption{Run 1: depth-averaged concentration along the test section under
+each closure. The carried ratio lies under the instantaneous exchange.}
+\end{figure}
+
+\figifexists{concentration_run2.png}{
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{concentration_run2.png}
+\end{center}
+\caption{Run 2 (long run).}
+\end{figure}
+}{}
+
+\endinput

@@ -130,11 +130,14 @@ from anuga.scenario import (
     setup_rainfall,
     setup_inlets,
     setup_bridges,
+    setup_culverts,
+    setup_weirs,
     setup_pumping_stations,
     setup_mesh,
     setup_initial_conditions,
     setup_riverwalls,
     setup_erosion,
+    setup_sediment,
     raster_outputs,
 )
 from anuga.scenario.prepare_data import PrepareData
@@ -251,6 +254,8 @@ _terminal = getattr(project, 'terminal', sys.__stdout__)
 
 section('MESH', 1, 6)
 domain = setup_mesh.setup_mesh(project)
+# A negative starttime runs a burn-in before the forcing data begin at t=0.
+domain.set_starttime(getattr(project, 'starttime', 0.0))
 # Phase timings recorded by setup_mesh (build vs partition/distribute).
 mesh_build_time = getattr(domain, '_mesh_build_time', None)
 mesh_distribute_time = getattr(domain, '_mesh_distribute_time', None)
@@ -325,10 +330,14 @@ section('FORCING & STRUCTURES', 3, 6)
 setup_rainfall.setup_rainfall(domain, project)
 setup_inlets.setup_inlets(domain, project)
 setup_bridges.setup_bridges(domain, project)
+setup_culverts.setup_culverts(domain, project)
+setup_weirs.setup_weirs(domain, project)
 setup_pumping_stations.setup_pumping_stations(domain, project)
 # Erosion operators change elevation during the run; added after the other
 # forcing terms and before boundary conditions.
 setup_erosion.setup_erosion(domain, project)
+# Sediment transport from the [sediment] table; a no-op without one.
+setup_sediment.setup_sediment(domain, project)
 if myid == 0:
     _counts = [
         ('rainfall inputs', len(getattr(project, 'rain_data', []) or [])),
@@ -410,10 +419,10 @@ if myid == 0:
     _ostep = project.outputstep if project.outputstep is not None else project.yieldstep
     emit('   algorithm %s   compute %s   OMP threads %s'
          % (project.flow_algorithm, _mode_label, domain.omp_num_threads))
-    emit('   yieldstep %g s   outputstep %g s   finaltime %g s'
-         % (project.yieldstep, _ostep, project.finaltime))
+    emit('   yieldstep %g s   outputstep %g s   starttime %g s   finaltime %g s'
+         % (project.yieldstep, _ostep, getattr(project, 'starttime', 0.0), project.finaltime))
 
-# V0 for the end-of-run water balance is captured at the first yieldstep (t=0)
+# V0 for the end-of-run water balance is captured at the first yieldstep (t=starttime)
 # inside the loop, where the clamped 'height' is valid. Computing it here, before
 # evolve, would take get_water_volume()'s pre-evolve path (unclamped
 # stage-elevation) and count negative "depth" in dry topographic cells — a large
@@ -427,7 +436,7 @@ evolve_start = time.time()
 for t in domain.evolve(yieldstep=project.yieldstep,
                        finaltime=project.finaltime,
                        outputstep=project.outputstep):
-    # First yield is t=0 (initial state): record V0 on every rank
+    # First yield is t=starttime (initial state): record V0 on every rank
     # (get_water_volume is collective) so the balance is correct even when
     # per-yieldstep reporting is off.
     if domain._toml_initial_volume is None:

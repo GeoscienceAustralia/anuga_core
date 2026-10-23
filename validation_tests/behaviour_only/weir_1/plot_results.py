@@ -165,7 +165,7 @@ HagerCor1= Hager_cor(yt,yl)
 InRate_H1B = InRate_H1Raw*HagerCor1
 lab4='Hager weir with Fritz and Hager submergence correction [positive flux only]'
 pyplot.plot(p.time[1:l], InRate_H1B[1:l],color='pink', label=lab4)
-pyplot.legend( (lab2, lab1, lab3, lab4), loc='upper right', prop={'size':10},
+pyplot.legend( (lab2, lab1, lab3, lab4), loc='upper right', prop={'size':'medium'},
                 title='Non-ANUGA computations assume a spatially constant \n headwater/tailwater stage, and use submergence corrections \n from the engineering literature')
 pyplot.title('Flux over riverwall (m^3/s)',fontsize=20)
 pyplot.xlabel('Time (s)')

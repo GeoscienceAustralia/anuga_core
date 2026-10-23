@@ -31,6 +31,7 @@ anuga/_version.py
 *.txt
 *.vim
 *.sww
+*.sww.lock
 *.tif
 *.xml
 *.pts
@@ -80,7 +81,13 @@ validation_tests/case_studies/towradgi_simulation/PARTITIONS
 validation_tests/case_studies/towradgi_simulation/CHECKPOINTS
 validation_tests/case_studies/towradgi_simulation/Validation
 
-validation_tests/reports/validations_report_alg_DE1.pdf
+validation_tests/reports/validations_report_alg_*.pdf
+validation_tests/reports/validations_report_combined.pdf
+validation_tests/reports/anuga-*-validation-*.pdf
+validation_tests/reports/algs/
+validation_tests/reports/combined/
+validation_tests/reports/combined_algs.tex
+validation_tests/reports/combined_summary.tex
 
 examples/cairns_excel/cairns_initialcond
 
@@ -115,6 +122,7 @@ x_velocity.png
 y_velocity.png
 depth_y.png
 depth_x.png
+rollwave_*.png
 Shoreline_position.png
 Shoreline_velocity.png
 figure_*.png
@@ -126,6 +134,7 @@ Fluxes.png
 fig*.png
 perturbation_at_origin.png
 wave_atten.png
+Yeh_Petroff.png
 
 # Compiled source #
 ###################

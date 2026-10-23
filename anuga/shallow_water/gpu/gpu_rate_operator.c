@@ -43,13 +43,16 @@ int gpu_rate_operator_init(struct gpu_domain *GD, int num_indices, int *indices,
         if (!RO->ops[i].active) { op_id = i; break; }
     }
     if (op_id < 0) {
-        if (grow_rate_ops(RO) != 0) return -1;
+        if (grow_rate_ops(RO) != 0) {
+            gpu_set_error(GD, "rate operator table could not be grown");
+            return -1;
+        }
         for (int i = 0; i < RO->capacity; i++) {
             if (!RO->ops[i].active) { op_id = i; break; }
         }
     }
     if (op_id < 0) {
-        fprintf(stderr, "ERROR: No free rate operator slots after grow\n");
+        gpu_set_error(GD, "ERROR: No free rate operator slots after grow");
         return -1;
     }
 
@@ -59,6 +62,8 @@ int gpu_rate_operator_init(struct gpu_domain *GD, int num_indices, int *indices,
     op->active = 1;
     op->mapped = 0;
     // Initialize rate array cache
+    op->scratch_hold = NULL;
+    op->hold_mapped = 0;
     op->rate_array_cache = NULL;
     op->rate_array_size = 0;
     op->rate_array_mapped = 0;
@@ -75,7 +80,7 @@ int gpu_rate_operator_init(struct gpu_domain *GD, int num_indices, int *indices,
     op->mass_areas = (double*)malloc(num_indices * sizeof(double));
 
     if (!op->indices || !op->mass_areas) {
-        fprintf(stderr, "Failed to allocate rate_operator arrays\n");
+        gpu_set_error(GD, "Failed to allocate rate_operator arrays");
         if (op->indices) free(op->indices);
         if (op->mass_areas) free(op->mass_areas);
         op->active = 0;
@@ -142,6 +147,14 @@ void gpu_rate_operator_finalize(struct gpu_domain *GD, int op_id) {
         int ras = op->rate_array_size;
         #pragma omp target exit data map(delete: rac[0:ras])
     }
+    if (op->hold_mapped && op->scratch_hold != NULL) {
+        double *hd = op->scratch_hold;
+        int nh = op->num_indices;
+        #pragma omp target exit data map(delete: hd[0:nh])
+    }
+    if (op->scratch_hold) free(op->scratch_hold);
+    op->scratch_hold = NULL;
+    op->hold_mapped = 0;
     if (op->rate_array_cache) free(op->rate_array_cache);
 
     if (op->indices) free(op->indices);
@@ -169,6 +182,104 @@ void gpu_rate_operators_finalize_all(struct gpu_domain *GD) {
     if (RO->ops) { free(RO->ops); RO->ops = NULL; }
     RO->capacity = 0;
     RO->initialized = 0;
+}
+
+// ============================================================================
+// Tracers carried by the rate (mirrors Rate_operator's host path)
+// ============================================================================
+//
+// Water ADDED (dh > 0) carries the inflow concentration: m += c_in * dh.
+// Water REMOVED (dh < 0): a tracer flagged carry leaves with it, keeping the
+// cell's concentration (m *= h_new / h_old); otherwise it stays behind, which
+// is the old behaviour and right for, say, salt under evaporation. Both are
+// exact per cell. Called only when a concentration or a carry flag is set, so
+// an ordinary rainfall operator costs nothing extra.
+
+int gpu_rate_operator_tracers_capture(struct gpu_domain *GD, int op_id) {
+    if (op_id < 0 || op_id >= GD->rate_ops.capacity) return -1;
+    struct rate_operator_info *op = &GD->rate_ops.ops[op_id];
+    if (!op->active || op->num_indices == 0) return 0;
+    int n = op->num_indices;
+    if (!op->mapped) {
+        int *idx = op->indices;
+        double *ar = op->mass_areas;
+        #pragma omp target enter data map(to: idx[0:n], ar[0:n])
+        op->mapped = 1;
+    }
+    if (op->scratch_hold == NULL) {
+        op->scratch_hold = (double*)malloc((size_t)n * sizeof(double));
+        if (!op->scratch_hold) {
+            gpu_set_error(GD, "rate operator %d: could not allocate tracer scratch", op_id);
+            return -1;
+        }
+    }
+    if (!op->hold_mapped) {
+        double *hd = op->scratch_hold;
+        #pragma omp target enter data map(alloc: hd[0:n])
+        op->hold_mapped = 1;
+    }
+    int * restrict indices = op->indices;
+    double * restrict hold = op->scratch_hold;
+    double * restrict stage_c = GD->D.stage_centroid_values;
+    double * restrict bed_c = GD->D.bed_centroid_values;
+    OMP_PARALLEL_LOOP
+    for (int k = 0; k < n; k++) {
+        int i = indices[k];
+        double h = stage_c[i] - bed_c[i];
+        hold[k] = h > 0.0 ? h : 0.0;
+    }
+    return 0;
+}
+
+void gpu_rate_operator_tracers_apply(struct gpu_domain *GD, int op_id,
+                                     const double *c_in, const int *carry, int ns) {
+    if (op_id < 0 || op_id >= GD->rate_ops.capacity) return;
+    struct rate_operator_info *op = &GD->rate_ops.ops[op_id];
+    if (!op->active || op->num_indices == 0 || !op->hold_mapped) return;
+    const anuga_int nt = GD->D.number_of_tracers;
+    if (nt <= 0 || GD->D.tracer_conserved_values == NULL || ns != nt) return;
+    int n = op->num_indices;
+    const anuga_int N = GD->D.number_of_elements;
+    const double hmin = GD->D.minimum_allowed_height;
+    int * restrict indices = op->indices;
+    double * restrict hold = op->scratch_hold;
+    double * restrict stage_c = GD->D.stage_centroid_values;
+    double * restrict bed_c = GD->D.bed_centroid_values;
+    double * restrict t_cons = GD->D.tracer_conserved_values;
+    double * restrict t_cv = GD->D.tracer_centroid_values;
+    // The per-tracer settings are a handful of values: copied per call.
+    double *cin = (double*)malloc((size_t)ns * sizeof(double));
+    int *cry = (int*)malloc((size_t)ns * sizeof(int));
+    if (!cin || !cry) { free(cin); free(cry); return; }
+    for (int s = 0; s < ns; s++) {
+        cin[s] = c_in ? c_in[s] : 0.0;
+        cry[s] = carry ? carry[s] : 0;
+    }
+    #pragma omp target enter data map(to: cin[0:ns], cry[0:ns])
+    OMP_PARALLEL_LOOP
+    for (int k = 0; k < n; k++) {
+        int i = indices[k];
+        double hn = stage_c[i] - bed_c[i];
+        if (hn < 0.0) hn = 0.0;
+        double ho = hold[k];
+        double dh = hn - ho;
+        if (dh == 0.0) continue;
+        double inv_h = hn > hmin ? 1.0 / hn : 0.0;
+        double keep = ho > 0.0 ? hn / ho : 0.0;
+        for (anuga_int s = 0; s < ns; s++) {
+            double m = t_cons[s * N + i];
+            if (dh > 0.0) {
+                m += cin[s] * dh;
+            } else if (cry[s]) {
+                m *= keep;
+            }
+            t_cons[s * N + i] = m;
+            t_cv[s * N + i] = m * inv_h;
+        }
+    }
+    #pragma omp target exit data map(delete: cin[0:ns], cry[0:ns])
+    free(cin);
+    free(cry);
 }
 
 double gpu_rate_operator_apply(struct gpu_domain *GD, int op_id,
@@ -295,6 +406,12 @@ double gpu_rate_operator_apply_array(struct gpu_domain *GD, int op_id,
         if (op->rate_array_cache) free(op->rate_array_cache);
 
         op->rate_array_cache = (double*)malloc(rate_array_size * sizeof(double));
+        if (op->rate_array_cache == NULL) {
+            gpu_set_error(GD, "rate operator %d: could not allocate a %d-element rate cache; rate not applied this step", op_id, rate_array_size);
+            op->rate_array_size = 0;
+            op->rate_array_mapped = 0;
+            return 0.0;
+        }
         op->rate_array_size = rate_array_size;
         op->rate_array_mapped = 0;
         rate_changed = 1;  // Force update since we reallocated

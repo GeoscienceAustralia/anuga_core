@@ -28,8 +28,13 @@ def setup_culverts(domain, project):
         is absent (e.g. an older Excel-based project file that predates
         culvert support) the function returns without error.
     """
-    from anuga.structures.boyd_box_operator import Boyd_box_operator
-    from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
+    from anuga.parallel import numprocs
+    if numprocs > 1:
+        from anuga.parallel.parallel_operator_factory import (
+            Boyd_box_operator, Boyd_pipe_operator)
+    else:
+        from anuga.structures.boyd_box_operator import Boyd_box_operator
+        from anuga.structures.boyd_pipe_operator import Boyd_pipe_operator
 
     culvert_data = getattr(project, 'culvert_data', [])
 
@@ -50,8 +55,6 @@ def setup_culverts(domain, project):
             losses=cd['losses'],
             barrels=cd['barrels'],
             blockage=cd['blockage'],
-            z1=cd['z1'],
-            z2=cd['z2'],
             exchange_lines=exchange_lines,
             end_points=end_points,
             invert_elevations=cd['invert_elevations'],
@@ -67,6 +70,7 @@ def setup_culverts(domain, project):
         )
 
         if cd['type'] == 'boyd_box':
-            Boyd_box_operator(width=cd['width'], height=cd['height'], **common)
+            Boyd_box_operator(width=cd['width'], height=cd['height'],
+                              z1=cd['z1'], z2=cd['z2'], **common)
         else:
             Boyd_pipe_operator(diameter=cd['diameter'], **common)

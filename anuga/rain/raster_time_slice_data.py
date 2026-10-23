@@ -1,7 +1,27 @@
 
 import anuga
 from anuga.fit_interpolate.interpolate2d import interpolate_raster
-import matplotlib.pyplot as plt
+# Tolerated rather than required: anuga/rain is imported by `import anuga`,
+# so a hard matplotlib import here made a PLOTTING library a prerequisite of
+# running the solver at all. Only the three plot_* methods below need it, and
+# they say so when called. See the note in anuga/__init__.py.
+try:
+    import matplotlib.pyplot as plt
+except ImportError as _mpl_error:            # pragma: no cover - env specific
+    plt = None
+    _MPL_IMPORT_ERROR = _mpl_error
+else:
+    _MPL_IMPORT_ERROR = None
+
+
+def _require_matplotlib(what):
+    """Raise a clear error if a plotting method is called without matplotlib."""
+    if plt is None:
+        raise ImportError(
+            '%s needs matplotlib, which could not be imported:\n    %s\n'
+            'Install it with: conda install matplotlib  or  '
+            'pip install matplotlib' % (what, _MPL_IMPORT_ERROR))
+
 import numpy as np
 import os
 from os.path import join
@@ -185,6 +205,8 @@ class Raster_time_slice_data:
         return total_data_volume, data_max_in_period, peak_intensity, catchment_area, time_period
 
     def plot_data(self, tid, plot_vmax=None, save=False, show=True, polygons=None):
+
+        _require_matplotlib('plot_data')
         """
         Plot data at timestep tid
         """
@@ -231,6 +253,8 @@ class Raster_time_slice_data:
         return
 
     def plot_accumulated_data(self, polygons=None):
+
+        _require_matplotlib('plot_accumulated_data')
 
         data_accumulated = self.data_accumulated
 
@@ -283,6 +307,8 @@ class Raster_time_slice_data:
         return
 
     def plot_time_hist_locations(self, locations):
+
+        _require_matplotlib('plot_time_hist_locations')
         """
         Plot time histograms at selected locations i.e.
         gauge locations

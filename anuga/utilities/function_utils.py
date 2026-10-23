@@ -123,3 +123,59 @@ def evaluate_temporal_function(function, t, default_left_value=None, default_rig
 
 
 
+
+
+def evaluate_file_function_all_points(F, t):
+    """Evaluate a ``file_function`` at time *t* for every interpolation point.
+
+    ``file_function`` objects are evaluated one point at a time with
+    ``F(t, point_id=i)``.  For a spatial field applied at every mesh centroid
+    (or node) each timestep that is prohibitively slow in Python, so this
+    helper interpolates the object's precomputed time series directly.
+
+    Parameters
+    ----------
+    F : Interpolation_function
+        The object returned by :func:`anuga.file_function`.
+    t : float
+        Model time.  Must lie within ``F.time``.
+
+    Returns
+    -------
+    ndarray
+        Shape ``(n_quantities, n_points)`` for a spatial file function, or
+        ``(n_quantities,)`` for a time-only one (e.g. a ``.tms`` file).
+        Quantities are ordered as in ``F.quantity_names``.
+    """
+    times = getattr(F, 'time', None)
+    values = getattr(F, 'precomputed_values', None)
+    names = getattr(F, 'quantity_names', None)
+    if times is None or values is None or names is None:
+        raise TypeError('evaluate_file_function_all_points expects the object '
+                        'returned by anuga.file_function; got %s'
+                        % type(F).__name__)
+
+    times = num.asarray(times, dtype=float)
+    msg = ('Model time %.16f is not contained in function domain '
+           '[%.16f:%.16f]' % (t, times[0], times[-1]))
+    if t < times[0]:
+        raise Modeltime_too_early(msg)
+    if t > times[-1]:
+        raise Modeltime_too_late(msg)
+
+    # Bracket t: times[i0] <= t <= times[i1]
+    i1 = int(num.searchsorted(times, t, side='left'))
+    i1 = min(i1, len(times) - 1)
+    i0 = max(i1 - 1, 0)
+    if times[i1] == times[i0]:
+        ratio = 0.0
+    else:
+        ratio = (t - times[i0]) / (times[i1] - times[i0])
+
+    out = []
+    for name in names:
+        Q = num.asarray(values[name], dtype=float)
+        q0 = Q[i0]
+        q = q0 if ratio == 0.0 else q0 + ratio * (Q[i1] - q0)
+        out.append(q)
+    return num.array(out)

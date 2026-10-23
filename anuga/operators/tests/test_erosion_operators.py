@@ -14,6 +14,7 @@ from anuga.file_conversion.file_conversion import timefile2netcdf
 from anuga.config import time_format
 
 from anuga.operators.erosion_operators import Erosion_operator
+from anuga.operators.erosion_operators import Flat_slice_erosion_operator
 
 from pprint import pprint
 
@@ -181,6 +182,175 @@ class Test_circular_operators(unittest.TestCase):
             os.remove('domain.sww')
         except OSError:
             pass
+
+    # ------------------------------------------------------------------
+    # Regressions for #301 (whole-domain erosion was a silent no-op) and
+    # #302 (the base operator crashed under discontinuous elevation).
+    # ------------------------------------------------------------------
+
+    def _sloping_channel(self, name):
+        """A channel with flow, so an erosion operator has something to do."""
+        L, W = 100.0, 20.0
+        d = rectangular_cross_domain(30, 6, L, W, origin=(0.0, 0.0))
+        d.set_quantity('elevation', lambda x, y: 5.0 - 0.05 * x)
+        d.set_quantity('friction', 0.03)
+        d.set_quantity('stage', expression='elevation')
+        d.set_flow_algorithm('DE1')
+        d.set_datadir('.')
+        d.set_name(name)
+        d.set_quantities_to_be_stored(None)
+        d.set_boundary({'left': anuga.Dirichlet_boundary([5.5, 2.0, 0.0]),
+                        'right': anuga.Transmissive_boundary(d),
+                        'top': Reflective_boundary(d),
+                        'bottom': Reflective_boundary(d)})
+        return d
+
+    def test_polygonal_erosion_runs_under_discontinuous_elevation(self):
+        """#302: the base update_quantities subtracted a per-cell (n,) array
+        from the (n, 3) vertex array, which cannot broadcast. Every supported
+        flow algorithm uses discontinuous elevation, so this crashed always."""
+        from anuga.operators.erosion_operators import Polygonal_erosion_operator
+
+        d = self._sloping_channel('test_302')
+        self.assertTrue(d.get_using_discontinuous_elevation())
+        Polygonal_erosion_operator(
+            d, polygon=[[0.0, 0.0], [100.0, 0.0], [100.0, 20.0], [0.0, 20.0]])
+
+        z0 = d.quantities['elevation'].centroid_values.copy()
+        for t in d.evolve(yieldstep=30.0, finaltime=90.0):
+            pass
+        dz = d.quantities['elevation'].centroid_values - z0
+
+        assert dz.min() < -1.0e-3, 'the operator ran but eroded nothing'
+
+    def test_erosion_never_raises_the_bed(self):
+        """An erosion operator must not deposit.
+
+        Taking amax over the vertex values pulls the centroid up to its
+        highest vertex, which under discontinuous elevation can sit above the
+        centroid -- so the bed gains height where it should only lose it.
+
+        Runs to 180 s deliberately: with amax the bed still looks well behaved
+        at 120 s and only starts gaining height after that, so a shorter run
+        does not discriminate.
+        """
+        from anuga.operators.erosion_operators import Polygonal_erosion_operator
+
+        d = self._sloping_channel('test_302_rise')
+        Polygonal_erosion_operator(
+            d, polygon=[[0.0, 0.0], [100.0, 0.0], [100.0, 20.0], [0.0, 20.0]])
+
+        z0 = d.quantities['elevation'].centroid_values.copy()
+        for t in d.evolve(yieldstep=30.0, finaltime=180.0):
+            pass
+        dz = d.quantities['elevation'].centroid_values - z0
+
+        assert dz.max() <= 1.0e-10, (
+            'bed rose by %g m under an erosion operator' % dz.max())
+
+    def test_erosion_respects_the_base_level(self):
+        """Erosion stops at `base`, however long it runs.
+
+        Only cells that START above `base` are constrained by it. This channel
+        runs from 5 m down to 0 m, so its downstream end begins below
+        `base=1.0`; those cells must be left where they are, not lifted (#305).
+        """
+        from anuga.operators.erosion_operators import Polygonal_erosion_operator
+
+        d = self._sloping_channel('test_302_base')
+        Polygonal_erosion_operator(
+            d, polygon=[[0.0, 0.0], [100.0, 0.0], [100.0, 20.0], [0.0, 20.0]],
+            base=1.0)
+
+        z0 = d.quantities['elevation'].centroid_values.copy()
+        for t in d.evolve(yieldstep=30.0, finaltime=90.0):
+            pass
+        z = d.quantities['elevation'].centroid_values
+
+        above = z0 >= 1.0
+        assert above.any() and (~above).any(), 'the case must cover both sides'
+        assert z[above].min() >= 1.0 - 1.0e-10, (
+            'eroded below base: %g' % z[above].min())
+        assert num.allclose(z[~above], z0[~above]), (
+            'cells starting below base were moved')
+
+    def _flat_slice_run(self, polygon, name):
+        d = rectangular_cross_domain(20, 6, 100.0, 20.0, origin=(0.0, 0.0))
+        d.set_quantity('elevation', 2.0)
+        d.set_quantity('stage', 4.0)
+        d.set_quantity('friction', 0.03)
+        d.set_flow_algorithm('DE1')
+        d.set_datadir('.')
+        d.set_name(name)
+        d.set_quantities_to_be_stored(None)
+        R = Reflective_boundary(d)
+        d.set_boundary({'left': R, 'right': R, 'top': R, 'bottom': R})
+        Flat_slice_erosion_operator(d, elevation=lambda t: 0.0, polygon=polygon)
+        for t in d.evolve(yieldstep=25.0, finaltime=50.0):
+            pass
+        return d.quantities['elevation'].centroid_values.mean()
+
+    def test_whole_domain_erosion_is_not_a_no_op(self):
+        """#301: `indices is None` is documented as "all triangles", but took
+        a branch that added 0.0 and returned, so the bed never moved."""
+        whole = self._flat_slice_run(None, 'test_301_none')
+        assert whole < 2.0 - 1.0e-6, (
+            'polygon=None left the bed at %g m -- whole-domain erosion did '
+            'nothing' % whole)
+
+    def test_whole_domain_erodes_at_least_as_much_as_a_polygon(self):
+        """The None path and an explicit covering polygon must agree in kind.
+
+        The polygon cannot beat the whole domain: it covers a subset.
+        """
+        whole = self._flat_slice_run(None, 'test_301_a')
+        poly = self._flat_slice_run(
+            [[1.0, 1.0], [99.0, 1.0], [99.0, 19.0], [1.0, 19.0]], 'test_301_b')
+        assert whole <= poly + 1.0e-10, (
+            'whole domain (%g m) eroded less than a polygon inside it (%g m)'
+            % (whole, poly))
+
+    def test_base_does_not_lift_a_bed_that_starts_below_it(self):
+        """#305: `base` limits erosion -- "Allow erosion down to base level".
+
+        Applied as a bare maximum it also LIFTS a bed that starts below it, so
+        the operator deposits on its first call with no flow involved.
+        """
+        from anuga.operators.erosion_operators import (
+            Polygonal_erosion_operator, Circular_erosion_operator,
+            Bed_shear_erosion_operator)
+
+        poly = [[2.0, 2.0], [18.0, 2.0], [18.0, 8.0], [2.0, 8.0]]
+        makers = [
+            ('Polygonal', lambda d: Polygonal_erosion_operator(
+                d, base=0.0, polygon=poly)),
+            ('Circular', lambda d: Circular_erosion_operator(
+                d, base=0.0, center=(10.0, 5.0), radius=5.0)),
+            ('Bed_shear', lambda d: Bed_shear_erosion_operator(
+                d, base=0.0, polygon=poly)),
+        ]
+
+        for name, make in makers:
+            d = rectangular_cross_domain(20, 10, 20.0, 10.0)
+            d.set_quantity('elevation', -0.5)      # everywhere BELOW base
+            d.set_quantity('stage', 1.0)
+            d.set_quantity('friction', 0.03)
+            d.set_flow_algorithm('DE1')
+            d.set_datadir('.')
+            d.set_name('test_305_' + name)
+            d.set_quantities_to_be_stored(None)
+            R = Reflective_boundary(d)
+            d.set_boundary({'left': R, 'right': R, 'top': R, 'bottom': R})
+            make(d)
+
+            z0 = d.quantities['elevation'].centroid_values.copy()
+            for t in d.evolve(yieldstep=2.0, finaltime=4.0):
+                pass
+            dz = d.quantities['elevation'].centroid_values - z0
+
+            assert dz.max() <= 1.0e-10, (
+                '%s raised a bed already below base by %g m'
+                % (name, dz.max()))
 
     def test_circular_rate_operator(self):
         """Circular_rate_operator constructs and calls without raising."""
