@@ -76,15 +76,15 @@ during the first event. The Kinect bed change has an RMS of 3.6 (P1) and
 4.0~mm (P2) about zero, most of it a ripple-scale texture the model does
 not represent, so the provisional pass criterion is a bed-change RMS below
 6~mm over the window after the first dam-break: \anuga{} gives 3.2 and
-3.6~mm. What the case actually tests is the scour at the pier. Over a ring
+3.5~mm. What the case actually tests is the scour at the pier. Over a ring
 2--4~cm from the pier centre the flume lowered the bed by 10.4~mm (P1) and
 12.6~mm (P2) in the first event; with the pier-scour correction and the
-wake tail described below the model gives 7.9 and 11.8, with the pier
-correction alone 4.8 and 9.6, and with neither 2.9 and 6.0. It erodes 102
-and 115~cm$^3$ of the 190 and 143 the Kinect measures. The deepest points
-are 32 and 53~mm measured against 24 and 22 (the 53 exceeds the sand
+wake tail described below the model gives 7.1 and 10.9, with the pier
+correction alone 4.5 and 9.1, and with neither 2.7 and 5.7. It erodes 87
+and 100~cm$^3$ of the 190 and 143 the Kinect measures. The deepest points
+are 32 and 53~mm measured against 23 and 21 (the 53 exceeds the sand
 thickness and is a Kinect artefact at the pier's edge), and the wake
-deposit overshoots, +5.2 and +5.8 against +3.0 and +2.4: right behind the
+deposit overshoots, +4.9 and +5.6 against +3.0 and +2.4: right behind the
 pier the flume scours where the model deposits (see \emph{The wake}). Neither a 40$^\circ$ angle of repose, nor a mesh
 twice as fine at the pier, nor turning the repose relaxation off moves the
 ring scour by more than a millimetre, so the shortfall is in the transport
@@ -145,6 +145,14 @@ measured & & $-10.4$ & 32 & +3.0 & $-1.4$ \\
 \hline
 \end{tabular}
 \end{center}
+
+These were measured before \anuga{} 4.1.1, which keeps a film's velocity
+rather than its momentum when the bed rises under it (without that, a
+deposit that nearly fills a thin film leaves it carrying its whole momentum,
+which made the case fail under \texttt{DE0}). Re-measured, the case's row
+becomes 3.5, $-4.5$, 20 and +5.3, a shallower scour by about half a
+millimetre, and no correction becomes 3.4, $-2.7$, 16 and +2.1; the other
+rows have not been repeated.
 
 The amplification digs, but not the way the flume did: the material it
 lifts settles again within a pier length downstream, so the wake deposit
@@ -208,15 +216,15 @@ $A_w$, $\ell_w$ & RMS & ring 2--4~cm & deepest & wake & eroded \\
 \hline
 \multicolumn{6}{l}{P1} \\
 measured & & $-10.4$ & 32 & +3.0 & 190 \\
-0 (no tail) & 3.5 & $-4.9$ & 21 & +5.9 & 77 \\
-1, 3 & 3.4 & $-6.2$ & 22 & +6.0 & 87 \\
-1, 5 & 3.4 & $-6.5$ & 22 & +5.7 & 89 \\
-2, 3 & 3.3 & $-7.3$ & 23 & +5.9 & 98 \\
-\textbf{2, 5} (the case) & 3.2 & $-7.9$ & 24 & +5.2 & 102 \\
+0 (no tail) & 3.5 & $-4.5$ & 20 & +5.3 & 66 \\
+1, 3 & 3.4 & $-5.6$ & 21 & +5.5 & 75 \\
+1, 5 & 3.4 & $-5.9$ & 22 & +5.2 & 76 \\
+2, 3 & 3.3 & $-6.7$ & 22 & +5.4 & 83 \\
+\textbf{2, 5} (the case) & 3.2 & $-7.1$ & 23 & +4.9 & 87 \\
 \multicolumn{6}{l}{P2} \\
 measured & & $-12.6$ & 53 & +2.4 & 143 \\
-0 (no tail) & 3.7 & $-9.3$ & 21 & +7.0 & 89 \\
-\textbf{2, 5} (the case) & 3.6 & $-11.8$ & 22 & +5.8 & 115 \\
+0 (no tail) & 3.7 & $-9.1$ & 20 & +6.8 & 84 \\
+\textbf{2, 5} (the case) & 3.5 & $-10.9$ & 21 & +5.6 & 100 \\
 \hline
 \end{tabular}
 \end{center}

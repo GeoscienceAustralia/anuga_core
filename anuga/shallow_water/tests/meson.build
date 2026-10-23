@@ -57,6 +57,7 @@ python_sources = [
 'test_sediment_friction.py',
 'test_sediment_shear_closure.py',
 'test_sediment_rouse.py',
+'test_sediment_thin_film.py',
 'test_forcing.py',
 'test_friction.py',
 'test_loadsave.py',
