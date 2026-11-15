@@ -1627,15 +1627,42 @@ def fix_negative_cells(object domain_py_object, update_domain_c_struct=False):
 
 def update_conserved_quantities(object domain_py_object, 
                                 double timestep,
-                                update_domain_c_struct=False):
+                                update_domain_c_struct=False,
+                                fix_negative_cells=True):
+	"""Update the centroid values, then set negative depths to zero.
+
+	fix_negative_cells=False leaves negative depths alone. A Runge-Kutta
+	step uses it for a stage that is about to be averaged with the backup
+	values: the average must be taken first, see fix_negative_cells_volume.
+
+	Returns (number of negative cells set to zero, volume that added).
+	"""
+
+	cdef anuga_int num_negative_cells = 0
+	cdef double negative_volume = 0.0
+	cdef bint fix = fix_negative_cells
+	cdef domain* D = get_domain_c_struct_ptr(domain_py_object, update_domain_c_struct=update_domain_c_struct)
+
+	with nogil:
+		_openmp_update_conserved_quantities(D, timestep)
+		if fix:
+			# Measure the deficit volume BEFORE the clamp erases it (stage->bed).
+			negative_volume = _openmp_negative_cells_volume(D)
+			num_negative_cells = _openmp_fix_negative_cells(D)
+
+	return num_negative_cells, negative_volume
+
+def fix_negative_cells_volume(object domain_py_object, update_domain_c_struct=False):
+	"""Set negative depths to zero.
+
+	Returns (number of negative cells set to zero, volume that added).
+	"""
 
 	cdef anuga_int num_negative_cells
 	cdef double negative_volume
 	cdef domain* D = get_domain_c_struct_ptr(domain_py_object, update_domain_c_struct=update_domain_c_struct)
 
 	with nogil:
-		_openmp_update_conserved_quantities(D, timestep)
-		# Measure the deficit volume BEFORE the clamp erases it (stage->bed).
 		negative_volume = _openmp_negative_cells_volume(D)
 		num_negative_cells = _openmp_fix_negative_cells(D)
 

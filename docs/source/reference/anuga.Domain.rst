@@ -48,6 +48,7 @@
       ~Domain.evolve_one_rk2_step
       ~Domain.evolve_one_rk3_step
       ~Domain.evolve_to_end
+      ~Domain.fix_negative_cells
       ~Domain.get_CFL
       ~Domain.get_active_set_stats
       ~Domain.get_algorithm_parameters
@@ -71,6 +72,7 @@
       ~Domain.get_edge_midpoint_coordinates
       ~Domain.get_energy_through_cross_section
       ~Domain.get_epsg
+      ~Domain.get_euler_startup_steps
       ~Domain.get_evolve_max_timestep
       ~Domain.get_evolve_min_timestep
       ~Domain.get_evolve_starttime
@@ -191,6 +193,7 @@
       ~Domain.set_epsg
       ~Domain.set_erodible_base
       ~Domain.set_erodible_region
+      ~Domain.set_euler_startup_steps
       ~Domain.set_evolve_max_timestep
       ~Domain.set_evolve_min_timestep
       ~Domain.set_evolve_starttime

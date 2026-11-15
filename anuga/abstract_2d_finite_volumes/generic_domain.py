@@ -17,6 +17,7 @@ from anuga.config import max_smallsteps, beta_w, epsilon
 from anuga.config import MULTIPROCESSOR_OPENMP, MULTIPROCESSOR_GPU
 from anuga.config import CFL
 from anuga.config import timestepping_method
+from anuga.config import euler_startup_steps
 from anuga.config import protect_against_isolated_degenerate_timesteps
 from anuga.config import default_order
 from anuga.config import max_timestep, min_timestep
@@ -371,6 +372,8 @@ class Generic_Domain:
         self.number_of_first_order_steps = 0
         self.CFL = CFL
         self.set_timestepping_method(timestepping_method)
+        self.euler_startup_steps = euler_startup_steps
+        self._steps_since_start = 0
         self.set_beta(beta_w)
         self.set_evolve_max_timestep(max_timestep)
         self.set_evolve_min_timestep(min_timestep)
@@ -1757,6 +1760,35 @@ class Generic_Domain:
         msg = '%s is an incorrect timestepping type' % timestepping_method
         raise Exception(msg)
 
+
+    def set_euler_startup_steps(self, steps):
+        """Set how many forward Euler steps start a Runge-Kutta run.
+
+        The Runge-Kutta timestepping methods ('rk2' and 'rk3', which the
+        flow algorithms DE1 and DE2 use) take their first ``steps`` steps with
+        forward Euler. A Runge-Kutta step reuses the timestep of its first
+        stage in the later stages. When water starts from rest on a slope,
+        as when rain falls on a dry catchment, that timestep is far too long
+        by the later stages: cells go to negative depth, and setting them
+        back to zero creates water. A forward Euler step from rest moves no
+        water, so a few of them let the flow get going first.
+
+        The count runs over the life of the domain, not over each call of
+        evolve. ``steps=0`` turns the start-up off. 'euler' and 'ader2' are
+        not affected.
+        """
+
+        steps = int(steps)
+        if steps < 0:
+            raise ValueError('euler_startup_steps must be 0 or more, got %d'
+                             % steps)
+        self.euler_startup_steps = steps
+
+    def get_euler_startup_steps(self):
+        """Return the number of forward Euler steps that start a
+        Runge-Kutta run, see set_euler_startup_steps."""
+        return self.euler_startup_steps
+
     def get_name(self):
         return self.simulation_name
 
@@ -2044,6 +2076,16 @@ class Generic_Domain:
         while True:
             initial_relative_time = self.relative_time
 
+            # A Runge-Kutta run starts with a few forward Euler steps, see
+            # set_euler_startup_steps. The method is switched for the whole
+            # step, fractional steps included, because the operators that
+            # integrate boundary fluxes weight the stages by method.
+            method = self.get_timestepping_method()
+            euler_startup = (method in ('rk2', 'rk3') and
+                             self._steps_since_start < self.euler_startup_steps)
+            if euler_startup:
+                self.set_timestepping_method('euler')
+
             # Apply fluid flow fractional step
             if self.get_timestepping_method() == 'euler':
                 self.evolve_one_euler_step(yieldstep, self.finaltime)
@@ -2059,6 +2101,10 @@ class Generic_Domain:
 
             # Apply other fractional steps
             self.apply_fractional_steps()
+
+            if euler_startup:
+                self.set_timestepping_method(method)
+            self._steps_since_start += 1
 
             # Centroid Values of variables should be ok
 

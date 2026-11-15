@@ -192,6 +192,27 @@ DE2 — SSP-RK3, CFL 1.0
 * **Minimum allowed height:** 1 × 10\ :sup:`−5` m.
 * **Cost:** ~3× relative to DE0.
 
+Euler start-up of DE1 and DE2
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+DE1 and DE2 take their first 10 steps with forward Euler and then change to
+their Runge–Kutta scheme. A Runge–Kutta step sets its timestep in its first
+stage and reuses it in the later ones. When water starts from rest on a
+slope, as when rain falls on a dry catchment, that timestep is far too long
+by the later stages: cells are driven to negative depth, and setting them
+back to zero creates water. A forward Euler step from rest moves no water, so
+the step after it sets its timestep from water that is already moving.
+
+.. code-block:: python
+
+    domain.set_euler_startup_steps(0)     # turn the start-up off
+    domain.set_euler_startup_steps(20)    # or make it longer
+
+The steps are counted over the life of the domain, so only the first call of
+``evolve`` is affected. The start-up covers the start of a run only: a slope
+that dries and is wetted again later in a DE1 or DE2 run is not protected.
+DE0 and DE_ader2 do not need it and are not affected.
+
 
 Algorithm and GPU compatibility
 --------------------------------

@@ -128,6 +128,14 @@ CFL = 1.0  # CFL condition assigned to domain.CFL - controls timestep size
 
 timestepping_method = 1
 
+# The Runge-Kutta methods (rk2, rk3) take this many forward Euler steps at the
+# start of a run before they take over. A Runge-Kutta step reuses the timestep
+# of its first stage in its later stages. From water at rest on a slope (rain on
+# a dry catchment) that timestep is far too long by the later stages, which
+# drive cells to negative depth and so create water. An Euler step from rest
+# moves no water, and the step after it sees water that is already moving.
+euler_startup_steps = 10
+
 # For shallow water we have a method that sets both timestepping and spatial reconstruction and
 # beta values. In this case the settings for timestepping_method will be overriden
 
