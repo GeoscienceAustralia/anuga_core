@@ -19,6 +19,7 @@ py3.extension_module('dem_flow_ext',
 
 python_sources = [
   'AppShell.py',
+  'breaklines.py',
   'cursornames.py',
   'dem_mesh.py',
   'exesetup.py',

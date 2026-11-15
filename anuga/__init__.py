@@ -310,6 +310,8 @@ from anuga.simulation.simulation import Simulation
 from anuga.pmesh.mesh_interface import create_pmesh_from_regions
 from anuga.pmesh.mesh_interface import create_mesh_from_regions  # deprecated alias
 from anuga.pmesh.size_field import Size_field, size_field_from_regions
+from anuga.pmesh.breaklines import clean_breaklines
+from anuga.abstract_2d_finite_volumes.neighbour_mesh import MeshQualityError
 from anuga.pmesh.dem_mesh import create_pmesh_from_dem, size_field_from_dem
 from anuga.pmesh.dem_mesh import drainage_area_from_dem, remove_mesh_pits
 
@@ -605,6 +607,7 @@ __all__ = [
     'read_multi_poly_file_value',
     'read_polygon_dir',
     # Domain creation
+    'clean_breaklines',
     'create_basic_mesh_from_regions',
     'create_domain_from_dem',
     'create_domain_from_file',
@@ -613,6 +616,7 @@ __all__ = [
     'create_pmesh_from_dem',
     'create_pmesh_from_regions',
     'drainage_area_from_dem',
+    'MeshQualityError',
     'remove_mesh_pits',
     'Size_field',
     'size_field_from_dem',

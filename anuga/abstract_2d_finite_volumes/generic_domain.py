@@ -638,6 +638,13 @@ class Generic_Domain:
     def statistics(self, *args, **kwargs):
         return self.mesh.statistics(*args, **kwargs)
 
+    def check_mesh_quality(self, *args, **kwargs):
+        """Report the smallest triangles and check them against limits.
+
+        See :meth:`anuga.abstract_2d_finite_volumes.neighbour_mesh.Mesh.check_quality`.
+        """
+        return self.mesh.check_quality(*args, **kwargs)
+
     def print_statistics(self, *args, **kwargs):
         print(self.statistics(*args, **kwargs))
 

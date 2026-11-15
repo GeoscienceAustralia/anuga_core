@@ -18,6 +18,10 @@ from math import pi, sqrt
 import numpy as num
 
 
+class MeshQualityError(Exception):
+    """A mesh has triangles below the limits given to Mesh.check_quality."""
+
+
 class Mesh(General_mesh):
     """Collection of triangular elements (purely geometric)
 
@@ -859,6 +863,100 @@ class Mesh(General_mesh):
         return self.radii
 
 
+
+    def check_quality(self, minimum_triangle_area=None, minimum_radius=None,
+                      action='warn', nworst=10):
+        """Report the smallest triangles of the mesh and check them against
+        limits.
+
+        The time step of the whole model is set by its smallest wet triangle.
+        A few sliver triangles, typically where breaklines cross or run close
+        to each other or to a region outline, can be thousands of times
+        smaller than the rest. They do not show in a short test run if they
+        start dry: the time step collapses only when the flow reaches them.
+        Check a new mesh before a long run.
+
+        Parameters
+        ----------
+        minimum_triangle_area : float, optional
+            Triangles with a smaller area fail the check.
+        minimum_radius : float, optional
+            Triangles with a smaller inscribed-circle radius fail the check.
+        action : {'warn', 'raise', 'none'}
+            What to do if any triangle fails: issue a warning, raise
+            :class:`MeshQualityError`, or nothing.
+        nworst : int
+            Number of the smallest triangles to list.
+
+        Returns
+        -------
+        dict with keys
+
+        ``number_of_triangles``;
+        ``area_min``, ``area_median``;
+        ``radius_min``, ``radius_median``;
+        ``radius_ratio`` : median radius over smallest radius. The time step
+        is roughly this many times smaller than a typical triangle needs;
+        ``smallest`` : indices of the ``nworst`` smallest triangles by radius;
+        ``failed`` : indices of the triangles below a limit, smallest first
+        (empty if no limit was given);
+        ``message`` : the report as text, with the centroid (absolute
+        coordinates), area and radius of the triangles listed.
+        """
+
+        if action not in ('warn', 'raise', 'none'):
+            raise ValueError("action must be 'warn', 'raise' or 'none'")
+
+        areas = num.asarray(self.areas, float)
+        radii = num.asarray(self.radii, float)
+        order = num.argsort(radii, kind='stable')
+
+        bad = num.zeros(len(areas), bool)
+        limits = []
+        if minimum_triangle_area is not None:
+            bad |= areas < minimum_triangle_area
+            limits.append('area %g m^2' % minimum_triangle_area)
+        if minimum_radius is not None:
+            bad |= radii < minimum_radius
+            limits.append('radius %g m' % minimum_radius)
+        failed = order[bad[order]]
+
+        report = {'number_of_triangles': len(areas),
+                  'area_min': float(areas.min()),
+                  'area_median': float(num.median(areas)),
+                  'radius_min': float(radii.min()),
+                  'radius_median': float(num.median(radii)),
+                  'radius_ratio': float(num.median(radii) / radii.min()),
+                  'smallest': order[:nworst],
+                  'failed': failed}
+
+        centroids = self.get_centroid_coordinates(absolute=True)
+        msg = ('Mesh quality: %d triangles, area min %.4g / median %.4g m^2, '
+               'radius min %.4g / median %.4g m (ratio %.0f)'
+               % (len(areas), report['area_min'], report['area_median'],
+                  report['radius_min'], report['radius_median'],
+                  report['radius_ratio']))
+        if len(failed):
+            msg += ('\n%d triangles are below the limit (%s); the smallest:'
+                    % (len(failed), ', '.join(limits)))
+            listed = failed[:nworst]
+        else:
+            msg += '\nSmallest triangles:'
+            listed = order[:nworst]
+        for k in listed:
+            msg += ('\n  triangle %d: area %.4g m^2, radius %.4g m, '
+                    'centroid (%.2f, %.2f)'
+                    % (k, areas[k], radii[k], centroids[k, 0], centroids[k, 1]))
+        report['message'] = msg
+
+        if len(failed):
+            if action == 'raise':
+                raise MeshQualityError(msg)
+            if action == 'warn':
+                import warnings
+                warnings.warn(msg, stacklevel=2)
+
+        return report
 
     def statistics(self, nbins=10):
         """
