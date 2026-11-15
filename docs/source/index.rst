@@ -29,7 +29,8 @@ Australia, on whose Gadi supercomputer it was developed; see
    need: install ANUGA, try an example, write a script (or use the TOML scenario
    interface), run it, view the results, and parallelise if needed. The
    **Appendices** hold advanced topics — the developer and GPU installs, advanced
-   parallel methods, compute modes and GPU offloading, and advanced scripting.
+   parallel methods, compute modes and GPU offloading, and advanced scripting —
+   and, last, the API reference.
 
 
 .. toctree::
@@ -44,11 +45,19 @@ Australia, on whose Gadi supercomputer it was developed; see
    toml_scenario/index
    visualisation/index
    parallel/index
-   reference/index
    glossary
    troubleshooting
    citing
    genindex
+
+.. In the PDF the chapters from here on are lettered appendices, under an
+   "Appendices" heading in the contents and in the viewer's bookmarks.
+
+.. raw:: latex
+
+   \appendix
+   \cleardoublepage\phantomsection
+   \addcontentsline{toc}{part}{Appendices}
 
 .. toctree::
    :maxdepth: 2
@@ -65,6 +74,7 @@ Australia, on whose Gadi supercomputer it was developed; see
    Compute modes: legacy vs unified <appendices/compute_modes>
    appendices/profiling_gpu
    appendices/contributing
+   reference/index
 
 
    

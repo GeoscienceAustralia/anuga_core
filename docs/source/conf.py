@@ -52,6 +52,7 @@ extensions = [
     'sphinx_copybutton',
     'nbsphinx',
     'spec_label',
+    'animation_frames',  # stills of notebook animations, for the PDF
     'myst_parser',      # renders the Markdown physics specification
 ]
 
@@ -105,6 +106,44 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
+
+# -- Options for the PDF (LaTeX) output ---------------------------------------
+
+# The docs use Greek letters and symbols such as β, τ, − and ≤ in running text.
+# pdfLaTeX has no glyphs for them and drops each one (350 in 4.2.0); XeLaTeX
+# takes them from the font.
+latex_engine = 'xelatex'
+latex_use_xindy = False   # makeindex is enough, and xindy is often missing
+
+latex_elements = {
+    # Sphinx's default fonts for XeLaTeX (GNU FreeFont), except that the
+    # slanted monospace is the upright one slanted: FreeMonoOblique has no
+    # box-drawing characters, which the comments in code blocks use.
+    'fontpkg': r"""
+\setmainfont{FreeSerif}[Extension=.otf, UprightFont=*, ItalicFont=*Italic,
+    BoldFont=*Bold, BoldItalicFont=*BoldItalic]
+\setsansfont{FreeSans}[Extension=.otf, UprightFont=*, ItalicFont=*Oblique,
+    BoldFont=*Bold, BoldItalicFont=*BoldOblique]
+\setmonofont{FreeMono}[Extension=.otf, UprightFont=*, ItalicFont=*,
+    ItalicFeatures={FakeSlant=0.2}, BoldFont=*Bold, BoldItalicFont=*Bold,
+    BoldItalicFeatures={FakeSlant=0.2}]
+""",
+    # Two characters in the sediment specification that the fonts lack.
+    'preamble': r"""
+\usepackage{newunicodechar}
+\newunicodechar{ᐟ}{\textsuperscript{/}}
+\newunicodechar{⚠}{\textbf{(!)}}
+
+% Bookmarks (the contents panel of a PDF viewer) carry the chapter numbers
+% and appendix letters. index.rst files the appendices under one
+% "Appendices" entry; the bibliography goes back to the top level.
+\hypersetup{bookmarksnumbered=true}
+\usepackage{bookmark}
+\usepackage{etoolbox}
+\AtBeginEnvironment{sphinxthebibliography}{\bookmarksetup{startatroot}}
+""",
+    'printindex': r'\bookmarksetup{startatroot}\printindex',
+}
 
 # -- Options for HTML output -------------------------------------------------
 
