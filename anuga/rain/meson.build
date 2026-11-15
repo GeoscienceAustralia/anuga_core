@@ -5,6 +5,7 @@ python_sources = [
   'arr_hub_rain.py',
   'arr_ifd_rain.py',
   'calibrated_radar_rain.py',
+  'losses.py',
   'raster_rate_operator.py',
   'raster_time_slice_data.py',
   'run_calibrated_radar_rain.py',

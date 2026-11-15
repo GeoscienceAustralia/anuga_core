@@ -32,6 +32,30 @@ For uniform or time-varying rainfall use :class:`Rate_operator` directly:
                               factor=0.001)
 
 
+Hyetograph rainfall
+-------------------
+
+:class:`Hyetograph_rate_operator` applies rain that is the same everywhere and
+changes in steps through time: a gauge record or a design storm. Give the
+times that bound the intervals, and the depth (mm) or the intensity (mm/h) in
+each interval:
+
+.. code-block:: python
+
+   # 10, 30 and 20 mm in three 5-minute intervals
+   rain = anuga.Hyetograph_rate_operator(
+       domain,
+       times=[0.0, 300.0, 600.0, 900.0],      # s
+       depths=[10.0, 30.0, 20.0])             # mm, or intensities=[...] in mm/h
+
+   for t in domain.evolve(yieldstep=300.0, finaltime=3600.0):
+       domain.print_timestepping_statistics()
+
+The intervals need not be the same length. Outside them the rate is
+``default_rate`` (0 by default). As with the other operators here, end each
+``yieldstep`` on a change of rate for an exact total depth. It takes the same
+``polygon``, ``region`` and ``losses`` arguments as the operators below.
+
 Raster time-series rainfall
 -----------------------------
 
@@ -159,8 +183,94 @@ so end each ``yieldstep`` on a change for an exact total depth. ``rain.time_step
 is the time between changes in seconds; use it or a whole fraction of it.
 See :doc:`../appendices/arr_design_rainfall` for more on choosing it.
 
-ANUGA does not apply the areal reduction factors or losses that
-:class:`Arr_hub_rain` reads from the hub file: adjust ``depth_array`` yourself.
+ANUGA does not apply the areal reduction factors that :class:`Arr_hub_rain`
+reads from the hub file: adjust ``depth_array`` yourself. Losses are applied
+only if you ask for them, as described next.
+
+Rainfall losses
+---------------
+
+By default all the rain runs off. To take out the part that soaks in, give a
+loss model to :class:`Hyetograph_rate_operator`, :class:`Raster_rate_operator`
+or :class:`ARR_rate_operator` with ``losses=``. The operator then adds the
+*excess* rain only.
+
+.. code-block:: python
+
+   # US: NRCS (SCS) curve number
+   losses = anuga.SCS_curve_number(curve_number=75.0)
+
+   # Australia: ARR initial loss (mm) and continuing loss (mm/h)
+   losses = anuga.Initial_continuing_loss(initial=15.0, continuing=2.5)
+
+   # Initial loss (mm), then 30% of the rain lost (a runoff coefficient of 0.7)
+   losses = anuga.Initial_proportional_loss(proportional=0.3, initial=5.0)
+
+   rain = anuga.Raster_rate_operator(domain, rain_data, losses=losses)
+
+   for t in domain.evolve(yieldstep=rain.time_step, finaltime=finaltime):
+       print(rain.cumulative_influx, rain.cumulative_loss)   # m^3 added, m^3 lost
+
+Each parameter can be a number, an array with one value per triangle, a
+``Quantity``, or a function ``f(x, y)`` of the centroid coordinates, so the
+losses can follow land use and soil:
+
+.. code-block:: python
+
+   def curve_number(x, y):
+       return np.where(x < 500.0, 98.0, 70.0)    # paved west of x = 500 m
+
+   losses = anuga.SCS_curve_number(curve_number=curve_number)
+
+For a map made of polygons and rasters, build the function with
+``composite_quantity_setting_function``, as for elevation or friction.
+The first matching entry wins:
+
+.. code-block:: python
+
+   from anuga.utilities.quantity_setting_functions import \
+       composite_quantity_setting_function
+
+   curve_number = composite_quantity_setting_function(
+       [[car_park_polygon, 98.0],          # a polygon and a value
+        ['Extent', 'curve_number.tif'],    # a raster, over its own extent
+        ['All', 70.0]],                    # everywhere else
+       domain)
+
+   losses = anuga.SCS_curve_number(curve_number=curve_number)
+
+:class:`SCS_curve_number`
+   The runoff from a cumulative rain depth :math:`P` is
+   :math:`Q = (P - I_a)^2 / (P - I_a + S)` once :math:`P` passes the initial
+   abstraction :math:`I_a = \lambda S`, with :math:`S = 25400/CN - 254` mm.
+   Take ``curve_number`` from the NRCS tables (land use, hydrologic soil
+   group, antecedent moisture). ``initial_abstraction_ratio`` is
+   :math:`\lambda`, 0.2 by default. A curve number of 100 loses nothing.
+
+:class:`Initial_continuing_loss`
+   Rain first fills the initial loss. After that the continuing loss is taken
+   from the rain at a steady rate, and the excess is never below zero. The
+   ARR Data Hub gives both values for a location; :class:`Arr_hub_rain` reads
+   them from the hub file as the strings ``ARR_IL`` and ``ARR_CL``.
+
+:class:`Initial_proportional_loss`
+   Rain first fills the initial loss (0 by default). After that the fraction
+   ``proportional`` of the rain is lost. This is ARR's initial loss /
+   proportional loss model, and with no initial loss it is a fixed runoff
+   coefficient or percentage runoff of ``1 - proportional``.
+
+Things to know:
+
+* These are losses on rainfall. Water that runs on to a cell from upslope, or
+  ponds on it, does not soak in.
+* The rain is taken as uniform within each time slice of the data, so the
+  excess is spread evenly over the slice. The total over the storm is exact
+  for the curve number method.
+* ``factor`` scales the excess, and ``default_rate`` (outside the time span of
+  the data) is applied with no losses.
+* A loss model holds the state of one storm, so make one for each operator.
+* ``cumulative_influx`` is the water added (the excess), and
+  ``cumulative_loss`` the volume lost.
 
 API summary
 -----------
@@ -168,6 +278,7 @@ API summary
 .. autosummary::
    :nosignatures:
 
+   Hyetograph_rate_operator
    Raster_rate_operator
    ARR_rate_operator
    Arr_hub_rain
@@ -175,6 +286,9 @@ API summary
    Single_pattern
    Arr_ifd_rain
    Arr_grd
+   SCS_curve_number
+   Initial_continuing_loss
+   Initial_proportional_loss
 
 .. _ARR Data Hub: https://data.arr-software.org/
 .. _ARR IFD Data Server: https://www.bom.gov.au/water/designRainfalls/revised-ifd/
