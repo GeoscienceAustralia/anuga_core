@@ -92,10 +92,15 @@ discretisation, and the validation suite, and has a DOI:
 Validation reports
 ------------------
 
-The validation reports of each final release are archived on Zenodo as
-versions of the *ANUGA validation reports* record. Each version has its own
-DOI and is linked from the corresponding release on the
-`GitHub releases page <https://github.com/anuga-community/anuga_core/releases>`_.
+From version 4.2.0, the validation reports of each final release are archived
+on Zenodo as versions of the *ANUGA validation reports* record. The DOI
+`10.5281/zenodo.24211861 <https://doi.org/10.5281/zenodo.24211861>`_ stands
+for the record as a whole and resolves to the reports of the latest release.
+Each version has its own DOI, given in the notes of the corresponding release
+on the
+`GitHub releases page <https://github.com/anuga-community/anuga_core/releases>`_
+(4.2.0 is
+`10.5281/zenodo.24211862 <https://doi.org/10.5281/zenodo.24211862>`_).
 When a result depends on ANUGA reproducing one of the validation cases, cite
 the version that matches the ANUGA release you used. See
 :ref:`anuga-validation` for what the reports contain.
