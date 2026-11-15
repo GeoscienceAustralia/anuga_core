@@ -26,6 +26,7 @@
       ~Domain.build_tagged_elements_dictionary
       ~Domain.centroid_norm
       ~Domain.check_integrity
+      ~Domain.check_mesh_quality
       ~Domain.check_tracer_conservation
       ~Domain.compute_boundary_flows
       ~Domain.compute_capabilities

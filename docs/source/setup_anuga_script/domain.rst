@@ -182,6 +182,75 @@ field it has roughly doubled the smallest ``radii``, and with it the
 timestep.
 
 
+Breaklines and sliver triangles
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Breaklines that cross, touch or run close to each other, or to the outline of a
+refinement region, make the mesh generator fill the gap between them with very
+small triangles. These can be thousands of times smaller than the rest of the
+mesh. The time step is set by the smallest wet triangle, so such triangles cost
+nothing while they are dry and then slow the whole run by an order of magnitude
+once the flow reaches them. A short test run will not show the problem.
+
+Check a new mesh before a long run:
+
+.. code-block:: python
+
+   report = domain.check_mesh_quality(minimum_triangle_area=5.0, action='raise')
+   print(report['message'])
+
+The report gives the smallest and median triangle area and inscribed-circle
+radius, and lists the smallest triangles with their centroids so you can find
+them. With ``action='raise'`` a mesh with triangles below the limits is refused
+(:class:`MeshQualityError`); the default is a warning.
+
+:func:`clean_breaklines` rearranges a set of breaklines so that they mesh
+cleanly. Lines are taken longest first. Each later line is cut ``gap`` short of
+the lines already kept and of the outlines given, then joined to the line it was
+cut back from by one segment at a shared vertex. Use the regions it returns,
+which carry the vertices where lines join their outlines:
+
+.. code-block:: python
+
+   lines, regions = anuga.clean_breaklines(breaklines, interior_regions,
+                                           bounding_polygon, gap=10.0)
+
+   domain = anuga.create_domain_from_regions(bounding_polygon,
+                                             boundary_tags=boundary_tags,
+                                             maximum_triangle_area=1000.0,
+                                             interior_regions=regions,
+                                             breaklines=lines)
+
+Choose ``gap`` comparable to the edge length of the triangles you want there.
+Where two lines run side by side closer than ``gap``, only the longer is kept
+along that stretch. :func:`clean_breaklines` needs the ``shapely`` package.
+
+Riverwalls have to lie on mesh edges, so they meet the same problem. Pass them as
+``riverwalls`` (and their parameters as ``riverwallPar``) and
+:func:`clean_breaklines` returns them cleaned as well, with their crest heights
+kept. Riverwalls are taken before breaklines, so only another riverwall can cut
+one, and a wall that crossed a longer wall is joined to it from both sides. A wall
+cut into pieces comes back as ``name``, ``name_2``, ...:
+
+.. code-block:: python
+
+   lines, regions, walls, par = anuga.clean_breaklines(
+       breaklines, interior_regions, bounding_polygon,
+       riverwalls=riverwalls, riverwallPar=riverwallPar, gap=10.0)
+
+   wall_lines = [[p[:2] for p in wall] for wall in walls.values()]
+   domain = anuga.create_domain_from_regions(bounding_polygon,
+                                             boundary_tags=boundary_tags,
+                                             maximum_triangle_area=1000.0,
+                                             interior_regions=regions,
+                                             breaklines=lines + wall_lines)
+   domain.riverwallData.create_riverwalls(walls, par)
+
+A wall that reaches the bounding polygon ends ``gap`` short of it.
+:func:`anuga.utilities.spatialInputUtil.add_intersections_to_domain_features`
+is the tool for the other case, lines that should cross: it gives each crossing
+an exact shared vertex.
+
 Meshes from a DEM
 ~~~~~~~~~~~~~~~~~
 

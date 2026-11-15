@@ -74,6 +74,7 @@ Domain creation functions and the domain methods used throughout this guide:
    size_field_from_dem
    drainage_area_from_dem
    remove_mesh_pits
+   clean_breaklines
    Size_field
 
 

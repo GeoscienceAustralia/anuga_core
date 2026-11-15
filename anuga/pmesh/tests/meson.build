@@ -1,6 +1,7 @@
 
 
 python_sources = [
+ 'test_breaklines.py',
  'test_mesh_interface.py',
  'test_mesh.py',
  'test_meshquad.py',
