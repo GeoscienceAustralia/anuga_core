@@ -5,6 +5,7 @@ from anuga.utilities.numerical_tools import ensure_numeric
 import numpy as num
 from anuga.geometry.polygon import inside_polygon
 from anuga.geometry.polygon import polylist2points_verts
+from anuga.geometry.polygon import polygon_outlines_cross
 import anuga.utilities.log as log
 import datetime
 import warnings
@@ -15,6 +16,40 @@ try:
     from anuga.pmesh.mesh import Pmesh
 except ImportError:
     from .mesh import Pmesh
+
+
+def _check_outlines_do_not_cross(interior_regions, interior_holes):
+    """Raise PolygonError if two interior region or hole outlines cross.
+
+    Each region and hole is found from a seed point near its first vertex.
+    Crossing outlines cut a polygon into pieces, and the seed can land in the
+    wrong piece or inside the other polygon. Regions then get the wrong
+    triangle areas and holes the wrong shape, with no other sign of a problem.
+    """
+
+    polygons = []
+    if interior_regions is not None:
+        polygons += [('interior_regions', i, region[0])
+                     for i, region in enumerate(interior_regions)]
+    if interior_holes is not None:
+        polygons += [('interior_holes', i, hole)
+                     for i, hole in enumerate(interior_holes)]
+
+    for n, (kind0, i0, polygon0) in enumerate(polygons):
+        for kind1, i1, polygon1 in polygons[n + 1:]:
+            if polygon_outlines_cross(polygon0, polygon1):
+                msg = ('The outlines of %s[%d] and %s[%d] cross, which gives '
+                       'the wrong mesh. Their first vertices are %s and %s. '
+                       % (kind0, i0, kind1, i1,
+                          str(list(polygon0[0])), str(list(polygon1[0]))))
+                if kind0 == kind1 == 'interior_regions':
+                    msg += ('For overlapping refinement, use '
+                            'anuga.size_field_from_regions, or change the '
+                            'polygons so that they are nested or separate.')
+                else:
+                    msg += ('Change the polygons so that they are nested or '
+                            'separate.')
+                raise PolygonError(msg)
 
 
 class PolygonError(Exception):
@@ -59,10 +94,12 @@ def create_pmesh_from_regions(bounding_polygon,
         (supported formats: .tsh, .msh). The Pmesh object is still returned.
     interior_regions : list of tuples, optional
         List of (polygon, resolution) tuples for each region to be separately
-        refined. Polygon lines should not cross or overlap, and should not be
-        close to each other.
+        refined. Polygons may be nested or separate. Outlines that cross
+        raise PolygonError, as do outlines of a region and a hole that cross.
+        They should not be close to each other. For overlapping refinement
+        see size_field_from_regions.
     interior_holes : list of polygons, optional
-        List of polygons for each hole.
+        List of polygons for each hole. Outlines must not cross.
     hole_tags : list, optional
         Boundary tags for the holes, see boundary_tags parameter.
     poly_geo_reference : Geo_reference, optional
@@ -76,6 +113,10 @@ def create_pmesh_from_regions(bounding_polygon,
     breaklines : list of polygons, optional
         Lines to be preserved by the triangulation algorithm (e.g., coastlines,
         walls). The polygons are not closed.
+        maximum_triangle_area also applies to parts of the domain that
+        breaklines separate. If an interior region is coarser than
+        maximum_triangle_area, those parts are limited to the coarsest
+        region's area instead.
     regionPtArea : list, optional
         User-specified point-based regions with max area.
     minimum_triangle_angle : float, optional
@@ -98,6 +139,9 @@ def create_pmesh_from_regions(bounding_polygon,
         If positive, follow the triangulation with up to this many passes of
         worst-cell relaxation, which moves the vertices of the smallest
         cells to enlarge them and so lengthen the timestep (default: 0).
+        The vertices you give stay where they are; a point the generator
+        added part-way along a straight segment (a hole's side, a
+        breakline) may slide along it, so the segment keeps its shape.
         See :meth:`anuga.pmesh.mesh.Pmesh.relax_worst_cells`.
 
     Returns
@@ -310,6 +354,8 @@ def _create_pmesh_from_regions(bounding_polygon,
                       % (str(interior_polygon), str(bounding_polygon))
                 raise PolygonError(msg)
 
+    _check_outlines_do_not_cross(interior_regions, interior_holes)
+
     # Resolve geo referencing
     if mesh_geo_reference is None:
         xllcorner = min(bounding_polygon[:, 0])
@@ -343,13 +389,23 @@ def _create_pmesh_from_regions(bounding_polygon,
                               segment_tags=boundary_tags,
                               geo_reference=poly_geo_reference)
 
-    # Find one point inside region automatically
+    # Each region's and hole's seed point must not fall inside another
+    # region or hole nested in it, or that one takes its area (#504)
+    region_polygons = []
     if interior_regions is not None:
-        excluded_polygons = []
-        for polygon, res in interior_regions:
-            excluded_polygons.append(polygon)
+        region_polygons = [polygon for polygon, res in interior_regions]
+    hole_polygons = []
+    if interior_holes is not None:
+        hole_polygons = list(interior_holes)
+    seed_polygons = region_polygons + hole_polygons
+    if poly_geo_reference is not None:
+        seed_polygons_absolute = [poly_geo_reference.get_absolute(polygon)
+                                  for polygon in seed_polygons]
     else:
-        excluded_polygons = None
+        seed_polygons_absolute = seed_polygons
+
+    def others(i):
+        return seed_polygons[:i] + seed_polygons[i + 1:]
 
     # Convert bounding poly to absolute values
     # this sort of thing can be fixed with the geo_points class
@@ -359,16 +415,18 @@ def _create_pmesh_from_regions(bounding_polygon,
     else:
         bounding_polygon_absolute = bounding_polygon
 
-    inner_point = point_in_polygon(bounding_polygon_absolute)
+    inner_point = point_in_polygon(bounding_polygon_absolute,
+                                   exclude=seed_polygons_absolute)
     inner = m.add_region(inner_point[0], inner_point[1])
     inner.set_max_area(maximum_triangle_area)
 
     # Do interior regions
     if interior_regions is not None:
-        for polygon, res in interior_regions:
+        for i, (polygon, res) in enumerate(interior_regions):
             m.add_region_from_polygon(polygon,
                                       max_triangle_area=res,
-                                      geo_reference=poly_geo_reference)
+                                      geo_reference=poly_geo_reference,
+                                      exclude_polygons=others(i))
 
     # Do interior holes
     if interior_holes is not None:
@@ -379,7 +437,9 @@ def _create_pmesh_from_regions(bounding_polygon,
                 tags = {}
             m.add_hole_from_polygon(polygon,
                                     segment_tags=tags,
-                                    geo_reference=poly_geo_reference)
+                                    geo_reference=poly_geo_reference,
+                                    exclude_polygons=others(
+                                        len(region_polygons) + n))
 
     # 22/04/2014
     # Add user-specified point-based regions with max area
@@ -387,6 +447,17 @@ def _create_pmesh_from_regions(bounding_polygon,
         for i in range(len(regionPtArea)):
             inner = m.add_region(regionPtArea[i][0], regionPtArea[i][1])
             inner.set_max_area(regionPtArea[i][2])
+
+    # Regional limits only reach the triangles Triangle can flood-fill from
+    # their seed point, and breaklines stop the fill, so a breakline running
+    # from boundary to boundary would leave the far side with no limit
+    # (#511). Also pass a global limit. Triangle applies both, so the global
+    # one is the largest limit given: every region keeps its own.
+    area_limits = [maximum_triangle_area]
+    area_limits += [res for _, res in (interior_regions or [])]
+    area_limits += [r[2] for r in (regionPtArea or [])]
+    if all(a is not None for a in area_limits):
+        m.default_maximum_triangle_area = max(area_limits)
 
     # NOTE (Ole): This was moved here as it is annoying if mesh is always
     # stored irrespective of whether the computation

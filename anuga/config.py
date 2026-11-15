@@ -111,6 +111,13 @@ LOW_FROUDE_OFF = 0  # No low Froude correction
 LOW_FROUDE_1   = 1  # Low Froude correction type 1
 LOW_FROUDE_2   = 2  # Low Froude correction type 2
 
+# Flag bit, combined with any of the modes above (e.g. LOW_FROUDE_1 |
+# LOW_FROUDE_TANGENTIAL_UPWIND): upwind the edge-tangential momentum with the
+# mass flux (the contact wave of the Riemann problem) instead of diffusing it
+# at the gravity-wave speed. Cuts the spurious lateral momentum exchange across
+# velocity shear, e.g. between a channel and its banks.
+LOW_FROUDE_TANGENTIAL_UPWIND = 4
+
 ################################################################################
 # Timestepping
 ################################################################################

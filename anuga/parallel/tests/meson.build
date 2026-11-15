@@ -1,6 +1,7 @@
 
 python_sources = [
   '__init__.py',
+  'run_parallel_bed_change.py',
   'run_parallel_collaborative_domain.py',
   'run_parallel_distribute_domain.py',
   'run_parallel_tracers.py',
@@ -22,6 +23,7 @@ python_sources = [
   'test_distribute_mesh.py',
   'test_distribute_basic_mesh.py',
   'test_failure.py',
+  'test_parallel_bed_change.py',
   'test_parallel_boyd_box_operator_consistency.py',
   'test_parallel_boyd_box_operator.py',
   'test_parallel_collaborative_domain.py',

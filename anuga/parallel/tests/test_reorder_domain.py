@@ -21,7 +21,7 @@ def topography(x, y):
     return -x / 2
 
 
-def run_simulation(use_reorder=False, method='hilbert'):
+def run_simulation(use_reorder=False, method='hilbert', boundary_first=False):
     domain = rectangular_cross_domain(20, 20, 1.0, 1.0)
     domain.set_quantity('elevation', topography)
     domain.set_quantity('friction', 0.0)
@@ -31,12 +31,18 @@ def run_simulation(use_reorder=False, method='hilbert'):
     domain.set_name('test_reorder')
     domain.set_datadir(tempfile.mkdtemp())
 
+    Br = Reflective_boundary(domain)
+    Bd = Dirichlet_boundary([-0.2, 0., 0.])
+    boundary_map = {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br}
+
+    if boundary_first:
+        domain.set_boundary(boundary_map)
+
     if use_reorder:
         reorder_domain(domain, method=method)
 
-    Br = Reflective_boundary(domain)
-    Bd = Dirichlet_boundary([-0.2, 0., 0.])
-    domain.set_boundary({'left': Br, 'right': Bd, 'top': Br, 'bottom': Br})
+    if not boundary_first:
+        domain.set_boundary(boundary_map)
 
     for t in domain.evolve(yieldstep=0.25, finaltime=1.0):
         pass
@@ -50,6 +56,42 @@ def run_simulation(use_reorder=False, method='hilbert'):
 
 
 class TestReorderDomain(unittest.TestCase):
+
+    def _check_boundary_follows_mesh(self, boundary_first):
+        domain = rectangular_cross_domain(6, 6, 1.0, 1.0)
+        Br = Reflective_boundary(domain)
+        Bd = Dirichlet_boundary([-0.2, 0., 0.])
+        boundary_map = {'left': Br, 'right': Bd, 'top': Br, 'bottom': Br}
+
+        if boundary_first:
+            domain.set_boundary(boundary_map)
+        reorder_domain(domain, method='hilbert')
+        if not boundary_first:
+            domain.set_boundary(boundary_map)
+
+        for k, ((vol_id, edge_id), _) in enumerate(domain.boundary_objects):
+            self.assertEqual(domain.neighbours[vol_id, edge_id], -k - 1)
+
+        # Only the Dirichlet edges, all on x = 1, carry a limiter bound.
+        mask = domain.boundary_limit_mask
+        x = domain.edge_coordinates[:, 0].reshape(-1, 3)
+        bound = [(v, e) for v in range(len(mask)) for e in range(3) if mask[v] >> e & 1]
+        self.assertEqual(len(bound), 6)
+        for v, e in bound:
+            self.assertAlmostEqual(x[v, e], 1.0)
+
+    def test_boundary_set_after_reorder_follows_mesh(self):
+        self._check_boundary_follows_mesh(boundary_first=False)
+
+    def test_boundary_set_before_reorder_follows_mesh(self):
+        self._check_boundary_follows_mesh(boundary_first=True)
+
+    def test_boundary_set_before_reorder_preserves_simulation(self):
+        stage_ref, _, coords_ref = run_simulation(use_reorder=False)
+        stage_re, _, coords_re = run_simulation(use_reorder=True, boundary_first=True)
+
+        np.testing.assert_allclose(coords_ref, coords_re, atol=1e-10)
+        np.testing.assert_allclose(stage_ref, stage_re, atol=1e-10)
 
     def test_hilbert_reorder_preserves_simulation(self):
         """Hilbert reorder gives same final stage as no-reorder."""

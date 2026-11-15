@@ -446,7 +446,7 @@ class SWW_file(Data_format):
             (X[:, num.newaxis], Y[:, num.newaxis]), axis=1)
         self.writer.store_triangulation(fid,
                                         points,
-                                        V.astype(num.float32),
+                                        V,
                                         points_georeference=domain.geo_reference)
 
         if domain.parallel:

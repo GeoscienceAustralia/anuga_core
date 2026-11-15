@@ -193,7 +193,10 @@ double gpu_compute_water_volume(struct gpu_domain *GD) {
     // Compute total water volume on GPU
     // Returns local volume (caller should do MPI_Allreduce for global sum)
     //
-    // Volume = sum((stage - elevation) * area) for all elements
+    // Volume = sum((stage - elevation) * area) over the full (owned) elements.
+    // Ghost cells are skipped, as the host path does: each is a copy of a cell
+    // another rank owns, so counting it adds that water twice once the ranks'
+    // volumes are summed (+14% on 3 ranks of a 400-triangle domain).
 
     anuga_int n = GD->D.number_of_elements;
     double volume = 0.0;
@@ -201,11 +204,13 @@ double gpu_compute_water_volume(struct gpu_domain *GD) {
     double * restrict stage_cv = GD->D.stage_centroid_values;
     double * restrict bed_cv = GD->D.bed_centroid_values;
     anuga_geom_t * restrict areas = GD->D.areas;
+    anuga_int * restrict tri_full_flag = GD->D.tri_full_flag;
 
     OMP_PARALLEL_LOOP_REDUCTION_PLUS(volume)
     for (anuga_int k = 0; k < n; k++) {
+        int full = (tri_full_flag == NULL) ? 1 : (tri_full_flag[k] > 0);
         double h = stage_cv[k] - bed_cv[k];
-        if (h > 0.0) {
+        if (full && h > 0.0) {
             volume += h * areas[k];
         }
     }

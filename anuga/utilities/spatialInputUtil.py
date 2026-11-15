@@ -73,9 +73,88 @@ except ImportError as _e:
     _warnings.warn(
         'anuga.utilities.spatialInputUtil: geodata interface unavailable -- '
         '%s: %s. fiona/rasterio/shapely could not be imported; geodata '
-        'features (shapefiles, rasters, polygon CSVs) will raise ImportError.'
+        'features (shapefiles, rasters) will raise ImportError.'
         % (type(_e).__name__, _e),
         stacklevel=2)
+
+
+def _geodata_msg():
+    msg = ('Failed to import fiona rasterio or shapely --'
+           'perhaps geodata python interface is not installed.')
+    if spatial_import_error is not None:
+        msg += ' (root cause: %s: %s)' % (
+            type(spatial_import_error).__name__, spatial_import_error)
+    return msg
+
+
+# The CSV readers need only numpy, so they stay available without the
+# geodata interface; only shapefile input needs fiona.
+def read_csv_optional_header(filename):
+    """Read a csv file of numbers, which optionally has a single header
+        row containing alphabetical characters (which is ignored if it
+        exists)
+
+        INPUT:
+        @param filename -- name of appropriate file with ',' delimiter
+
+        OUTPUT:
+        A numpy array with the numeric data
+    """
+
+    f=open(filename)
+    firstLine=f.readline()
+    f.close()
+    hasLetters=any(c.isalpha() for c in firstLine)
+    outPol = numpy.genfromtxt(
+        filename, delimiter=',',skip_header=int(hasLetters))
+
+    return outPol
+
+###########################################################################
+def read_polygon(filename, close_polygon_shapefiles=False):
+    """
+
+    Read a shapefile (polygon or line) or a csv file as an anuga polygon
+
+    In the case of a csv file, we permit either 1 or 0 header rows, and
+    the file can have > 2 columns [but only the first 2 are used]
+
+    Try to automatically do the correct thing based on the filename
+
+    """
+    # Check the file exists
+    msg= 'Could not read '+ filename
+    assert os.path.isfile(filename), msg
+
+    # Get the file extension type
+    fileNameNoExtension , fileExtension = os.path.splitext(filename)
+
+    if fileExtension == '.shp':
+        if not spatial_available:
+            raise ImportError(_geodata_msg())
+        # Read as either a polygon or line shapefile
+        try:
+            outPol=readShp_1PolyGeo(filename, dropLast = (not close_polygon_shapefiles))
+            assert len(outPol)>1
+        except Exception:
+            try:
+                outPol= readShp_1LineGeo(filename)
+                assert len(outPol)>1
+            except Exception:
+                msg= 'Could not read '+ filename +\
+                     ' as either polygon or line shapefile'
+                raise Exception(msg)
+    else:
+        try:
+            outPol = read_csv_optional_header(filename)
+            # Only take the first 2 columns
+            outPol = outPol[:,0:2].tolist()
+        except Exception:
+            msg = 'Failed reading polygon '+ filename +\
+                  ' with anuga.utilities.spatialInputUtils.read_polygon'
+            raise Exception(msg)
+
+    return outPol
 
 
 #####################################
@@ -147,71 +226,6 @@ if spatial_available:
 
         return line_all
 
-    ###########################################################################
-    def read_csv_optional_header(filename):
-        """Read a csv file of numbers, which optionally has a single header
-            row containing alphabetical characters (which is ignored if it
-            exists)
-
-            INPUT:
-            @param filename -- name of appropriate file with ',' delimiter
-
-            OUTPUT:
-            A numpy array with the numeric data
-        """
-
-        f=open(filename)
-        firstLine=f.readline()
-        f.close()
-        hasLetters=any(c.isalpha() for c in firstLine)
-        outPol = numpy.genfromtxt(
-            filename, delimiter=',',skip_header=int(hasLetters))
-
-        return outPol
-
-    ###########################################################################
-    def read_polygon(filename, close_polygon_shapefiles=False):
-        """
-
-        Read a shapefile (polygon or line) or a csv file as an anuga polygon
-
-        In the case of a csv file, we permit either 1 or 0 header rows, and
-        the file can have > 2 columns [but only the first 2 are used]
-
-        Try to automatically do the correct thing based on the filename
-
-        """
-        # Check the file exists
-        msg= 'Could not read '+ filename
-        assert os.path.isfile(filename), msg
-
-        # Get the file extension type
-        fileNameNoExtension , fileExtension = os.path.splitext(filename)
-
-        if fileExtension == '.shp':
-            # Read as either a polygon or line shapefile
-            try:
-                outPol=readShp_1PolyGeo(filename, dropLast = (not close_polygon_shapefiles))
-                assert len(outPol)>1
-            except Exception:
-                try:
-                    outPol= readShp_1LineGeo(filename)
-                    assert len(outPol)>1
-                except Exception:
-                    msg= 'Could not read '+ filename +\
-                         ' as either polygon or line shapefile'
-                    raise Exception(msg)
-        else:
-            try:
-                outPol = read_csv_optional_header(filename)
-                # Only take the first 2 columns
-                outPol = outPol[:,0:2].tolist()
-            except Exception:
-                msg = 'Failed reading polygon '+ filename +\
-                      ' with anuga.utilities.spatialInputUtils.read_polygon'
-                raise Exception(msg)
-
-        return outPol
 
     ####################
 
@@ -1256,12 +1270,6 @@ else: # spatial_available == False
         raise ImportError(msg)
 
     def readShp_1LineGeo(shapefile):
-        raise ImportError(msg)
-
-    def read_csv_optional_header(filename):
-        raise ImportError(msg)
-
-    def read_polygon(filename):
         raise ImportError(msg)
 
     def readShpPtsAndAttributes(shapefile):

@@ -16,8 +16,8 @@ downloaded and run locally; the script example is also available in the
    script_simple_example
    notebook_simple_example
    notebook_create_domain_from_regions
+   notebook_create_domain_from_dem
    notebook_create_domain_with_riverwalls
-   notebook_flooding_example
    notebook_tsunami_benchmark
    notebook_sediment_transport
 
@@ -46,18 +46,20 @@ downloaded and run locally; the script example is also available in the
        Demonstrates mesh refinement with ``maximum_triangle_area`` and
        multi-tag boundary assignment.
      - Intermediate
+   * - :doc:`Domain from a DEM <notebook_create_domain_from_dem>`
+     - Real-world urban flood model of Merewether, Newcastle (NSW): houses
+       as holes, an ``Inlet_operator`` inflow, a depth animation, and results
+       checked against observations with ``SWW_plotter``. The mesh is sized
+       from the DEM's flow paths with ``create_domain_from_dem`` and compared
+       with a uniform mesh: a quarter of the triangles, twice the timestep,
+       the same flood levels at the observation points.
+     - Intermediate
    * - :doc:`Domain with riverwalls <notebook_create_domain_with_riverwalls>`
      - Adds infinitely-thin levee/riverwall structures to a mesh using
        ``breaklines`` (to align triangle edges with the wall) and
        ``create_riverwalls``.  Compares flow with and without the wall in
        place.
      - Intermediate
-   * - :doc:`Flooding example <notebook_flooding_example>`
-     - Real-world urban flood model of Merewether, Newcastle (NSW) driven
-       by DEM topography, an ``Inlet_operator`` hydrograph, and building
-       exclusion polygons.  Results are compared against benchmark
-       observational data using ``SWW_plotter``.
-     - Advanced
    * - :doc:`Tsunami benchmark <notebook_tsunami_benchmark>`
      - Okushiri Island tsunami runup (IWTS Benchmark 2) with incoming wave
        specified via

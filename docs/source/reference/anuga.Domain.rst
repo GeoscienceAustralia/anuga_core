@@ -114,6 +114,7 @@
       ~Domain.get_starttime
       ~Domain.get_store
       ~Domain.get_store_centroids
+      ~Domain.get_tangential_upwind
       ~Domain.get_tagged_elements
       ~Domain.get_time
       ~Domain.get_timestep
@@ -226,6 +227,7 @@
       ~Domain.set_store_centroids
       ~Domain.set_store_vertices_smoothly
       ~Domain.set_store_vertices_uniquely
+      ~Domain.set_tangential_upwind
       ~Domain.set_tag_region
       ~Domain.set_time
       ~Domain.set_timestepping_method
@@ -244,6 +246,8 @@
       ~Domain.statistics
       ~Domain.store_timestep
       ~Domain.sww_merge
+      ~Domain.sync_elevation_to_device
+      ~Domain.sync_friction_to_device
       ~Domain.timestepping_statistics
       ~Domain.tripcolor
       ~Domain.triplot

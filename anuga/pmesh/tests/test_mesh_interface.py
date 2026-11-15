@@ -4,11 +4,13 @@
 import tempfile
 import unittest
 import os
+import numpy
 import pytest
 
 from anuga.pmesh.mesh import import_mesh_from_file
 from anuga.pmesh.mesh_interface import create_pmesh_from_regions
-from anuga.pmesh.mesh_interface import _create_pmesh_from_regions
+from anuga.pmesh.mesh_interface import _create_pmesh_from_regions, PolygonError
+from anuga.geometry.polygon import polygon_outlines_cross
 from anuga.load_mesh.loadASCII import *
 from anuga.geometry.polygon import is_inside_polygon
 from anuga.coordinate_transforms.geo_reference import Geo_reference,DEFAULT_ZONE
@@ -1000,7 +1002,290 @@ END\n')
             msg = 'Segment out of bounds not caught '
             raise Exception(msg)
 
+class TestCrossingOutlines:
+    """Interior region and hole outlines must not cross (issue #497)"""
+
+    bounding = [[0., 0.], [20., 0.], [20., 10.], [0., 10.]]
+    town = [[8., 3.], [12., 3.], [12., 7.], [8., 7.]]
+    crossing = [[10., 5.], [15., 5.], [15., 8.], [10., 8.]]
+    nested = [[9., 4.], [11., 4.], [11., 6.], [9., 6.]]
+    separate = [[14., 3.], [16., 3.], [16., 7.], [14., 7.]]
+    shares_edge = [[12., 3.], [15., 3.], [15., 7.], [12., 7.]]
+
+    def mesh(self, regions=None, holes=None):
+        return _create_pmesh_from_regions(self.bounding,
+                                          {'all': [0, 1, 2, 3]},
+                                          maximum_triangle_area=1.0,
+                                          interior_regions=regions,
+                                          interior_holes=holes,
+                                          verbose=False)
+
+    def test_crossing_regions_raise_in_either_order(self):
+        for a, b in ((self.town, self.crossing), (self.crossing, self.town)):
+            with pytest.raises(PolygonError, match='size_field_from_regions'):
+                self.mesh(regions=[(a, 0.1), (b, 0.5)])
+
+    def test_message_names_the_two_polygons(self):
+        with pytest.raises(PolygonError, match=r'interior_regions\[0\] and interior_regions\[2\]'):
+            self.mesh(regions=[(self.town, 0.1), (self.separate, 0.1), (self.crossing, 0.5)])
+
+    def test_crossing_with_no_vertex_inside_the_other_raises(self):
+        wide = [[6., 4.], [14., 4.], [14., 6.], [6., 6.]]
+        tall = [[9., 1.], [11., 1.], [11., 9.], [9., 9.]]
+        with pytest.raises(PolygonError):
+            self.mesh(regions=[(wide, 0.1), (tall, 0.5)])
+
+    def test_edge_through_a_vertex_raises(self):
+        # Two edges enter town exactly through its corners (12, 3) and (12, 7)
+        through = [[13., 2.], [10., 5.], [13., 8.]]
+        assert polygon_outlines_cross(self.town, through)
+        assert polygon_outlines_cross(through, self.town)
+
+    def test_inside_and_touching_at_corners_does_not_cross(self):
+        diamond = [[10., 1.], [14., 5.], [10., 9.], [6., 5.]]
+        assert not polygon_outlines_cross(self.town, diamond)
+
+    def test_crossing_holes_raise(self):
+        with pytest.raises(PolygonError, match='interior_holes'):
+            self.mesh(holes=[self.town, self.crossing])
+
+    def test_hole_crossing_a_region_raises(self):
+        with pytest.raises(PolygonError, match='interior_regions.*interior_holes'):
+            self.mesh(regions=[(self.town, 0.1)], holes=[self.crossing])
+
+    def test_polygons_that_do_not_cross_are_accepted(self):
+        self.mesh(regions=[(self.town, 0.1), (self.nested, 0.05)])
+        self.mesh(regions=[(self.nested, 0.05), (self.town, 0.1)])
+        self.mesh(regions=[(self.town, 0.1), (self.separate, 0.1)])
+        self.mesh(regions=[(self.town, 0.1), (self.shares_edge, 0.1)])
+        self.mesh(regions=[(self.town, 0.1)], holes=[self.separate])
+        self.mesh(regions=[(self.town, 0.1)], holes=[self.nested])
+        self.mesh(regions=[(self.nested, 0.1)], holes=[self.town])
+
+    def test_touching_outlines_do_not_cross(self):
+        corner = [[12., 7.], [15., 7.], [15., 9.], [12., 9.]]
+        part_of_edge = [[12., 4.], [15., 4.], [15., 6.], [12., 6.]]
+        for other in (self.shares_edge, corner, part_of_edge):
+            assert not polygon_outlines_cross(self.town, other)
+            assert not polygon_outlines_cross(other, self.town)
+
+    def test_large_utm_coordinates(self):
+        shift = numpy.array([500000., 6200000.])
+        town = numpy.array(self.town) + shift
+        assert polygon_outlines_cross(town, numpy.array(self.crossing) + shift)
+        assert not polygon_outlines_cross(town, numpy.array(self.shares_edge) + shift)
+        assert not polygon_outlines_cross(town, numpy.array(self.nested) + shift)
+
+
 ################################################################################
+
+
+class TestNestedSeedPoints:
+    """A region's or hole's seed point must not fall inside a polygon nested
+    in it, or the nested polygon takes its area (issue #504)"""
+
+    bounding = [[0., 0.], [20., 0.], [20., 10.], [0., 10.]]
+    tags = {'bottom': [0], 'right': [1], 'top': [2], 'left': [3]}
+    outer = [[8., 3.], [12., 3.], [12., 7.], [8., 7.]]
+    # Includes the first vertex of outer
+    inner = [[8., 3.], [10., 3.], [10., 5.], [8., 5.]]
+    # Includes the first vertex of the bounding polygon
+    corner = [[0., 0.], [3., 0.], [3., 3.], [0., 3.]]
+    small_hole = [[8., 3.], [9., 3.], [9., 4.], [8., 4.]]
+
+    def domain(self, shift=(0., 0.), **kwargs):
+        import anuga
+        def move(polygon):
+            return [[x + shift[0], y + shift[1]] for x, y in polygon]
+        for key in ('interior_regions',):
+            if key in kwargs:
+                kwargs[key] = [(move(p), r) for p, r in kwargs[key]]
+        if 'interior_holes' in kwargs:
+            kwargs['interior_holes'] = [move(p) for p in kwargs['interior_holes']]
+        domain = anuga.create_domain_from_regions(move(self.bounding), self.tags,
+                                                  verbose=False, **kwargs)
+        domain.test_shift = numpy.array(shift)
+        return domain
+
+    def largest(self, domain, polygon, without=()):
+        """Largest triangle with its centroid in polygon but not in without"""
+        from anuga.geometry.polygon import inside_polygon
+        c = domain.get_centroid_coordinates(absolute=True)
+        shift = domain.test_shift
+        inside = numpy.zeros(len(c), bool)
+        inside[inside_polygon(c, numpy.array(polygon) + shift)] = True
+        for other in without:
+            inside[inside_polygon(c, numpy.array(other) + shift)] = False
+        assert inside.any()
+        return domain.areas[inside].max()
+
+    def test_inner_region_at_outer_first_vertex(self):
+        for regions in ([(self.outer, 0.05), (self.inner, 0.01)],
+                        [(self.inner, 0.01), (self.outer, 0.05)]):
+            domain = self.domain(maximum_triangle_area=0.2,
+                                 interior_regions=regions)
+            assert self.largest(domain, self.outer, [self.inner]) <= 0.05
+            assert self.largest(domain, self.inner) <= 0.01
+
+    def test_region_at_bounding_first_vertex(self):
+        domain = self.domain(maximum_triangle_area=0.2,
+                             interior_regions=[(self.corner, 5.0)])
+        assert self.largest(domain, self.bounding, [self.corner]) <= 0.2
+
+    def test_hole_at_region_first_vertex(self):
+        domain = self.domain(maximum_triangle_area=0.2,
+                             interior_regions=[(self.outer, 0.05)],
+                             interior_holes=[self.small_hole])
+        assert self.largest(domain, self.outer) <= 0.05
+        assert numpy.allclose(domain.areas.sum(), 199.0)
+
+    def test_hole_at_bounding_first_vertex(self):
+        domain = self.domain(maximum_triangle_area=0.2,
+                             interior_holes=[self.corner])
+        assert domain.areas.max() <= 0.2
+        assert numpy.allclose(domain.areas.sum(), 191.0)
+
+    def test_utm_coordinates(self):
+        domain = self.domain(shift=(300000., 6180000.),
+                             maximum_triangle_area=0.2,
+                             interior_regions=[(self.outer, 0.05),
+                                               (self.inner, 0.01)])
+        assert self.largest(domain, self.outer, [self.inner]) <= 0.05
+        assert self.largest(domain, self.bounding, [self.outer]) <= 0.2
+
+    def test_geo_referenced_polygons(self):
+        # Polygons given relative to poly_geo_reference
+        geo = Geo_reference(zone=56, xllcorner=300000., yllcorner=6180000.)
+        m = _create_pmesh_from_regions(self.bounding, self.tags,
+                                       maximum_triangle_area=0.2,
+                                       interior_regions=[(self.outer, 0.05),
+                                                         (self.inner, 0.01)],
+                                       poly_geo_reference=geo,
+                                       verbose=False)
+        seeds = [(r.x, r.y, r.get_max_area()) for r in m.regions
+                 if r.get_max_area() is not None]
+        assert sorted(area for x, y, area in seeds) == [0.01, 0.05, 0.2]
+        outer = numpy.array(self.outer)
+        inner = numpy.array(self.inner)
+        for x, y, area in seeds:
+            # Seeds are relative to the mesh geo_reference
+            [[x, y]] = m.geo_reference.get_absolute([[x, y]])
+            x -= 300000.
+            y -= 6180000.
+            if area == 0.05:
+                assert is_inside_polygon([x, y], outer, closed=False)
+                assert not is_inside_polygon([x, y], inner)
+
+
+class TestBreaklineAreaLimit(unittest.TestCase):
+    """#511: breaklines from boundary to boundary used to drop the area limit
+    beyond them."""
+
+    @staticmethod
+    def _cell_areas(m):
+        pts = numpy.array(m.get_mesh_vertices())
+        P = pts[numpy.array(m.get_triangulation())]
+        area = 0.5 * numpy.abs((P[:, 1, 0] - P[:, 0, 0]) * (P[:, 2, 1] - P[:, 0, 1])
+                               - (P[:, 2, 0] - P[:, 0, 0]) * (P[:, 1, 1] - P[:, 0, 1]))
+        return P.mean(axis=1), area
+
+    _BOX = [[0.0, 0.0], [100.0, 0.0], [100.0, 30.0], [0.0, 30.0]]
+    _TAGS = {'bottom': [0], 'right': [1], 'top': [2], 'left': [3]}
+
+    def test_breaklines_across_domain_keep_maximum_area(self):
+        breaklines = [[[0.0, 10.0], [100.0, 10.0]], [[0.0, 20.0], [100.0, 20.0]]]
+        m = create_pmesh_from_regions(self._BOX, self._TAGS, maximum_triangle_area=1.0,
+                                      breaklines=breaklines)
+        m.generate_mesh(verbose=False)
+        c, area = self._cell_areas(m)
+        for lo, hi in ((0, 10), (10, 20), (20, 30)):
+            strip = (c[:, 1] > lo) & (c[:, 1] < hi)
+            assert strip.sum() > 0
+            assert area[strip].max() <= 1.0 + 1e-9, (lo, hi, area[strip].max())
+
+    def test_coarse_interior_region_stays_coarse(self):
+        # The global limit must not refine a region coarser than the default
+        coarse = [[[50.0, 0.0], [100.0, 0.0], [100.0, 30.0], [50.0, 30.0]], 25.0]
+        m = create_pmesh_from_regions(self._BOX, self._TAGS, maximum_triangle_area=1.0,
+                                      interior_regions=[coarse])
+        m.generate_mesh(verbose=False)
+        c, area = self._cell_areas(m)
+        assert area[c[:, 0] < 50].max() <= 1.0 + 1e-9
+        assert 5.0 < area[c[:, 0] > 50].max() <= 25.0 + 1e-9
+        assert m.default_maximum_triangle_area == 25.0
+
+    def test_area_limit_in_exponent_notation(self):
+        # str(1e20) is '1e+20', and Triangle read 'a1e+20' as a limit of 1
+        # (the weir_1 validation mesh went from 2 219 to 16 129 triangles).
+        breaklines = [[[50.0, 0.0], [50.0, 30.0]]]
+        m = create_pmesh_from_regions(self._BOX, self._TAGS, maximum_triangle_area=1.0e20,
+                                      breaklines=breaklines,
+                                      regionPtArea=[[25.0, 15.0, 50.0], [75.0, 15.0, 50.0]])
+        m.generate_mesh(verbose=False)
+        c, area = self._cell_areas(m)
+        assert 10.0 < area.max() <= 50.0 + 1e-9, area.max()
+
+    def test_breaklines_across_domain_via_create_domain(self):
+        import anuga
+        domain = anuga.create_domain_from_regions(
+            self._BOX, self._TAGS, maximum_triangle_area=1.0,
+            breaklines=[[[0.0, 10.0], [100.0, 10.0]]])
+        assert domain.areas.max() <= 1.0 + 1e-9
+
+
+class TestCreateDomainMeshFilename:
+    """mesh_filename writes the mesh the domain is built on (#506)."""
+
+    _BOX = [[0.0, 0.0], [100.0, 0.0], [100.0, 30.0], [0.0, 30.0]]
+    _TAGS = {'bottom': [0], 'right': [1], 'top': [2], 'left': [3]}
+
+    def _check_file_matches(self, domain, filename):
+        import anuga
+        assert os.path.exists(filename)
+        from_file = anuga.create_domain_from_file(filename)
+        assert from_file.number_of_triangles == domain.number_of_triangles
+        numpy.testing.assert_allclose(
+            from_file.get_vertex_coordinates(absolute=True),
+            domain.get_vertex_coordinates(absolute=True))
+        assert (sorted(from_file.get_boundary_tags())
+                == sorted(domain.get_boundary_tags()))
+
+    @pytest.mark.parametrize('ext', ['.msh', '.tsh'])
+    def test_regions_writes_mesh(self, tmp_path, ext):
+        import anuga
+        filename = str(tmp_path / ('mesh' + ext))
+        inner = [[40.0, 10.0], [60.0, 10.0], [60.0, 20.0], [40.0, 20.0]]
+        domain = anuga.create_domain_from_regions(
+            self._BOX, self._TAGS, maximum_triangle_area=20.0,
+            interior_regions=[[inner, 2.0]], mesh_filename=filename)
+        self._check_file_matches(domain, filename)
+
+    def test_regions_writes_relaxed_mesh(self, tmp_path):
+        # The file is written after relaxation, so it is the domain's mesh.
+        import anuga
+        filename = str(tmp_path / 'mesh.msh')
+        hole = [[40.0, 10.0], [60.0, 10.0], [60.0, 20.0], [40.0, 20.0]]
+        domain = anuga.create_domain_from_regions(
+            self._BOX, self._TAGS, maximum_triangle_area=20.0,
+            interior_holes=[hole], relax_passes=5, mesh_filename=filename)
+        self._check_file_matches(domain, filename)
+
+    def test_regions_writes_nothing_by_default(self, tmp_path, monkeypatch):
+        import anuga
+        monkeypatch.chdir(tmp_path)
+        anuga.create_domain_from_regions(self._BOX, self._TAGS,
+                                         maximum_triangle_area=20.0)
+        assert os.listdir(tmp_path) == []
+
+    def test_dem_writes_mesh(self, tmp_path):
+        import anuga
+        filename = str(tmp_path / 'mesh.msh')
+        x = numpy.linspace(0.0, 100.0, 51)
+        y = numpy.linspace(0.0, 30.0, 16)
+        Z = 0.01 * x[:, None] + 0.05 * numpy.abs(y[None, :] - 15.0)
+        domain = anuga.create_domain_from_dem(
+            (x, y, Z), maximum_triangle_area=20.0, mesh_filename=filename)
+        self._check_file_matches(domain, filename)
 
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestCase)

@@ -804,3 +804,10 @@ The bed update runs in a pass of its own (pass 3): the Rusanov term reads the
 neighbour's bed elevation, so writing the bed inside the divergence loop made
 the two sides of an edge see different states and broke conservation. Any
 future term that reads a neighbour's bed must keep that separation.
+
+### nvc: local arrays written in a kernel's inner scope can hang at run time
+
+In `core_extrapolate_edge_pass_on`, local `double x[3]` arrays filled conditionally
+inside the target loop (and passed on by pointer) made nvc copy them on every call:
+the process spins in `cuMemcpyHtoDAsync` on host address 0x1, with the GPU idle and
+no error. It only shows on a GPU build, and looks like a hang. Use plain scalars.

@@ -368,8 +368,15 @@ void gpu_exchange_ghosts(struct gpu_domain *GD) {
 // The per-step exchange above carries the conserved quantities and tracers
 // but not elevation, so under bedload -- whose update of a cell reads its
 // neighbours, and an outer ghost lacks some -- ghost beds drifted from their
-// owners'. Reuses the halo buffers, one value per cell (their stride is >= 3),
-// with its own tag. Called after the sediment step when the bed evolves.
+// owners'. Reuses the halo buffers, three values per cell (their stride is
+// >= 3), with its own tag. Called after the sediment step when the bed evolves.
+//
+// The momentum goes with the bed. A bed change scales the momentum of the
+// cell it lands on (core_shift_bed), so a ghost that computed the wrong bed
+// change also scaled its momentum wrongly, and the next step's fluxes across
+// the partition boundary saw it: the two ranks disagreed about the flux and
+// sediment mass leaked (6e-5 of the eroded volume in
+// test_parallel_sediment_mass's unified bedload case).
 void gpu_exchange_bed_ghosts(struct gpu_domain *GD) {
     struct halo_exchange *H = &GD->halo;
     if (H->num_neighbors == 0) return;
@@ -378,6 +385,8 @@ void gpu_exchange_bed_ghosts(struct gpu_domain *GD) {
     int recv_size = H->total_recv_size;
     double *bed_cv = GD->D.bed_centroid_values;
     double *bed_ev = GD->D.bed_edge_values;
+    double *xmom = GD->D.xmom_centroid_values;
+    double *ymom = GD->D.ymom_centroid_values;
     double *send_buf = H->send_buffer;
     double *recv_buf = H->recv_buffer;
     int *flat_send = H->flat_send_indices;
@@ -390,7 +399,10 @@ void gpu_exchange_bed_ghosts(struct gpu_domain *GD) {
     OMP_PARALLEL_LOOP
 #endif
     for (int idx = 0; idx < send_size; idx++) {
-        send_buf[idx] = bed_cv[flat_send[idx]];
+        const int k = flat_send[idx];
+        send_buf[3 * idx + 0] = bed_cv[k];
+        send_buf[3 * idx + 1] = xmom[k];
+        send_buf[3 * idx + 2] = ymom[k];
     }
 
 #ifdef GPU_AWARE_MPI
@@ -399,44 +411,44 @@ void gpu_exchange_bed_ghosts(struct gpu_domain *GD) {
         double *host_recv = H->host_recv_buffer;
         int host = omp_get_initial_device();
         int dev  = omp_get_default_device();
-        omp_target_memcpy(host_send, send_buf, send_size * sizeof(double),
+        omp_target_memcpy(host_send, send_buf, 3 * send_size * sizeof(double),
                           0, 0, host, dev);
         int req_count = 0, send_offset = 0, recv_offset = 0;
         for (int ni = 0; ni < H->num_neighbors; ni++) {
             int count = H->recv_counts[ni];
-            MPI_Irecv(&host_recv[recv_offset], count, MPI_DOUBLE,
+            MPI_Irecv(&host_recv[3 * recv_offset], 3 * count, MPI_DOUBLE,
                       H->neighbor_ranks[ni], tag, GD->comm, &H->requests[req_count++]);
             recv_offset += count;
         }
         for (int ni = 0; ni < H->num_neighbors; ni++) {
             int count = H->send_counts[ni];
-            MPI_Isend(&host_send[send_offset], count, MPI_DOUBLE,
+            MPI_Isend(&host_send[3 * send_offset], 3 * count, MPI_DOUBLE,
                       H->neighbor_ranks[ni], tag, GD->comm, &H->requests[req_count++]);
             send_offset += count;
         }
         MPI_Waitall(req_count, H->requests, MPI_STATUSES_IGNORE);
-        omp_target_memcpy(recv_buf, host_recv, recv_size * sizeof(double),
+        omp_target_memcpy(recv_buf, host_recv, 3 * recv_size * sizeof(double),
                           0, 0, dev, host);
     }
 #else
-    #pragma omp target update from(send_buf[0:send_size])
+    #pragma omp target update from(send_buf[0:3 * send_size])
     {
         int req_count = 0, send_offset = 0, recv_offset = 0;
         for (int ni = 0; ni < H->num_neighbors; ni++) {
             int count = H->recv_counts[ni];
-            MPI_Irecv(&recv_buf[recv_offset], count, MPI_DOUBLE,
+            MPI_Irecv(&recv_buf[3 * recv_offset], 3 * count, MPI_DOUBLE,
                       H->neighbor_ranks[ni], tag, GD->comm, &H->requests[req_count++]);
             recv_offset += count;
         }
         for (int ni = 0; ni < H->num_neighbors; ni++) {
             int count = H->send_counts[ni];
-            MPI_Isend(&send_buf[send_offset], count, MPI_DOUBLE,
+            MPI_Isend(&send_buf[3 * send_offset], 3 * count, MPI_DOUBLE,
                       H->neighbor_ranks[ni], tag, GD->comm, &H->requests[req_count++]);
             send_offset += count;
         }
         MPI_Waitall(req_count, H->requests, MPI_STATUSES_IGNORE);
     }
-    #pragma omp target update to(recv_buf[0:recv_size])
+    #pragma omp target update to(recv_buf[0:3 * recv_size])
 #endif
 
 #ifdef GPU_AWARE_MPI
@@ -446,10 +458,12 @@ void gpu_exchange_bed_ghosts(struct gpu_domain *GD) {
 #endif
     for (int idx = 0; idx < recv_size; idx++) {
         int k = flat_recv[idx];
-        double shift = recv_buf[idx] - bed_cv[k];
-        bed_cv[k] = recv_buf[idx];
+        double shift = recv_buf[3 * idx] - bed_cv[k];
+        bed_cv[k] = recv_buf[3 * idx];
         bed_ev[3 * k + 0] += shift;
         bed_ev[3 * k + 1] += shift;
         bed_ev[3 * k + 2] += shift;
+        xmom[k] = recv_buf[3 * idx + 1];
+        ymom[k] = recv_buf[3 * idx + 2];
     }
 }

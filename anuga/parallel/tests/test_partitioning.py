@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 import pytest
 import numpy as np
 
@@ -131,3 +134,64 @@ def test_hilbert_order_from_points_all_same():
     order = hilbert_order_from_points(points)
     assert len(order) == 3
     assert np.array_equal(np.sort(order), np.arange(3))
+
+
+# ---------------------------------------------------------------------------
+# pymetis is optional: pip does not install it on Windows
+# ---------------------------------------------------------------------------
+
+def _small_domain():
+    import anuga
+    domain = anuga.rectangular_cross_domain(4, 4)
+    domain.set_name('test_no_pymetis')
+    domain.set_store(False)
+    domain.set_quantity('elevation', 0.0)
+    domain.set_quantity('stage', 1.0)
+    domain.set_boundary({'left': anuga.Reflective_boundary(domain),
+                         'right': anuga.Reflective_boundary(domain),
+                         'top': anuga.Reflective_boundary(domain),
+                         'bottom': anuga.Reflective_boundary(domain)})
+    return domain
+
+
+def test_without_pymetis_metis_partition_says_what_to_do(monkeypatch):
+    from anuga.parallel.partitioning import metis_partition
+    domain = _small_domain()
+    monkeypatch.setitem(sys.modules, 'pymetis', None)   # makes the import fail
+
+    with pytest.raises(ImportError, match='conda-forge pymetis.*hilbert'):
+        metis_partition(domain, 2)
+
+
+def test_without_pymetis_one_part_and_other_schemes_still_work(monkeypatch):
+    from anuga.parallel.partitioning import (metis_partition, hilbert_partition,
+                                             morton_partition, rcm_partition,
+                                             reorder_domain)
+    domain = _small_domain()
+    n_tri = domain.number_of_triangles
+    monkeypatch.setitem(sys.modules, 'pymetis', None)
+
+    order, counts = metis_partition(domain, 1)
+    assert np.array_equal(order, np.arange(n_tri))
+    assert list(counts) == [n_tri]
+
+    for partition in (hilbert_partition, morton_partition, rcm_partition):
+        order, counts = partition(domain, 2)
+        assert np.array_equal(np.sort(order), np.arange(n_tri))
+        assert sum(counts) == n_tri
+
+    reorder_domain(domain, method='hilbert')
+
+
+def test_without_pymetis_serial_run_works(monkeypatch):
+    monkeypatch.setitem(sys.modules, 'pymetis', None)
+    domain = _small_domain()
+    for _ in domain.evolve(yieldstep=0.1, finaltime=0.1):
+        pass
+    assert domain.get_time() == pytest.approx(0.1)
+
+
+def test_import_anuga_without_pymetis():
+    code = "import sys; sys.modules['pymetis'] = None; import anuga; print(anuga.__version__)"
+    result = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

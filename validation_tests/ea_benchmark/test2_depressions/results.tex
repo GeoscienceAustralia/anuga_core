@@ -1,0 +1,58 @@
+\section{EA Test 2: filling of floodplain depressions}
+
+Test~2 of the Environment Agency benchmark \cite{NeelzPender2013} asks
+for the inundation extent and final depths after low-momentum flow over a
+complex topography. A 2000~m $\times$ 2000~m square holds a $4 \times 4$
+grid of identical depressions about 0.5~m deep, on an average slope of
+1:1500 to the south and 1:3000 to the east
+(Figure~\ref{fig:ea2_setup}). An inflow rising to 20~m$^3$/s, held until
+86~min and stopped at 91~min (97,200~m$^3$ in all) enters along the
+100~m of the western edge below the north-western corner. All edges are
+closed and the bed starts dry. Manning's $n = 0.03$, the specified
+resolution is 20~m (here triangles of at most 400~m$^2$, 15,366 in all),
+and the run lasts 48~h. The depressions are numbered in columns from the
+south-west corner.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 2: ground level (contours every 0.1~m), the inflow line
+and the centres of the 16 depressions, and the inflow.}
+\label{fig:ea2_setup}
+\end{figure}
+
+In the report (Section~4.3.3) the full shallow-water packages agreed on
+the outcome. A transient peak forms near the inflow, about 0.2~m above
+the final level at point~4, 0.1~m at points 3 and 8 and 0.05~m at points
+2 and 7. Depressions 1--4 and 6--8 overflow and drain back to the lowest
+sill out of each; depressions 5, 10, 11 and 12 receive too little water to
+fill; 13--16 stay dry. The final levels differed by a few centimetres at
+most. The test separates the packages that carry momentum, whose flow
+reaches depressions 10--12 to the east, from those that do not, whose
+flow follows the steepest slope south and leaves them dry. \anuga{}
+reproduces all of this. Its final levels in depressions 1--4 and 6--8
+lie 4--12~mm above their sills (computed from the DEM), as they drain
+slowly; at points 1--4, 7, 8, 11 and 12 they lie within 11~mm of the
+range of TUFLOW's five current solvers \cite{BMT2017}. Point~5 ends
+2~cm below TUFLOW's range, but it is still filling at 48~h, as it was
+for every package. On a mesh four times finer (100~m$^2$, 61,601
+triangles) the final levels move by at most 12~mm (at point~5) and by
+under 2~mm elsewhere. The checks (Figure~\ref{fig:ea2_checks}) are the
+volume balance, these outcomes and a stored baseline per flow algorithm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 2: water level at the centres of the 16 depressions,
+laid out as on the map.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 2: the checks and their outcome.}
+\label{fig:ea2_checks}
+\end{figure}

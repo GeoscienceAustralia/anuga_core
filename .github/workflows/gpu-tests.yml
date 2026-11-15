@@ -48,7 +48,7 @@ jobs:
       run:
         shell: bash -leo pipefail {0}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Show the hardware and toolchain the job got
         run: |

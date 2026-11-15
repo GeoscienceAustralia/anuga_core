@@ -586,12 +586,17 @@ void gpu_domain_sync_all_from_device(struct gpu_domain *GD);  // Debug: sync ALL
 
 // Sync boundary values TO GPU (after CPU boundary evaluation)
 void gpu_sync_boundary_values(struct gpu_domain *GD);
+void gpu_sync_boundary_values_from_device(struct gpu_domain *GD);
 
 // Sync riverwall crest elevations / hydraulic properties TO GPU (after a
 // host-side RiverWall.set_elevation() and friends)
 void gpu_sync_riverwall_to_device(struct gpu_domain *GD);
 void gpu_sync_tracer_source_to_device(struct gpu_domain *GD);
 void gpu_sync_tracer_boundary_to_device(struct gpu_domain *GD);
+// Sync friction centroid values TO GPU (after a host-side friction change)
+void gpu_sync_friction_to_device(struct gpu_domain *GD);
+// Sync bed elevation (centroid + edge) TO GPU (after a host-side bed change)
+void gpu_sync_bed_to_device(struct gpu_domain *GD);
 
 // Sync edge values FROM GPU (before CPU boundary evaluation)
 void gpu_sync_edge_values_from_device(struct gpu_domain *GD);
@@ -703,7 +708,9 @@ double gpu_rate_operator_apply_array(struct gpu_domain *GD, int op_id,
                                      double factor, double timestep);
 
 // Max-quantities operator — GPU-resident running maxima
-int  gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_height);
+int  gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_height,
+                             const double *seed_stage, const double *seed_depth,
+                             const double *seed_speed, const double *seed_uh);
 void gpu_max_quantities_update(struct gpu_domain *GD);
 void gpu_max_quantities_get(struct gpu_domain *GD,
                             double *out_stage, double *out_depth,

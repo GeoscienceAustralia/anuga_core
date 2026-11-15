@@ -1,0 +1,49 @@
+\section{EA Test 4: speed of flood propagation over a floodplain}
+
+Test~4 of the Environment Agency benchmark \cite{NeelzPender2013} measures
+how fast a flood spreads over a flat floodplain. A horizontal
+1000~m~$\times$~2000~m plain, bed at 0~m, is flooded through a 20~m breach
+in the middle of its western side, with a hydrograph peaking at
+20~m$^3$/s (Figure~\ref{fig:ea4_setup}). Manning's $n = 0.05$, the
+specified resolution is 5~m (here triangles of at most 25~m$^2$, about
+123,000 in all), the walls are closed and the run lasts 5~h. Points~1--5
+lie on the breach axis at increasing distance from it; point~6 is off the
+axis, 424~m from the breach against point~5's 400~m.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.85\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 4: the floodplain, the breach and the output points, and
+the inflow.}
+\label{fig:ea4_setup}
+\end{figure}
+
+In the report the full shallow-water packages agree within a few per cent
+and take about an hour to reach points~5 and~6 (Section~4.5.4). The
+checks (Figure~\ref{fig:ea4_checks}) are the volume balance, the order in
+which the front (depth over 1~cm) reaches the points, its arrival at
+point~5 within 45--80~min, point~6 shortly after point~5, and a stored
+baseline per flow algorithm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 4: depth at the six output points.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{speed_plot.png}
+\end{center}
+\caption{EA Test 4: speed at the six output points.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 4: the checks and their outcome.}
+\label{fig:ea4_checks}
+\end{figure}

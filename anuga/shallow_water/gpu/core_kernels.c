@@ -236,6 +236,11 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
     anuga_int * restrict number_of_boundaries = D->number_of_boundaries;
     double * restrict x_centroid_work = D->x_centroid_work;
     double * restrict y_centroid_work = D->y_centroid_work;
+    anuga_int * restrict neighbours = D->neighbours;
+    anuga_int * restrict boundary_limit_mask = D->boundary_limit_mask;
+    double * restrict stage_bv = D->stage_boundary_values;
+    double * restrict xmom_bv = D->xmom_boundary_values;
+    double * restrict ymom_bv = D->ymom_boundary_values;
 
     // Generic passive tracers. n_tracers == 0 in every ordinary run; keep only
     // the loop-invariant count live in the common path.
@@ -293,9 +298,8 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
 
         double area2 = dy2 * dx1 - dy1 * dx2;
 
-        int dry = ((height_cv[k0] < minimum_allowed_height) || (k0 == k)) &&
-                  ((height_cv[k1] < minimum_allowed_height) || (k1 == k)) &&
-                  ((height_cv[sn2] < minimum_allowed_height) || (sn2 == k));
+        int dry = core_dry_among_dry_neighbours(height_cv, k, k0, k1, sn2,
+                                                minimum_allowed_height);
 
         if (dry) {
             x_centroid_work[k] = 0.0;
@@ -353,13 +357,73 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
             double inv_area2 = 1.0 / area2;
             double edge_vals[3];
 
+            // Edges whose boundary condition prescribes the value: bound them by
+            // that value, but only where the edge depth cannot come near zero.
+            int stage_edges = 0, mom_edges = 0;
+            double dq_stage0 = 0.0, dq_stage1 = 0.0, dq_stage2 = 0.0;
+            double dq_height0 = 0.0, dq_height1 = 0.0, dq_height2 = 0.0;
+            double dq_u0 = 0.0, dq_u1 = 0.0, dq_u2 = 0.0;
+            double dq_v0 = 0.0, dq_v1 = 0.0, dq_v2 = 0.0;
+            int limit_mask = (int)boundary_limit_mask[k];
+            if (limit_mask && 2.0 * fmax(hmax - hc, hc - hmin) < hc) {
+                double dz1 = bed_cv[k1] - bed_cv[k0];
+                double dz2 = bed_cv[sn2] - bed_cv[k0];
+                double az = (dy2 * dz1 - dy1 * dz2) * inv_area2;
+                double bz = (dx1 * dz2 - dx2 * dz1) * inv_area2;
+                if (limit_mask & 9) {
+                    anuga_int b = -neighbours[k3 + 0] - 1;
+                    double h_b = stage_bv[b] - (bed_cv[k] + az * dxv0 + bz * dyv0);
+                    if (h_b >= 1.0e-6 && (limit_mask & 1)) {
+                        stage_edges |= 1;
+                        dq_stage0 = stage_bv[b] - stage_cv[k];
+                        dq_height0 = h_b - hc;
+                    }
+                    if (h_b >= 1.0e-6 && (limit_mask & 8)) {
+                        mom_edges |= 1;
+                        double f = extrapolate_velocity_second_order ? 1.0 / h_b : 1.0;
+                        dq_u0 = xmom_bv[b] * f - x_centroid_work[k];
+                        dq_v0 = ymom_bv[b] * f - y_centroid_work[k];
+                    }
+                }
+                if (limit_mask & 18) {
+                    anuga_int b = -neighbours[k3 + 1] - 1;
+                    double h_b = stage_bv[b] - (bed_cv[k] + az * dxv1 + bz * dyv1);
+                    if (h_b >= 1.0e-6 && (limit_mask & 2)) {
+                        stage_edges |= 2;
+                        dq_stage1 = stage_bv[b] - stage_cv[k];
+                        dq_height1 = h_b - hc;
+                    }
+                    if (h_b >= 1.0e-6 && (limit_mask & 16)) {
+                        mom_edges |= 2;
+                        double f = extrapolate_velocity_second_order ? 1.0 / h_b : 1.0;
+                        dq_u1 = xmom_bv[b] * f - x_centroid_work[k];
+                        dq_v1 = ymom_bv[b] * f - y_centroid_work[k];
+                    }
+                }
+                if (limit_mask & 36) {
+                    anuga_int b = -neighbours[k3 + 2] - 1;
+                    double h_b = stage_bv[b] - (bed_cv[k] + az * dxv2 + bz * dyv2);
+                    if (h_b >= 1.0e-6 && (limit_mask & 4)) {
+                        stage_edges |= 4;
+                        dq_stage2 = stage_bv[b] - stage_cv[k];
+                        dq_height2 = h_b - hc;
+                    }
+                    if (h_b >= 1.0e-6 && (limit_mask & 32)) {
+                        mom_edges |= 4;
+                        double f = extrapolate_velocity_second_order ? 1.0 / h_b : 1.0;
+                        dq_u2 = xmom_bv[b] * f - x_centroid_work[k];
+                        dq_v2 = ymom_bv[b] * f - y_centroid_work[k];
+                    }
+                }
+            }
+
             // Stage
             double beta_stage = beta_w_dry + (beta_w - beta_w_dry) * hfactor;
             if (beta_stage > 0.0) {
                 gpu_calc_edge_values_with_gradient(
                     stage_cv[k], stage_cv[k0], stage_cv[k1], stage_cv[sn2],
                     dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
-                    dx1, dx2, dy1, dy2, inv_area2, beta_stage, edge_vals);
+                    dx1, dx2, dy1, dy2, inv_area2, beta_stage, stage_edges, dq_stage0, dq_stage1, dq_stage2, edge_vals);
             } else {
                 gpu_set_constant_edge_values(stage_cv[k], edge_vals);
             }
@@ -372,7 +436,7 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
                 gpu_calc_edge_values_with_gradient(
                     height_cv[k], height_cv[k0], height_cv[k1], height_cv[sn2],
                     dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
-                    dx1, dx2, dy1, dy2, inv_area2, beta_stage, edge_vals);
+                    dx1, dx2, dy1, dy2, inv_area2, beta_stage, stage_edges, dq_height0, dq_height1, dq_height2, edge_vals);
             } else {
                 gpu_set_constant_edge_values(height_cv[k], edge_vals);
             }
@@ -386,7 +450,7 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
                 gpu_calc_edge_values_with_gradient(
                     x_centroid_work[k], x_centroid_work[k0], x_centroid_work[k1], x_centroid_work[sn2],
                     dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
-                    dx1, dx2, dy1, dy2, inv_area2, beta_xmom, edge_vals);
+                    dx1, dx2, dy1, dy2, inv_area2, beta_xmom, mom_edges, dq_u0, dq_u1, dq_u2, edge_vals);
             } else {
                 gpu_set_constant_edge_values(x_centroid_work[k], edge_vals);
             }
@@ -400,7 +464,7 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
                 gpu_calc_edge_values_with_gradient(
                     y_centroid_work[k], y_centroid_work[k0], y_centroid_work[k1], y_centroid_work[sn2],
                     dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
-                    dx1, dx2, dy1, dy2, inv_area2, beta_ymom, edge_vals);
+                    dx1, dx2, dy1, dy2, inv_area2, beta_ymom, mom_edges, dq_v0, dq_v1, dq_v2, edge_vals);
             } else {
                 gpu_set_constant_edge_values(y_centroid_work[k], edge_vals);
             }
@@ -424,7 +488,7 @@ void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
                         gpu_calc_edge_values_with_gradient(
                             t_cv[off + k], t_cv[off + k0], t_cv[off + k1], t_cv[off + sn2],
                             dxv0, dxv1, dxv2, dyv0, dyv1, dyv2,
-                            dx1, dx2, dy1, dy2, inv_area2, beta_t, edge_vals);
+                            dx1, dx2, dy1, dy2, inv_area2, beta_t, 0, 0.0, 0.0, 0.0, edge_vals);
                     } else {
                         gpu_set_constant_edge_values(t_cv[off + k], edge_vals);
                     }
@@ -848,6 +912,45 @@ static inline double core_vegetation_sediment_fc(anuga_int veg_shear, double h,
     const double r = Cv_r / Cv;
     return g * r * r / (Cb * Cb);
 }
+
+// Move cell k's bed by dz, holding the stage, as every sediment kernel does.
+//
+// Holding w makes the depth h = w - z change by -dz, and the momentum must
+// follow it or the velocity uh/h does not survive the step. A deposit dz
+// close to the depth of a thin film leaves the film nearly gone but carrying
+// its full momentum: on the Zaragoza pier case under DE0 one bedload step put
+// 0.088 mm of sand under a 0.088 mm film, the depth fell to 1.6e-7 m, and
+// the speed jumped from 1.8 to 972 m/s and collapsed the timestep. Protect
+// zeroes momentum only below minimum_allowed_height, which DE1 sets to 1e-5
+// but DE0 to 1e-12, so DE0 met it first; nothing stopped it in DE1 either.
+//
+// So a rising bed scales the momentum by h_new/h_old, keeping the velocity,
+// and a bed that reaches the stage takes the momentum to zero. A falling bed
+// leaves the momentum alone: keeping the velocity there would multiply the
+// momentum of a nearly dry cell by an arbitrarily large ratio, creating
+// momentum from nothing, and the slower flow over the deeper cell is the
+// safe side.
+#pragma omp declare target
+static inline void core_shift_bed(double * restrict bed_cv,
+                                  double * restrict bed_ev,
+                                  const double * restrict stage_cv,
+                                  double * restrict xmom_cv,
+                                  double * restrict ymom_cv,
+                                  anuga_int k, double dz) {
+    if (dz > 0.0) {
+        const double h_old = stage_cv[k] - bed_cv[k];
+        const double h_new = h_old - dz;
+        const double r = (h_old > 0.0 && h_new > 0.0) ? h_new / h_old : 0.0;
+        xmom_cv[k] *= r;
+        ymom_cv[k] *= r;
+    }
+    bed_cv[k] += dz;
+    const anuga_int k3 = 3 * k;
+    bed_ev[k3 + 0] += dz;
+    bed_ev[k3 + 1] += dz;
+    bed_ev[k3 + 2] += dz;
+}
+#pragma omp end declare target
 
 static inline double core_centroid_slope(const double * restrict f,
                                          const anuga_int * restrict neighbours,
@@ -1323,11 +1426,7 @@ void core_apply_bedload(struct domain *D, double timestep) {
     for (anuga_int k = 0; k < n; k++) {
         const double dz = dzs[k];
         if (dz != 0.0) {
-            bed_cv[k] += dz;
-            const anuga_int k3 = 3 * k;
-            bed_ev[k3 + 0] += dz;
-            bed_ev[k3 + 1] += dz;
-            bed_ev[k3 + 2] += dz;
+            core_shift_bed(bed_cv, bed_ev, stage_cv, xmom_cv, ymom_cv, k, dz);
         }
     }
 }
@@ -1395,6 +1494,9 @@ anuga_int core_apply_repose(struct domain *D) {
 
     double * restrict bed_cv = D->bed_centroid_values;
     double * restrict bed_ev = D->bed_edge_values;
+    double * restrict stage_cv = D->stage_centroid_values;
+    double * restrict xmom_cv = D->xmom_centroid_values;
+    double * restrict ymom_cv = D->ymom_centroid_values;
     double * restrict dz = D->sediment_repose_dz;
     anuga_geom_t * restrict areas = D->areas;
     anuga_geom_t * restrict cc = D->centroid_coordinates;
@@ -1506,11 +1608,7 @@ anuga_int core_apply_repose(struct domain *D) {
         for (anuga_int k = 0; k < n; k++) {
             const double d = dz[k];
             if (d != 0.0) {
-                bed_cv[k] += d;
-                const anuga_int k3 = 3 * k;
-                bed_ev[k3 + 0] += d;
-                bed_ev[k3 + 1] += d;
-                bed_ev[k3 + 2] += d;
+                core_shift_bed(bed_cv, bed_ev, stage_cv, xmom_cv, ymom_cv, k, d);
             }
         }
     }
@@ -2287,13 +2385,10 @@ void core_apply_sediment_source(struct domain *D, double timestep) {
         // (bed_vv = bed_ev1 + bed_ev2 - bed_ev0).
         //
         // Stage is left alone, so h = w - z falls by exactly dz -- the
-        // quiescent-water behaviour of LM15 Example 2.
+        // quiescent-water behaviour of LM15 Example 2 -- and the momentum
+        // falls with it (core_shift_bed).
         if (dz_cell != 0.0) {
-            bed_cv_w[k] += dz_cell;
-            const anuga_int k3 = 3 * k;
-            bed_ev_w[k3 + 0] += dz_cell;
-            bed_ev_w[k3 + 1] += dz_cell;
-            bed_ev_w[k3 + 2] += dz_cell;
+            core_shift_bed(bed_cv_w, bed_ev_w, stage_cv, xmom_cv, ymom_cv, k, dz_cell);
         }
     }
 }
@@ -4542,5 +4637,141 @@ void core_ader_ck_predictor_edge(struct domain *D, double dt) {
             ymom_ev[k3 + i] = vh_e * fac;
         }
         } // end if (fabs(det) >= 1.0e-20)
+    }
+}
+
+// ============================================================================
+// Kinematic viscosity, explicit momentum form
+// ============================================================================
+//
+// One forward-Euler step of
+//
+//     d(uh)/dt = div(nu h grad u),    d(vh)/dt = div(nu h grad v)
+//
+// with a constant eddy viscosity nu. Each edge carries the stress
+//
+//     c_e (u_j - u_i),    c_e = nu h_e l_e / d_e,
+//
+// where l_e is the edge length, d_e the distance from the centroid to the
+// neighbour's centroid (or to the edge midpoint on a boundary edge) and h_e
+// the harmonic mean 2 h_i h_j / (h_i + h_j). The two cells of an edge compute
+// the same c_e, so their stresses cancel exactly and total momentum changes
+// only through the domain boundary. The harmonic mean is never more than
+// twice the smaller depth, which keeps the step stable in a shallow cell next
+// to a deep one (the arithmetic mean is not) and makes the stress fall to
+// zero as either side dries. An edge to a cell at or below
+// minimum_allowed_height carries no stress.
+//
+// Stable while dt sum_e c_e / (A_i h_i) <= 1, which holds when
+// 2 nu dt sum_e (l_e / d_e) / A_i <= 1; the operator sub-steps to keep it.
+//
+// A boundary edge takes the boundary values of stage and momentum, and the
+// cell's own bed edge value, except that a Reflective wall carries no stress.
+// Scratch comes from core_kv_scratch_alloc: dxm and dym, of length n, hold the
+// increments, formed for every cell before any is applied since each cell
+// reads its neighbours' momentum; wall, of length m, flags the wall edges.
+
+#ifdef CPU_ONLY_MODE
+#define KV_SCRATCH_LOOP _Pragma("omp parallel for")
+#define KV_DEVICE 0
+#else
+#define KV_SCRATCH_LOOP _Pragma("omp target teams distribute parallel for is_device_ptr(dxm, dym, wall)")
+#define KV_DEVICE omp_get_default_device()
+#endif
+
+double *core_kv_scratch_alloc(anuga_int n, anuga_int m) {
+    size_t count = (size_t)(2 * n + m);
+    // omp_target_alloc(0) may return NULL, which callers take as failure.
+    return (double *)omp_target_alloc((count > 0 ? count : 1) * sizeof(double), KV_DEVICE);
+}
+
+void core_kv_scratch_set_walls(double *scratch, anuga_int n, anuga_int m,
+                               const double *flags) {
+    if (m <= 0) return;
+#ifdef CPU_ONLY_MODE
+    for (anuga_int k = 0; k < m; k++) scratch[2 * n + k] = flags[k];
+#else
+    omp_target_memcpy(scratch, flags, (size_t)m * sizeof(double),
+                      (size_t)(2 * n) * sizeof(double), 0,
+                      KV_DEVICE, omp_get_initial_device());
+#endif
+}
+
+void core_kv_scratch_free(double *scratch) {
+    if (scratch != NULL) omp_target_free(scratch, KV_DEVICE);
+}
+
+void core_kinematic_viscosity_explicit(struct domain *D, double nu, double dt,
+                                       double *scratch) {
+    const anuga_int n = D->number_of_elements;
+    const double hmin = D->minimum_allowed_height;
+    // Velocity from momentum as in update_centroids_of_velocities_and_height.
+    const double H0 = 1.0e-8;
+
+    double * restrict stage_cv = D->stage_centroid_values;
+    double * restrict bed_cv = D->bed_centroid_values;
+    double * restrict xmom_cv = D->xmom_centroid_values;
+    double * restrict ymom_cv = D->ymom_centroid_values;
+    double * restrict stage_bv = D->stage_boundary_values;
+    double * restrict xmom_bv = D->xmom_boundary_values;
+    double * restrict ymom_bv = D->ymom_boundary_values;
+    double * restrict bed_ev = D->bed_edge_values;
+    anuga_int * restrict neighbours = D->neighbours;
+    anuga_geom_t * restrict cc = D->centroid_coordinates;
+    anuga_geom_t * restrict ec = D->edge_coordinates;
+    anuga_geom_t * restrict edgelengths = D->edgelengths;
+    anuga_geom_t * restrict areas = D->areas;
+    double *dxm = scratch;
+    double *dym = scratch + n;
+    double *wall = scratch + 2 * n;
+
+    if (n == 0 || nu <= 0.0 || dt <= 0.0) return;
+
+    KV_SCRATCH_LOOP
+    for (anuga_int i = 0; i < n; i++) {
+        double sx = 0.0, sy = 0.0;
+        double hi = stage_cv[i] - bed_cv[i];
+        if (hi > hmin) {
+            double fi = hi / (hi * hi + H0);
+            double ui = xmom_cv[i] * fi;
+            double vi = ymom_cv[i] * fi;
+            double xi = cc[2 * i];
+            double yi = cc[2 * i + 1];
+            for (int k = 0; k < 3; k++) {
+                anuga_int j = neighbours[3 * i + k];
+                double hj, uhj, vhj, xj, yj;
+                if (j >= 0) {
+                    hj = stage_cv[j] - bed_cv[j];
+                    uhj = xmom_cv[j];
+                    vhj = ymom_cv[j];
+                    xj = cc[2 * j];
+                    yj = cc[2 * j + 1];
+                } else {
+                    anuga_int m = -j - 1;
+                    if (wall[m] != 0.0) continue;
+                    hj = stage_bv[m] - bed_ev[3 * i + k];
+                    uhj = xmom_bv[m];
+                    vhj = ymom_bv[m];
+                    xj = ec[2 * (3 * i + k)];
+                    yj = ec[2 * (3 * i + k) + 1];
+                }
+                if (hj <= hmin) continue;
+                double fj = hj / (hj * hj + H0);
+                double dx = xj - xi, dy = yj - yi;
+                double c = nu * (2.0 * hi * hj / (hi + hj))
+                           * edgelengths[3 * i + k] / sqrt(dx * dx + dy * dy);
+                sx += c * (uhj * fj - ui);
+                sy += c * (vhj * fj - vi);
+            }
+        }
+        double s = dt / areas[i];
+        dxm[i] = s * sx;
+        dym[i] = s * sy;
+    }
+
+    KV_SCRATCH_LOOP
+    for (anuga_int i = 0; i < n; i++) {
+        xmom_cv[i] += dxm[i];
+        ymom_cv[i] += dym[i];
     }
 }

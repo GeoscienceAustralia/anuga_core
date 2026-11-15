@@ -22,10 +22,14 @@ up-to-date APA or BibTeX entry from it. A minimal BibTeX entry:
      url       = {https://github.com/anuga-community/anuga_core}
    }
 
-From version 4.1.0, each release is also archived on Zenodo with a DOI of its
-own, linked from the release on the
-`GitHub releases page <https://github.com/anuga-community/anuga_core/releases>`_.
-Cite that DOI to identify the exact version you used.
+From version 4.1.0, each release is also archived on Zenodo. The DOI
+`10.5281/zenodo.23585306 <https://doi.org/10.5281/zenodo.23585306>`_ stands
+for ANUGA as a whole and resolves to the latest release. Each release also has
+a DOI of its own, given in its notes on the
+`GitHub releases page <https://github.com/anuga-community/anuga_core/releases>`_
+and listed on the Zenodo record (4.1.0 is
+`10.5281/zenodo.23585307 <https://doi.org/10.5281/zenodo.23585307>`_).
+Cite the release's own DOI to identify the exact version you used.
 
 ANUGA was created by Geoscience Australia and the Mathematical Sciences Institute
 at the Australian National University, and is now maintained by a community of

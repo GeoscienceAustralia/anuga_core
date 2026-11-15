@@ -151,6 +151,7 @@ cdef extern from "sw_domain_openmp.c" nogil:
 		double* edge_coordinates
 		double* centroid_coordinates
 		anuga_int* number_of_boundaries
+		anuga_int* boundary_limit_mask
 		double* stage_edge_values
 		double* xmom_edge_values
 		double* ymom_edge_values
@@ -207,6 +208,7 @@ cdef extern from "sw_domain_openmp.c" nogil:
 	double _openmp_compute_fluxes_central(domain* D, double timestep)
 	double _openmp_protect(domain* D)
 	void _openmp_extrapolate_second_order_edge_sw(domain* D)
+	void _openmp_extrapolate_centroids_only(domain* D)
 	anuga_int _openmp_fix_negative_cells(domain* D)
 	double _openmp_negative_cells_volume(domain* D)
 	anuga_int _openmp_gravity(domain *D)
@@ -396,6 +398,7 @@ cdef inline get_python_domain_pointers(domain *D, object domain_py_object):
 	cdef double[:,::1] edge_coordinates
 	cdef double[:,::1] centroid_coordinates
 	cdef anuga_int[::1]  number_of_boundaries
+	cdef anuga_int[::1]  boundary_limit_mask
 	cdef anuga_int[:,::1] surrogate_neighbours
 	cdef double[::1]   max_speed
 	cdef double[::1]   edge_flux_work
@@ -494,6 +497,8 @@ cdef inline get_python_domain_pointers(domain *D, object domain_py_object):
 
 	number_of_boundaries = domain_py_object.number_of_boundaries
 	D.number_of_boundaries = &number_of_boundaries[0]
+	boundary_limit_mask = domain_py_object.boundary_limit_mask
+	D.boundary_limit_mask = &boundary_limit_mask[0]
 
 	if domain_py_object.edge_flux_work is not None:
 		edge_flux_work = domain_py_object.edge_flux_work
@@ -1380,6 +1385,17 @@ def distribute_edges_to_vertices(object domain_py_object, update_domain_c_struct
 
 	
 
+def extrapolate_centroids_only(object domain_py_object,
+                               update_domain_c_struct=False):
+	"""The centroid values extrapolate_second_order_edge_sw leaves (heights,
+	dry momenta, tracer concentrations), without computing the edges."""
+
+	cdef domain* D = get_domain_c_struct_ptr(domain_py_object, update_domain_c_struct=update_domain_c_struct)
+
+	with nogil:
+		_openmp_extrapolate_centroids_only(D)
+
+
 def extrapolate_second_order_edge_sw(object domain_py_object, 
                                      distribute_to_vertices=True,
                                      update_domain_c_struct=False):
@@ -1398,6 +1414,10 @@ cdef extern from "gpu/core_kernels.h" nogil:
 	void core_apply_sediment_source(domain* D, double timestep)
 	void core_apply_bedload(domain* D, double timestep)
 	anuga_int core_apply_repose(domain* D)
+	double* core_kv_scratch_alloc(anuga_int n, anuga_int m)
+	void core_kv_scratch_set_walls(double* scratch, anuga_int n, anuga_int m, double* flags)
+	void core_kv_scratch_free(double* scratch)
+	void core_kinematic_viscosity_explicit(domain* D, double nu, double dt, double* scratch)
 
 
 def apply_sediment_source(object domain_py_object, double timestep,
@@ -1434,6 +1454,37 @@ def apply_repose(object domain_py_object, update_domain_c_struct=False):
 		sweeps = core_apply_repose(D)
 
 	return sweeps
+
+
+def kv_scratch_alloc(anuga_int n, anuga_int m):
+	"""Scratch for kinematic_viscosity_explicit: 2n + m doubles. Returns a handle."""
+
+	cdef double* p = core_kv_scratch_alloc(n, m)
+	if p == NULL:
+		raise MemoryError('could not allocate kinematic viscosity scratch')
+	return <uintptr_t> p
+
+
+def kv_scratch_set_walls(uintptr_t handle, anuga_int n, np.ndarray[double, ndim=1, mode="c"] flags not None):
+	"""Set which of the m boundary edges are walls that carry no stress."""
+
+	core_kv_scratch_set_walls(<double*> handle, n, flags.shape[0], &flags[0] if flags.shape[0] else NULL)
+
+
+def kv_scratch_free(uintptr_t handle):
+	"""Free scratch from kv_scratch_alloc."""
+
+	core_kv_scratch_free(<double*> handle)
+
+
+def kinematic_viscosity_explicit(object domain_py_object, double nu, double dt,
+                                 uintptr_t scratch, update_domain_c_struct=False):
+	"""Fractional step: one explicit step of the momentum-form viscosity."""
+
+	cdef domain* D = get_domain_c_struct_ptr(domain_py_object, update_domain_c_struct=update_domain_c_struct)
+
+	with nogil:
+		core_kinematic_viscosity_explicit(D, nu, dt, <double*> scratch)
 
 
 def protect_new(object domain_py_object, update_domain_c_struct=False):

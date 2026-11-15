@@ -477,8 +477,15 @@ void gpu_evaluate_transmissive_n_zero_t_boundary(struct gpu_domain *GD) {
         double q1 = xmom_ev[3 * vid + eid];
         double q2 = ymom_ev[3 * vid + eid];
 
-        // Compute normal component of momentum (dot product with normal)
-        double ndotq = n1 * q1 + n2 * q2;
+        // Compute normal component of momentum (dot product with normal),
+        // scaled by min(1, boundary depth / interior depth) so the boundary
+        // carries the interior velocity: the flux divides by the boundary
+        // depth, which the set stage can leave near zero (boundaries.py
+        // _momentum_scale)
+        double h_b = fmax(stage_val - bed_ev[3 * vid + eid], 0.0);
+        double h_i = fmax(height_ev[3 * vid + eid], 0.0);
+        double scale = (h_b >= h_i) ? 1.0 : h_b / h_i;
+        double ndotq = (n1 * q1 + n2 * q2) * scale;
 
         // Set boundary momentum to just the normal component (zero tangential)
         xmom_bv[bid] = ndotq * n1;

@@ -13,7 +13,7 @@ with open('bed_hump_parameters.json') as f:
 hump = prm['hump']
 w0, q, A_g, m, lam = prm['w0'], prm['q'], prm['A_g'], prm['m'], prm['porosity']
 
-t, z, w, uh, cc = analytic.read_centroid_series('bed_hump.sww')
+t, z, w, uh, cc = analytic.read_centroid_series('bed_hump.sww', prm['spinup'])
 x = cc[:, 0]
 order = numpy.argsort(x)
 xx = numpy.linspace(200.0, 700.0, 2000)

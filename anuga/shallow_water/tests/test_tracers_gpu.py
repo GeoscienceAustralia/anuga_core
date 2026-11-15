@@ -272,7 +272,7 @@ def test_a_reordered_domain_gives_the_same_answer_on_the_device():
         'reordering changed the answer on the device'
 
 
-def _build_for_max(mode, seed=5):
+def _build_for_max(mode, seed=5, store_to_sww=False):
     """A plume that washes out, so the running max differs from the final field."""
     d = rectangular_cross_domain(NXY, NXY, len1=LEN, len2=LEN)
     d.set_flow_algorithm('DE0')
@@ -292,7 +292,7 @@ def _build_for_max(mode, seed=5):
     d.set_tracer_boundary('c', 'left', 0.0)
     from anuga.operators.collect_max_quantities_operator import (
         Collect_max_quantities_operator)
-    op = Collect_max_quantities_operator(d)
+    op = Collect_max_quantities_operator(d, store_to_sww=store_to_sww)
     d.set_multiprocessor_mode(mode)
     return d, op
 
@@ -337,3 +337,33 @@ def test_the_device_maximum_is_never_below_the_final_field():
     gpu.evolve_to_end(finaltime=DRAIN_FINALTIME)
     get_max_tracers_gpu(gpu.gpu_interface.gpu_dom, op.max_tracer)
     assert np.all(op.max_tracer[0] >= gpu.get_tracer('c') - 1e-12)
+
+
+def test_the_tracer_maxima_reach_the_sww_in_mode_2(tmp_path):
+    """In mode 2 the tracer maxima live on the device and reach the host only
+    when a frame is stored; the final stored max_c must be the device maximum
+    (and not the zero the host array starts at)."""
+    if not gpu_available():
+        pytest.skip('GPU OpenMP interface not available: %s' % _gpu_error)
+    netCDF4 = pytest.importorskip('netCDF4')
+
+    gpu, op = _build_for_max(2, store_to_sww=True)
+    if getattr(gpu, 'multiprocessor_mode', None) != 2:
+        pytest.fail('mode 2 did not engage: multiprocessor_mode=%r'
+                    % getattr(gpu, 'multiprocessor_mode', None))
+    gpu.store = True
+    gpu.set_name('maxtr_gpu')
+    gpu.set_datadir(str(tmp_path))
+    from anuga.shallow_water.sw_domain_gpu_ext import (sync_to_device,
+                                                       get_max_tracers_gpu)
+    sync_to_device(gpu.gpu_interface.gpu_dom)
+    for _ in gpu.evolve(yieldstep=DRAIN_FINALTIME / 4, finaltime=DRAIN_FINALTIME):
+        pass
+
+    device = np.zeros_like(op.max_tracer)
+    get_max_tracers_gpu(gpu.gpu_interface.gpu_dom, device)
+    with netCDF4.Dataset(str(tmp_path / 'maxtr_gpu.sww'), 'r') as fid:
+        stored = np.array(fid.variables['max_c_c'][:])
+    assert np.ptp(device[0]) > 1e-6, 'the maximum field is flat; this proves nothing'
+    assert np.allclose(stored, device[0], atol=1e-6), \
+        'the stored tracer maximum is not the device maximum'

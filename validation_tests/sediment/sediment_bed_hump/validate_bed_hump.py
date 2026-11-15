@@ -46,7 +46,7 @@ class Test_results(unittest.TestCase):
         with open('bed_hump_parameters.json') as f:
             prm = json.load(f)
 
-        t, z, w, uh, cc = analytic.read_centroid_series('bed_hump.sww')
+        t, z, w, uh, cc = analytic.read_centroid_series('bed_hump.sww', prm['spinup'])
         x = cc[:, 0]
         order = numpy.argsort(x)
         w0, q, A_g, m, lam = prm['w0'], prm['q'], prm['A_g'], prm['m'], prm['porosity']
@@ -91,7 +91,7 @@ class Test_results(unittest.TestCase):
         # The bedload flux is first order (centred with Rusanov dissipation),
         # so the steepening front is smoothed: the L1 error is 9.9% of the
         # hump volume at dx = 10 m and 5.5% at dx = 5 m. The bed volume
-        # drifts by 1e-4 of the hump volume because the inflow and outflow
+        # drifts by 7e-5 of the hump volume because the inflow and outflow
         # cells sit at very slightly different depths under the Dirichlet
         # boundaries, so their bedload fluxes differ by that much.
         assert ez < 0.10, 'bed off by %.2e' % ez
@@ -106,4 +106,5 @@ class Test_results(unittest.TestCase):
 if __name__ == '__main__':
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_results)
     runner = unittest.TextTestRunner(verbosity=2)
-    runner.run(suite)
+    result = runner.run(suite)
+    sys.exit(0 if result.wasSuccessful() else 1)

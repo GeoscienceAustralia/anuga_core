@@ -108,9 +108,9 @@ class Test_sww_Interrogate(unittest.TestCase):
         if verbose:
             print('Runup, location', runup, location, max_time)
 
-        assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332, 43.333332])
-        assert num.allclose(max_time, 10.0)
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location, [51.66666667, 36.66666667])
+        assert num.allclose(max_time, 12)
 
         # Check runup in restricted time interval
         runup, location, max_time = get_maximum_inundation_data(swwfile, time_interval=[0,9], return_time=True)
@@ -118,16 +118,16 @@ class Test_sww_Interrogate(unittest.TestCase):
             print('Runup, location:',runup, location, max_time)
 
         assert num.allclose(runup, 2.66666674614)
-        assert num.allclose(location, [56.666668, 16.666666])
-        assert num.allclose(max_time, 9.0)
+        assert num.allclose(location, [56.66666667, 36.66666667])
+        assert num.allclose(max_time, 8)
 
         # Check final runup
         runup, location = get_maximum_inundation_data(swwfile, time_interval=[45,50])
         if verbose:
             print('Runup, location:',runup, location, max_time)
 
-        assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332, 33.333332])
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location, [51.66666667, 36.66666667])
         #assert num.allclose(max_time, 45.0)
 
         # Check runup restricted to a polygon
@@ -140,8 +140,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         #location = get_maximum_inundation_location(swwfile, polygon=p)
         #print runup, location, max_time
 
-        assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332, 33.333332])
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location, [51.66666667, 36.66666667])
         #assert num.allclose(max_time, 11.0)
 
         # Check that mimimum_storable_height works
@@ -193,8 +193,8 @@ class Test_sww_Interrogate(unittest.TestCase):
             print('Runup, location:',runup, location, max_time)
         #print 'Runup, location', runup, location, max_time
 
-        assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332+E, 43.333332+N])
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location, [51.66666667+E, 36.66666667+N])
         #assert num.allclose(max_time, 10.0)
 
         # Check runup in restricted time interval
@@ -204,7 +204,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         #print 'Runup, location:',runup, location, max_time
 
         assert num.allclose(runup, 2.66666674614)
-        assert num.allclose(location, [56.666668+E, 16.666666+N])
+        assert num.allclose(location, [56.66666667+E, 36.66666667+N])
         #assert num.allclose(max_time, 9.0)
 
         # Check final runup
@@ -213,8 +213,8 @@ class Test_sww_Interrogate(unittest.TestCase):
             print('Runup, location:',runup, location, max_time)
         #print 'Runup, location:',runup, location, max_time
 
-        assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332+E, 33.333332+N])
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location, [51.66666667+E, 36.66666667+N])
         #assert num.allclose(max_time, 45.0)
 
         # Check runup restricted to a polygon
@@ -224,8 +224,8 @@ class Test_sww_Interrogate(unittest.TestCase):
             print('Runup, location:',runup, location, max_time)
         #print runup, location, max_time
 
-        assert num.allclose(runup, 3.33333325386)
-        assert num.allclose(location, [53.333332+E, 33.333332+N])
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location, [51.66666667+E, 36.66666667+N])
         #assert num.allclose(max_time, 11.0)
 
         # Cleanup
@@ -288,16 +288,16 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
 
-        assert num.allclose(runup, 3.33333333)
-        assert num.allclose(location[0], 53.333332)
-        assert num.allclose(location[1], 43.333332)
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location[0], 51.66666667)
+        assert num.allclose(location[1], 36.66666667)
 
         # Check final runup
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
 
-        assert num.allclose(runup, 3.3333333)
-        assert num.allclose(location[0], 53.333332)
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location[0], 51.66666667)
 
         # Check runup restricted to a polygon
         p = [[50,1], [99,1], [99,49], [50,49]]
@@ -305,8 +305,8 @@ class Test_sww_Interrogate(unittest.TestCase):
         location = get_maximum_inundation_location(swwfile, polygon=p)
         #print runup, location
 
-        assert num.allclose(runup, 3.33333)
-        assert num.allclose(location[0], 53.33333)
+        assert num.allclose(runup, 3.666666746)
+        assert num.allclose(location[0], 51.66666667)
 
         # Check that mimimum_storable_height works
         fid = NetCDFFile(swwfile, netcdf_mode_r) # Open existing file
@@ -359,7 +359,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile)
         location = get_maximum_inundation_location(swwfile)
 
-        assert num.allclose(runup, 3.33333333)
+        assert num.allclose(runup, 3.666666746)
         assert num.allclose(location[0], 308553.34)
 
 
@@ -367,7 +367,7 @@ class Test_sww_Interrogate(unittest.TestCase):
         runup = get_maximum_inundation_elevation(swwfile, time_interval=[45,50])
         location = get_maximum_inundation_location(swwfile, time_interval=[45,50])
 
-        assert num.allclose(runup, 3.333333)
+        assert num.allclose(runup, 3.666666746)
         assert num.allclose(location[0], 308553.34)
 
         # Check runup restricted to a polygon
@@ -378,7 +378,7 @@ class Test_sww_Interrogate(unittest.TestCase):
 
         #print('Runup, location', runup, location)
 
-        assert num.allclose(runup, 3.33333)
+        assert num.allclose(runup, 3.666666746)
         assert num.allclose(location[0], 308553.34)
 
 

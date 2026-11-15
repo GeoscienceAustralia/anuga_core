@@ -480,6 +480,46 @@ class Test_inlet_operator(unittest.TestCase):
         with self.assertRaises(AssertionError):
             Inlet_operator(domain, line, Q=1.0, velocity=[1.0, 0.0, 0.0])
 
+    def _dry_slope_DE2_domain(self):
+        """A dry 1:200 slope under DE2: its RK3 step leaves the dry inlet
+        cells at a depth of about -1e-15 m, so the inlet volume is slightly
+        negative before any water arrives."""
+        domain = anuga.rectangular_cross_domain(30, 10, len1=300.0, len2=100.0)
+        domain.set_flow_algorithm('DE2')
+        domain.set_store(False)
+        domain.set_quantity('elevation', lambda x, y: 10.0 - 0.005 * x)
+        domain.set_quantity('friction', 0.01)
+        domain.set_quantity('stage', expression='elevation')
+        Br = anuga.Reflective_boundary(domain)
+        domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
+        return domain
+
+    def _check_dry_inlet_DE2(self, inlet_class):
+        domain = self._dry_slope_DE2_domain()
+        Q = 10.0
+        inlet_class(domain, [[2.5, 0.0], [2.5, 100.0]], Q=Q)
+        for t in domain.evolve(yieldstep=5.0, finaltime=20.0):
+            pass
+        h = (domain.quantities['stage'].centroid_values
+             - domain.quantities['elevation'].centroid_values)
+        volume = numpy.sum(numpy.maximum(h, 0.0) * domain.areas)
+        assert numpy.allclose(volume, Q * 20.0, rtol=1.0e-3)
+
+    def test_inlet_dry_slope_DE2(self):
+        """Rounding below zero in a dry inlet must not abort the run."""
+        self._check_dry_inlet_DE2(Inlet_operator)
+
+    def test_inlet_dry_slope_DE2_public_api(self):
+        """Same, through anuga.Inlet_operator (the parallel operator)."""
+        self._check_dry_inlet_DE2(anuga.Inlet_operator)
+
+    def test_checked_inlet_volume(self):
+        from anuga.structures.inlet_operator import checked_inlet_volume
+        assert checked_inlet_volume(2.5, 100.0) == 2.5
+        assert checked_inlet_volume(-1.0e-13, 100.0) == 0.0
+        with self.assertRaises(AssertionError):
+            checked_inlet_volume(-1.0e-6, 100.0)
+
 
 # =========================================================================
 if __name__ == "__main__":

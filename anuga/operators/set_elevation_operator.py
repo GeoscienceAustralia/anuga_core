@@ -20,6 +20,10 @@ from anuga.config import indent
 
 class Set_elevation_operator(Operator, Set_elevation):
 
+    # Moves the bed: in parallel the domain refreshes the ghost cells' bed after
+    # the fractional steps (Domain.apply_fractional_steps).
+    modifies_bed = True
+
 
     def __init__(self,
                  domain,

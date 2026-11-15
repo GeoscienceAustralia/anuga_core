@@ -174,7 +174,10 @@ after each CPU operator call.
 +============================================+==================================+
 | ``Bed_shear_erosion_operator``             | No GPU kernel yet                |
 +--------------------------------------------+----------------------------------+
-| ``Kinematic_viscosity_operator``           | No GPU kernel yet                |
+| ``Kinematic_viscosity_operator``           | Implicit solve has no GPU kernel;|
+| (default ``scheme='implicit'``)            | use ``form='momentum',           |
+|                                            | scheme='explicit'``, which runs  |
+|                                            | on the GPU                       |
 +--------------------------------------------+----------------------------------+
 | ``Weir_orifice_trapezoid_operator``        | GPU via GPUCulvertManager        |
 | (parallel)                                 | (cross-boundary MPI supported)   |
@@ -284,9 +287,16 @@ Performance tips
    ``OMP_TARGET_OFFLOAD=mandatory`` causes an error if the GPU target is not
    found, rather than silently falling back to CPU.
 
-5. **Yieldstep interval.**  The D→H sync at each yieldstep is fast (~10 ms for
-   a 1M-triangle domain), so yieldstep granularity has minimal impact on
-   throughput.
+5. **Yieldstep interval.**  At a yieldstep only the centroid values come back
+   from the device: about 4 ms for 800 000 triangles, half a GPU step. The
+   vertex and edge values are worked out on the host only when something reads
+   them -- ``vertex_values`` or ``edge_values``, ``get_values(location='vertices')``,
+   or the SWW writer when centroid averaging is off
+   (``set_using_centroid_averaging(False)``), and then only on output steps.
+   That costs several GPU steps on a large mesh (about 20 ms for 800 000
+   triangles on 8 threads, 75 ms on one), so read them at a yield only when
+   you need them. The default SWW output never does, and nor does
+   ``get_values(location='centroids')``.
 
 6. **Active-set stepping, on mostly-dry domains.**  See below.
 

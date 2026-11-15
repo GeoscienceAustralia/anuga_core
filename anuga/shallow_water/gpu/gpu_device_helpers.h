@@ -90,13 +90,26 @@ static inline void gpu_limit_gradient(double * restrict dqv, double qmin, double
     dqv[2] *= phi;
 }
 
+// Largest fraction of an edge's gradient offset dq that stays within [lo, hi].
+static inline double gpu_edge_limit_ratio(double dq, double lo, double hi, double r) {
+    if (dq < -GPU_TINY) return fmin(r, lo / dq);
+    if (dq > GPU_TINY) return fmin(r, hi / dq);
+    return r;
+}
+
+// Change to an edge offset dq that brings it between 0 and the prescribed dq_p.
+static inline double gpu_prescribed_excess(double dq, double dq_p) {
+    return fmin(fmax(dq, fmin(dq_p, 0.0)), fmax(dq_p, 0.0)) - dq;
+}
+
 // Compute edge values with gradient limiting (for typical case with 3 neighbors)
 static inline void gpu_calc_edge_values_with_gradient(
     double cv_k, double cv_k0, double cv_k1, double cv_k2,
     double dxv0, double dxv1, double dxv2,
     double dyv0, double dyv1, double dyv2,
     double dx1, double dx2, double dy1, double dy2,
-    double inv_area2, double beta_tmp, double * restrict edge_values) {
+    double inv_area2, double beta_tmp, int prescribed_edges, double dq_p0, double dq_p1, double dq_p2,
+    double * restrict edge_values) {
 
     double dqv[3];
     double dq0 = cv_k0 - cv_k;
@@ -112,6 +125,55 @@ static inline void gpu_calc_edge_values_with_gradient(
 
     double qmin, qmax;
     gpu_find_qmin_and_qmax_dq1_dq2(dq0, dq1, dq2, &qmin, &qmax);
+    if (prescribed_edges) {
+        // A boundary edge has no neighbour, so the end of a smooth slope looks
+        // like a local extremum and would be flattened. Where the boundary
+        // condition prescribes the value it plays the part of that neighbour:
+        // the edge may move from the centroid towards it but not past it.
+        //
+        // The excess comes off the gradient along that edge's own direction, and
+        // the rest of the gradient stays. Scaling the whole gradient instead gives
+        // phi = bound/offset, and where both are tiny (a gradient running along the
+        // boundary, as with a tangential velocity near zero) that ratio turns
+        // round-off into a large change on the other edges, so CPU and GPU diverge.
+        double d, r2;
+        if (prescribed_edges & 1) {
+            d = gpu_prescribed_excess(dqv[0], dq_p0);
+            r2 = dxv0 * dxv0 + dyv0 * dyv0;
+            dqv[1] += d * (dxv0 * dxv1 + dyv0 * dyv1) / r2;
+            dqv[2] += d * (dxv0 * dxv2 + dyv0 * dyv2) / r2;
+            dqv[0] += d;
+        }
+        if (prescribed_edges & 2) {
+            d = gpu_prescribed_excess(dqv[1], dq_p1);
+            r2 = dxv1 * dxv1 + dyv1 * dyv1;
+            dqv[0] += d * (dxv1 * dxv0 + dyv1 * dyv0) / r2;
+            dqv[2] += d * (dxv1 * dxv2 + dyv1 * dyv2) / r2;
+            dqv[1] += d;
+        }
+        if (prescribed_edges & 4) {
+            d = gpu_prescribed_excess(dqv[2], dq_p2);
+            r2 = dxv2 * dxv2 + dyv2 * dyv2;
+            dqv[0] += d * (dxv2 * dxv0 + dyv2 * dyv0) / r2;
+            dqv[1] += d * (dxv2 * dxv1 + dyv2 * dyv1) / r2;
+            dqv[2] += d;
+        }
+
+        // The other edges keep the usual bounds. Scaling towards the centroid
+        // cannot take a prescribed edge past its value. The small margin stops an
+        // edge with no offset against a bound of 0 collapsing the gradient on
+        // round-off alone.
+        double margin = 1.0e-6 * fmax(fabs(dqv[0]), fmax(fabs(dqv[1]), fabs(dqv[2])));
+        double r = 1000.0;
+        if (!(prescribed_edges & 1)) r = gpu_edge_limit_ratio(dqv[0], qmin - margin, qmax + margin, r);
+        if (!(prescribed_edges & 2)) r = gpu_edge_limit_ratio(dqv[1], qmin - margin, qmax + margin, r);
+        if (!(prescribed_edges & 4)) r = gpu_edge_limit_ratio(dqv[2], qmin - margin, qmax + margin, r);
+        double phi = fmin(r * beta_tmp, 1.0);
+        edge_values[0] = cv_k + phi * dqv[0];
+        edge_values[1] = cv_k + phi * dqv[1];
+        edge_values[2] = cv_k + phi * dqv[2];
+        return;
+    }
     gpu_limit_gradient(dqv, qmin, qmax, beta_tmp);
 
     edge_values[0] = cv_k + dqv[0];
@@ -182,9 +244,11 @@ static inline double gpu_compute_local_froude(
     double denominator = soundspeed_left * soundspeed_left +
                          soundspeed_right * soundspeed_right + 1.0e-10;
 
-    if (low_froude == 1) {
+    // Bit 4 (LOW_FROUDE_TANGENTIAL_UPWIND) is a separate flag, see below
+    anuga_int mode = low_froude & ~((anuga_int) 4);
+    if (mode == 1) {
         return sqrt(fmax(0.001, fmin(1.0, numerator / denominator)));
-    } else if (low_froude == 2) {
+    } else if (mode == 2) {
         double fr = sqrt(numerator / denominator);
         return sqrt(fmin(1.0, 0.01 + fmax(fr - 0.01, 0.0)));
     } else {
@@ -287,6 +351,15 @@ static inline void gpu_flux_function_central(
         double flux_2 = s_max * flux_left[2] - s_min * flux_right[2];
         flux_2 += local_fr * s_max_s_min * (vh_right - vh_left);
         edgeflux[2] = flux_2 * inverse_denominator;
+
+        // LOW_FROUDE_TANGENTIAL_UPWIND: the tangential velocity only moves
+        // with the contact wave, so carry it with the mass flux from the
+        // upwind side (as in HLLC) instead of diffusing it at the
+        // gravity-wave speed. With no flow through the edge there is no
+        // tangential momentum exchange.
+        if (low_froude & 4) {
+            edgeflux[2] = edgeflux[0] * ((edgeflux[0] > 0.0) ? v_left : v_right);
+        }
 
         *pressure_flux = 0.5 * g * (s_max * h_left * h_left - s_min * h_right * h_right) * inverse_denominator;
 

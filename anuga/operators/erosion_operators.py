@@ -84,6 +84,10 @@ class Erosion_operator(Operator, Region):
 
     """
 
+    # Moves the bed: in parallel the domain refreshes the ghost cells' bed after
+    # the fractional steps (Domain.apply_fractional_steps).
+    modifies_bed = True
+
     def __init__(self,
                  domain,
                  threshold= 0.0,

@@ -140,9 +140,11 @@ def create_basic_mesh_from_regions(bounding_polygon,
         interior regions.
     interior_regions : list of tuples, optional
         List of (polygon, resolution) tuples for each region to be separately
-        refined. Polygon lines must not cross or overlap.
+        refined. Polygons may be nested or separate. Outlines that cross
+        raise PolygonError. For overlapping refinement see
+        size_field_from_regions.
     interior_holes : list of polygons, optional
-        Polygons for each hole.
+        Polygons for each hole. Outlines must not cross.
     hole_tags : list of dict, optional
         List of tag segment dictionaries for hole boundaries.
     poly_geo_reference : GeoReference, optional
@@ -176,6 +178,9 @@ def create_basic_mesh_from_regions(bounding_polygon,
         If positive, follow the triangulation with up to this many passes of
         worst-cell relaxation, which moves the vertices of the smallest
         cells to enlarge them and so lengthen the timestep (default: 0).
+        The vertices you give stay where they are; a point the generator
+        added part-way along a straight segment (a hole's side, a
+        breakline) may slide along it, so the segment keeps its shape.
         See :meth:`anuga.pmesh.mesh.Pmesh.relax_worst_cells`.
 
     Returns
@@ -263,6 +268,121 @@ def _create_basic_mesh_from_regions(bounding_polygon,
 
 
 #----------------------------
+# Create domain from a DEM
+#----------------------------
+def create_domain_from_dem(dem,
+                           maximum_triangle_area,
+                           bounding_polygon=None,
+                           boundary_tags=None,
+                           streams=None,
+                           floodplain=None,
+                           regions=None,
+                           interior_holes=None,
+                           relax_passes=30,
+                           pits=None,
+                           pit_outlets=None,
+                           pit_max_depth=None,
+                           pit_where=None,
+                           verbose=False,
+                           mesh_filename=None,
+                           **kwargs):
+    """Create a domain meshed and elevated from a DEM.
+
+    The mesh is sized from the DEM's flow paths, as in
+    :func:`anuga.create_pmesh_from_dem`: fine along the streams (or streets
+    and overland flow paths) and over the floors of their valleys, coarse
+    elsewhere. Each triangle's elevation is then the mean of the DEM over
+    it, set at the centroids.
+
+    Parameters
+    ----------
+    dem : str or (x, y, Z)
+        A DEM file (.asc, .grd, .dem or .tif) or a raster tuple
+        ``(x, y, Z)``; see :mod:`anuga.pmesh.dem_mesh`.
+    maximum_triangle_area : float
+        Target area away from all streams, floodplains and regions.
+    bounding_polygon : list of points, optional
+        Outline of the domain. Default: the DEM's extent, tagged
+        ``bottom``, ``right``, ``top`` and ``left``.
+    boundary_tags : dict, optional
+        As for :func:`create_domain_from_regions`.
+    streams : list of (drainage_area, area), optional
+        Cells that at least ``drainage_area`` drains through (in the DEM's
+        units squared) get triangles of at most ``area``.
+    floodplain : list of (height, drainage_area, area), optional
+        Cells within ``height`` above the stream they drain to, where it
+        drains at least ``drainage_area``, get triangles of at most
+        ``area``.
+    regions : list of (polygon, area), optional
+        Further polygons to refine, without adding their segments.
+    interior_holes : list of polygons, optional
+        Holes in the mesh (buildings, say); water is routed around them.
+    relax_passes : int, optional
+        Passes of worst-cell relaxation after meshing. Default 30.
+    pits : None, 'fill' or 'breach', optional
+        Remove the pits the mesh makes of the DEM with
+        :func:`anuga.remove_mesh_pits`. Default None: keep the elevation as
+        sampled.
+    pit_outlets : list of str, optional
+        Boundary tags where water leaves; needed with ``pits``.
+    pit_max_depth : float, optional
+        Deepest cut a breach may make before it fills instead.
+    pit_where : boolean array or callable, optional
+        Cells whose elevation pit removal may change, or a function of the
+        domain returning them. Default all.
+    verbose : bool, optional
+    mesh_filename : str, optional
+        If given, also write the mesh the domain is built on to this file
+        (``.msh`` or ``.tsh``). The file holds the mesh only, not the
+        elevation.
+    **kwargs :
+        Passed on to :func:`anuga.create_pmesh_from_dem` (``grade``,
+        ``band``, ``size_field``, ``breaklines``, ``hole_tags``,
+        ``minimum_triangle_angle``, ``poly_geo_reference``, ...).
+
+    Returns
+    -------
+    Domain
+        With its elevation set. ``domain.pit_stats`` holds the result of
+        pit removal, if any.
+
+    Examples
+    --------
+    >>> domain = anuga.create_domain_from_dem(
+    ...     'topography.asc', maximum_triangle_area=20.0,
+    ...     streams=[(5000.0, 1.0), (500.0, 4.0)], interior_holes=houses)
+    """
+    from anuga.pmesh.dem_mesh import (create_pmesh_from_dem,
+                                      elevation_from_dem, remove_mesh_pits)
+
+    if pits is not None and not pit_outlets:
+        raise ValueError('pits needs pit_outlets: the boundary tags where '
+                         'water leaves')
+
+    pmesh = create_pmesh_from_dem(dem, maximum_triangle_area,
+                                  bounding_polygon=bounding_polygon,
+                                  boundary_tags=boundary_tags,
+                                  streams=streams, floodplain=floodplain,
+                                  regions=regions,
+                                  interior_holes=interior_holes,
+                                  relax_passes=relax_passes,
+                                  verbose=verbose, **kwargs)
+    mesh = pmesh_to_mesh(pmesh)
+    if mesh_filename is not None:
+        pmesh.export_mesh_file(mesh_filename)
+    domain = Domain(mesh, use_cache=False, verbose=verbose)
+    domain.set_quantity('elevation', elevation_from_dem(domain, dem),
+                        location='centroids')
+
+    if pits is not None:
+        where = pit_where(domain) if callable(pit_where) else pit_where
+        domain.pit_stats = remove_mesh_pits(domain, pit_outlets, method=pits,
+                                            max_depth=pit_max_depth,
+                                            where=where, verbose=verbose)
+    return domain
+
+
+#----------------------------
 # Create domain from file
 #----------------------------
 def create_domain_from_file(filename, DomainClass=Domain):
@@ -315,7 +435,8 @@ def create_domain_from_regions(bounding_polygon,
                                use_cache=False,
                                verbose=False,
                                size_field=None,
-                               relax_passes=0):
+                               relax_passes=0,
+                               mesh_filename=None):
 
     """Create domain from bounding polygons and resolutions.
 
@@ -374,7 +495,16 @@ def create_domain_from_regions(bounding_polygon,
         If positive, follow the triangulation with up to this many passes of
         worst-cell relaxation, which moves the vertices of the smallest
         cells to enlarge them and so lengthen the timestep (default: 0).
+        The vertices you give stay where they are; a point the generator
+        added part-way along a straight segment (a hole's side, a
+        breakline) may slide along it, so the segment keeps its shape.
         See :meth:`anuga.pmesh.mesh.Pmesh.relax_worst_cells`.
+    mesh_filename : str, optional
+        If given, also write the mesh the domain is built on to this file
+        (``.msh`` or ``.tsh``), to look at or to reuse with
+        :func:`anuga.create_domain_from_file`. The domain is built in
+        memory either way. With ``use_cache=True`` the file is written only
+        when the mesh is generated, not when the domain comes from the cache.
 
     Returns
     -------
@@ -392,11 +522,6 @@ def create_domain_from_regions(bounding_polygon,
     args = (bounding_polygon,
             boundary_tags)
 
-    # if mesh_filename is None:
-    #     import tempfile
-    #     import time
-    #     mesh_filename = 'mesh_%d.msh'%int(time.time())
-
     kwargs = {'maximum_triangle_area': maximum_triangle_area,
               'interior_regions': interior_regions,
               'interior_holes': interior_holes,
@@ -409,13 +534,10 @@ def create_domain_from_regions(bounding_polygon,
               'fail_if_polygons_outside': fail_if_polygons_outside,
               'verbose': verbose,
               'size_field': size_field,
-              'relax_passes': relax_passes} #FIXME (Ole): See ticket:14
+              'relax_passes': relax_passes,
+              'mesh_filename': mesh_filename} #FIXME (Ole): See ticket:14
 
     # Call underlying engine with or without caching
-
-    # FIXME SR: The _create_domain_from_regions function creates a mesh file which is then read in to
-    # create the domain. It would make sense to take the created pmesh Mesh and then convert it to an anuga.Mesh
-    # and use that to create the domain.
     if use_cache is True:
         try:
             from anuga.caching import cache
@@ -449,7 +571,8 @@ def _create_domain_from_regions(bounding_polygon,
                                 fail_if_polygons_outside=True,
                                 verbose=True,
                                 size_field=None,
-                                relax_passes=0):
+                                relax_passes=0,
+                                mesh_filename=None):
     """_create_domain_from_regions - internal function.
 
     See create_domain_from_regions for documentation.
@@ -476,6 +599,11 @@ def _create_domain_from_regions(bounding_polygon,
                              relax_passes=relax_passes)
 
     mesh = pmesh_to_mesh(pmesh)
+
+    # pmesh_to_mesh has triangulated the pmesh, so the file holds the mesh
+    # the domain is built on.
+    if mesh_filename is not None:
+        pmesh.export_mesh_file(mesh_filename)
 
     domain = Domain(mesh, use_cache=False, verbose=verbose)
 

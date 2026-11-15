@@ -531,6 +531,7 @@ int gpu_domain_map_arrays(struct gpu_domain *GD) {
     // Additional arrays for extrapolation
     anuga_int *surrogate_neighbours = GD->D.surrogate_neighbours;
     anuga_int *number_of_boundaries = GD->D.number_of_boundaries;
+    anuga_int *boundary_limit_mask = GD->D.boundary_limit_mask;
     double *x_centroid_work = GD->D.x_centroid_work;
     double *y_centroid_work = GD->D.y_centroid_work;
 
@@ -549,7 +550,7 @@ int gpu_domain_map_arrays(struct gpu_domain *GD) {
         stage_eu[0:n], xmom_eu[0:n], ymom_eu[0:n], \
         stage_siu[0:n], xmom_siu[0:n], ymom_siu[0:n], \
         neighbours[0:3*n], neighbour_edges[0:3*n], \
-        surrogate_neighbours[0:3*n], number_of_boundaries[0:n], \
+        surrogate_neighbours[0:3*n], number_of_boundaries[0:n], boundary_limit_mask[0:n], \
         x_centroid_work[0:n], y_centroid_work[0:n], \
         normals[0:6*n], edgelengths[0:3*n], \
         areas[0:n], radii[0:n], max_speed[0:n], \
@@ -1113,6 +1114,7 @@ void gpu_domain_unmap_arrays(struct gpu_domain *GD) {
     // Additional arrays for extrapolation
     anuga_int *surrogate_neighbours = GD->D.surrogate_neighbours;
     anuga_int *number_of_boundaries = GD->D.number_of_boundaries;
+    anuga_int *boundary_limit_mask = GD->D.boundary_limit_mask;
     double *x_centroid_work = GD->D.x_centroid_work;
     double *y_centroid_work = GD->D.y_centroid_work;
 
@@ -1131,7 +1133,7 @@ void gpu_domain_unmap_arrays(struct gpu_domain *GD) {
         stage_eu[0:n], xmom_eu[0:n], ymom_eu[0:n], \
         stage_siu[0:n], xmom_siu[0:n], ymom_siu[0:n], \
         neighbours[0:3*n], neighbour_edges[0:3*n], \
-        surrogate_neighbours[0:3*n], number_of_boundaries[0:n], \
+        surrogate_neighbours[0:3*n], number_of_boundaries[0:n], boundary_limit_mask[0:n], \
         x_centroid_work[0:n], y_centroid_work[0:n], \
         normals[0:6*n], edgelengths[0:3*n], \
         areas[0:n], radii[0:n], max_speed[0:n], \
@@ -1171,7 +1173,11 @@ void gpu_domain_unmap_arrays(struct gpu_domain *GD) {
         int *b_idx = Dir->boundary_indices;
         int *v_ids = Dir->vol_ids;
         int *e_ids = Dir->edge_ids;
-        #pragma omp target exit data map(delete: b_idx[0:ne], v_ids[0:ne], e_ids[0:ne])
+        double *s_val = Dir->stage_values;
+        double *x_val = Dir->xmom_values;
+        double *y_val = Dir->ymom_values;
+        #pragma omp target exit data map(delete: b_idx[0:ne], v_ids[0:ne], e_ids[0:ne], \
+                                                 s_val[0:ne], x_val[0:ne], y_val[0:ne])
         Dir->mapped = 0;
     }
 
@@ -1428,6 +1434,44 @@ void gpu_domain_sync_to_device(struct gpu_domain *GD) {
     }
 }
 
+// Push the friction (Manning's n) centroid values to the device on their own.
+//
+// friction_cv is mapped once, when the domain arrays are mapped, and
+// gpu_domain_sync_to_device() carries only the conserved state -- so a friction
+// changed on the host after that (set_quantity('friction', ...) mid-run, a
+// depth-varying friction operator, a script updating it every yieldstep) is
+// never seen by the Manning kernel, and the run silently keeps the old n.
+// One array, so a per-step friction update costs one small transfer.
+void gpu_sync_friction_to_device(struct gpu_domain *GD)
+{
+    if (!GD->gpu_initialized) return;
+
+    anuga_int n = GD->D.number_of_elements;
+    double *friction_cv = GD->D.friction_centroid_values;
+    #pragma omp target update to(friction_cv[0:n])
+}
+
+// Push the bed elevation (centroid AND edge) to the device on its own.
+//
+// Like friction, the bed is mapped once and gpu_domain_sync_to_device() does
+// not carry it -- normally z never changes. When it does change on the host
+// (set_quantity('elevation', ...) mid-run, Set_elevation_operator, the erosion
+// operators) the device would keep the old bed. Worse, those operators keep
+// the depth by moving stage with the bed, and stage DOES reach the device, so
+// the stale bed under the new stage creates water: +10% in a small test.
+// Edge values too, because the DE algorithms use a discontinuous bed and read
+// bed_ev directly. Safe with sediment: the device owns z then, but every path
+// that writes z on the host pulls it from the device first.
+void gpu_sync_bed_to_device(struct gpu_domain *GD)
+{
+    if (!GD->gpu_initialized) return;
+
+    anuga_int n = GD->D.number_of_elements;
+    double *bed_cv = GD->D.bed_centroid_values;
+    double *bed_ev = GD->D.bed_edge_values;
+    #pragma omp target update to(bed_cv[0:n], bed_ev[0:3*n])
+}
+
 // Push the external source [G-3] to the device on its own.
 //
 // set_tracer_source writes it on the HOST, and a time-varying supply -- a
@@ -1589,6 +1633,25 @@ void gpu_sync_boundary_values(struct gpu_domain *GD) {
 
     #pragma omp target update to(stage_bv[0:nb], xmom_bv[0:nb], ymom_bv[0:nb], \
                                  bed_bv[0:nb], height_bv[0:nb])
+}
+
+void gpu_sync_boundary_values_from_device(struct gpu_domain *GD) {
+    // Sync boundary values FROM GPU, for a host-side operator that reads them.
+    // gpu_domain_sync_from_device() carries centroids only, and the device owns
+    // these arrays in mode 2, so the host copy otherwise stays at zero.
+    if (!GD->gpu_initialized) return;
+
+    anuga_int nb = GD->D.boundary_length;
+    if (nb == 0) return;
+
+    double *stage_bv = GD->D.stage_boundary_values;
+    double *xmom_bv = GD->D.xmom_boundary_values;
+    double *ymom_bv = GD->D.ymom_boundary_values;
+    double *bed_bv = GD->D.bed_boundary_values;
+    double *height_bv = GD->D.height_boundary_values;
+
+    #pragma omp target update from(stage_bv[0:nb], xmom_bv[0:nb], ymom_bv[0:nb], \
+                                   bed_bv[0:nb], height_bv[0:nb])
 }
 
 void gpu_sync_riverwall_to_device(struct gpu_domain *GD) {

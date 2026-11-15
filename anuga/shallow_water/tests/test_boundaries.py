@@ -180,17 +180,49 @@ class Test_Time_stage_zero_momentum_boundary(unittest.TestCase):
         # Note: class name in repr has typo "momemtum" — test actual behaviour
         self.assertIn('stage_zero_mom', r)
 
-    def test_evaluate_segment_sets_stage(self):
-        """evaluate_segment sets stage and zeros momenta."""
+    def test_evaluate_segment_guards(self):
+        """evaluate_segment returns quietly without a domain or segment."""
         import numpy as np
         domain = _make_domain()
         B = Time_stage_zero_momentum_boundary(domain, function=lambda t: 3.5)
         domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
         ids = np.arange(len(domain.boundary_cells))
-        # evaluate_segment should not raise even though evaluate is broken
-        # (self.f vs self.function mismatch in evaluate is a pre-existing bug)
         B.evaluate_segment(domain, None)  # None guard
         B.evaluate_segment(None, ids)     # None guard
+
+    def test_evaluate(self):
+        """evaluate gives [stage(t), 0, 0] at the domain's time."""
+        domain = _make_domain()
+        B = Time_stage_zero_momentum_boundary(domain, function=lambda t: 1.0 + 0.1 * t)
+        domain.set_time(5.0)
+        assert np.allclose(B.evaluate(), [1.5, 0.0, 0.0])
+
+    def test_evaluate_segment_sets_stage(self):
+        """evaluate_segment sets stage(t) and zeros the momenta."""
+        domain = _make_domain()
+        B = Time_stage_zero_momentum_boundary(domain, function=lambda t: 1.0 + 0.1 * t)
+        domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
+        domain.set_time(5.0)
+        ids = np.arange(len(domain.boundary_cells))
+        B.evaluate_segment(domain, ids)
+        assert np.allclose(domain.quantities['stage'].boundary_values[ids], 1.5)
+        assert np.allclose(domain.quantities['xmomentum'].boundary_values[ids], 0.0)
+        assert np.allclose(domain.quantities['ymomentum'].boundary_values[ids], 0.0)
+
+    def test_evolve_fills_from_boundary(self):
+        """A domain evolves with it, and water enters as the stage rises."""
+        domain = anuga.rectangular_cross_domain(10, 2, len1=10.0, len2=2.0)
+        domain.set_compute_mode('legacy')
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('stage', 0.1)
+        B = Time_stage_zero_momentum_boundary(domain, function=lambda t: 0.1 + 0.02 * t)
+        Br = Reflective_boundary(domain)
+        domain.set_boundary({'left': B, 'right': Br, 'top': Br, 'bottom': Br})
+        volume_0 = domain.get_water_volume()
+        for _ in domain.evolve(yieldstep=1.0, finaltime=5.0):
+            pass
+        assert domain.get_water_volume() > volume_0 + 0.1
+        assert np.all(domain.quantities['xmomentum'].centroid_values > -1.0e-12)
 
 
 class Test_Dirichlet_discharge_boundary(unittest.TestCase):
@@ -396,6 +428,67 @@ class Test_Flather_boundary(unittest.TestCase):
         domain.set_boundary({'left': B, 'right': Br, 'top': Br, 'bottom': Br})
         ids = np.arange(len(domain.boundary_cells))
         B.evaluate_segment(domain, ids)
+
+
+class Test_set_stage_boundary_momentum_scaling(unittest.TestCase):
+    """A set stage that leaves a boundary edge shallower than the interior
+    scales the transmitted momentum by the depth ratio, so the boundary
+    carries the interior velocity. Unscaled, a stage just above the edge bed
+    gave velocity = momentum / ~0 and collapsed the timestep."""
+
+    CLASSES = (Transmissive_momentum_set_stage_boundary,
+               Transmissive_n_momentum_zero_t_momentum_set_stage_boundary)
+
+    def _right_edges(self, domain):
+        return [(v, e) for (v, e), tag in domain.boundary.items() if tag == 'right']
+
+    def test_evaluate_scales_momentum_by_depth(self):
+        # interior edge depth 0.5, |momentum| normal to the right edge 0.1
+        for cls in self.CLASSES:
+            for stage, factor in [(0.0, 0.0), (-1.0, 0.0), (0.25, 0.5), (0.5, 1.0), (2.0, 1.0)]:
+                domain = _make_domain()
+                B = cls(domain, function=lambda t, s=stage: s)
+                domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
+                for vol_id, edge_id in self._right_edges(domain):
+                    q = B.evaluate(vol_id, edge_id)
+                    self.assertAlmostEqual(q[0], stage)
+                    self.assertAlmostEqual(q[1], 0.1 * factor,
+                                           msg=f'{cls.__name__} stage={stage}')
+
+    def test_evaluate_segment_matches_evaluate(self):
+        cls = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary
+        for stage in (0.0, 1e-9, 0.25, 0.5, 2.0):
+            domain = _make_domain()
+            B = cls(domain, function=lambda t, s=stage: s)
+            domain.set_boundary({'left': B, 'right': B, 'top': B, 'bottom': B})
+            ids = np.arange(len(domain.boundary_cells))
+            B.evaluate_segment(domain, ids)
+            for i in ids:
+                q = B.evaluate(domain.boundary_cells[i], domain.boundary_edges[i])
+                self.assertAlmostEqual(domain.quantities['xmomentum'].boundary_values[i], q[1])
+                self.assertAlmostEqual(domain.quantities['ymomentum'].boundary_values[i], q[2])
+
+    def test_stage_just_above_bed_keeps_timestep(self):
+        # Water flowing out at 1 m/s through an edge whose set stage is 1e-9 m
+        # above the bed: unscaled, the boundary velocity is 5e8 m/s.
+        import warnings
+        for mode in ('legacy', 'unified'):
+            for cls in self.CLASSES:
+                with self.subTest(mode=mode, boundary=cls.__name__):
+                    domain = anuga.rectangular_cross_domain(10, 4, len1=10.0, len2=4.0)
+                    domain.set_compute_mode(mode)
+                    domain.set_quantity('elevation', 0.0)
+                    domain.set_quantity('stage', 0.5)
+                    domain.set_quantity('xmomentum', 0.5)
+                    domain.set_store(False)
+                    Br = anuga.Reflective_boundary(domain)
+                    domain.set_boundary({'left': Br, 'top': Br, 'bottom': Br,
+                                         'right': cls(domain, function=lambda t: 1e-9)})
+                    with warnings.catch_warnings():
+                        warnings.simplefilter('ignore')
+                        for _ in domain.evolve(yieldstep=0.5, finaltime=0.5):
+                            pass
+                    self.assertLess(domain.number_of_steps, 1000)
 
 
 if __name__ == '__main__':

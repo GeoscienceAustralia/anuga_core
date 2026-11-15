@@ -252,8 +252,6 @@ def size_field_from_regions(bounding_polygon,
     -------
     Size_field
     """
-    from scipy import ndimage
-
     def absolute(polygon):
         polygon = ensure_numeric(polygon, float)
         if poly_geo_reference is not None:
@@ -288,10 +286,27 @@ def size_field_from_regions(bounding_polygon,
     ncol = int(num.ceil((xmax - xll) / cellsize)) + 1
     nrow = int(num.ceil((ymax - yll) / cellsize)) + 1
 
+    h = num.full((nrow, ncol), h_max)
+    _refine_edges(h, xll, yll, cellsize,
+                  [(polygon, edge) for (polygon, _), edge in zip(regions, edges)],
+                  grade)
+
+    return Size_field(edge_to_area(h), xll, yll, cellsize)
+
+
+def _refine_edges(h, xll, yll, cellsize, regions, grade):
+    """Lower a raster of target edge lengths ``h`` in place for regions.
+
+    ``regions`` is a list of (absolute polygon array, target edge length).
+    Inside each polygon ``h`` is at most its edge length, and it grows from
+    there at ``grade`` per unit distance.
+    """
+    nrow, ncol = h.shape
+
     # Rasterise by cell centre, grouping regions of equal resolution so that
     # each distinct resolution costs one distance transform
     masks = {}
-    for (polygon, _), edge in zip(regions, edges):
+    for polygon, edge in regions:
         mask = masks.setdefault(edge, num.zeros((nrow, ncol), bool))
 
         r0, c0, inside = _rasterise_polygon(polygon, xll, yll, cellsize,
@@ -305,14 +320,23 @@ def size_field_from_regions(bounding_polygon,
         ok = (col >= 0) & (col < ncol) & (row >= 0) & (row < nrow)
         mask[row[ok], col[ok]] = True
 
-    h = num.full((nrow, ncol), h_max)
     for edge, mask in masks.items():
-        if not mask.any():
-            continue
-        if grade > 0.0:
-            dist = ndimage.distance_transform_edt(~mask, sampling=cellsize)
-            num.minimum(h, edge + grade * dist, out=h)
-        else:
-            h[mask] = num.minimum(h[mask], edge)
+        _refine_mask(h, mask, edge, grade, cellsize)
 
-    return Size_field(edge_to_area(h), xll, yll, cellsize)
+
+def _refine_mask(h, mask, edge, grade, cellsize, band=0.0):
+    """Lower ``h`` in place to ``edge`` on ``mask`` and within ``band`` of
+    it, growing at ``grade`` per unit distance beyond."""
+    from scipy import ndimage
+
+    if not mask.any():
+        return
+    if grade == 0.0 and band == 0.0:
+        h[mask] = num.minimum(h[mask], edge)
+        return
+    dist = ndimage.distance_transform_edt(~mask, sampling=cellsize)
+    if grade > 0.0:
+        num.minimum(h, edge + grade * num.maximum(dist - band, 0.0), out=h)
+    else:
+        near = dist <= band
+        h[near] = num.minimum(h[near], edge)

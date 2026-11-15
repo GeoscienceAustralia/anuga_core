@@ -16,11 +16,17 @@ Interactive Jupyter notebooks demonstrating ANUGA usage from beginner to advance
    * - ``notebook_create_domain_from_regions.ipynb``
      - Unstructured mesh from polygon regions with tagged boundary segments.
      - Intermediate
+   * - ``notebook_create_domain_from_dem.ipynb``
+     - Mesh sized from the DEM's flow paths (``create_domain_from_dem``),
+       compared with a uniform mesh on the Merewether flood.
+     - Intermediate
    * - ``notebook_create_domain_with_riverwalls.ipynb``
      - Levee/riverwall structures via ``breaklines`` and ``create_riverwalls``.
      - Intermediate
    * - ``notebook_flooding_example.ipynb``
      - Real-world urban flood model of Merewether, Newcastle (NSW).
+       Superseded by ``notebook_create_domain_from_dem.ipynb`` and no longer
+       in the online documentation; kept for existing workshop material.
      - Advanced
    * - ``notebook_tsunami_benchmark.ipynb``
      - Okushiri Island tsunami runup (IWTS Benchmark 2).

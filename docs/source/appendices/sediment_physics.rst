@@ -133,6 +133,15 @@ with :math:`\lambda` the bed porosity, since a deposited volume
 :math:`(1-\lambda)\,dz` of grains fills a bed volume :math:`dz`. This is the
 Exner equation [Exn25]_, in the form used by [P14]_ and [FG21]_.
 
+The bed moves with the stage held, so the depth changes by :math:`-dz`. Where
+the bed rises the momentum is scaled with the depth, keeping the velocity,
+and taken to zero if the bed reaches the stage; where it falls the momentum
+is left as it was. Without that, a deposit that nearly fills a thin film
+leaves it carrying its whole momentum at a fraction of its depth, and the
+velocity :math:`uh/h` runs away. Scaling a falling bed's momentum up instead
+would create momentum in a nearly dry cell. The same rule applies to the
+bedload [G-5] and the angle-of-repose relaxation.
+
 A morphological acceleration factor :math:`M` (``morphological_factor``,
 Delft3D's MORFAC) multiplies the bed change of every step, here and in the
 bedload contribution [G-5], with the erodible-base limiter [L-5] scaled to

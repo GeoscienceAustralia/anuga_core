@@ -33,6 +33,11 @@ permissions:
   contents: read
 
 jobs:
+  # Every build job below carries the same `if:`: the nightly runs on
+  # anuga-community only. Mirrors (GeoscienceAustralia/anuga_core) inherit
+  # this file with the code, but the same branches tested twice just files
+  # the same failure in two trackers. A manual dispatch still runs anywhere.
+  #
   # Linux and macOS run the oldest and newest supported Python: their historic
   # breakages were toolchain-shaped rather than version-shaped, so OS coverage
   # is what earns its keep and push/PR runs still cover every version.
@@ -44,6 +49,7 @@ jobs:
   # appear here, and the trimmed matrix had a hole exactly in the middle.
   main:
     name: main
+    if: github.event_name != 'schedule' || github.repository == 'anuga-community/anuga_core'
     uses: ./.github/workflows/conda-setup.yml
     with:
       ref: main
@@ -51,6 +57,7 @@ jobs:
 
   develop:
     name: develop
+    if: github.event_name != 'schedule' || github.repository == 'anuga-community/anuga_core'
     uses: ./.github/workflows/conda-setup.yml
     with:
       ref: develop
@@ -59,6 +66,7 @@ jobs:
   # The versions the jobs above skip, on Windows only -- see #255.
   main-windows:
     name: main (windows, mid versions)
+    if: github.event_name != 'schedule' || github.repository == 'anuga-community/anuga_core'
     uses: ./.github/workflows/conda-setup.yml
     with:
       ref: main
@@ -67,6 +75,7 @@ jobs:
 
   develop-windows:
     name: develop (windows, mid versions)
+    if: github.event_name != 'schedule' || github.repository == 'anuga-community/anuga_core'
     uses: ./.github/workflows/conda-setup.yml
     with:
       ref: develop

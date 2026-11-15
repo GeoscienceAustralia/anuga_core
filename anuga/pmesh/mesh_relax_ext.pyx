@@ -193,3 +193,105 @@ def sweep(double[:, ::1] v not None,
                     q[k] = _quality(v, t[k, 0], t[k, 1], t[k, 2], sign)
 
     return moved
+
+
+cdef enum:
+    NSLIDE = 9           # the midpoint, then 4 step lengths each way
+
+
+def slide_sweep(double[:, ::1] v not None,
+                int64_t[:, ::1] t not None,
+                double[::1] q not None,
+                int64_t[::1] vt not None,
+                int64_t[::1] start not None,
+                int64_t[:, ::1] slide not None,
+                int64_t[::1] cand not None,
+                double thr,
+                double sign):
+    """One pass over vertices that may only slide along a straight segment.
+
+    Row ``slide[r] = (i, a, b)`` lets vertex ``i`` move along the line
+    through ``a`` and ``b``, its neighbours on the segment, strictly between
+    them; ``cand`` lists the rows to try. As in :func:`sweep`, a move is kept
+    only if it raises the worst incident triangle by at least 1%. Every trial
+    position is on the segment, so the segment keeps its shape.
+    Returns the number moved.
+    """
+    cdef int64_t moved = 0
+    cdef int64_t n, r, i, a, b, j, k, s, e, m
+    cdef double ax, ay, dx, dy, len2, p, pt, kx, ky
+    cdef double old, best, bp, worst, w
+    cdef double trial[NSLIDE]
+    cdef double step[4]
+
+    step[0] = 0.04
+    step[1] = 0.1
+    step[2] = 0.2
+    step[3] = 0.35
+
+    with nogil:
+        for n in range(cand.shape[0]):
+            r = cand[n]
+            i = slide[r, 0]
+            a = slide[r, 1]
+            b = slide[r, 2]
+            s = start[i]
+            e = start[i + 1]
+            if e <= s:
+                continue
+
+            old = q[vt[s]]
+            for j in range(s + 1, e):
+                if q[vt[j]] < old:
+                    old = q[vt[j]]
+            if old >= thr:
+                continue
+
+            # Position as a fraction p of the way from a to b
+            ax = v[a, 0]
+            ay = v[a, 1]
+            dx = v[b, 0] - ax
+            dy = v[b, 1] - ay
+            len2 = dx * dx + dy * dy
+            if len2 <= 0.0:
+                continue
+            kx = v[i, 0]
+            ky = v[i, 1]
+            p = ((kx - ax) * dx + (ky - ay) * dy) / len2
+
+            # The midpoint, and steps each way of a fraction of the span
+            trial[0] = 0.5
+            for m in range(4):
+                trial[1 + 2 * m] = p + 0.5 * step[m]
+                trial[2 + 2 * m] = p - 0.5 * step[m]
+
+            best = old * 1.01
+            bp = -1.0
+            for m in range(NSLIDE):
+                pt = trial[m]
+                if pt <= 0.05 or pt >= 0.95:
+                    continue
+                v[i, 0] = ax + pt * dx
+                v[i, 1] = ay + pt * dy
+                worst = 1.0e300
+                for j in range(s, e):
+                    k = vt[j]
+                    w = _quality(v, t[k, 0], t[k, 1], t[k, 2], sign)
+                    if w < worst:
+                        worst = w
+                if worst > best:
+                    best = worst
+                    bp = pt
+
+            if bp < 0.0:
+                v[i, 0] = kx
+                v[i, 1] = ky
+            else:
+                v[i, 0] = ax + bp * dx
+                v[i, 1] = ay + bp * dy
+                moved += 1
+                for j in range(s, e):
+                    k = vt[j]
+                    q[k] = _quality(v, t[k, 0], t[k, 1], t[k, 2], sign)
+
+    return moved

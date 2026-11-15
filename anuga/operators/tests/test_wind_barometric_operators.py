@@ -40,7 +40,8 @@ class TestBarometricPressureOperator:
             domain.quantities['ymomentum'].centroid_values, ymom0, atol=1e-14)
 
     def test_callable_pressure_updates_xmom(self):
-        """p(t,x,y)=x gives dp/dx=1, dp/dy=0: only xmom increases."""
+        """p(t,x,y)=x gives dp/dx=1, dp/dy=0: only xmom changes, and it
+        decreases, since water accelerates away from high pressure (#472)."""
         from anuga.operators.barometric_pressure import Barometric_pressure_operator
         domain = _make_domain(stage=1.0)   # depth h = 1.0
 
@@ -50,13 +51,39 @@ class TestBarometricPressureOperator:
         P = Barometric_pressure_operator(domain, pressure=pressure)
         P()
 
-        expected = 1.0 * 1.0 / rho_w   # dt * h * px / rho_w
+        expected = -1.0 * 1.0 / rho_w   # -dt * h * px / rho_w
         np.testing.assert_allclose(
             domain.quantities['xmomentum'].centroid_values,
             expected, rtol=1e-10)
         np.testing.assert_allclose(
             domain.quantities['ymomentum'].centroid_values,
             0.0, atol=1e-14)
+
+    def test_inverse_barometer_equilibrium_stays_at_rest(self):
+        """A closed basin under a steady pressure gradient, started from the
+        inverse-barometer equilibrium (surface slope -(dp/dx)/(rho_w g)),
+        stays at rest (max |u| about 4e-5 m/s here). With the force reversed
+        (#472) the surface tilts the wrong way and |u| exceeds 1e-3 m/s within
+        10 minutes."""
+        from anuga.operators.barometric_pressure import Barometric_pressure_operator
+        from anuga.config import g
+
+        L, depth, dpdx = 1000.0, 10.0, 0.1     # 1 hPa rise over 1 km
+        slope = -dpdx / (rho_w * g)
+        domain = anuga.rectangular_cross_domain(40, 2, len1=L, len2=50.0)
+        domain.set_quantity('elevation', -depth)
+        domain.set_quantity('stage', lambda x, y: slope * (x - 0.5 * L))
+        domain.set_boundary({tag: Reflective_boundary(domain)
+                             for tag in ('left', 'right', 'top', 'bottom')})
+        Barometric_pressure_operator(
+            domain, pressure=lambda t, x, y: 101325.0 + dpdx * x)
+
+        for _ in domain.evolve(yieldstep=600.0, finaltime=600.0):
+            pass
+
+        h = domain.quantities['stage'].centroid_values + depth
+        u = domain.quantities['xmomentum'].centroid_values / h
+        assert np.max(np.abs(u)) < 2.0e-4
 
     def test_use_coordinates_false_needs_file_function(self):
         """use_coordinates=False requires a single-quantity file_function."""

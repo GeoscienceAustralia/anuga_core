@@ -172,6 +172,11 @@ To run ANUGA simulations in parallel across multiple processes (using
   Used by ANUGA to decompose the mesh into balanced subdomains before
   distributing to MPI ranks.
 
+``pip install anuga`` installs pymetis on Linux and macOS, but not on Windows,
+where it has no wheels. Serial runs do not need it. To run in parallel on Windows
+without it, install it from conda-forge, or choose another partitioning scheme,
+for example ``anuga.distribute(domain, parameters={'partition_scheme': 'hilbert'})``.
+
 Both packages are already included in the conda environment files under
 ``environments/``.  For example, ``environment_3.12.yml`` lists them at
 lines 16 and 24 respectively, so the standard ``conda env create`` step

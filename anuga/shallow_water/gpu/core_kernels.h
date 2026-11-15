@@ -25,6 +25,22 @@ void core_extrapolate_edge_pass(struct domain *D, double predictor_dt);
 void core_extrapolate_edge_pass_on(struct domain *D, double predictor_dt,
                                    const anuga_int *iter, anuga_int iter_n);
 
+// True when cell k and its surrogate neighbours k0, k1, k2 (a missing
+// neighbour is k itself) are all below the minimum height: the edge pass zeroes
+// the momentum of such a cell. Shared with _openmp_extrapolate_centroids_only,
+// which must zero exactly the same cells.
+#pragma omp declare target
+static inline int core_dry_among_dry_neighbours(const double *height_cv,
+                                                anuga_int k, anuga_int k0,
+                                                anuga_int k1, anuga_int k2,
+                                                double minimum_allowed_height)
+{
+    return ((height_cv[k0] < minimum_allowed_height) || (k0 == k)) &&
+           ((height_cv[k1] < minimum_allowed_height) || (k1 == k)) &&
+           ((height_cv[k2] < minimum_allowed_height) || (k2 == k));
+}
+#pragma omp end declare target
+
 // Fused RK2-backup (optional) + protect + extrapolate centroid pass in one
 // launch.  Returns the protect mass error.  Follow with
 // core_extrapolate_edge_pass() to complete the reconstruction.
@@ -135,5 +151,15 @@ void core_ader_ck_predictor(struct domain *D, double dt);
 // centroid values unchanged.  Eliminates the second extrapolation pass.
 // Call after core_extrapolate_second_order_edge() + boundary update.
 void core_ader_ck_predictor_edge(struct domain *D, double dt);
+
+// Kinematic viscosity, explicit momentum form: one forward-Euler step with a
+// constant eddy viscosity nu (see the .c comment). scratch is 2n doubles from
+// core_kv_scratch_alloc (device memory on a GPU build).
+double *core_kv_scratch_alloc(anuga_int n, anuga_int m);
+void core_kv_scratch_set_walls(double *scratch, anuga_int n, anuga_int m,
+                               const double *flags);
+void core_kv_scratch_free(double *scratch);
+void core_kinematic_viscosity_explicit(struct domain *D, double nu, double dt,
+                                       double *scratch);
 
 #endif // CORE_KERNELS_H

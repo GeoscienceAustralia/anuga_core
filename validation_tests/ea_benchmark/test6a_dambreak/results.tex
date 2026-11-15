@@ -1,0 +1,133 @@
+\section{EA Test 6A: dam break past a building, laboratory scale}
+
+Test~6A of the Environment Agency benchmark \cite{NeelzPender2013} is the
+IMPACT isolated-building dam break in the flume at the Universit\'e
+catholique de Louvain (Soares-Fraz\~ao and Zech \cite{SoaresFrazaoZech2002}).
+A channel 3.6~m wide, with side slopes 0.34~m wide and 0.155~m high along
+both walls, holds 0.4~m of water in a 6.75~m reservoir behind a 0.8~m
+thick dam with a 1~m opening, and 0.02~m beyond it. The gate is lifted at
+$t = 0$ and the flood strikes a 0.8~m~$\times$~0.4~m building set at
+63$^\circ$ to the channel (Figure~\ref{fig:ea6a_setup}). Manning's
+$n = 0.01$, the specified resolution is 0.1~m (here triangles of at most
+0.01~m$^2$, about 56,000 in all), and the run lasts 2~min. The geometry is
+built from the benchmark's DEM exactly as for Test~6B,
+every length divided by 20.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 6A: the flume, and the reservoir, dam, building and gauges
+G1--G6 close up.}
+\label{fig:ea6a_setup}
+\end{figure}
+
+The report shows the UCL measurements, available for the first 30~s,
+against the packages (its Figures 4.25--4.26). Every package matched the
+level at G6, upstream of the gate, which follows the periodic flow through
+the gate with a period of about 9~s. Elsewhere none of them reproduced the
+transcritical flow consistently: ``at best there was usually a discrepancy
+in the timing of transitions''. \anuga{} behaves the same way. The level
+and speed at G6 and the levels at G3 and G4 follow the measurements
+closely, but the hydraulic jump that forms in front of the building and
+travels back upstream reaches G2 at about 30~s with the second-order
+schemes, where the measurements show it at 13--18~s and most packages at
+10--12~s, and the levels at G1 and in the wake (G5) are 3--4~cm low.
+Friction, the time stepping and the representation of the building leave
+the timing unchanged, and flattening the side slopes moves the answer
+further from the measurements.
+
+The timing is set by the slope limiter (Table~\ref{tab:ea6a_limiter},
+Figures~\ref{fig:ea6a_limiter_field} and~\ref{fig:ea6a_limiter_stage}).
+The jet from the gate is supercritical, about 3~cm deep at 2.2~m/s (a
+Froude number near 4), and the jump forms where it meets the water held up
+by the building. With the limiter at full strength ($\beta = 1$, as in DE1
+and DE\_ader2) the jump holds its place in front of the building until
+after 20~s; with $\beta = 0.5$ (as in DE0) it reaches G2 at 17~s, and with
+$\beta = 0$, a first-order reconstruction, at 11~s, which fits every gauge
+best. Refining the mesh moves the jump later at every setting, towards the
+$\beta = 1$ result, which is itself unchanged. The shallow-water equations,
+solved accurately, therefore put the jump at G2 at about 30~s: the earlier
+jump in the flume needs dissipation the equations do not contain, such as
+the turbulence of the shallow jet and of the jump, and the packages that
+reproduce it, \anuga{}~1.1 among them (9~s in 2009), owe it largely to
+numerical diffusion.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+Limiter & \multicolumn{2}{c}{Jump reaches G2} \\
+ & 0.01~m$^2$ triangles & 0.0025~m$^2$ triangles \\
+\hline
+$\beta = 0$ & 10.7~s & 12.3~s \\
+$\beta = 0.5$ (DE0) & 16.9~s & 19.4~s \\
+$\beta = 1$ (DE1, DE\_ader2) & about 30~s & about 30~s \\
+\hline
+Measured & \multicolumn{2}{c}{13--18~s} \\
+\hline
+\end{tabular}
+\end{center}
+\caption{EA Test 6A: when the hydraulic jump reaches G2, by limiter and mesh.}
+\label{tab:ea6a_limiter}
+\end{table}
+
+Figure~\ref{fig:ea6a_limiter_field} shows the flow for the three settings
+on the standard mesh. In every case the jet fans out from the gate and the
+jump (the red line, where the Froude number is 1, closing the
+supercritical region) first forms against the building. With $\beta = 0$
+the jump moves upstream past G1 and G2 by 12~s and the supercritical
+region shrinks back towards the gate; with $\beta = 0.5$ it reaches G2 at
+about 17~s; with $\beta = 1$ it stays at the front of the building until
+after 24~s, with the flow still supercritical at G2. The levels at the
+gauges (Figure~\ref{fig:ea6a_limiter_stage}) show the same: the limiter
+changes little at G3, G4 and G6, but at G2 it decides when the level
+jumps from 3~cm to 12--13~cm, and it moves the levels at G1 and in the
+wake (G5) by 3--4~cm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{limiter_field.png}
+\end{center}
+\caption{EA Test 6A: depth, velocity and the line where the Froude number
+is 1 around the building, 6--30~s after the gate opens, with the slope
+limiter's $\beta$ set to 0, 0.5 and 1 (0.01~m$^2$
+triangles).}
+\label{fig:ea6a_limiter_field}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=\textwidth]{limiter_stage.png}
+\end{center}
+\caption{EA Test 6A: water level at G1--G6 over the first 40~s for the
+three settings of $\beta$. The grey band at G2 marks when the measured
+jump arrives (13--18~s).}
+\label{fig:ea6a_limiter_stage}
+\end{figure}
+
+The checks (Figure~\ref{fig:ea6a_checks}) are the volume balance, the
+order in which the bore reaches the gauges, the period of the gate flow,
+a bound on the largest speed, and a stored baseline per flow algorithm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 6A: water level at G1--G6 over the first minute.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{speed_plot.png}
+\end{center}
+\caption{EA Test 6A: speed at G1--G6 over the first minute.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 6A: the checks and their outcome.}
+\label{fig:ea6a_checks}
+\end{figure}

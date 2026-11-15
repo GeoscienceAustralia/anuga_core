@@ -1,0 +1,53 @@
+\section{EA Test 3: momentum conservation over a small obstruction}
+
+Test~3 of the Environment Agency benchmark \cite{NeelzPender2013} asks
+whether a model carries momentum over a low obstruction. A
+300~m~$\times$~100~m channel falls at 1:200 into two depressions, centred
+on points~1 ($x = 150$~m) and~2 ($x = 250$~m), separated by a crest at
+$x = 200$~m (Figure~\ref{fig:ea3_setup}). A short inflow of 1,310~m$^3$
+across the upstream end just fills the first depression. A model that
+conserves momentum carries some of the water over the crest into the
+second; one that does not leaves it all in the first. Manning's
+$n = 0.01$, the specified resolution is 5~m (here triangles of at most
+25~m$^2$, about 1,200 in all), the walls are closed and the run
+lasts 900~s.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 3: the bed along the channel centreline and the inflow.}
+\label{fig:ea3_setup}
+\end{figure}
+
+The report gives no tabulated results. In its summary of the full
+shallow-water packages (Section~4.4.3), the level at point~1 rises from
+the bed at 9.75~m to about 9.98--9.99~m by $t \approx 120$~s, and from
+$t \approx 150$~s water crosses the crest and the level at point~2 rises by
+about 5--6~cm. These are the grey bands of Figure~\ref{fig:ea3_stage}, and
+with the volume balance and a stored baseline per flow algorithm they are
+the checks of Figure~\ref{fig:ea3_checks}.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 3: water level at points 1 and 2, with the report's
+summary of the full shallow-water packages.}
+\label{fig:ea3_stage}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{speed_plot.png}
+\end{center}
+\caption{EA Test 3: speed at points 1 and 2.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 3: the checks and their outcome.}
+\label{fig:ea3_checks}
+\end{figure}

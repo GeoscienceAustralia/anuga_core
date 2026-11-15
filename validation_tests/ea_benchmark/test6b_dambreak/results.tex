@@ -1,0 +1,66 @@
+\section{EA Test 6B: dam break past a building, field scale}
+
+Test~6B of the Environment Agency benchmark \cite{NeelzPender2013} is the
+IMPACT isolated-building dam break (Soares-Fraz\~ao and Zech
+\cite{SoaresFrazaoZech2002}) with every length scaled up by 20. A closed
+channel 73~m wide holds 8~m of water behind a dam with a 20~m opening, and
+0.4~m downstream of it. The dam is removed at $t = 0$ and the flood strikes
+a 16~m~$\times$~8~m building set at 63$^\circ$ to the channel, forming a
+hydraulic jump in front of it and a wake behind it
+(Figure~\ref{fig:ea6b_setup}). Manning's $n = 0.05$, the specified
+resolution is 2~m (here triangles of at most 4~m$^2$, about 55,000 in
+all), and the run lasts 30~min.
+
+The geometry comes from the benchmark's DEM, in which walls, dam and
+building stand 10~m above the floor. The channel is the DEM's open cells,
+the two dam blocks are cut out of the boundary, and the building is a
+rectangle fitted to its DEM cells and left as a reflective hole in the
+mesh. Raising the floor 10~m over the building's DEM cells instead raises
+the peak levels by up to 0.08~m. Refining the mesh to 1~m$^2$ and
+0.25~m$^2$ triangles (221,000 and 884,000) changes the peak levels by at
+most 0.12~m (at G3) and the levels after the first minutes by under 1~cm.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.9\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 6B: the channel, and the reservoir, dam, building and
+gauges G1--G6 close up.}
+\label{fig:ea6b_setup}
+\end{figure}
+
+The report shows the results of nine full shallow-water packages (ANUGA
+1.1 among them) at G2, G4, G5 and G6 (its Figures 4.27--4.28). Peak depths
+downstream of the gate lie within 15--20\% of each other, a 50~cm wide
+range, and TUFLOW and XPSTORM run higher than the rest in the
+high-momentum region below the gate. The water levels and speeds of
+Figures~\ref{fig:ea6b_stage} and~\ref{fig:ea6b_speed} lie within that
+spread. The checks (Figure~\ref{fig:ea6b_checks}) are the volume balance,
+the order in which the bore reaches the gauges, the draining of the
+reservoir, a bound on the largest speed (the report questioned ANUGA's
+peak velocities in 2013), level agreement at 30~min, and a stored
+baseline per flow algorithm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 6B: water level at G1--G6 over the first 10 minutes.}
+\label{fig:ea6b_stage}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{speed_plot.png}
+\end{center}
+\caption{EA Test 6B: speed at G1--G6 over the first 10 minutes.}
+\label{fig:ea6b_speed}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 6B: the checks and their outcome.}
+\label{fig:ea6b_checks}
+\end{figure}

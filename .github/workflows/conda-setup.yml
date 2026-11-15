@@ -49,8 +49,14 @@ on:
 # Two things are never cancelled, because there is no later run coming to
 # replace them: a push to main, and a release publish (whose ref is the tag,
 # not main, so it needs saying separately).
+#
+# Called from scheduled-build.yml, github.workflow and github.ref are the
+# caller's, so its four calls (main, develop, and each on Windows) would share
+# one group, and a group keeps one run plus one pending: the other two were
+# cancelled as soon as they queued. The call's inputs keep them apart; they
+# are empty for push and pull_request runs, whose grouping is unchanged.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}-${{ inputs.ref }}-${{ inputs.os_list }}
   cancel-in-progress: >-
     ${{ github.event_name != 'release' && github.ref != 'refs/heads/main' }}
 
@@ -58,6 +64,15 @@ jobs:
   test_conda:
     name: Example (${{ matrix.python-version }}, ${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Open MPI on shared memory only. Since about 2026-10-24 the Ubuntu
+    # runners carry an Azure MANA adapter (mana_0) that UCX picks and cannot
+    # open ("uct_iface_open(ud_verbs/mana_0:1) failed: Address not valid"),
+    # and the OFI fallback then reports a maximum message size of 0: every
+    # MPI test failed and one hung until the 6 h job limit. One runner needs
+    # nothing but shared memory anyway. msmpi (Windows) ignores these.
+    env:
+      OMPI_MCA_pml: ob1
+      OMPI_MCA_btl: self,sm
     strategy:
       fail-fast: false
       matrix:
@@ -74,7 +89,11 @@ jobs:
           ref: ${{ inputs.ref }}   # empty outside workflow_call = triggering ref
       - uses: conda-incubator/setup-miniconda@v4
         with:
-          miniforge-version: latest      # Installs Miniforge instead of Miniconda
+          # Pinned, not 'latest': Miniforge 26.9.4-0 (2026-10-22) breaks
+          # 'conda init' on Windows ("needs sudo", exit 1) before any of our
+          # steps run -- conda-forge/miniforge#913. Return to 'latest' once
+          # that is fixed.
+          miniforge-version: 26.7.2-1    # Installs Miniforge instead of Miniconda
           use-mamba: true                # Recommended for faster installs
           python-version: ${{ matrix.python-version }}
           auto-update-conda: true        # Auto-update conda or mamba
@@ -220,6 +239,7 @@ jobs:
           retention-days: 30
 
       - name: Test package (fast — PR feedback)
+        timeout-minutes: 60       # a hung MPI test fails here, not at the 6 h job limit
         if: github.event_name == 'pull_request'
         shell: bash -el {0}
         run: |
@@ -229,6 +249,7 @@ jobs:
           pytest -rs --pyargs anuga --run-fast
 
       - name: Test package (full suite — push to main/develop, and scheduled)
+        timeout-minutes: 60       # a hung MPI test fails here, not at the 6 h job limit
         if: github.event_name != 'pull_request'
         shell: bash -el {0}
         run: |
@@ -238,6 +259,7 @@ jobs:
           pytest -rs --pyargs anuga
 
       - name: Coverage report (Linux / Python 3.12 only)
+        timeout-minutes: 60       # a hung MPI test fails here, not at the 6 h job limit
         if: runner.os == 'Linux' && matrix.python-version == '3.12'
         shell: bash -el {0}
         run: |
@@ -253,6 +275,7 @@ jobs:
       # Safe to run the full suite in one process on a CPU build (the NVHPC
       # target-runtime abort is GPU-build-only). Linux / Python 3.14 only.
       - name: Test package (unified compute mode, full — Linux / Python 3.14)
+        timeout-minutes: 60       # a hung MPI test fails here, not at the 6 h job limit
         if: runner.os == 'Linux' && matrix.python-version == '3.14'
         shell: bash -el {0}
         run: |

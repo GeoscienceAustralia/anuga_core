@@ -3,8 +3,12 @@ Run a kinematic viscosity simulation serially and in parallel, saving the
 xvelocity centroid values (in global triangle order) for comparison.
 
 Usage:
-  python run_parallel_kv_operator.py           # serial  → kv_serial_xvel.npy
-  mpiexec -np 3 python run_parallel_kv_operator.py   # parallel → kv_parallel_xvel.npy
+  python run_parallel_kv_operator.py           # serial  → kv_serial_xvel_velocity.npy
+  mpiexec -np 3 python run_parallel_kv_operator.py   # parallel → kv_parallel_xvel_velocity.npy
+
+An optional argument 'momentum' runs the momentum-conserving form instead
+(eddy viscosity 0.01), writing kv_*_xvel_momentum.npy, and 'explicit' the
+same form with the explicit scheme, writing kv_*_xvel_explicit.npy.
 """
 
 import os
@@ -18,6 +22,7 @@ import sys
 sys.excepthook = global_except_hook
 
 verbose = False
+form = sys.argv[1] if len(sys.argv) > 1 else 'velocity'
 
 # -----------------------------------------------------------------------
 # Build domain (identical mesh for serial and parallel)
@@ -39,8 +44,15 @@ if numprocs > 1:
 Br = Reflective_boundary(domain)
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
-kv = Kinematic_viscosity_operator(domain, diffusivity='height',
-                                   use_triangle_areas=True, verbose=verbose)
+if form == 'momentum':
+    kv = Kinematic_viscosity_operator(domain, diffusivity=0.01, form='momentum',
+                                       use_triangle_areas=True, verbose=verbose)
+elif form == 'explicit':
+    kv = Kinematic_viscosity_operator(domain, diffusivity=0.01, form='momentum',
+                                       scheme='explicit', verbose=verbose)
+else:
+    kv = Kinematic_viscosity_operator(domain, diffusivity='height', form='velocity',
+                                       use_triangle_areas=True, verbose=verbose)
 
 for t in domain.evolve(yieldstep=0.05, finaltime=0.15):
     pass
@@ -53,7 +65,7 @@ n_full = domain.number_of_full_triangles
 
 if numprocs == 1:
     # Serial: global index == local index, all triangles are full
-    num.save(os.path.join(out_dir, 'kv_serial_xvel.npy'), xvel.copy())
+    num.save(os.path.join(out_dir, 'kv_serial_xvel_%s.npy' % form), xvel.copy())
 else:
     import anuga.utilities.parallel_abstraction as pypar
     from mpi4py.MPI import SUM, MAX
@@ -74,6 +86,6 @@ else:
     pypar.comm.Reduce(local_buf, global_buf, op=SUM, root=0)
 
     if myid == 0:
-        num.save(os.path.join(out_dir, 'kv_parallel_xvel.npy'), global_buf)
+        num.save(os.path.join(out_dir, 'kv_parallel_xvel_%s.npy' % form), global_buf)
 
 finalize()

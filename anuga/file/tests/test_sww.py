@@ -1,15 +1,18 @@
 
 import os
+import shutil
 import unittest
 import tempfile
+from unittest import mock
 import numpy as num
 
 from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.file.csv_file import load_csv_as_array, load_csv_as_dict
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
+from anuga.abstract_2d_finite_volumes.quantity import Quantity
 from anuga.file.sww import weed, get_mesh_and_quantities_from_file, \
-                Write_sww
+                Write_sww, SWW_file
 from anuga.file.netcdf import NetCDFFile
 
 from anuga.config import netcdf_mode_r, netcdf_mode_w, netcdf_float, default_boundary_tag
@@ -744,6 +747,40 @@ class Test_sww(unittest.TestCase):
             os.remove(filename)  # Clean up
         except OSError:
             pass
+
+    def test_store_connectivity_keeps_large_vertex_indices(self):
+        """Vertex indices above 2**24 must reach the SWW file unchanged.
+
+        float32 cannot represent every integer above 2**24, so a connectivity
+        array passing through it comes back rounded. A real mesh that size is
+        too big for a unit test, so shift the indices of a small mesh instead.
+        """
+        points, vertices, boundary = rectangular(2, 2)
+        domain = Domain(points, vertices, boundary)
+        tmpdir = tempfile.mkdtemp()
+        domain.set_datadir(tmpdir)
+        domain.set_name('large_vertex_indices')
+
+        offset = 2**24 + 1  # odd, so float32 rounding would change it
+        real_get_vertex_values = Quantity.get_vertex_values
+
+        def shifted_get_vertex_values(quantity, *args, **kwargs):
+            *values, V = real_get_vertex_values(quantity, *args, **kwargs)
+            return (*values, V + offset)
+
+        expected = num.array(domain.get_triangles(), dtype=int) + offset
+
+        sww = SWW_file(domain)
+        with mock.patch.object(Quantity, 'get_vertex_values',
+                               shifted_get_vertex_values):
+            sww.store_connectivity()
+
+        fid = NetCDFFile(sww.filename)
+        stored = num.array(fid.variables['volumes'][:], dtype=int)
+        fid.close()
+        shutil.rmtree(tmpdir)
+
+        assert num.array_equal(stored, expected)
 
 
 #################################################################################

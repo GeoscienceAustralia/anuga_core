@@ -86,6 +86,7 @@ struct domain {
     anuga_geom_t* centroid_coordinates;
 
     anuga_int* number_of_boundaries;
+    anuga_int* boundary_limit_mask;
     double* stage_edge_values;
     double* xmom_edge_values;
     double* ymom_edge_values;

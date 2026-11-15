@@ -431,6 +431,33 @@ class Test_spatialInputUtil(unittest.TestCase):
         return
 
 
+def test_read_polygon_csv_without_geodata(tmp_path):
+    """A CSV polygon needs only numpy: it must read when fiona is missing
+    (as in the conda-forge test env), while a .shp still raises ImportError."""
+    import subprocess
+    import textwrap
+    csv = tmp_path / 'line.csv'
+    csv.write_text('x,y\n50.0,10.0\n50.0,40.0\n')
+    shp = tmp_path / 'line.shp'
+    shp.write_text('')
+    code = textwrap.dedent("""
+        import sys, warnings
+        sys.modules['fiona'] = None   # makes 'import fiona' raise ImportError
+        warnings.simplefilter('ignore')
+        from anuga.utilities import spatialInputUtil as su
+        assert not su.spatial_available
+        assert su.read_polygon(sys.argv[1]) == [[50.0, 10.0], [50.0, 40.0]]
+        try:
+            su.read_polygon(sys.argv[2])
+        except ImportError as e:
+            assert 'fiona' in str(e)
+        else:
+            raise AssertionError('shapefile read without geodata')
+    """)
+    subprocess.run([sys.executable, '-c', code, str(csv), str(shp)],
+                   check=True)
+
+
 # =========================================================================
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(Test_spatialInputUtil)

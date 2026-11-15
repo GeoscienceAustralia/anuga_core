@@ -12,13 +12,15 @@ from anuga.coordinate_transforms.geo_reference import Geo_reference
 from anuga.abstract_2d_finite_volumes.mesh_factory import rectangular_cross, rectangular
 from anuga.shallow_water.shallow_water_domain import Domain
 from anuga.file.netcdf import NetCDFFile
+from anuga import create_domain_from_regions
 from anuga.shallow_water.boundaries import (
     Reflective_boundary, Field_boundary,
     Transmissive_momentum_set_stage_boundary,
+    Transmissive_n_momentum_zero_t_momentum_set_stage_boundary,
     Transmissive_stage_zero_momentum_boundary,
 )
 from anuga.abstract_2d_finite_volumes.generic_boundary_conditions import (
-    Transmissive_boundary, Dirichlet_boundary, Time_boundary,
+    Boundary, Transmissive_boundary, Dirichlet_boundary, Time_boundary,
 )
 
 class Test_Shallow_Water(unittest.TestCase):
@@ -894,6 +896,264 @@ class Test_Shallow_Water(unittest.TestCase):
         #Cleanup
         os.remove(os.path.join(domain1.get_datadir(), domain1.get_name() + '.sww'))
 
+
+
+class Test_Prescribed_Boundary_Limiter(unittest.TestCase):
+    """The edge limiter on boundary edges.
+
+    A boundary cell has no neighbour beyond its boundary edge, so the end of a
+    smooth slope looks like a local extremum. A value the boundary condition
+    prescribes stands in for that neighbour: the edge may move towards it but
+    not past it. Anything else (walls, transmissive copies, custom classes) has
+    no outside information and keeps the plain limiter.
+    """
+
+    def _domain(self, make_boundary, nx=10, ny=5, length=10.0, width=5.0):
+        points, vertices, boundary = rectangular_cross(nx, ny, len1=length, len2=width)
+        domain = Domain(points, vertices, boundary)
+        domain.set_flow_algorithm('DE1')
+        domain.set_compute_mode('legacy')   # inspects the host edge arrays
+        domain.set_low_froude(0)
+        domain.set_store(False)
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('friction', 0.0)
+        domain.set_quantity('stage', 1.0)
+        wall = Reflective_boundary(domain)
+        domain.set_boundary({'left': make_boundary(domain), 'right': wall,
+                             'top': wall, 'bottom': wall})
+        return domain
+
+    def _end_cell(self, domain):
+        """The left-end triangle in the middle row, and its boundary edge."""
+        centroids = domain.centroid_coordinates
+        for k in range(len(domain)):
+            for edge in range(3):
+                if (domain.neighbours[k, edge] < 0 and domain.boundary[(k, edge)] == 'left'
+                        and abs(centroids[k, 1] - 2.5) < 1.0e-9):
+                    return k, edge
+        raise AssertionError('no end cell found')
+
+    def _extrapolate(self, domain):
+        # The limiter reads the boundary values, and the copying boundaries read
+        # the edge values, so extrapolate on both sides of the boundary update.
+        domain.distribute_to_vertices_and_edges()
+        domain.update_boundary()
+        domain.distribute_to_vertices_and_edges()
+
+    def test_linear_profile_reaches_the_prescribed_value(self):
+        for name, make in (
+            ('Dirichlet', lambda d: Dirichlet_boundary([1.0, 0.0, 0.0])),
+            ('Time', lambda d: Time_boundary(d, function=lambda t: [1.0, 0.0, 0.0])),
+            ('set stage', lambda d: Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(
+                d, function=lambda t: 1.0)),
+        ):
+            with self.subTest(name):
+                domain = self._domain(make)
+                domain.set_quantity('stage', lambda x, y: 1.0 + 0.01 * x)
+                self._extrapolate(domain)
+                k, edge = self._end_cell(domain)
+                stage = domain.quantities['stage']
+                self.assertGreater(stage.centroid_values[k], 1.001)
+                self.assertAlmostEqual(stage.edge_values[k, edge], 1.0, places=6)
+
+    def test_uniform_depth_over_a_sloping_bed_reaches_the_prescribed_depth(self):
+        # The depth at the boundary uses the bed at the edge, not at the centroid.
+        domain = self._domain(lambda d: Dirichlet_boundary([1.0, 0.0, 0.0]))
+        domain.set_quantity('elevation', lambda x, y: 0.1 * x)
+        domain.set_quantity('stage', lambda x, y: 1.0 + 0.1 * x)
+        self._extrapolate(domain)
+        k, edge = self._end_cell(domain)
+        self.assertAlmostEqual(domain.quantities['stage'].edge_values[k, edge], 1.0, places=6)
+        self.assertAlmostEqual(domain.quantities['height'].edge_values[k, edge], 1.0, places=6)
+
+    def test_edge_stops_at_the_prescribed_value(self):
+        # The slope would carry the edge to 1.0, but the boundary says 1.001.
+        domain = self._domain(lambda d: Dirichlet_boundary([1.001, 0.0, 0.0]))
+        domain.set_quantity('stage', lambda x, y: 1.0 + 0.01 * x)
+        self._extrapolate(domain)
+        k, edge = self._end_cell(domain)
+        self.assertAlmostEqual(domain.quantities['stage'].edge_values[k, edge], 1.001, places=6)
+
+    def test_local_peak_is_not_extrapolated_away_from_the_boundary_value(self):
+        # The cell stands above its neighbours and the boundary value. Following
+        # the gradient would carry the edge further above them both, which feeds
+        # back through the boundary flux and runs away at an outflow.
+        for name, make in (
+            ('Dirichlet', lambda d: Dirichlet_boundary([1.0, 0.0, 0.0])),
+            ('set stage', lambda d: Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(
+                d, function=lambda t: 1.0)),
+        ):
+            with self.subTest(name):
+                domain = self._domain(make)
+                k, edge = self._end_cell(domain)
+                stage = domain.quantities['stage']
+                stage.centroid_values[k] = 1.2
+                self._extrapolate(domain)
+                self.assertTrue(num.allclose(stage.edge_values[k], 1.2, atol=1.0e-5))
+
+    def test_a_boundary_without_outside_information_keeps_the_plain_limiter(self):
+        # A wall or a transmissive copy cannot tell a slope from a peak, so both
+        # stay flat. Relaxing this overshoots beside walls and runs away at outflows.
+        for name, make in (('wall', lambda d: Reflective_boundary(d)),
+                           ('transmissive', lambda d: Transmissive_boundary(d))):
+            with self.subTest(name + ' peak'):
+                domain = self._domain(make)
+                k, edge = self._end_cell(domain)
+                xmom = domain.quantities['xmomentum']
+                xmom.centroid_values[k] = 1.5
+                self._extrapolate(domain)
+                self.assertTrue(num.allclose(xmom.edge_values[k], 1.5, atol=1.0e-10))
+            with self.subTest(name + ' slope'):
+                domain = self._domain(make)
+                domain.set_quantity('stage', lambda x, y: 1.0 + 0.01 * x)
+                self._extrapolate(domain)
+                k, edge = self._end_cell(domain)
+                stage = domain.quantities['stage']
+                self.assertTrue(num.allclose(stage.edge_values[k], stage.centroid_values[k],
+                                             atol=1.0e-10))
+
+    def test_round_off_does_not_collapse_the_gradient(self):
+        # The y velocity is 0 at the cell and at the boundary edge, with a real
+        # gradient along the boundary. Round-off in that zero must not read as an
+        # overshoot of a zero-width bound, which would flatten every edge and make
+        # results differ between machines.
+        def edges(noise):
+            domain = self._domain(lambda d: Dirichlet_boundary([1.0, 0.0, 0.0]))
+            domain.set_quantity('ymomentum', lambda x, y: 0.1 * (y - 2.5))
+            k, edge = self._end_cell(domain)
+            domain.quantities['ymomentum'].centroid_values[k] = noise
+            self._extrapolate(domain)
+            return domain.quantities['ymomentum'].edge_values[k].copy()
+
+        clean = edges(0.0)
+        self.assertGreater(num.abs(clean).max(), 0.01)
+        for noise in (1.0e-16, -1.0e-15, 1.0e-13):
+            self.assertTrue(num.allclose(edges(noise), clean, atol=1.0e-8), noise)
+
+    def test_tiny_bound_does_not_amplify_round_off(self):
+        # The y velocity nearly vanishes at the cell and the boundary, so its bound
+        # is tiny, and its gradient runs almost along the boundary, so the offset of
+        # the boundary edge is tiny as well. Their ratio must not set the gradient:
+        # that turned 1e-11 into 3e-6 on the other edges, enough to make results
+        # differ visibly between the CPU and GPU paths.
+        def edges(value):
+            domain = self._domain(lambda d: Dirichlet_boundary([1.0, 0.0, 0.0]))
+            domain.set_quantity('ymomentum', lambda x, y: 0.1 * (y - 2.5) + 1.0e-7 * x)
+            k, edge = self._end_cell(domain)
+            domain.quantities['ymomentum'].centroid_values[k] = value
+            self._extrapolate(domain)
+            return domain.quantities['ymomentum'].edge_values[k].copy()
+
+        worst = 0.0
+        for value in num.linspace(-2.0e-6, 2.0e-6, 41):
+            eps = 1.0e-11
+            worst = max(worst, num.abs(edges(value + eps) - edges(value)).max() / eps)
+        self.assertLess(worst, 10.0)
+
+    def test_limit_mask_follows_the_boundary_class(self):
+        class Custom(Boundary):
+            def evaluate(self, vol_id=None, edge_id=None):
+                return [1.0, 0.0, 0.0]
+
+        for name, make, stage_set, momentum_set in (
+            ('Dirichlet', lambda d: Dirichlet_boundary([1.0, 0.0, 0.0]), True, True),
+            ('Time', lambda d: Time_boundary(d, function=lambda t: [1.0, 0.0, 0.0]), True, True),
+            ('set stage', lambda d: Transmissive_momentum_set_stage_boundary(
+                d, function=lambda t: 1.0), True, False),
+            ('n set stage', lambda d: Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(
+                d, function=lambda t: 1.0), True, False),
+            ('wall', lambda d: Reflective_boundary(d), False, False),
+            ('transmissive', lambda d: Transmissive_boundary(d), False, False),
+            ('custom', lambda d: Custom(), False, False),
+        ):
+            with self.subTest(name):
+                domain = self._domain(make)
+                k, edge = self._end_cell(domain)
+                expected = (1 << edge if stage_set else 0) | (8 << edge if momentum_set else 0)
+                self.assertEqual(domain.boundary_limit_mask[k], expected)
+
+    def test_limit_mask_is_rebuilt_by_set_boundary(self):
+        domain = self._domain(lambda d: Dirichlet_boundary([1.0, 0.0, 0.0]))
+        self.assertGreater(num.count_nonzero(domain.boundary_limit_mask), 0)
+        wall = Reflective_boundary(domain)
+        domain.set_boundary({'left': wall, 'right': wall, 'top': wall, 'bottom': wall})
+        self.assertEqual(num.count_nonzero(domain.boundary_limit_mask), 0)
+
+    def test_first_step_after_set_boundary_sees_the_new_values(self):
+        # A continued evolve() skips the initial boundary update, and the limiter
+        # must not bound the first step by the boundary that has just been replaced.
+        domain = self._domain(lambda d: Reflective_boundary(d))
+        for t in domain.evolve(yieldstep=1.0, finaltime=1.0):
+            pass
+        wall = Reflective_boundary(domain)
+        domain.set_boundary({'left': Dirichlet_boundary([0.2, 0.0, 0.0]), 'right': wall,
+                             'top': wall, 'bottom': wall})
+        seen = []
+        original = domain.evolve_one_rk2_step
+
+        def step(*args, **kwargs):
+            seen.append(domain.quantities['stage'].boundary_values.copy())
+            return original(*args, **kwargs)
+
+        domain.evolve_one_rk2_step = step
+        for t in domain.evolve(yieldstep=0.1, finaltime=1.1):
+            pass
+        k, edge = self._end_cell(domain)
+        self.assertAlmostEqual(seen[0][-domain.neighbours[k, edge] - 1], 0.2)
+
+    def _max_speed(self, domain):
+        quantities = domain.quantities
+        depth = quantities['stage'].centroid_values - quantities['elevation'].centroid_values
+        wet = depth > 0.01
+        speed = num.hypot(quantities['xmomentum'].centroid_values,
+                          quantities['ymomentum'].centroid_values)[wet] / depth[wet]
+        return speed.max()
+
+    def _unstructured(self, polygon, area):
+        # Unstructured on purpose: the instabilities below do not appear on the
+        # symmetric stencils of a regular mesh.
+        domain = create_domain_from_regions(
+            polygon, boundary_tags={'left': [0], 'top': [1], 'right': [2], 'bottom': [3]},
+            maximum_triangle_area=area, verbose=False)
+        domain.set_flow_algorithm('DE1')
+        domain.set_compute_mode('legacy')
+        domain.set_low_froude(0)
+        domain.set_store(False)
+        return domain
+
+    def test_outflow_at_a_set_stage_boundary_stays_stable(self):
+        # A sloping channel with banks, draining through a set-stage outflow. An
+        # edge extrapolated against the boundary value feeds back through the
+        # outflow flux: this collapses the timestep within seconds.
+        length, width, slope = 40.0, 14.0, 1.0 / 300.0
+        domain = self._unstructured([[0, 0], [0, length], [width, length], [width, 0]], 0.2)
+
+        def elevation(x, y):
+            return (-slope * y - 1.0 * ((x > 2) & (x < 12))
+                    + (1.0 - 0.5 * (x - 2)) * ((x > 2) & (x < 4))
+                    + (1.0 + 0.5 * (x - 12)) * ((x > 10) & (x < 12)))
+
+        domain.set_quantity('elevation', elevation)
+        domain.set_quantity('friction', 0.03)
+        domain.set_quantity('stage', lambda x, y: -slope * y - 0.35)
+        wall = Reflective_boundary(domain)
+        outflow = Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(
+            domain, function=lambda t: -slope * length - 0.35)
+        domain.set_boundary({'left': wall, 'right': wall, 'bottom': wall, 'top': outflow})
+        for t in domain.evolve(yieldstep=2.0, finaltime=30.0):
+            self.assertLess(self._max_speed(domain), 2.0)
+
+    def test_dam_break_beside_walls_does_not_overshoot(self):
+        # A closed box has no prescribed value, so nothing may change here. Loosening
+        # the bound at walls raises the peak speed from 3.3 to above 4.2 m/s.
+        domain = self._unstructured([[0, 0], [0, 5], [20, 5], [20, 0]], 0.02)
+        domain.set_quantity('elevation', 0.0)
+        domain.set_quantity('friction', 0.0)
+        domain.set_quantity('stage', lambda x, y: num.where(x + 0.4 * y < 6.0, 1.0, 0.1))
+        wall = Reflective_boundary(domain)
+        domain.set_boundary({'left': wall, 'right': wall, 'top': wall, 'bottom': wall})
+        for t in domain.evolve(yieldstep=0.25, finaltime=10.0):
+            self.assertLess(self._max_speed(domain), 3.6)
 
 
 if __name__ == "__main__":

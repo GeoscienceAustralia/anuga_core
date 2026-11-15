@@ -308,6 +308,8 @@ from anuga.simulation.simulation import Simulation
 from anuga.pmesh.mesh_interface import create_pmesh_from_regions
 from anuga.pmesh.mesh_interface import create_mesh_from_regions  # deprecated alias
 from anuga.pmesh.size_field import Size_field, size_field_from_regions
+from anuga.pmesh.dem_mesh import create_pmesh_from_dem, size_field_from_dem
+from anuga.pmesh.dem_mesh import drainage_area_from_dem, remove_mesh_pits
 
 # -----------------------------
 # SWW file access
@@ -410,6 +412,7 @@ from anuga.utilities.mem_time_equation import estimate_time_mem
 # create domain functions
 # -------------------------
 from anuga.extras import create_domain_from_regions
+from anuga.extras import create_domain_from_dem
 from anuga.extras import create_domain_from_file
 from anuga.extras import rectangular_cross_domain
 from anuga.extras import create_basic_mesh_from_regions
@@ -422,6 +425,7 @@ from anuga.config import g
 from anuga.config import velocity_protection
 from anuga.config import MULTIPROCESSOR_OPENMP, MULTIPROCESSOR_GPU
 from anuga.config import LOW_FROUDE_OFF, LOW_FROUDE_1, LOW_FROUDE_2
+from anuga.config import LOW_FROUDE_TANGENTIAL_UPWIND
 
 # --------------------------------------
 # Public API — names exported by `import anuga`
@@ -592,11 +596,16 @@ __all__ = [
     'read_polygon_dir',
     # Domain creation
     'create_basic_mesh_from_regions',
+    'create_domain_from_dem',
     'create_domain_from_file',
     'create_domain_from_regions',
     'create_mesh_from_regions',   # deprecated alias for create_pmesh_from_regions
+    'create_pmesh_from_dem',
     'create_pmesh_from_regions',
+    'drainage_area_from_dem',
+    'remove_mesh_pits',
     'Size_field',
+    'size_field_from_dem',
     'size_field_from_regions',
     # System / utility
     'acos',
@@ -638,6 +647,7 @@ __all__ = [
     'LOW_FROUDE_1',
     'LOW_FROUDE_2',
     'LOW_FROUDE_OFF',
+    'LOW_FROUDE_TANGENTIAL_UPWIND',
     'MULTIPROCESSOR_GPU',
     'MULTIPROCESSOR_OPENMP',
     'velocity_protection',

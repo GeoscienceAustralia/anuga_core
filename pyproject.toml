@@ -28,7 +28,9 @@ dependencies = [
     'netCDF4>=1.6',
     'scipy>=1.11',
     'meshpy>=2022.1',
-    'pymetis>=2023.1',
+    # pymetis has no Windows wheels and does not build there with pip. conda-forge
+    # has it. Only METIS partitioning needs it: see anuga/parallel/partitioning.py.
+    'pymetis>=2023.1; sys_platform != "win32"',
     'pyproj>=3.6',
     'xarray',
 ]

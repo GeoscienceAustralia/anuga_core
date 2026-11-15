@@ -590,15 +590,15 @@ class Test_Shallow_Water(unittest.TestCase):
 
         assert num.allclose(domain.quantities['xmomentum'].\
                             edge_values[:4, 0],
-                            [0.07335652, 0.06685681, 0.07071273, 0.06628975])
+                            [0.07787221174, 0.07787221174, 0.07611748396, 0.07679717225])
 
         assert num.allclose(domain.quantities['xmomentum'].\
                             edge_values[:4, 1],
-                            [0.07343497, 0.06685681, 0.07083783, 0.06628975])
+                            [0.08274701406, 0.07500174616, 0.07467122034, 0.07709624966])
 
         assert num.allclose(domain.quantities['xmomentum'].\
                             edge_values[:4, 2],
-                            [0.08124162, 0.06685681, 0.07891946, 0.06628975])
+                            [0.08213019522, 0.05624683585, 0.07919415261, 0.06622246461])
         os.remove(os.path.join(domain.get_datadir(), domain.get_name() + '.sww'))
 
 

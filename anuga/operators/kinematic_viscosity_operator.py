@@ -1,4 +1,6 @@
 
+import warnings
+
 from anuga import Quantity
 from anuga.utilities.sparse import Sparse, Sparse_CSR
 from anuga.utilities.cg_solve import conjugate_gradient, Stats, ConvergenceError
@@ -22,8 +24,52 @@ class Kinematic_viscosity_operator(Operator):
     As an anuga operator, when the __call__ method is called one step of the parabolic
     step is applied. In particular the x and y velocities are updated using
 
-    du/dt = div( h grad u )
-    dv/dt = div( h grad v )
+    du/dt = div( d grad u )
+    dv/dt = div( d grad v )
+
+    where d is the diffusivity: the water depth h by default
+    (diffusivity='height'), or a constant or quantity given by the
+    diffusivity argument. The velocities, not the momenta, are diffused, so
+    where the depth varies this form does not conserve momentum.
+
+    With form='momentum' the operator solves the momentum-conserving form
+
+    d(hu)/dt = div( nu h grad u )
+    d(hv)/dt = div( nu h grad v )
+
+    where nu is the eddy viscosity given by the diffusivity argument (a
+    number, a Quantity or a quantity name, not 'height'). An edge between a
+    wet and a dry cell carries no stress, so total momentum changes only
+    through the domain boundary. In either form a Reflective boundary is a
+    free-slip wall and carries no stress either; other boundaries prescribe
+    the velocity at the edge.
+
+    Either form is solved implicitly, one step per call:
+
+    A_i m_i u_i - dt sum_edges a_e (u_j - u_i) l_e / d_e = A_i m_i u_i^old
+
+    with A_i the triangle area, m_i = 1 (velocity form) or h_i (momentum
+    form), a_e the mean of the diffusivity (or of nu h) across the edge, l_e
+    its length and d_e the distance between the centroids. The matrix is
+    symmetric and positive definite. Each momentum then changes by
+    h (u - u^old).
+
+    With scheme='explicit' (form='momentum' and a constant nu only) the
+    momentum form is instead advanced by forward Euler, with the edge depth
+    taken as the harmonic mean 2 h_i h_j / (h_i + h_j). There is no linear
+    solve: one pass over the edges, which runs on the GPU in unified mode.
+    The step is stable while 2 nu dt sum_e (l_e / d_e) / A_i <= 1 for every
+    cell; the operator splits a longer timestep into equal sub-steps that
+    meet it. At the timesteps the flow solver takes nu dt / dx^2 is usually
+    far below this, so one step is enough.
+
+    For a physical eddy viscosity use form='momentum', scheme='explicit'
+    with nu in m^2/s: it is the form the depth-averaged equations give,
+    conserves momentum, and runs on the GPU. The velocity form, the
+    default, is a smoother: it diffuses velocity rather than momentum,
+    which creates momentum where the depth varies. Not passing form gives
+    a FutureWarning, as the default may change; pass form='velocity' to
+    keep it.
 
     """
 
@@ -31,12 +77,47 @@ class Kinematic_viscosity_operator(Operator):
                  domain, diffusivity='height',
                  use_triangle_areas=True,
                  add_safety = False,
+                 form=None,
+                 scheme='implicit',
                  verbose=False):
 
         if verbose: log.info('Kinematic Viscosity: Beginning Initialisation')
 
 
         Operator.__init__(self,domain)
+
+        if form is None:
+            warnings.warn(
+                "Kinematic_viscosity_operator: no form given, so using the "
+                "velocity form, du/dt = div(d grad u), which does not conserve "
+                "momentum where the depth varies. Pass form='velocity' to keep "
+                "it, or form='momentum' with an eddy viscosity nu (and "
+                "scheme='explicit') for the momentum-conserving form. The "
+                "default may change in a future release.",
+                FutureWarning, stacklevel=2)
+            form = 'velocity'
+        if form not in ('velocity', 'momentum'):
+            raise ValueError("form must be 'velocity' or 'momentum', not %r" % (form,))
+        if form == 'momentum' and isinstance(diffusivity, str) and diffusivity == 'height':
+            raise ValueError("form='momentum' needs the eddy viscosity nu as the "
+                             "diffusivity (a number, Quantity or quantity name); "
+                             "the depth h is already part of the momentum form")
+        if scheme not in ('implicit', 'explicit'):
+            raise ValueError("scheme must be 'implicit' or 'explicit', not %r" % (scheme,))
+        if scheme == 'explicit':
+            if form != 'momentum':
+                raise ValueError("scheme='explicit' needs form='momentum'")
+            if isinstance(diffusivity, bool) or not isinstance(diffusivity, (int, float)):
+                raise ValueError("scheme='explicit' needs a constant eddy viscosity "
+                                 "nu (a number) as the diffusivity")
+            if diffusivity < 0:
+                raise ValueError('the eddy viscosity must not be negative')
+        self.form = form
+        self.scheme = scheme
+
+        if scheme == 'explicit':
+            self._init_explicit(float(diffusivity), verbose)
+            return
 
         #Expose the domain attributes
         self.mesh = self.domain.mesh
@@ -85,6 +166,9 @@ class Kinematic_viscosity_operator(Operator):
 
         # Only needs to built once, doesn't change
         kinematic_viscosity_operator_ext.build_geo_structure(self)
+        self._geo_structure_base = self.geo_structure_values.copy()
+        self._geo_boundary_objects = None
+        self._geo_walls_set = False
 
         # Setup type of scaling
         self.set_triangle_areas(use_triangle_areas)
@@ -122,6 +206,136 @@ class Kinematic_viscosity_operator(Operator):
         if verbose: log.info('Kinematic Viscosity: Initialisation Done')
 
 
+    def _init_explicit(self, nu, verbose):
+        """Set up the explicit scheme: no matrix, just the stability bound."""
+
+        domain = self.domain
+        self.mesh = domain.mesh
+        self.nu = nu
+        self.verbose = verbose
+        self.n = len(domain)
+        self.u_stats = None
+        self.v_stats = None
+        self.substeps = 0          # sub-steps taken by the last call
+        self._scratch = {}         # 'host' / 'gpu' -> scratch handle
+        self._scratch_walls = {}   # 'host' / 'gpu' -> boundary_objects last set
+
+        # G = max over cells of sum_e (l_e / d_e) / A_i, the geometric part
+        # of the stability bound 2 nu dt G <= 1. The same on every rank, so
+        # that all ranks take the same number of sub-steps.
+        mesh = self.mesh
+        nbr = mesh.neighbours
+        cc = mesh.centroid_coordinates
+        em = mesh.edge_midpoint_coordinates.reshape(-1, 3, 2)
+        other = num.where((nbr >= 0)[:, :, None], cc[num.maximum(nbr, 0)], em)
+        dist = num.sqrt(((other - cc[:, None, :])**2).sum(axis=2))
+        g = (mesh.edgelengths / dist).sum(axis=1) / mesh.areas
+        G = num.array([g.max() if len(g) else 0.0])
+        if getattr(domain, 'numproc', 1) > 1:
+            import anuga.utilities.parallel_abstraction as pypar
+            from mpi4py.MPI import MAX
+            G_all = num.zeros(1)
+            pypar.comm.Allreduce(G, G_all, op=MAX)
+            G = G_all
+        self.stability_G = float(G[0])
+
+        if verbose:
+            log.info('Kinematic Viscosity: explicit, nu = %g, stable for dt <= %g'
+                     % (nu, self.max_stable_timestep()))
+
+    def max_stable_timestep(self):
+        """Longest timestep the explicit scheme takes in a single step."""
+
+        if self.nu <= 0.0 or self.stability_G <= 0.0:
+            return float('inf')
+        return 1.0 / (2.0 * self.nu * self.stability_G)
+
+    def _explicit_step(self):
+        """One explicit step of the momentum form, on the device in mode 2."""
+
+        domain = self.domain
+        dt = domain.get_timestep()
+        if dt <= 0.0 or self.nu <= 0.0:
+            self.substeps = 0
+            return
+
+        # As for the sediment operator: inside the host-coherent window that
+        # a CPU-only operator opens (_gpu_host_writes_suppressed) the host
+        # copy is the one that gets pushed back, so work on the host there.
+        on_gpu = (domain.multiprocessor_mode == 2
+                  and getattr(domain, 'gpu_interface', None) is not None
+                  and not getattr(domain, '_gpu_host_writes_suppressed', False))
+        key = 'gpu' if on_gpu else 'host'
+        if on_gpu:
+            from anuga.shallow_water.sw_domain_gpu_ext import (
+                kv_scratch_alloc_gpu as alloc, kv_scratch_set_walls_gpu as set_walls,
+                kinematic_viscosity_explicit_gpu as step)
+            target = domain.gpu_interface.gpu_dom
+        else:
+            from anuga.shallow_water.sw_domain_openmp_ext import (
+                kv_scratch_alloc as alloc, kv_scratch_set_walls as set_walls,
+                kinematic_viscosity_explicit as step)
+            target = domain
+        if key not in self._scratch:
+            self._scratch[key] = alloc(self.n, len(domain.boundary))
+        scratch = self._scratch[key]
+        objects = getattr(domain, 'boundary_objects', None)
+        if self._scratch_walls.get(key) is not objects or key not in self._scratch_walls:
+            flags = num.zeros(len(domain.boundary), dtype=float)
+            flags[[k for k, _vol, _edge in self._wall_edges()]] = 1.0
+            set_walls(scratch, self.n, flags)
+            self._scratch_walls[key] = objects
+
+        nsub = max(1, int(num.ceil(dt / self.max_stable_timestep())))
+        self.substeps = nsub
+        for _ in range(nsub):
+            # Fractional steps run before the step's ghost exchange, and the
+            # stress on an edge shared with another rank needs the ghost's
+            # current momentum.
+            if domain.parallel:
+                if on_gpu:
+                    domain.gpu_interface.exchange_ghosts()
+                else:
+                    domain.update_ghosts()
+            step(target, self.nu, dt / nsub, scratch)
+
+    def _wall_edges(self):
+        """(boundary index, triangle, edge) of each Reflective boundary edge.
+
+        A Reflective wall is free-slip, so it exerts no viscous stress: it
+        keeps the flow off the wall through the pressure and the fluxes alone.
+        Its boundary values mirror the flow rather than prescribe a velocity,
+        and using them as one, a sixth of a cell from the centroid on a
+        rectangular cross mesh, swamps the stress between the cells.
+        """
+        from anuga.shallow_water.boundaries import Reflective_boundary
+
+        objects = getattr(self.domain, 'boundary_objects', None) or []
+        return [(k, vol, edge) for k, ((vol, edge), B) in enumerate(objects)
+                if isinstance(B, Reflective_boundary)]
+
+    def _update_wall_edges(self):
+        """Take Reflective edges out of the geometry when the boundaries change."""
+        objects = getattr(self.domain, 'boundary_objects', None)
+        if objects is self._geo_boundary_objects and self._geo_walls_set:
+            return
+        self.geo_structure_values[:] = self._geo_structure_base
+        for _k, vol, edge in self._wall_edges():
+            self.geo_structure_values[vol, edge] = 0.0
+        self._geo_boundary_objects = objects
+        self._geo_walls_set = True
+
+    def __del__(self):
+        # Host scratch only; device scratch is released with the device
+        # context, as the GPU runtime may already be gone at interpreter exit.
+        handle = getattr(self, '_scratch', {}).get('host')
+        if handle is not None:
+            try:
+                from anuga.shallow_water.sw_domain_openmp_ext import kv_scratch_free
+                kv_scratch_free(handle)
+            except Exception:
+                pass
+
     def parallel_safe(self):
         return True
 
@@ -133,6 +347,10 @@ class Kinematic_viscosity_operator(Operator):
 
         """
 
+        if self.scheme == 'explicit':
+            self._explicit_step()
+            return
+
         domain = self.domain
 
         self.dt = self.dt + domain.get_timestep()
@@ -141,6 +359,13 @@ class Kinematic_viscosity_operator(Operator):
         if self.dt < self.dt_apply:
             return
 
+
+        self._update_wall_edges()
+
+        # The solve runs on the host and reads boundary values, which mode 2
+        # keeps on the device. Without them every open edge looks dry and still.
+        if domain.multiprocessor_mode == 2 and getattr(domain, 'gpu_interface', None) is not None:
+            domain.gpu_interface.sync_boundary_values_from_device()
 
         # Setup initial values of velocity
         domain.update_centroids_of_velocities_and_height()
@@ -160,15 +385,44 @@ class Kinematic_viscosity_operator(Operator):
 
         v = domain.quantities['yvelocity']
 
-        #Update operator using current height
-        self.update_elliptic_matrix(d)
+        h = domain.quantities['height']
 
-        (u, self.u_stats) = self.parabolic_solve(u, u, d, u_out=u, update_matrix=False, output_stats=True)
+        if self.form == 'momentum':
+            # Edge coefficient nu h; a cell with no water takes no part.
+            wet = h.centroid_values > domain.minimum_allowed_height
+            a_c = num.where(wet, d.centroid_values * h.centroid_values, 0.0)
+            a_b = num.ascontiguousarray(d.boundary_values * h.boundary_values)
+            kinematic_viscosity_operator_ext.update_elliptic_matrix(self, a_c, a_b)
+            mass = h.centroid_values
+            close_dry = True
+        else:
+            #Update operator using current height
+            self.update_elliptic_matrix(d)
+            mass = None
+            close_dry = False
 
-        (v, self.v_stats) = self.parabolic_solve(v, v, d, u_out=v, update_matrix=False, output_stats=True)
-
-        # Update the conserved quantities
-        domain.update_centroids_of_momentum_from_velocity()
+        h_c = h.centroid_values
+        for vel, mom, name in ((u, 'xmomentum', 'u_stats'), (v, 'ymomentum', 'v_stats')):
+            vel_old = vel.centroid_values.copy()
+            vel, stats = self.parabolic_solve(vel, vel, d, u_out=vel, update_matrix=False,
+                                              output_stats=True, mass=mass,
+                                              close_dry=close_dry)
+            setattr(self, name, stats)
+            if self.form == 'momentum':
+                # The change in momentum is the stress the solved velocity
+                # gives across each edge, so the stresses on the two sides
+                # of an edge cancel and only the boundary changes the total,
+                # whatever the solver tolerance. The stresses on full cells
+                # need the solved velocities of their ghost neighbours.
+                self._exchange_ghost_vector(vel.centroid_values)
+                stress = (self._parabolic_rhs(vel.centroid_values, vel.boundary_values)
+                          - self._P * vel.centroid_values)
+                domain.quantities[mom].centroid_values[:] += stress / self._areas()
+            else:
+                # By the change in velocity, so that cells the solve leaves
+                # alone keep their momentum exactly.
+                domain.quantities[mom].centroid_values[:] += h_c * (vel.centroid_values - vel_old)
+        domain.distribute_to_vertices_and_edges()
 
 
         self.dt = 0.0
@@ -404,7 +658,9 @@ class Kinematic_viscosity_operator(Operator):
 
     def _parabolic_multiply_array(self, array_in, array_out):
         """
-        calculates ( [ I 0 ; 0  0] + dt [A B] ) [array_in ; 0]
+        calculates ( [ I 0 ; 0  0] - dt T^{-1} [A B] ) [array_in ; 0]
+
+        with T the diagonal of triangle areas (if apply_triangle_areas).
         """
 
         n = self.n
@@ -420,12 +676,12 @@ class Kinematic_viscosity_operator(Operator):
         V[0:n] = array_in
         V[n:] = 0.0
 
+        AV = self.elliptic_matrix * V
 
         if self.apply_triangle_areas:
-            V[0:n] = self.triangle_areas * V[0:n]
+            AV = AV / self.mesh.areas
 
-
-        array_out[:] = array_in - self.dt * (self.elliptic_matrix * V)
+        array_out[:] = array_in - self.dt * AV
 
         return array_out
 
@@ -556,32 +812,25 @@ class Kinematic_viscosity_operator(Operator):
         d_full : 1-D array of length n_full (search direction on full cells).
 
         Returns array of length n_full:
-            result = d_full - dt * (A_{nn+ghost} * T^{-1} * d_extended)[:n_full]
+            result = (P * d_extended)[:n_full]
 
-        where d_extended = [d_full; d_ghost] after ghost exchange.
+        where P is the matrix from _build_parabolic_csr and
+        d_extended = [d_full; d_ghost] after ghost exchange.
         """
         n      = self.n        # full + ghost
         n_full = self.n_full
-        tot_len = self.tot_len
 
-        # Reuse pre-allocated workspace of length tot_len
+        # Reuse pre-allocated workspace
         V = self._kv_V
         V[:n_full]  = d_full
         V[n_full:n] = 0.0       # ghost portion — will be filled by exchange
-        V[n:]       = 0.0       # boundary virtual nodes always zero here
 
         # Fill ghost values of the search direction
         self._exchange_ghost_vector(V)  # operates on V[0:n]
 
-        # Apply T^{-1} (divide by triangle areas) for all local triangles
-        if self.apply_triangle_areas:
-            V[:n] = V[:n] / self.mesh.areas   # element-wise, shape (n,)
-        # V[n:] stays zero (boundary virtual nodes)
+        PV = self._P * V[:n]
 
-        # SpMV: elliptic_matrix is (n x tot_len); take only first n_full rows
-        AV = self.elliptic_matrix * V      # length n
-
-        return d_full - self.dt * AV[:n_full]
+        return PV[:n_full]
 
 
     def _parabolic_solve_distributed(self, rhs_full, x0_full, imax, tol, atol):
@@ -634,51 +883,112 @@ class Kinematic_viscosity_operator(Operator):
     # _build_parabolic_csr — used only in the serial (single-rank) path
     # ------------------------------------------------------------------
 
-    def _build_parabolic_csr(self):
-        """Return P = I - dt * A_{nn} * T^{-1} as a Sparse_CSR (n x n).
+    def _build_parabolic_csr(self, mass=None, close_dry=False):
+        """Return P = T M - dt * A_{nn} as a Sparse_CSR (n x n).
 
-        Only interior columns (colind < n) of the elliptic matrix contribute;
-        boundary columns are handled via boundary_term in the rhs.
-        If apply_triangle_areas is False, T^{-1} is omitted (identity scaling).
+        T is the diagonal of triangle areas (the identity if
+        apply_triangle_areas is False) and M = diag(mass) (the identity if
+        mass is None). The equation for row i is
+
+            T_i M_i u_i - dt sum_j A_ij u_j = T_i M_i b_i + (boundary terms)
+
+        A is the elliptic matrix, which is symmetric apart from the rows it
+        leaves empty (cells whose diffusivity is zero): such a cell keeps
+        its value, u_i = b_i. Its column is taken out of the other rows,
+        either moved to the right-hand side with the cell's value
+        (close_dry=False) or dropped together with its share of the diagonal,
+        so that the edge carries nothing (close_dry=True). P is then
+        symmetric and positive definite.
+
+        Sets self._P, and the edges for the right-hand side: self._rhs_bdry
+        (rows, boundary indices, values) and self._rhs_fixed (rows, columns,
+        values).
         """
         n   = self.n
         dt  = self.dt
-        areas = self.mesh.areas
 
-        op_data   = self.operator_data    # shape (4n,)
-        op_colind = self.operator_colind  # shape (4n,), some entries may be >= n
+        data   = self.operator_data.reshape(n, 4)
+        colind = self.operator_colind.reshape(n, 4)
 
-        # Row index for every entry (exactly 4 entries per row)
-        row_idx = num.repeat(num.arange(n, dtype=num.int64), 4)
+        empty = num.all(data == 0.0, axis=1)
 
-        # Keep only entries whose column is an interior triangle
-        interior = op_colind < n
-        i_rows = row_idx[interior]
-        i_cols = op_colind[interior].astype(num.int64)
+        rows = num.repeat(num.arange(n, dtype=num.int64), 4)
+        cols = colind.ravel().astype(num.int64)
+        vals = data.ravel().copy()
 
-        if self.apply_triangle_areas:
-            i_vals = -dt * op_data[interior] / areas[i_cols]
+        diagonal = cols == rows
+        interior = cols < n
+        to_empty = interior & ~diagonal & empty[num.minimum(cols, n - 1)]
+
+        if close_dry:
+            # The diagonal is minus the sum of the off-diagonals: take the
+            # dropped edges out of it too.
+            vals[diagonal] += num.bincount(rows[to_empty], vals[to_empty], minlength=n)
+            self._rhs_fixed = (rows[:0], cols[:0], vals[:0])
         else:
-            i_vals = -dt * op_data[interior].copy()
+            self._rhs_fixed = (rows[to_empty], cols[to_empty], vals[to_empty])
 
-        # Add identity on the diagonal
-        i_vals[i_rows == i_cols] += 1.0
+        bdry = ~interior
+        self._rhs_bdry = (rows[bdry], cols[bdry] - n, vals[bdry])
+
+        keep = interior & ~to_empty
+        i_rows = rows[keep]
+        i_cols = cols[keep]
+        i_vals = -dt * vals[keep]
+
+        self._row_mass = self._mass(mass, empty)
+        i_vals[i_rows == i_cols] += self._row_mass
 
         counts = num.bincount(i_rows, minlength=n).astype(num.int64)
         rowptr = num.zeros(n + 1, dtype=num.int64)
         num.cumsum(counts, out=rowptr[1:])
 
-        return Sparse_CSR(None, i_vals, i_cols, rowptr, n, n)
+        self._P = Sparse_CSR(None, i_vals, i_cols, rowptr, n, n)
+        return self._P
+
+
+    def _areas(self):
+        """The diagonal T: triangle areas, or ones if apply_triangle_areas is False."""
+        if self.apply_triangle_areas:
+            return self.mesh.areas
+        return num.ones(self.n, dtype=float)
+
+
+    def _mass(self, mass, empty):
+        """The diagonal T M of the parabolic matrix. A cell the elliptic
+        matrix leaves empty keeps T, so that its row stays u_i = b_i."""
+        t = self._areas().copy()
+        if mass is not None:
+            t = num.where(empty, t, t * mass)
+        return t
+
+
+    def _parabolic_rhs(self, b, g):
+        """T M b + dt (boundary terms and fixed empty cells) for the matrix
+        from _build_parabolic_csr; b on the cells, g on the boundary."""
+        n = self.n
+        rhs = self._row_mass * b
+        r, k, v = self._rhs_bdry
+        rhs += self.dt * num.bincount(r, v * g[k], minlength=n)
+        r, k, v = self._rhs_fixed
+        if len(r):
+            rhs += self.dt * num.bincount(r, v * b[k], minlength=n)
+        return rhs
 
 
     def parabolic_solve(self, u_in, b, a = None, u_out = None, update_matrix=True, \
-                       output_stats=False, use_dt_tol=True, iprint=None, imax=10000):
+                       output_stats=False, use_dt_tol=True, iprint=None, imax=10000,
+                       mass=None, close_dry=False):
         """
         Solve for u in the equation
 
-        ( I + dt div a grad ) u = b
+        ( M - dt div a grad ) u = M b
 
         u | boundary = g
+
+        M is the cell weight mass (1 if None; the depth h for the momentum
+        form). See _build_parabolic_csr for cells with zero diffusivity and
+        close_dry.
 
 
         u_in, u_out, f anf g are Quantity objects
@@ -707,10 +1017,17 @@ class Kinematic_viscosity_operator(Operator):
         if update_matrix:
             self.update_elliptic_matrix(a)
 
-        self.update_elliptic_boundary_term(u_in)
+        P = self._build_parabolic_csr(mass, close_dry)
 
-        rhs = num.ascontiguousarray(b.centroid_values + self.dt * self.boundary_term)
+        rhs = num.ascontiguousarray(self._parabolic_rhs(b.centroid_values, u_in.boundary_values))
         x0  = u_in.centroid_values.copy()
+
+        # The system is scaled by the triangle areas (and mass): scale the
+        # absolute tolerance with it. The scale is global, so that every
+        # rank of a parallel run stops on the same iteration.
+        m = self._row_mass[:self.n_full]
+        ones = num.ones(self.n_full, dtype=float)
+        atol = atol * num.sqrt(self._distributed_dot(m, m) / self._distributed_dot(ones, ones))
 
         if self.domain.numproc > 1:
             # ----------------------------------------------------------
@@ -727,9 +1044,8 @@ class Kinematic_viscosity_operator(Operator):
 
         else:
             # ----------------------------------------------------------
-            # Serial path: materialise P and call the OpenMP C CG
+            # Serial path: call the OpenMP C CG on P
             # ----------------------------------------------------------
-            P = self._build_parabolic_csr()
             precon = num.empty(self.n, dtype=float)
             jacobi_precon_c(P, precon)
 

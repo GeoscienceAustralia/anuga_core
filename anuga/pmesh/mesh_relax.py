@@ -10,8 +10,45 @@ Moving a few vertices removes most of that tail at no cost in triangles.
 import numpy as num
 
 
+def segment_sliders(vertices, segments, first_inserted):
+    """Vertices that may slide along a segment without changing its shape.
+
+    These are the vertices the mesh generator inserted to split a straight
+    input segment: index at least ``first_inserted`` (Triangle numbers the
+    input points first), on exactly two segment edges, and in line with the
+    two vertices at their other ends. Input vertices -- a hole's corners,
+    a breakline's vertices -- are never included, and nor is a vertex where
+    segments meet or cross.
+
+    Returns an (K, 3) int array of rows ``(i, a, b)``: vertex ``i`` lies on
+    the segment between ``a`` and ``b``.
+    """
+    v = num.asarray(vertices, dtype=float)
+    seg = num.asarray(segments, dtype=num.int64).reshape(-1, 2)
+    if len(seg) == 0:
+        return num.zeros((0, 3), num.int64)
+    ends = num.concatenate([seg, seg[:, ::-1]])            # (vertex, other end)
+    ends = ends[num.argsort(ends[:, 0], kind='stable')]
+    vid, first, count = num.unique(ends[:, 0], return_index=True,
+                                   return_counts=True)
+    two = (count == 2) & (vid >= first_inserted)
+    i = vid[two]
+    a = ends[first[two], 1]
+    b = ends[first[two] + 1, 1]
+    # In line: the cross product is negligible against the span, and i is
+    # between a and b
+    ab = v[b] - v[a]
+    ai = v[i] - v[a]
+    cross = num.abs(ab[:, 0] * ai[:, 1] - ab[:, 1] * ai[:, 0])
+    span2 = num.einsum('ij,ij->i', ab, ab)
+    proj = num.einsum('ij,ij->i', ai, ab)
+    ok = (cross <= 1.0e-9 * span2) & (proj > 0.0) & (proj < span2)
+    return num.ascontiguousarray(num.stack([i, a, b], axis=1)[ok],
+                                 dtype=num.int64)
+
+
 def relax_worst_cells(vertices, triangles, fixed=None,
-                      passes=30, fraction=0.5, verbose=False):
+                      passes=30, fraction=0.5, verbose=False, slide=None):
     """Move the vertices of the smallest cells so the smallest cell grows.
 
     Each pass takes the worst ``fraction`` percent of cells and tries moving
@@ -43,6 +80,12 @@ def relax_worst_cells(vertices, triangles, fixed=None,
     fraction : float, optional
         Percentage of cells treated as "worst" in each pass. Default 0.5.
     verbose : bool, optional
+    slide : (K, 3) int array, optional
+        Rows ``(i, a, b)`` from :func:`segment_sliders`: vertex ``i`` may
+        move along the line through ``a`` and ``b``, strictly between them,
+        even if it is in ``fixed``. This frees the vertices the generator
+        inserted along a hole's sides or a breakline without changing their
+        shape.
 
     Returns
     -------
@@ -57,7 +100,7 @@ def relax_worst_cells(vertices, triangles, fixed=None,
     slightly larger than the maximum area the mesh was generated with. ANUGA
     requires neither property.
     """
-    from anuga.pmesh.mesh_relax_ext import cell_quality, sweep
+    from anuga.pmesh.mesh_relax_ext import cell_quality, sweep, slide_sweep
     import anuga.utilities.log as log
 
     v = num.array(vertices, dtype=float, order='C')        # a copy
@@ -86,24 +129,36 @@ def relax_worst_cells(vertices, triangles, fixed=None,
     if fixed is not None:
         free[num.asarray(fixed, dtype=num.int64).ravel()] = False
 
+    if slide is None:
+        slide = num.zeros((0, 3), num.int64)
+    slide = num.ascontiguousarray(slide, dtype=num.int64).reshape(-1, 3)
+    row_of = num.full(len(v), -1, num.int64)
+    row_of[slide[:, 0]] = num.arange(len(slide))
+    free[slide[:, 0]] = False                     # they move only by sliding
+
     q = cell_quality(v, t, sign)
     before = float(q.min())
     history = []
     for _ in range(passes):
         threshold = num.percentile(q, fraction)
         bad = q <= threshold
-        cand = num.unique(t[bad])
-        cand = cand[free[cand]]
-        if len(cand) == 0:
+        touched = num.unique(t[bad])
+        rows = row_of[touched]
+        rows = rows[rows >= 0]
+        cand = touched[free[touched]]
+        if len(cand) == 0 and len(rows) == 0:
             break
         # Worst first. A candidate's worst triangle is one of the bad ones.
         worst_at = num.full(len(v), num.inf)
         num.minimum.at(worst_at, t[bad].ravel(), num.repeat(q[bad], 3))
         cand = num.ascontiguousarray(cand[num.argsort(worst_at[cand])],
                                      dtype=num.int64)
+        rows = num.ascontiguousarray(
+            rows[num.argsort(worst_at[slide[rows, 0]])], dtype=num.int64)
         # strict threshold in the sweep, so step past it for a tiny mesh
-        moved = sweep(v, t, q, vt, start, cand,
-                      num.nextafter(threshold, num.inf), sign)
+        limit = num.nextafter(threshold, num.inf)
+        moved = sweep(v, t, q, vt, start, cand, limit, sign)
+        moved += slide_sweep(v, t, q, vt, start, slide, rows, limit, sign)
         history.append(float(q.min()))
         if moved == 0:
             break

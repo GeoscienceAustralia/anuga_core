@@ -315,6 +315,56 @@ def communicate_tracer_ghosts(domain):
     domain.communication_time += time.time() - t0
 
 
+def communicate_bed_ghosts(domain):
+    """Copy the owner's bed (centroid AND edge values) into every ghost cell.
+
+    Elevation is not in the per-step exchange: normally the bed never changes,
+    so the ghosts keep the copy made at distribute time. When it is changed on
+    the host after that -- set_quantity('elevation', ...) on owned cells only,
+    Set_elevation_operator, the erosion operators -- the ghosts keep the old
+    bed, the fluxes across the partition boundary see the wrong depth, and the
+    run drifts from serial. Works on the host arrays in every compute mode; in
+    mode 2 the caller pushes the result to the device.
+
+    The edges are copied rather than shifted with the centroid: the DE
+    algorithms use a discontinuous bed, and a ghost must be an exact copy of
+    its owner whatever the change did to the owner's edges.
+    """
+    import numpy as num
+    import time
+    import mpi4py
+
+    t0 = time.time()
+
+    sendDict = domain.full_send_dict
+    recvDict = domain.ghost_recv_dict
+    bed = domain.quantities['elevation']
+    cv = bed.centroid_values
+    ev = bed.edge_values
+
+    # One row per cell: centroid, then the three edges. Allocated per call: the
+    # exchange runs only after a bed change, so caching would buy little.
+    send = {p: num.empty((len(sendDict[p][0]), 4)) for p in sendDict}
+    recv = {p: num.empty((len(recvDict[p][0]), 4)) for p in recvDict}
+
+    for p in sendDict:
+        Idf = sendDict[p][0]
+        send[p][:, 0] = cv[Idf]
+        send[p][:, 1:] = ev[Idf]
+
+    # Tag 125: 123 is the hydro exchange and 124 the tracers.
+    recv_requests = [pypar.comm.Irecv(recv[p], p, 125) for p in recvDict]
+    send_requests = [pypar.comm.Isend(send[p], p, 125) for p in sendDict]
+    mpi4py.MPI.Request.Waitall(recv_requests + send_requests)
+
+    for p in recvDict:
+        Idg = recvDict[p][0]
+        cv[Idg] = recv[p][:, 0]
+        ev[Idg] = recv[p][:, 1:]
+
+    domain.communication_time += time.time() - t0
+
+
 def communicate_ghosts_asynchronous(domain, quantities=None):
 
     # We must send the information from the full cells and

@@ -856,8 +856,9 @@ class Test_Forcing(unittest.TestCase):
         py=0.0000125 #pressure gradient in y-direction
 
         assert num.allclose(dstage, 0)
-        assert num.allclose(dx, h*px/rho_w)
-        assert num.allclose(dy, h*py/rho_w)
+        # The force is -h grad(p) / rho_w: away from high pressure (#472)
+        assert num.allclose(dx, -h*px/rho_w)
+        assert num.allclose(dy, -h*py/rho_w)
 
         os.remove(field_sts_filename+'.sts')
         os.remove(field_sts_filename+'.sww')

@@ -129,6 +129,7 @@ from anuga.abstract_2d_finite_volumes.generic_domain \
 
 from anuga.config import MULTIPROCESSOR_OPENMP, MULTIPROCESSOR_GPU
 from anuga.config import LOW_FROUDE_OFF, LOW_FROUDE_1, LOW_FROUDE_2
+from anuga.config import LOW_FROUDE_TANGENTIAL_UPWIND
 
 from anuga.shallow_water.forcing import Cross_section
 from anuga.utilities.numerical_tools import mean
@@ -142,9 +143,11 @@ from anuga.utilities.parallel_abstraction import pypar_available, barrier
 
 
 # The centroid arrays the GPU interface round-trips between host and device —
-# see gpu_domain_sync_to_device()/_from_device() in gpu/gpu_domain_core.c.  A host
-# write to any other quantity (elevation, friction, a user tracer) is not
-# device-resident state and so needs no sync.  Keep this in step with the C.
+# see gpu_domain_sync_to_device()/_from_device() in gpu/gpu_domain_core.c.  Keep
+# this in step with the C.  Friction and the bed elevation are device-resident
+# too, but not carried by that round trip, so a host write to either is pushed
+# on its own: see Domain.sync_friction_to_device() and
+# Domain.sync_elevation_to_device().
 GPU_SYNCED_QUANTITIES = frozenset(('stage', 'xmomentum', 'ymomentum', 'height'))
 
 # Absolute lower bound (m^3) on the volume added by clamping negative-depth cells
@@ -4219,6 +4222,10 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
     # region don't re-sync once per call.
     _gpu_host_writes_suppressed = False
 
+    # Set by a host-side bed change on this rank; the ghost cells' copy of the
+    # bed is refreshed at the next yieldstep boundary (_sync_bed_ghosts).
+    _bed_ghosts_stale = False
+
     def _gpu_syncs_host_quantity_write(self, name: str) -> bool:
         """True if a host write to quantity `name` has to be mirrored to the device."""
 
@@ -4245,6 +4252,85 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
 
         if self._gpu_syncs_host_quantity_write(name):
             self.gpu_interface.sync_to_device()
+        elif name == 'friction':
+            self.sync_friction_to_device()
+        elif name == 'elevation':
+            self._bed_ghosts_stale = True
+            if not self._gpu_host_writes_suppressed:
+                self.sync_elevation_to_device()
+
+    def sync_friction_to_device(self) -> None:
+        """Push the host friction centroid values to the device (mode 2).
+
+        In mode 2 the Manning kernel reads the *device* copy of friction, which
+        is mapped once, when the GPU interface is built.  set_quantity('friction',
+        ...) pushes it for you; call this after writing
+        ``quantities['friction'].centroid_values`` directly -- e.g. a depth-
+        varying n updated in the evolve loop -- or the run silently keeps the
+        old values.  No-op off the GPU or before the interface exists.
+
+        Unlike the conserved quantities, friction is never written on the
+        device, so this is a one-array push with no pull first, and it is safe
+        inside apply_fractional_steps(), whose sync bracket does not carry it.
+        """
+
+        if (self.multiprocessor_mode == MULTIPROCESSOR_GPU
+                and getattr(self, 'gpu_interface', None) is not None):
+            self.gpu_interface.sync_friction_to_device()
+
+    def sync_elevation_to_device(self) -> None:
+        """Push the host bed elevation to the device (mode 2).
+
+        The flux kernels read the *device* copy of the bed (centroid and edge
+        values), which is mapped once, when the GPU interface is built, and is
+        not part of the per-step state sync.  set_quantity('elevation', ...)
+        and the CPU-only fractional-step operators (Set_elevation_operator,
+        the erosion operators) push it for you; call this after writing
+        ``quantities['elevation'].centroid_values``/``edge_values`` directly,
+        or the run keeps the old bed -- and, if stage was moved with the bed to
+        keep the depth, gains or loses that water.  The push is a no-op off the
+        GPU or before the interface exists.
+
+        In parallel this also marks the bed changed, in every compute mode, so
+        the ghost cells get their owners' new bed at the next yieldstep
+        boundary (see _sync_bed_ghosts); call it after a direct write in mode 1
+        too.
+        """
+
+        self._bed_ghosts_stale = True
+        if (self.multiprocessor_mode == MULTIPROCESSOR_GPU
+                and getattr(self, 'gpu_interface', None) is not None):
+            self.gpu_interface.sync_bed_to_device()
+
+    def _sync_bed_ghosts(self) -> None:
+        """Give every ghost cell its owner's bed after a host-side bed change.
+
+        Elevation is not in the per-step ghost exchange, so a bed changed after
+        distribute() -- set_quantity('elevation', ...) on owned cells only, or a
+        direct write -- leaves the ghosts on the old bed and the run drifts from
+        serial.  The write only marks this rank's bed stale: it may happen on
+        some ranks and not others (set_quantity with indices only some ranks
+        have), so exchanging there could deadlock.  This is called by evolve()
+        before the first step and at every yieldstep boundary, which all ranks
+        reach together; one small allreduce decides whether any rank changed
+        its bed, and if so they all exchange.  Per-step bed operators are
+        handled in apply_fractional_steps() instead.
+        """
+
+        stale = self._bed_ghosts_stale
+        self._bed_ghosts_stale = False
+        if not self.parallel:
+            return
+
+        from mpi4py import MPI
+        if not MPI.COMM_WORLD.allreduce(bool(stale), op=MPI.LOR):
+            return
+
+        from anuga.parallel.parallel_generic_communications import communicate_bed_ghosts
+        communicate_bed_ghosts(self)
+        if (self.multiprocessor_mode == MULTIPROCESSOR_GPU
+                and getattr(self, 'gpu_interface', None) is not None):
+            self.gpu_interface.sync_bed_to_device()
 
 
     def _sync_riverwall_to_device(self) -> None:
@@ -4786,11 +4872,45 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         """ For low Froude problems the standard flux calculations
         can lead to excessive damping. Set low_froude to 1 or 2 for
         flux calculations which minimize the damping in this case.
+
+        The value may also carry the flag LOW_FROUDE_TANGENTIAL_UPWIND
+        (e.g. ``LOW_FROUDE_1 | LOW_FROUDE_TANGENTIAL_UPWIND``); see
+        set_tangential_upwind. The value is stored as given, so passing a
+        mode without the flag switches tangential upwinding off.
         """
 
-        assert low_froude in [LOW_FROUDE_OFF, LOW_FROUDE_1, LOW_FROUDE_2]
+        mode = low_froude & ~LOW_FROUDE_TANGENTIAL_UPWIND
+        assert mode in [LOW_FROUDE_OFF, LOW_FROUDE_1, LOW_FROUDE_2], \
+            f'low_froude must be 0, 1 or 2, optionally | {LOW_FROUDE_TANGENTIAL_UPWIND}; got {low_froude}'
 
         self.low_froude = low_froude
+
+    def set_tangential_upwind(self, flag: bool = True) -> None:
+        """Upwind the edge-tangential momentum with the mass flux.
+
+        The central-upwind flux diffuses the momentum component along an edge
+        at the gravity-wave speed sqrt(g h), although in the Riemann problem
+        that component only moves with the contact wave (the normal velocity).
+        Across a velocity shear, such as a channel and its slower banks, this
+        exchanges momentum laterally and makes channels too resistive; the
+        error is first order in the cell size. With the flag set, the
+        tangential momentum flux is the mass flux times the upwind tangential
+        velocity (as in HLLC). The normal momentum keeps the low_froude
+        scaling, so the flag combines with any low_froude mode.
+
+        Default off. Sets or clears the LOW_FROUDE_TANGENTIAL_UPWIND bit of
+        low_froude; call it after set_low_froude.
+        """
+
+        if flag:
+            self.low_froude = self.low_froude | LOW_FROUDE_TANGENTIAL_UPWIND
+        else:
+            self.low_froude = self.low_froude & ~LOW_FROUDE_TANGENTIAL_UPWIND
+
+    def get_tangential_upwind(self) -> bool:
+        """Return True if tangential momentum upwinding is on (see set_tangential_upwind)."""
+
+        return bool(self.low_froude & LOW_FROUDE_TANGENTIAL_UPWIND)
 
     def set_use_optimise_dry_cells(self, flag: bool = True) -> None:
         """ Try to optimize calculations where region is dry
@@ -4811,7 +4931,9 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         if flag :
             # Create Operator if necessary
             if self.kv_operator is None:
-                self.kv_operator = Kinematic_viscosity_operator(self)
+                # The depth-weighted velocity smoother this switch has
+                # always added, whatever the operator's default becomes.
+                self.kv_operator = Kinematic_viscosity_operator(self, form='velocity')
         else:
             if self.kv_operator is None:
                 return
@@ -5662,13 +5784,20 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
                     set_flather_value(gpu_dom, stage_val)
                 evaluate_flather_boundary_gpu(gpu_dom)
             else:
-                # Some boundaries need CPU - sync edge values, evaluate on CPU, sync back
-                boundary_edge_sync(gpu_dom)
-                for tag in self.tag_boundary_cells:
-                    B = self.boundary_map[tag]
-                    if B is not None:
-                        B.evaluate_segment(self, self.tag_boundary_cells[tag])
-                sync_boundary_values(gpu_dom)
+                # Some boundaries need CPU - sync edge values, evaluate on CPU, sync back.
+                # The boundary cells' edges come from the device, and they
+                # are all the boundaries read: no host extrapolation for them
+                stale = self._host_values_stale
+                self._host_values_stale = False
+                try:
+                    boundary_edge_sync(gpu_dom)
+                    for tag in self.tag_boundary_cells:
+                        B = self.boundary_map[tag]
+                        if B is not None:
+                            B.evaluate_segment(self, self.tag_boundary_cells[tag])
+                    sync_boundary_values(gpu_dom)
+                finally:
+                    self._host_values_stale = stale
         else:
             # CPU mode - evaluate boundaries on CPU
             for tag in self.tag_boundary_cells:
@@ -5822,10 +5951,17 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
             # run the host (openmp) protect + extrapolate, which produces edges
             # AND vertices. The host protect does not affect the device
             # trajectory — the next C step re-protects on the device.
-            self.gpu_interface.sync_from_device()
+            #
+            # Not while fractional operators run: apply_fractional_steps() has
+            # already pulled the centroids, the host is ahead of the device, and a
+            # pull here would discard what an operator has just written.
+            if not self._gpu_host_writes_suppressed:
+                self.gpu_interface.sync_from_device()
             from .sw_domain_openmp_ext import (protect_new,
                                                extrapolate_second_order_edge_sw)
             protect_new(self)
+            self._host_values_stale = False
+            self._pull_gpu_boundary_values()
             extrapolate_second_order_edge_sw(self, distribute_to_vertices=distribute_to_vertices)
             nvtxRangePop()
             return
@@ -5843,6 +5979,58 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         extrapolate_second_order_edge_sw(self, distribute_to_vertices=distribute_to_vertices)
 
         nvtxRangePop()
+
+    def _pull_gpu_boundary_values(self):
+        """Bring the boundary values to the host for the host extrapolation.
+
+        The edge limiter reads the boundary values on prescribed edges. When
+        every boundary is evaluated on the device, the host copy is never
+        written and stays at zero, which bounds those edges by zero: the cells
+        on them come out flat (edge = centroid). When some boundary is
+        evaluated on the host, the host copy is the one that is current, and
+        it is pushed to the device after it, so there is nothing to pull.
+        """
+        if self.gpu_interface is not None and getattr(self, '_gpu_all_on_gpu', False):
+            self.gpu_interface.sync_boundary_values_from_device()
+
+    def _prepare_yield(self):
+        """Make the domain's values readable before evolve() yields.
+
+        Mode 2 ('unified') brings back only the centroid values, and brings
+        them to the state the full extrapolation would leave them in. They are
+        what the SWW writer stores by default (centroids, and vertex values
+        averaged from them). The host extrapolation to the vertices and edges
+        costs several GPU steps on a large mesh, so it is left to the first
+        reader of ``vertex_values`` or ``edge_values`` (see
+        :meth:`_refresh_host_values`): a yield that nothing reads them at
+        costs only the transfer.
+        """
+        if self.multiprocessor_mode == MULTIPROCESSOR_GPU and self.gpu_interface is not None:
+            self.gpu_interface.sync_from_device()
+            from .sw_domain_openmp_ext import protect_new, extrapolate_centroids_only
+            # The centroid side of the full path, which readers see: protected
+            # heights, dry momenta zeroed, tracer c = m/h
+            protect_new(self)
+            extrapolate_centroids_only(self)
+            self._host_values_stale = True
+            return
+        self.distribute_to_vertices_and_edges()
+
+    def _refresh_host_values(self):
+        """Extrapolate the host centroid values to the vertices and edges.
+
+        Called by the first read of stale ``vertex_values`` or ``edge_values``.
+        The host centroids are already current (synced and protected at the
+        yield, or since written by the user, which reaches the device anyway),
+        so this is the extrapolation alone.
+        """
+        self._host_values_stale = False     # first: the extension reads them
+        if self.multiprocessor_mode == MULTIPROCESSOR_GPU:
+            from .sw_domain_openmp_ext import extrapolate_second_order_edge_sw
+            self._pull_gpu_boundary_values()
+            extrapolate_second_order_edge_sw(self, distribute_to_vertices=True)
+        else:
+            self.distribute_to_vertices_and_edges()
 
     def distribute_to_edges(self):
         """ extrapolate centroid values edges"""
@@ -6326,6 +6514,7 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         # Any riverwall change made before evolve() (or between two evolve()
         # calls) reaches the device here, before the first step.
         self._sync_riverwall_to_device()
+        self._sync_bed_ghosts()
 
         #nvtx marker
         nvtxRangePush('_evolve_base')
@@ -6361,6 +6550,7 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
                         save_checkpoint = True
 
                 if save_checkpoint:
+                    self._sync_max_quantities_to_host()
                     pickle_name = os.path.join(self.checkpoint_dir,self.get_name())+'_'+str(self.get_time())+'.pickle'
                     pickle.dump(self, open(pickle_name, 'wb'))
 
@@ -6375,7 +6565,9 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
             # The outer loop may have operated a riverwall (set_elevation() and
             # friends). In mode 2 the device copy is stale until pushed; do it
             # here so the change takes effect from the next timestep on.
+            # Likewise a bed change: its ghost cells are refreshed here.
             self._sync_riverwall_to_device()
+            self._sync_bed_ghosts()
 
             self.yieldstep_counter += 1
 
@@ -6423,8 +6615,22 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         """
 
         nvtxRangePush('store_timestep')
+        self._sync_max_quantities_to_host()
         self.writer.store_timestep()
         nvtxRangePop()
+
+    def _sync_max_quantities_to_host(self) -> None:
+        """Bring every Collect_max_quantities_operator's host maxima up to date.
+
+        In GPU mode the running maxima live on the device and are only copied
+        to the host here, so each stored SWW frame (and a checkpoint) carries
+        the current per-step peaks without a per-timestep transfer.
+        """
+        from anuga.operators.collect_max_quantities_operator import \
+            Collect_max_quantities_operator
+        for op in self.fractional_step_operators:
+            if isinstance(op, Collect_max_quantities_operator):
+                op.sync_to_host()
 
 
     def sww_merge(self, *args, **kwargs) -> None:
@@ -7889,6 +8095,8 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         from anuga.structures.gpu_culvert_manager import GPUCulvertManager
         from anuga.operators.collect_max_quantities_operator import Collect_max_quantities_operator
         from anuga.operators.sediment_operator import Sediment_transport_operator
+        from anuga.operators.kinematic_viscosity_operator import (
+            Kinematic_viscosity_operator)
 
         # Initialize GPU culvert manager for Boyd operators if needed
         has_boyd_ops = any(GPUCulvertManager.is_boyd_operator(op)
@@ -7935,6 +8143,11 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
             elif isinstance(op, Sediment_transport_operator):
                 # The sediment kernel runs on the device in mode 2 and updates
                 # the tracer and bed arrays in place, so no host sync is needed.
+                continue
+            elif (isinstance(op, Kinematic_viscosity_operator)
+                  and getattr(op, 'scheme', 'implicit') == 'explicit'):
+                # The explicit scheme is one device kernel updating momentum in
+                # place; the implicit solve still runs on the host.
                 continue
             elif GPUCulvertManager.is_boyd_operator(op):
                 # Handled by GPUCulvertManager (local + cross-boundary via MPI in C)
@@ -8016,6 +8229,31 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         finally:
             self._gpu_host_writes_suppressed = False
 
+        # An operator that moves the bed (modifies_bed = True) changes it on the
+        # cells it covers, owned and ghost alike, but a ghost's change is worked
+        # out from its own neighbourhood, not its owner's, and an operator given
+        # owned cells only leaves the ghosts alone.  Either way the ghosts must
+        # get their owners' bed before the next step's fluxes.  Collective: this
+        # assumes every rank registers the same operators (the SPMD pattern
+        # every parallel script follows).  The flag is cleared because the
+        # exchange has just happened.
+        if self.parallel and any(getattr(op, 'modifies_bed', False)
+                                 for op in self.fractional_step_operators):
+            from anuga.parallel.parallel_generic_communications import (
+                communicate_bed_ghosts, communicate_ghosts_non_blocking)
+            communicate_bed_ghosts(self)
+            self._bed_ghosts_stale = False
+            # Mode 2: these operators are CPU-only, so the host arrays are current
+            # here and the pushes below carry the exchange across.  The stage the
+            # operator moved with the bed needs exchanging too: mode 2 exchanges
+            # the conserved quantities BEFORE the fractional steps, so its ghosts
+            # would otherwise keep the old stage on the new bed into the next
+            # step's fluxes, and the two ranks would disagree about the flux
+            # across the partition boundary (water was created).  Mode 1
+            # exchanges at the start of the next step anyway.
+            if gpu_mode and needs_cpu_sync:
+                communicate_ghosts_non_blocking(self)
+
         # Push the host-side work of any CPU-only operator back to the device. Mode-2
         # correctness depends on this: without it a CPU-only operator (wind stress,
         # say) writes only the host arrays and the device never sees it.
@@ -8027,8 +8265,15 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         # Skipping is correct rather than merely safe: a rebuilt interface is
         # populated from the host arrays, so the host-side writes are picked up
         # anyway.
+        #
+        # The bed goes back too: the state sync does not carry it, and an operator
+        # that moves it (Set_elevation_operator, the erosion operators) moves stage
+        # with it, so pushing stage alone would put the new stage on the old bed
+        # and create or destroy water.  With sediment the device owns the bed, but
+        # sync_from_device() above pulled it, so this round-trips it unchanged.
         if gpu_mode and needs_cpu_sync and self.gpu_interface is not None:
             self.gpu_interface.sync_to_device()
+            self.gpu_interface.sync_bed_to_device()
 
     def _warn_if_culverts_interleaved(self):
         """Warn once if the Boyd culverts are not contiguous in the operator list.

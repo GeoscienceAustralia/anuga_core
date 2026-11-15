@@ -3,6 +3,23 @@ import anuga
 import numpy
 from . import inlet
 
+
+# A dry inlet's volume, the sum of (stage - elevation) * area, can come out a
+# few ulp below zero: DE2's RK3 step recombines stage from several stages, so
+# stage - elevation on a dry sloping bed is about -1e-15 rather than 0. Treat
+# negatives smaller than a 1e-10 m mean depth as zero; anything larger is a
+# genuine error.
+NEGATIVE_VOLUME_TOLERANCE = 1.0e-10   # as a mean depth over the inlet [m]
+
+
+def checked_inlet_volume(current_volume, total_area):
+    """Return the inlet's water volume, with rounding-sized negatives set to 0."""
+    tol = NEGATIVE_VOLUME_TOLERANCE * total_area
+    assert current_volume >= -tol, \
+        'Volume of water in inlet negative! (%g m^3)' % current_volume
+    return max(float(current_volume), 0.0)
+
+
 import warnings
 
 class Inlet_operator(anuga.Operator):
@@ -147,7 +164,7 @@ class Inlet_operator(anuga.Operator):
         current_volume = gpu_ext.inlet_get_volume_gpu(gpu_dom, op_id)
         total_area = self.inlet.area
 
-        assert current_volume >= 0.0
+        current_volume = checked_inlet_volume(current_volume, total_area)
 
         # Compute Q on CPU (scalar, cheap)
         Q1 = self.update_Q(t)
@@ -232,7 +249,7 @@ class Inlet_operator(anuga.Operator):
         #print(current_volume)
         #print(total_area)
 
-        assert current_volume >= 0.0
+        current_volume = checked_inlet_volume(current_volume, total_area)
 
         Q1 = self.update_Q(t)
         Q2 = self.update_Q(t + timestep)

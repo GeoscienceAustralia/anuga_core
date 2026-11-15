@@ -29,11 +29,15 @@
     :target: https://anuga.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. |badge9| image:: https://zenodo.org/badge/DOI/10.5281/zenodo.23585306.svg
+    :target: https://doi.org/10.5281/zenodo.23585306
+    :alt: DOI
+
 .. |badge8| image:: https://github.com/codespaces/badge.svg
     :target: https://codespaces.new/anuga-community/anuga_core
     :alt: Open in GitHub Codespaces
 
-|badge0| |badge1| |badge3| |badge4| |badge5| |badge6| |badge7| |badge8|
+|badge0| |badge1| |badge3| |badge4| |badge5| |badge6| |badge7| |badge9| |badge8|
 
 
 

@@ -68,7 +68,12 @@ Domain creation functions and the domain methods used throughout this guide:
 
    rectangular_cross_domain
    create_domain_from_regions
+   create_domain_from_dem
+   create_pmesh_from_dem
    size_field_from_regions
+   size_field_from_dem
+   drainage_area_from_dem
+   remove_mesh_pits
    Size_field
 
 
@@ -214,6 +219,30 @@ each is below.
    Weir_orifice_trapezoid_operator
    Internal_boundary_operator
    Kinematic_viscosity_operator
+
+
+.. _api_rainfall_data:
+
+Rainfall data
+-------------
+
+Operators that apply rainfall from radar or design data, and the classes that read
+that data. See :doc:`../setup_anuga_script/rainfall` for usage and
+:doc:`../appendices/arr_design_rainfall` for getting the ARR data.
+
+.. currentmodule:: anuga
+
+.. autosummary::
+   :toctree: generated
+   :nosignatures:
+
+   Raster_rate_operator
+   ARR_rate_operator
+   Arr_ifd_rain
+   Arr_grd
+   Arr_hub_rain
+   ARR_point_rainfall_patterns
+   Single_pattern
 
 
 .. _api_logging:

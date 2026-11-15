@@ -266,7 +266,36 @@ of DE0, DE1, DE_ader2, or DE2:
     domain.set_low_froude(2)
 
 
+Tangential momentum upwinding
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The central-upwind flux also applies the gravity-wave diffusion to the
+momentum component *along* each edge. In the exact Riemann problem that
+component only moves with the contact wave, at the normal velocity, so a
+velocity shear (a channel next to slower banks or floodplain) loses momentum
+sideways at a rate of about :math:`\tfrac12\sqrt{gh}\,\Delta x`. The
+effect is first order in the cell size and makes narrow channels too
+resistive. For example, in steady uniform flow through a straight 10 m wide
+trapezoidal channel meshed with 1 m² triangles, the channel carries only
+83 % of its exact Manning conveyance, and the water is 9 cm too deep.
+
+``set_tangential_upwind`` replaces that term with the HLLC treatment: the
+tangential momentum flux is the mass flux times the upwind tangential
+velocity, so no momentum crosses an edge that no water crosses. The mass and
+normal-momentum fluxes are unchanged, and it combines with any ``low_froude``
+mode:
+
+.. code-block:: python
+
+    domain.set_low_froude(1)
+    domain.set_tangential_upwind()      # after set_low_froude
+    # equivalently
+    domain.set_low_froude(anuga.LOW_FROUDE_1 | anuga.LOW_FROUDE_TANGENTIAL_UPWIND)
+
+It is off by default.
+
+
 .. seealso::
 
    :ref:`api_domain` — full API of ``set_flow_algorithm``,
-   ``get_flow_algorithm`` and ``set_low_froude``.
+   ``get_flow_algorithm``, ``set_low_froude`` and ``set_tangential_upwind``.

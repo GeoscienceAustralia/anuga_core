@@ -174,6 +174,8 @@ class Quantity:
 
     @property
     def vertex_values(self) -> num.ndarray:
+        if getattr(self.domain, '_host_values_stale', False):
+            self.domain._refresh_host_values()
         if self._vertex_values is None:
             N = self.centroid_values.shape[0]
             if self._qty_type == 'coordinate' and self.edge_values is not None:
@@ -198,6 +200,28 @@ class Quantity:
             self._vertex_values = None
         else:
             self._vertex_values = num.array(value, float)
+
+    # ------------------------------------------------------------------
+    # edge_values — a property so that, like vertex_values, a read can
+    # first bring stale values up to date (a GPU domain leaves the host
+    # extrapolation at a yield to the first reader)
+    # ------------------------------------------------------------------
+
+    @property
+    def edge_values(self) -> num.ndarray | None:
+        if getattr(self.domain, '_host_values_stale', False):
+            self.domain._refresh_host_values()
+        return self._edge_values
+
+    @edge_values.setter
+    def edge_values(self, value: ArrayLike | None) -> None:
+        self._edge_values = value
+
+    def __setstate__(self, state):
+        # Pickles (checkpoints) from before edge_values was a property
+        if 'edge_values' in state:
+            state['_edge_values'] = state.pop('edge_values')
+        self.__dict__.update(state)
 
     # ------------------------------------------------------------------
     # x_gradient, y_gradient, phi — lazy properties
@@ -738,7 +762,9 @@ class Quantity:
 
         vol_id  = self.domain.boundary_cells
         edge_id = self.domain.boundary_edges
-        self.boundary_values = (self.edge_values.flat)[3*vol_id+edge_id]
+        # Write in place: the C domain struct holds a pointer to this array,
+        # so rebinding it leaves the C code reading freed memory (#473).
+        self.boundary_values[:] = (self.edge_values.flat)[3*vol_id+edge_id]
 
     ##
     # @brief Set boundary values using a function

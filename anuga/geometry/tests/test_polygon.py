@@ -762,6 +762,49 @@ class Test_Polygon(unittest.TestCase):
         point = point_in_polygon(polygon)
         assert is_inside_polygon(point, polygon)
 
+    def test_point_in_polygon_exclude(self):
+        outer = [[8., 3.], [12., 3.], [12., 7.], [8., 7.]]
+        # Includes the first vertex of outer, where the point is found
+        inner = [[8., 3.], [10., 3.], [10., 5.], [8., 5.]]
+        separate = [[14., 3.], [16., 3.], [16., 7.], [14., 7.]]
+        around = [[0., 0.], [20., 0.], [20., 10.], [0., 10.]]
+
+        default = point_in_polygon(outer)
+        assert is_inside_polygon(default, inner)
+
+        point = point_in_polygon(outer, exclude=[inner])
+        assert is_inside_polygon(point, outer, closed=False)
+        assert not is_inside_polygon(point, inner, closed=True)
+
+        # Unchanged when the default point is free; a polygon around this
+        # one is ignored, as every point is inside it
+        assert point_in_polygon(outer, exclude=[separate]) == default
+        assert point_in_polygon(outer, exclude=[around]) == default
+        assert point_in_polygon(outer, exclude=[]) == default
+
+        # Every vertex of outer shared with a nested polygon: found in the
+        # area left between them
+        quarters = [[[8., 3.], [10., 3.], [10., 5.]],
+                    [[12., 3.], [12., 5.], [11., 4.]],
+                    [[12., 7.], [10., 7.], [11., 6.]],
+                    [[8., 7.], [8., 5.], [9., 6.]]]
+        point = point_in_polygon(outer, exclude=quarters)
+        assert is_inside_polygon(point, outer, closed=False)
+        for quarter in quarters:
+            assert not is_inside_polygon(point, quarter, closed=True)
+
+        # Covered completely: no area of its own, the default point is kept
+        halves = [[[8., 3.], [12., 3.], [12., 5.], [8., 5.]],
+                  [[8., 5.], [12., 5.], [12., 7.], [8., 7.]]]
+        assert point_in_polygon(outer, exclude=halves) == default
+
+        # UTM coordinates
+        shift = num.array([300000., 6180000.])
+        point = point_in_polygon(num.array(outer) + shift,
+                                 exclude=[num.array(inner) + shift])
+        assert is_inside_polygon(point, num.array(outer) + shift, closed=False)
+        assert not is_inside_polygon(point, num.array(inner) + shift)
+
     def test_in_and_outside_polygon_main(self):
         # Simplest case: Polygon is the unit square
         polygon = [[0, 0], [1, 0], [1, 1], [0, 1]]

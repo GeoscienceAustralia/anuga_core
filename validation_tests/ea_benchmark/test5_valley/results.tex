@@ -1,0 +1,61 @@
+\section{EA Test 5: valley flooding}
+
+Test~5 of the Environment Agency benchmark \cite{NeelzPender2013} follows
+the flood from a failed embankment dam 17~km down a real valley, which
+falls at about 1:100 in its upper part and 1:1000 in its lower part, to a
+pond at its foot (Figure~\ref{fig:ea5_setup}). The inflow peaks at
+3000~m$^3$/s between 10 and 20~min and stops at 100~min, entering along a
+260~m line across the head of the valley; the modelled area (19.1~km$^2$)
+is the EA's outline, closed on all sides, on a dry bed. Manning's
+$n = 0.04$, the specified resolution is 50~m (here triangles of at most
+2500~m$^2$, about 11,900 in all), and the run lasts 30~h. Ground levels
+are sampled at the triangle centroids from the 10~m DEM.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 5: the valley, the modelled area, the inflow line and the
+seven output points, and the inflow.}
+\label{fig:ea5_setup}
+\end{figure}
+
+In the report (Section~4.6.4) the full shallow-water packages took almost
+3~h to reach point~5, agreeing within about 30~min, and their final levels
+in the pond at point~5 lay within 0.4~m of each other. Peak speeds lay in
+1.5--2.2~m/s at point~4 and 1.2--1.6~m/s at point~7. \anuga{}~1.1 was the
+exception in 2009: it reached point~5 about 1.5~h late, its final level
+there was about 0.5~m below the others, and it showed spurious high speeds
+in very shallow flow. The current \anuga{} reaches point~5 at 3.3~h and
+settles there at 148.56~m, where TUFLOW's five current solvers give
+2.8--3.3~h and 148.6--148.9~m \cite{BMT2017}, and its peak speeds at
+points 4 and 7 lie within the report's ranges. The answer is converged
+in the mesh: with triangles of 625 and 100~m$^2$ (about 47,500 and
+293,000) the arrival at point~5 moves by under 5~min, the final levels by
+at most 0.11~m (at point~7, rising towards TUFLOW's) and the peak speeds
+by under 0.1~m/s. The checks
+(Figure~\ref{fig:ea5_checks}) are the volume balance, the order in which
+the flood reaches the points, these figures from the report, and a stored
+baseline per flow algorithm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 5: water level at the seven output points.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{speed_plot.png}
+\end{center}
+\caption{EA Test 5: speed at the seven output points.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 5: the checks and their outcome.}
+\label{fig:ea5_checks}
+\end{figure}

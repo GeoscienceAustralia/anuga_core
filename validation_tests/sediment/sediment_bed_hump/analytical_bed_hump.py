@@ -73,9 +73,10 @@ def bed(x, t, w, q, A_g, m=3.0, porosity=0.4, **hump):
     return np.interp(np.asarray(x, dtype=float), xt, z0)
 
 
-def read_centroid_series(filename):
+def read_centroid_series(filename, spinup=0.0):
     """time, bed, stage, xmom at the centroids (ntime, ncells), and the
-    centroid coordinates (ncells, 2)."""
+    centroid coordinates (ncells, 2). The frames from before the end of the
+    spin-up are dropped, and time is counted from the end of it."""
     from netCDF4 import Dataset
     with Dataset(filename) as f:
         t = f.variables['time'][:].astype(float)
@@ -89,4 +90,6 @@ def read_centroid_series(filename):
         z = np.broadcast_to(z, w.shape).copy()
     xc = x[vols].mean(axis=1)
     yc = y[vols].mean(axis=1)
-    return t, z, w, uh, np.column_stack([xc, yc])
+    keep = t >= spinup - 1.0e-6
+    return (t[keep] - spinup, z[keep], w[keep], uh[keep],
+            np.column_stack([xc, yc]))

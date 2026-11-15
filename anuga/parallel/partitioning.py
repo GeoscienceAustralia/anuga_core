@@ -42,6 +42,8 @@ def metis_partition(domain, n_procs):
     ------
     ValueError
         If n_procs is greater than the number of triangles in the domain.
+    ImportError
+        If n_procs is greater than 1 and pymetis is not installed.
     AssertionError
         If partitioning results in any processor owning zero triangles.
 
@@ -55,14 +57,6 @@ def metis_partition(domain, n_procs):
     by flattening them to standard 1D arrays.
     """
 
-    from pymetis import part_graph
-
-    try:
-        from pymetis import part_mesh
-        metis_version = "5_part_mesh"
-    except ImportError:
-        metis_version = "5_part_graph"
-
     n_tri = domain.number_of_triangles
 
     if n_procs > n_tri:
@@ -72,6 +66,24 @@ def metis_partition(domain, n_procs):
         epart_order = np.arange(n_tri, dtype=int)
         triangles_per_proc = [n_tri]
         return epart_order, triangles_per_proc
+
+    try:
+        from pymetis import part_graph
+    except ImportError as e:
+        raise ImportError(
+            "METIS partitioning needs pymetis, which is not installed. pip does "
+            "not install it on Windows, because it has no Windows wheels. Install "
+            "it with 'conda install -c conda-forge pymetis', or choose a scheme "
+            "that does not need it: partition_scheme 'morton', 'hilbert' or 'rcm' "
+            "for anuga.distribute, or method 'hilbert', 'morton' or 'rcm' for "
+            "reorder_domain."
+        ) from e
+
+    try:
+        from pymetis import part_mesh
+        metis_version = "5_part_mesh"
+    except ImportError:
+        metis_version = "5_part_graph"
 
     # Use metis to partition the mesh.
     # The partitioning routine used depends on the version of metis installed.

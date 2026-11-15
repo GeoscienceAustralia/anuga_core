@@ -7,7 +7,7 @@ import numpy as num
 import pytest
 
 from anuga.pmesh.mesh_interface import create_pmesh_from_regions
-from anuga.pmesh.mesh_relax import relax_worst_cells
+from anuga.pmesh.mesh_relax import relax_worst_cells, segment_sliders
 from anuga.pmesh.mesh_relax_ext import cell_quality
 
 pytest.importorskip('meshpy')
@@ -67,7 +67,7 @@ class Test_mesh_relax(unittest.TestCase):
         segments = num.array(m.tri_mesh.segments)
         q0 = cell_quality(v0, t0, 1.0)
 
-        before, after = m.relax_worst_cells(passes=30)
+        before, after = m.relax_worst_cells(passes=30, slide=False)
         v1, t1 = arrays(m)
         q1 = cell_quality(v1, t1, 1.0)
 
@@ -108,18 +108,29 @@ class Test_mesh_relax(unittest.TestCase):
 
     def test_breakline_vertices_do_not_move(self):
         breakline = [[20.0, 30.0], [80.0, 70.0]]
-        m = make_pmesh(breaklines=[breakline])
-        m.generate_mesh(verbose=False)
-        v0, _ = arrays(m)
-        m.relax_worst_cells(passes=30)
-        v1, t1 = arrays(m)
+        for slide in (False, True):
+            m = make_pmesh(breaklines=[breakline])
+            m.generate_mesh(verbose=False)
+            v0, _ = arrays(m)
+            m.relax_worst_cells(passes=30, slide=slide)
+            v1, t1 = arrays(m)
 
-        # vertices on the line  2x - 3y + 50 = 0  between its ends
-        on_line = ((num.abs(2.0 * v0[:, 0] - 3.0 * v0[:, 1] + 50.0) < 1e-9)
-                   & (v0[:, 0] >= 20.0) & (v0[:, 0] <= 80.0))
-        assert on_line.sum() > 10
-        assert num.array_equal(v0[on_line], v1[on_line])
-        assert signed_areas(v1, t1).min() > 0.0
+            # vertices on the line  2x - 3y + 50 = 0  between its ends
+            on_line = ((num.abs(2.0 * v0[:, 0] - 3.0 * v0[:, 1] + 50.0)
+                        < 1e-9) & (v0[:, 0] >= 20.0) & (v0[:, 0] <= 80.0))
+            assert on_line.sum() > 10
+            if slide:
+                # inserted vertices may slide, but stay on the line and
+                # between its ends, which do not move
+                w = v1[on_line]
+                assert num.abs(2.0 * w[:, 0] - 3.0 * w[:, 1] + 50.0).max() \
+                    < 1e-9
+                assert w[:, 0].min() >= 20.0 and w[:, 0].max() <= 80.0
+                n_in = m.number_of_input_vertices
+                assert num.array_equal(v0[:n_in], v1[:n_in])
+            else:
+                assert num.array_equal(v0[on_line], v1[on_line])
+            assert signed_areas(v1, t1).min() > 0.0
 
     def test_function_leaves_input_alone(self):
         m = make_pmesh()
@@ -155,6 +166,86 @@ class Test_mesh_relax(unittest.TestCase):
         assert num.isclose(b1, b2)
         assert a2 > b2
         assert signed_areas(v2, t0).min() > 0.0
+
+    def test_segment_sliders(self):
+        # A straight segment 0-3 split at 4 and 5, then a corner at 3 and a
+        # second segment 3-6 split at 7. Vertices 0-3 and 6 are input.
+        v = num.array([[0.0, 0.0], [9.0, 9.0], [9.0, 0.0], [6.0, 0.0],
+                       [2.0, 0.0], [4.0, 0.0], [6.0, 4.0], [6.0, 2.0]])
+        seg = num.array([[0, 4], [4, 5], [5, 3], [3, 7], [7, 6]])
+        def as_set(rows):                 # the order of a and b is free
+            return {(int(i), frozenset((int(a), int(b)))) for i, a, b in rows}
+
+        rows = segment_sliders(v, seg, first_inserted=4)
+        assert as_set(rows) == {(4, frozenset((0, 5))), (5, frozenset((3, 4))),
+                                (7, frozenset((3, 6)))}
+        # treat everything as input: nothing slides
+        assert len(segment_sliders(v, seg, first_inserted=8)) == 0
+        # a bend at an inserted vertex: it may not slide
+        v[5] = [4.0, 0.5]
+        assert as_set(segment_sliders(v, seg, 4)) == {(7, frozenset((3, 6)))}
+
+    def test_sliding_keeps_segment_shape(self):
+        hole = [[40.0, 40.0], [60.0, 40.0], [60.0, 42.0], [40.0, 42.0]]
+        breakline = [[20.0, 30.0], [80.0, 70.0]]
+        m = make_pmesh(maximum_triangle_area=8.0, interior_holes=[hole],
+                       breaklines=[breakline])
+        m.generate_mesh(verbose=False)
+        v0, t0 = arrays(m)
+        segments = num.array(m.tri_mesh.segments)
+        n_in = m.number_of_input_vertices
+        rows = segment_sliders(v0, segments, n_in)
+        assert len(rows) > 10
+
+        before, after = m.relax_worst_cells(passes=30)
+        v1, t1 = arrays(m)
+        assert after >= before
+        assert num.array_equal(t0, t1)
+        assert num.array_equal(segments, m.tri_mesh.segments)
+
+        # input vertices (corners, breakline ends) are where they were
+        assert num.array_equal(v0[:n_in], v1[:n_in])
+        # segment vertices that moved are sliders, still on their segment
+        on_seg = num.unique(segments)
+        moved = on_seg[num.any(v0[on_seg] != v1[on_seg], axis=1)]
+        assert len(moved) > 0
+        assert set(moved) <= set(rows[:, 0])
+        i, a, b = rows[num.isin(rows[:, 0], moved)].T
+        ab, ai = v0[b] - v0[a], v1[i] - v0[a]
+        cross = ab[:, 0] * ai[:, 1] - ab[:, 1] * ai[:, 0]
+        assert num.abs(cross).max() < 1e-9 * (ab ** 2).sum(axis=1).max()
+        # the hole is still a hole of the same area, and nothing inverted
+        assert signed_areas(v1, t1).min() > 0.0
+        assert num.isclose(signed_areas(v1, t1).sum(),
+                           100.0 * 100.0 - 20.0 * 2.0)
+
+    def test_sliding_helps_between_buildings(self):
+        """Dense buildings leave few free vertices: there, sliding the points
+        the generator put on the buildings' sides is what can still move."""
+        rng = num.random.default_rng(0)
+        holes, y = [], 10.0
+        while y < 70.0:
+            x, depth = 10.0, rng.uniform(8.0, 14.0)
+            while x < 85.0:
+                w = rng.uniform(6.0, 14.0)
+                d = depth + rng.uniform(-1.0, 1.0)
+                if rng.integers(2):
+                    w = rng.uniform(1.9, 3.0)          # a narrow wing
+                holes.append([[x, y], [x + w, y], [x + w, y + d], [x, y + d]])
+                x += w + rng.uniform(2.0, 5.0)
+            y += depth + rng.uniform(3.0, 6.0)
+
+        result = {}
+        for slide in (False, True):
+            m = make_pmesh(maximum_triangle_area=40.0, interior_holes=holes)
+            m.generate_mesh(verbose=False)
+            v0, _ = arrays(m)
+            _, result[slide] = m.relax_worst_cells(passes=30, slide=slide)
+            v1, t1 = arrays(m)
+            n_in = m.number_of_input_vertices
+            assert num.array_equal(v0[:n_in], v1[:n_in])
+            assert signed_areas(v1, t1).min() > 0.0
+        assert result[True] >= result[False]
 
     def test_relax_before_generate_raises(self):
         m = make_pmesh()

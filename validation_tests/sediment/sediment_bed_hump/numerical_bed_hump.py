@@ -9,6 +9,11 @@ front steepens; before the front breaks the bed follows the characteristic
 solution in analytical_bed_hump.py. The run checks the Grass law, the
 bedload divergence and its bed update, the open bedload boundaries, and
 that the bed volume is conserved.
+
+The uniform initial flow is not steady over the hump, so it sends a small wave
+along the channel. The bed is fixed until that has settled: the characteristic
+solution is for a steady flow, and the wave reaching the inflow would leave a
+mark there that says nothing about the open boundaries.
 """
 import json
 import numpy as np
@@ -30,6 +35,7 @@ hump = dict(z_flat=0.1, x0=300.0, width=200.0, height=1.0)
 t_shock = analytic.shock_time(w0, q, A_g, m, porosity, **hump)
 finaltime = round(0.5 * t_shock, -2)   # well before the front breaks
 yieldstep = finaltime / 20.0
+spinup = 600.0            # s, of flow over the fixed bed
 
 args = anuga.get_args()
 alg = args.alg
@@ -59,6 +65,12 @@ Bd = anuga.Dirichlet_boundary([w0, q, 0.0])
 Br = anuga.Reflective_boundary(domain)
 domain.set_boundary({'left': Bd, 'right': Bd, 'top': Br, 'bottom': Br})
 
+# Settle the flow over the fixed bed. The sediment clock starts at the end of this.
+domain.set_quantities_to_be_stored({'elevation': 2, 'friction': 1, 'stage': 2,
+                                    'xmomentum': 2, 'ymomentum': 2})
+for t in domain.evolve(yieldstep=spinup, finaltime=spinup):
+    pass
+
 # The sediment: Grass bedload (total load, so nothing is suspended) on an
 # evolving bed, with the inflow and outflow open to it. A fraction must be
 # registered for the bedload kernel to run; its grain size does not enter.
@@ -70,7 +82,8 @@ if myid == 0:
     with open('bed_hump_parameters.json', 'w') as f:
         json.dump({'L': L, 'W': W, 'dx': dx, 'w0': w0, 'q': q, 'A_g': A_g, 'm': m,
                    'porosity': porosity, 'hump': hump, 't_shock': t_shock,
-                   'finaltime': finaltime, 'yieldstep': yieldstep}, f, indent=1)
+                   'finaltime': finaltime, 'yieldstep': yieldstep,
+                   'spinup': spinup}, f, indent=1)
     if verbose:
         print(domain.sediment_summary())
         print('shock at %.0f s; running to %.0f s; crest speed %.2e m/s'
@@ -80,7 +93,7 @@ if myid == 0:
 from anuga.validation_utilities import save_parameters_tex
 save_parameters_tex(domain)
 
-for t in domain.evolve(yieldstep=yieldstep, finaltime=finaltime):
+for t in domain.evolve(yieldstep=yieldstep, duration=finaltime, skip_initial_step=True):
     if myid == 0 and verbose:
         print(domain.timestepping_statistics())
 

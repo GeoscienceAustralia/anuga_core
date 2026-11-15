@@ -227,10 +227,13 @@ class Test_Quantity(unittest.TestCase):
         assert num.allclose(quantity.boundary_values, [
                             0.,   0.,   0.,   0.,  0.,   0.])
 
+        boundary_values = quantity.boundary_values
         quantity.set_boundary_values_from_edges()
 
         assert num.allclose(quantity.boundary_values, [
                             1.,   3.,   3.,   6.,  10.,   9.])
+        # Written in place: the C domain struct points at this array (#473)
+        assert quantity.boundary_values is boundary_values
 
     def test_interpolation(self):
         quantity = Quantity(self.mesh1, [[1, 2, 3]])

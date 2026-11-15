@@ -1,0 +1,22 @@
+data/
+Benchmarking_Model_Data.zip
+*.part
+# the root .gitignore drops *.csv; keep the baselines
+!baseline_*.csv
+# run outputs
+*.sww
+*.msh
+*.png
+*.stdout
+run.log
+test*_gauges.csv
+test*_volume.txt
+test*_geometry.json
+parameters.tex
+report.pdf
+*.aux
+*.bbl
+*.blg
+*.log
+*.out
+*.toc

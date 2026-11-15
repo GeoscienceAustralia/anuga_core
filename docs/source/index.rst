@@ -57,6 +57,7 @@ Australia, on whose Gadi supercomputer it was developed; see
    installation/install_anuga_developers
    Installing for GPU <appendices/install_gpu>
    appendices/advanced_script
+   ARR design rainfall data <appendices/arr_design_rainfall>
    parallel/advanced
    mathematical_background
    Sediment physics: choosing the laws <appendices/sediment_physics>

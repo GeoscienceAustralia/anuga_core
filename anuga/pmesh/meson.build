@@ -9,9 +9,18 @@ py3.extension_module('mesh_relax_ext',
   install: true,
 )
 
+py3.extension_module('dem_flow_ext',
+  sources: ['dem_flow_ext.pyx'],
+  include_directories: inc_dir,
+  dependencies: dependencies,
+  subdir: 'anuga/pmesh',
+  install: true,
+)
+
 python_sources = [
   'AppShell.py',
   'cursornames.py',
+  'dem_mesh.py',
   'exesetup.py',
   '__init__.py',
   'mesh_interface.py',

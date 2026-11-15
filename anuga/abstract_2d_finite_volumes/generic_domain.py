@@ -60,6 +60,14 @@ class Generic_Domain:
     """Generic computational Domain constructor.
     """
 
+    # True while the host vertex and edge values lag the centroid values: a
+    # domain may skip the extrapolation at a yield and leave it to the first
+    # reader (see Quantity.vertex_values and _prepare_yield)
+    _host_values_stale = False
+
+    # set_boundary() has run and its boundary values are not yet evaluated.
+    _boundary_values_stale = False
+
     def __init__(self,
                  source=None,
                  triangles=None,
@@ -248,6 +256,7 @@ class Generic_Domain:
         self.areas = self.mesh.areas
 
         self.number_of_boundaries = self.mesh.number_of_boundaries
+        self.boundary_limit_mask = num.zeros_like(self.number_of_boundaries)
         self.boundary_length = self.mesh.boundary_length
         self.tag_boundary_cells = self.mesh.tag_boundary_cells
         self.number_of_triangles_per_node = self.mesh.number_of_triangles_per_node
@@ -560,6 +569,7 @@ class Generic_Domain:
         old_boundary_enumeration = dict(self.mesh.boundary_enumeration)
 
         self.mesh.reorder(new_order, in_place=True)
+        self.boundary             = self.mesh.boundary
         self.boundary_enumeration = self.mesh.boundary_enumeration
         self.boundary_cells       = self.mesh.boundary_cells
         self.boundary_edges       = self.mesh.boundary_edges
@@ -615,6 +625,12 @@ class Generic_Domain:
                   getattr(self, 'ghost_recv_dict', {})):
             for proc in d:
                 d[proc][0] = inv_order[d[proc][0]]
+
+        # A boundary set before the reorder holds the old triangle numbers in
+        # boundary_objects, boundary_flux_type and boundary_limit_mask. Last, so
+        # a mode-2 device interface is rebuilt on the reordered arrays.
+        if self.boundary_map is not None:
+            self.set_boundary({})
 
     def statistics(self, *args, **kwargs):
         return self.mesh.statistics(*args, **kwargs)
@@ -1197,6 +1213,20 @@ class Generic_Domain:
 
             if isinstance(B, anuga.Compute_fluxes_boundary):
                 self.boundary_flux_type[k] = 1
+
+        # Per triangle: bits 0-2 say the boundary prescribes stage on that edge,
+        # bits 3-5 momentum. Filled in place, the extensions hold a pointer to it.
+        self.boundary_limit_mask[:] = 0
+        for (vol_id, edge_id), B in self.boundary_objects:
+            stage_set, momentum_set = getattr(B, 'limiter_prescribes', (False, False))
+            if stage_set:
+                self.boundary_limit_mask[vol_id] |= 1 << edge_id
+            if momentum_set:
+                self.boundary_limit_mask[vol_id] |= 8 << edge_id
+
+        # The limiter reads these values, and a continued evolve() does not refresh
+        # them before its first step, so they must not outlive the old boundary.
+        self._boundary_values_stale = True
 
     def set_tag_region(self, *args, **kwargs):
         """Set quantities based on a regional tag.
@@ -2001,10 +2031,15 @@ class Generic_Domain:
         if skip_initial_step is False:
 
             # Assuming centroid values ok, calculate edge and vertes values
-            self.distribute_to_vertices_and_edges()
+            self._prepare_yield()
             self.update_boundary()
+            self._boundary_values_stale = False
 
             yield(self.get_time())      # Yield initial values
+
+        elif self._boundary_values_stale:
+            self.update_boundary()
+            self._boundary_values_stale = False
 
         while True:
             initial_relative_time = self.relative_time
@@ -2058,7 +2093,7 @@ class Generic_Domain:
                 # and stop
                 #self.set_time(self.finaltime)
                 self.set_relative_time(self.relative_finaltime)
-                self.distribute_to_vertices_and_edges()
+                self._prepare_yield()
                 self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
@@ -2073,7 +2108,7 @@ class Generic_Domain:
 
                 # Log and then Pass control on to outer loop for more
                 # specific actions
-                self.distribute_to_vertices_and_edges()
+                self._prepare_yield()
                 self.update_boundary()
                 self.log_operator_timestepping_statistics()
                 yield(self.get_time())
@@ -2713,6 +2748,21 @@ class Generic_Domain:
                 Q.extrapolate_second_order()
             else:
                 raise Exception('Unknown order: %s' % str(self._order_))
+
+    def _prepare_yield(self):
+        """Make the domain's values readable before evolve() yields.
+
+        The default extrapolates the centroid values to the vertices and
+        edges. A domain whose readers mostly need only the centroids may
+        instead mark the vertex and edge values stale, leaving the work to
+        :meth:`_refresh_host_values` on the first read.
+        """
+        self.distribute_to_vertices_and_edges()
+
+    def _refresh_host_values(self):
+        """Bring stale vertex and edge values up to date with the centroids."""
+        self._host_values_stale = False
+        self.distribute_to_vertices_and_edges()
 
     def centroid_norm(self, quantity, normfunc):
         """Calculate the norm of the centroid values of a specific quantity,

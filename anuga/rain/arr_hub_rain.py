@@ -29,6 +29,15 @@ class Arr_hub_rain:
     ----------
     hub_filename : str
         Path to the ARR hub ``.txt`` export file.
+
+    Notes
+    -----
+    The areal reduction factors (``ARF_a`` to ``ARF_i``) and losses (``ARR_IL``,
+    ``ARR_CL``) are stored as strings, as read from the file.  Nothing in ANUGA
+    applies them: adjust the depths passed to
+    :class:`~anuga.rain.ARR_rate_operator` yourself. ``ARR_IL`` and ``ARR_CL`` come
+    from the file's ``[LOSSES]`` section, which the hub labels as superseded where
+    it has newer values.
     """
 
     def __init__(self, hub_filename):
@@ -119,7 +128,9 @@ class Single_pattern:
     index : int
         Row index in the patterns data (1–720).
     Ev_dep : float
-        Total event depth (mm) used to scale the pattern increments.
+        Total event depth (mm) used to scale the pattern increments in
+        ``Rplot``.  It cancels in :class:`~anuga.rain.ARR_rate_operator`, which
+        takes its depths from ``depth_array``.
     """
 
     def __init__(self, prp, index=1, Ev_dep=1.0):

@@ -42,7 +42,7 @@ if numprocs > 1:
 Br = Reflective_boundary(domain)
 domain.set_boundary({'left': Br, 'right': Br, 'top': Br, 'bottom': Br})
 
-kv = Kinematic_viscosity_operator(domain, diffusivity='height',
+kv = Kinematic_viscosity_operator(domain, diffusivity='height', form='velocity',
                                    use_triangle_areas=True, verbose=False)
 kv.dt = 0.05   # set a nominal timestep so matrices are meaningful
 
@@ -98,22 +98,22 @@ check(abs(got - expected_dot) < 1e-10,
 
 
 # -----------------------------------------------------------------------
-# Test 3: _parabolic_matvec_distributed with dt=0 is the identity
+# Test 3: _parabolic_matvec_distributed with dt=0 is the area scaling
 #
-# When dt == 0 the operator P = I - 0*A = I, so P*d == d for any d.
+# When dt == 0 the operator P = T - 0*A = T (the triangle areas), so
+# P*d == T*d for any d.
 # -----------------------------------------------------------------------
 kv.dt = 0.0
 kv.update_elliptic_matrix(kv.diffusivity)
-kv.update_elliptic_boundary_term(
-    domain.quantities['xvelocity'])
+kv._build_parabolic_csr()
 
 rng = num.random.default_rng(42 + myid)
 d_full = rng.standard_normal(kv.n_full)
 Pd = kv._parabolic_matvec_distributed(d_full)
 
-check(num.allclose(Pd, d_full, rtol=1e-12, atol=1e-12),
+check(num.allclose(Pd, domain.areas[:kv.n_full] * d_full, rtol=1e-12, atol=1e-12),
       f'_parabolic_matvec_distributed with dt=0: max diff = '
-      f'{num.max(num.abs(Pd - d_full)):.3e}')
+      f'{num.max(num.abs(Pd - domain.areas[:kv.n_full] * d_full)):.3e}')
 
 
 # -----------------------------------------------------------------------
@@ -124,7 +124,7 @@ check(num.allclose(Pd, d_full, rtol=1e-12, atol=1e-12),
 # -----------------------------------------------------------------------
 kv.dt = 0.01
 kv.update_elliptic_matrix(kv.diffusivity)
-kv.update_elliptic_boundary_term(domain.quantities['xvelocity'])
+kv._build_parabolic_csr()
 
 rng2 = num.random.default_rng(7)
 x_true = rng2.standard_normal(kv.n_full)

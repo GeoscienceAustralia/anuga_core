@@ -4,6 +4,7 @@ python_sources = [
  'test_mesh_interface.py',
  'test_mesh.py',
  'test_meshquad.py',
+ 'test_dem_mesh.py',
  'test_mesh_relax.py',
  'test_size_field.py',
 ]

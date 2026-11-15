@@ -14,6 +14,7 @@
    .. autosummary::
    
       ~SWW_plotter.__init__
+      ~SWW_plotter.close
       ~SWW_plotter.get_flow_through_cross_section
       ~SWW_plotter.get_triangles_inside_polygon
       ~SWW_plotter.make_depth_animation

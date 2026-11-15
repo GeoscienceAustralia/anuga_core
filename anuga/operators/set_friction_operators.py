@@ -102,6 +102,13 @@ class Set_depth_friction_operator(Operator):
             height = self.stage_c[ind] - self.elev_c[ind]
             self.friction_c[ind] = self.friction(height)
 
+        # Mode 2: the Manning kernel reads the device copy, which this direct
+        # write does not reach (the fractional-step sync carries only the
+        # conserved state).
+        sync = getattr(self.domain, 'sync_friction_to_device', None)
+        if sync is not None:
+            sync()
+
 
 
     def parallel_safe(self):

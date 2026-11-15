@@ -1,3 +1,356 @@
+# ANUGA 4.2.0
+
+ANUGA 4.2.0 adds **meshes sized from a DEM's flow paths**, a
+**momentum-conserving eddy viscosity** with an explicit scheme that runs on the
+GPU, and an option to **upwind the tangential momentum** in the flux. The
+validation suite gains Tests 1 to 6B of the UK Environment Agency 2D benchmark.
+
+Most scripts run unchanged, but several fixes change results: see *Changes in
+results* before comparing with a 4.1.0 run.
+
+## Highlights
+
+### Meshes from a DEM
+
+`create_domain_from_dem` routes a DEM by D8 to find the area draining through
+each cell, meshes fine along the flow paths and coarse on the slopes between
+them, relaxes the worst cells, and sets each triangle's elevation to the mean
+of the DEM over it.
+
+```python
+domain = anuga.create_domain_from_dem('topography.asc',
+                            maximum_triangle_area=8.0,
+                            bounding_polygon=bounding_polygon,
+                            boundary_tags=boundary_tags,
+                            streams=[(5000.0, 2.0), (1000.0, 4.0)],
+                            interior_holes=houses)
+```
+
+`streams` is a list of (drainage area, maximum triangle area). `floodplain`
+refines valley floors by height above the nearest drainage, and `regions` adds
+polygons for what the DEM cannot show. The DEM is an `.asc`, `.grd`, `.dem` or
+`.tif` file, or an `(x, y, Z)` raster tuple. The routing is in Cython and adds
+no dependency.
+
+Also new, and exported from `anuga`: `size_field_from_dem` (the size field
+alone), `create_pmesh_from_dem` (the mesh without a domain),
+`drainage_area_from_dem` (the routing, for plotting) and `remove_mesh_pits`,
+which fills or breaches the pits that a coarse mesh makes of a DEM.
+`create_domain_from_dem` leaves pits alone unless given `pits='fill'` or
+`'breach'` with `pit_outlets`.
+
+On the Merewether case the DEM-sized mesh has a quarter of the triangles of a
+uniform 1 m² mesh and twice the timestep, and the flood levels at the
+observation points agree to 2 cm. See *Meshes from a DEM* in *Creating a
+Domain*, and the new DEM notebook, which replaces the Merewether flooding
+notebook in the online docs.
+
+### Eddy viscosity: momentum form and an explicit GPU scheme
+
+`Kinematic_viscosity_operator` takes two new arguments.
+
+```python
+anuga.Kinematic_viscosity_operator(domain, diffusivity=nu,
+                                   form='momentum', scheme='explicit')
+```
+
+* `form='momentum'` solves d(hu)/dt = div(ν h ∇u) with a constant eddy
+  viscosity ν in m²/s (#480). Momentum is updated from edge stresses, so it is
+  conserved to round-off apart from boundary stresses, and wet/dry edges carry
+  no stress. `form='velocity'` is the previous behaviour: it diffuses velocity
+  and does not conserve momentum where the depth varies.
+* `scheme='explicit'` (momentum form only) advances the term by forward Euler
+  in one edge pass, sub-stepping when the stability limit needs it. It has a
+  device kernel, so a mode-2 run stays on the GPU. The implicit scheme solves
+  on the host each step: on EA Test 6A (55.8k triangles) it took 61.7 s on the
+  GPU against 2.7 s without viscosity, and the explicit scheme takes 3.0 s
+  with the same gauges.
+
+Creating the operator without `form` still gives the velocity form, now with a
+`FutureWarning`, because that default may change. Pass `form='velocity'` to
+keep it without the warning. `domain.set_use_kinematic_viscosity()` is
+unchanged and gives no warning.
+
+Four errors in the operator are fixed: the area scaling on meshes with unequal
+triangles, a stress at `Reflective_boundary` walls, the implicit scheme having
+no effect in mode 2 on a GPU build, and a crash in `evolve`. The first three
+change results; see *Fixes*.
+
+### Tangential momentum upwinding
+
+The central-upwind flux diffuses the momentum along an edge at the
+gravity-wave speed, although that momentum only moves with the water. Across a
+velocity shear, such as a channel and its banks, this exchanges momentum
+sideways and makes channels too resistive, an error first order in the cell
+size.
+
+```python
+domain.set_tangential_upwind(True)
+```
+
+With it on, the tangential momentum flux is the mass flux times the upwind
+tangential velocity, as in HLLC. Mass and normal momentum fluxes are
+unchanged. It combines with every `low_froude` mode, runs on the CPU and the
+GPU and in parallel, and is off by default (#509).
+
+### EA 2D benchmark suite
+
+Tests 1, 2, 3, 4, 5, 6A and 6B of the Environment Agency's 2D benchmark
+(SC120002) are in `validation_tests/ea_benchmark` and in the validation
+report (#476). Tests 7 and 8 are not included (#477, #478).
+
+## Changes in results
+
+Each of these is a fix described under *Fixes*; they are listed here because a
+run can differ from 4.1.0.
+
+* Models with prescribed boundaries (`Dirichlet_boundary`, `Time_boundary`,
+  `File_boundary` and the others listed below) change slightly near those
+  boundaries.
+* `ARR_rate_operator` and `Raster_rate_operator` no longer rain outside the
+  span of their data, and IFD grids are read at the cell holding the point.
+* `Kinematic_viscosity_operator`: results change on meshes with unequal
+  triangle areas, next to `Reflective_boundary` walls, and for mode-2 runs on
+  a GPU build, where the implicit scheme had no effect.
+* `Barometric_pressure_operator`: the force has the opposite sign.
+* Meshes with breaklines that cross the domain, or with a region or hole at
+  the first vertex of the polygon around it, get more triangles, because
+  `maximum_triangle_area` now holds everywhere.
+* Sediment: results change where a bed change is comparable to the depth.
+* Mode-2 runs on a GPU build that change friction or the bed during the run
+  now see the change.
+* Parallel runs that change the bed after `distribute()` now match the serial
+  run.
+
+## Smaller improvements
+
+* GPU: yields are cheaper in mode 2. A yield brought the centroids back from
+  the device and then extrapolated them to vertices and edges on the host,
+  which nothing reads by default. The vertex and edge values are now
+  extrapolated on the first read of `Quantity.vertex_values` or `edge_values`.
+  Centroid values and the SWW file are unchanged. Yielding every step on a
+  788k-triangle mesh went from 33.8 to 88.1 steps/s on eight host threads;
+  runs with few yields are unchanged.
+* `Collect_max_quantities_operator`: in mode 2 the maxima are copied from the
+  device only when an SWW frame is stored, not on every update, so
+  `update_frequency=1` no longer costs a device-to-host transfer each step.
+  Call the new `sync_to_host()` before reading the operator's `max_*` arrays
+  between stored frames. The device maxima are seeded from the host, so a
+  checkpoint resume keeps the earlier peaks (#513, #515).
+* Mesh relaxation: a vertex that Triangle inserted part-way along a straight
+  segment may now slide along it, between its neighbours on that segment. On
+  meshes with buildings as holes such a vertex often belongs to the cell that
+  sets the timestep. Input vertices do not move, and every segment keeps its
+  shape and tags. `relax_worst_cells(slide=False)` gives the previous
+  behaviour (#436).
+* `Domain.sync_friction_to_device()` and `Domain.sync_elevation_to_device()`
+  push a direct write to the host friction or bed arrays to the device.
+  `set_quantity` calls them itself. They do nothing on a CPU build.
+* Docs: a section on refinement regions in *Creating a Domain*, an appendix on
+  ARR design rainfall data, and the Zenodo DOI for citing ANUGA.
+* The source archive is about 16 MB smaller: a 2020 validation
+  report PDF and two copies of `cairns.zip` are gone, and the notebooks'
+  stored images are recompressed. `runcairns.py` and `runParallelCairns.py`
+  now read `examples/data/cairns/cairns.asc`.
+
+## Fixes
+
+* Mesh: `create_domain_from_regions` and the other mesh functions now raise `PolygonError`
+  when the outlines of two `interior_regions` or `interior_holes` cross. They used to
+  accept them without complaint and give the wrong mesh: regions got the wrong triangle
+  areas, even above `maximum_triangle_area`, and holes came out the wrong shape. A script
+  that stops with this error was getting such a mesh. Use `size_field_from_regions` for
+  overlapping refinement, or change the polygons so that they are nested or separate.
+* Mesh: a nested region or hole that includes the first vertex of the polygon around it no
+  longer takes that polygon's triangle area. Each region is marked by a seed point next to
+  its first vertex, and that point could fall inside the nested polygon. The outer region,
+  or for a polygon at the bounding polygon's first corner the rest of the domain, then got
+  no area limit: its triangles could be much larger than its area or
+  `maximum_triangle_area`. Seed points now avoid the polygons nested inside. Meshes without
+  such a shared vertex are unchanged.
+* Boundaries: a prescribed boundary value now bounds the edge limiter on that
+  edge. A boundary cell has no neighbour beyond its boundary edge, so the end
+  of a smooth slope looked like a local extremum, the limiter flattened the
+  gradient and the cell went first order. Where a boundary condition prescribes
+  the value (`Dirichlet_boundary`, `Time_boundary`, `Time_space_boundary`,
+  `File_boundary`, `Field_boundary`; stage only for the `Transmissive_*_set_stage`
+  boundaries and `Time_stage_zero_momentum_boundary`), it now stands in for that
+  neighbour: the edge may move towards the value but not past it. Walls,
+  `Transmissive_boundary` and custom boundary classes have no
+  outside information and keep the limiter exactly as before, so a model with
+  only those is unchanged. Models with prescribed boundaries will see small
+  changes near them, and flows driven through a Dirichlet edge by numerical
+  diffusion alone can change more: a lid-driven cavity with no viscosity loses
+  about half its kinetic energy at a given resolution. A custom boundary can
+  opt in with the class attribute `limiter_prescribes = (stage, momentum)`. With
+  bedload on, a wave reaching a prescribed inflow now leaves a small mark in the
+  first cells (about 2e-5 m in the bed hump validation, where the wave's velocity
+  change is 7e-3 m/s), and a finer mesh does not remove it. That case now settles its
+  flow before the bed can move.
+* `Domain.reorder()` now renumbers `domain.boundary` and, if the boundary was
+  already set, `boundary_objects` and `boundary_flux_type`. They kept the old
+  triangle numbers, so a boundary set after a reorder paired tags with the wrong
+  edges in those lists. Boundary values themselves were not affected.
+* Install: `pip install anuga` works on Windows again. pymetis has no Windows wheels and
+  does not build there, so pip failed on it. It is now installed only on Linux and macOS.
+  Serial runs do not need it. Parallel runs on Windows need pymetis from conda-forge, or
+  another `partition_scheme` (`morton`, `hilbert` or `rcm`), and METIS partitioning
+  without pymetis now says so. Conda installs are unchanged.
+* Rain: `Arr_ifd_rain.open_grd` takes `aep_percent`, for example `aep_percent=1.0`.
+  The docs gave `Frq=100` for 1% AEP, but `Frq` is the Bureau of Meteorology's file
+  label, the AEP in percent times 1000: 1% is `Frq=1000`, and `Frq=100` opens the
+  1 in 1000 grid, 29% more rain at the location checked. If you followed the old
+  docs, check your `Frq`. `open_grd` now raises `ValueError` when no grid matches,
+  instead of printing a warning and returning `None`. `Arr_ifd_rain` reads the
+  Bureau's zip files under any name (it skipped `Rare_Extent.zip` and
+  `Very_frequent_Extent.zip`), and a point reading a depth of 0, which is what the
+  grids hold over the ocean, now gives a warning. `ARR_rate_operator` and
+  `Raster_rate_operator` have a `time_step` attribute, the time between changes of
+  rate, to use as the `yieldstep`. See the new appendix on ARR design rainfall data.
+* Kinematic viscosity: the implicit scheme now works in mode 2 on a GPU build.
+  The operator solves on the host, but its last call,
+  `distribute_to_vertices_and_edges()`, pulled the centroids back from the device
+  and discarded the momentum it had just computed, so viscosity had no effect at
+  all: results were identical to a run without the operator. The solve also read
+  host boundary values that were never synced, so open edges looked dry and
+  still. Device and host runs now agree to round-off. Viscous mode-2 runs on a
+  GPU change; CPU builds and the explicit scheme do not.
+* Rain (results change): `ARR_rate_operator` and `Raster_rate_operator` no longer
+  rain outside the span of their data. They repeated the last value up to
+  `finaltime`, and the first value before the start, so a 10 mm storm of 30
+  minutes delivered 85 mm in a 3 hour run. The rate there is now `default_rate`,
+  0 by default.
+* Rain (results change): `Arr_grd.get_rain_at_point(s)` now return the cell holding
+  the point. Rounding the indices picked a neighbouring cell for most points, and
+  the scalar version could raise `IndexError`. Points outside the grid now raise
+  `ValueError` instead of returning a wrapped or edge value.
+* Rain: NODATA in an IFD grid is now NaN, with a warning, instead of a negative
+  depth that removed water. `ARR_rate_operator` rejects NaN or negative depths on
+  the cells it acts on, and takes `ifd_duration` to warn when the grid and the
+  pattern have different durations.
+* Rain: `Raster_rate_operator` now looks up rasters at absolute coordinates. It
+  used coordinates relative to the domain's origin, which is wrong on a
+  georeferenced domain.
+* GPU: a mode-2 domain no longer runs with the Dirichlet boundary values of a
+  domain freed before it. The stage and momentum values were left registered on
+  the device when a domain was released, so a later domain whose arrays got the
+  same host addresses skipped the copy and used stale device values. Boundary
+  values were silently wrong (a stage error of up to 0.48 m in the regression
+  case), or the run stopped with "partially present on the device" or
+  `CUDA_ERROR_ILLEGAL_ADDRESS`. It needs a GPU-offload build and more than one
+  Dirichlet domain in a process; one domain per process and CPU builds are not
+  affected.
+* Sediment: a bed that rises under a thin film no longer leaves the film with
+  its whole momentum. Every sediment kernel moves the bed with the stage held,
+  so the depth falls by the deposit, and the momentum was left as it was: a
+  deposit that nearly filled a film made its velocity run away and collapsed
+  the timestep. It stopped the Zaragoza pier validation case under `DE0`
+  (one bedload step took a 0.088 mm film to 1.6e-7 m and its speed from 1.8
+  to 972 m/s), so 4.1.0 shipped without its `DE0` validation report. A rising
+  bed now scales the momentum with the depth, keeping the velocity, in the
+  bedload, angle-of-repose and suspended-exchange kernels, on the CPU and the
+  GPU. Results change only where a bed change is comparable to the depth: on
+  the pier case the scour is about half a millimetre shallower and the eroded
+  volume 15% smaller under `DE1`, with the same RMS against the Kinect bed
+  (#450).
+* Boundaries: a set-stage boundary that leaves an edge nearly dry no longer
+  collapses the timestep. `Transmissive_n_momentum_zero_t_momentum_set_stage_boundary`
+  and `Transmissive_momentum_set_stage_boundary` copied the interior momentum
+  onto the boundary edge whatever depth the set stage left there, and the
+  flux divides that momentum by the boundary depth. A stage rating along an
+  outflow line whose bed varies (TUFLOW's HQ boundary) crossed one edge's bed
+  by 1e-7 m: 0.27 m²/s became 1.7e6 m/s, and the run stopped with "Too small
+  timestep" on the CPU and ran on forever at 1e-13 s on the GPU. Both now
+  scale the momentum by min(1, boundary depth / interior depth), so the
+  boundary carries the interior velocity, on the CPU and the GPU. Results are
+  unchanged wherever the boundary is at least as deep as the interior.
+* `Barometric_pressure_operator`: the pressure-gradient force had the wrong
+  sign. It added `+h ∇p / rho_w` to the momentum instead of `-h ∇p / rho_w`,
+  so water accelerated towards high pressure, and at rest the surface rose
+  under high pressure instead of falling by about 1 cm per hPa (the
+  inverse-barometer effect). A closed basin started from the inverse-barometer
+  equilibrium now stays at rest. **If you negated your pressure input to work
+  around this, remove the negation.** Reported by William Mitchell (#472).
+* `Kinematic_viscosity_operator` no longer crashes or hangs `evolve`.
+  `Quantity.set_boundary_values_from_edges` replaced the `boundary_values`
+  array instead of writing into it, and the operator calls it on the
+  elevation every step, so the C boundary and flux code read freed memory: a
+  segmentation fault on 4.1.0, a hang on larger meshes. It now writes in place.
+  The operator's docstring now also states that it diffuses velocity, not
+  momentum. Reported by William Mitchell (#473).
+* `Kinematic_viscosity_operator` (results change): the implicit system scaled
+  each row by the neighbour's triangle area instead of the cell's own. On a
+  mesh with unequal triangles a uniform flow was not preserved, and on EA Test
+  6A the still reservoir accelerated to 2.75 m/s. Under MPI the solver's
+  tolerance is now global; a per-rank tolerance could deadlock (#483).
+* `Kinematic_viscosity_operator` (results change): a `Reflective_boundary` no
+  longer exerts a stress. The wall is free-slip, but the operator took its
+  boundary values as a prescribed velocity, and that stress was larger than
+  the stress between the cells: a standing wave in a closed channel decayed
+  at 0.51 of the analytical rate on a 100-cell grid and 0.22 on a 400-cell
+  grid. The rate is now 0.97 to 1.00 in the momentum form. Other boundaries
+  still prescribe the velocity.
+* Mesh (meshes change): `maximum_triangle_area` now holds beyond breaklines.
+  The limit was attached to one seed point, and Triangle applies such a limit
+  only to the triangles it can reach from the seed without crossing a
+  segment, so a breakline from boundary to boundary left the far side with no
+  limit: 64 m² triangles under a 1 m² limit. Meshes without such breaklines
+  are unchanged (#511). The limit is passed to Triangle without an exponent,
+  because Triangle reads the number only as far as its first character that
+  is not a digit or a point, and would take `1e+20` as 1 m² (#514).
+* SWW: vertex indices are exact on meshes with more than 2**24 (16,777,216)
+  vertices. The connectivity passed through float32 before it was written, so
+  larger indices were rounded and the file referenced the wrong vertices.
+  Coordinates and quantities were not affected, and smaller meshes are
+  unchanged.
+* GPU: a change to friction or the bed on the host during a mode-2 run now
+  reaches the device. Both were copied once at the start, so a later
+  `set_quantity('friction', ...)` or `set_quantity('elevation', ...)` and
+  `Set_depth_friction_operator` were ignored, and `Set_elevation_operator` and
+  the erosion operators, which move the stage with the bed, put the new stage
+  on the old bed and created water (10% of the volume in a small test). It
+  needs a GPU-offload build.
+* Parallel: a bed changed after `distribute()` now reaches the ghost cells.
+  Elevation is not in the per-step ghost exchange, so the ghosts kept the old
+  bed and the run drifted from the serial one by 3e-4 to 1e-3 m, in both
+  compute modes. This covers `set_quantity('elevation', ...)`,
+  `Set_elevation_operator` and the erosion operators.
+* Parallel: `get_water_volume()` in mode 2 no longer counts ghost cells. The
+  sum over ranks counted the halo twice, 14% too much on 3 ranks.
+* Parallel sediment in mode 2: the ghost cells now get their owner's momentum
+  with its bed after the sediment step. With bedload or the angle of repose,
+  the two ranks disagreed about the flux across a partition boundary and
+  sediment mass leaked, 6e-5 of the eroded volume in the test case.
+* `Time_stage_zero_momentum_boundary` works. It raised `AttributeError` on the
+  first step of any `evolve`.
+* `Inlet_operator` no longer stops a run over a dry inlet on a sloping bed.
+  With `DE2` the inlet volume could come out at about -1e-12 m³ from rounding,
+  which failed an assertion on the first step. A negative volume below a
+  1e-10 m mean depth over the inlet now counts as zero.
+* `create_domain_from_regions` accepts `mesh_filename` again. The argument
+  went in 3.3.0 when the domain began to be built in memory, so scripts that
+  pass it, among them the Cairns and buildings examples, stopped with a
+  `TypeError`. The domain is still built in memory; with `mesh_filename` the
+  mesh it is built on is also written to that file. `create_domain_from_dem`
+  takes the same argument (#506).
+* `read_polygon` reads a CSV polygon without `fiona`, `rasterio` or `shapely`
+  installed. It raised `ImportError`, which failed the conda-forge build of
+  4.1.0.
+
+## Known issues
+
+* `create_okushiri.py` exports an untriangulated mesh, so fitting the
+  bathymetry fails (#507).
+* The 4.1.0 known issues still apply.
+
+## Thanks
+
+Thanks to Dave Kennewell, for the change that keeps the GPU maxima on the
+device between stored frames (#513); and to William Mitchell, who reported
+the barometric pressure sign and the viscosity crash (#472, #473).
+
+---
+
 # ANUGA 4.1.0
 
 ANUGA 4.1.0 adds two new capabilities to the solver: **passive tracers**,

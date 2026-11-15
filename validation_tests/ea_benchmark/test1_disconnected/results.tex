@@ -1,0 +1,51 @@
+\section{EA Test 1: flooding a disconnected water body}
+
+Test~1 of the Environment Agency benchmark \cite{NeelzPender2013} checks
+the handling of a disconnected water body and the wetting and drying of a
+floodplain. A 700~m $\times$ 100~m strip rises from its left-hand edge to
+a sill at 10.25~m ($x = 300$~m), beyond which lies a depression with its
+floor at 9.75~m (Figure~\ref{fig:ea1_setup}). The water level imposed
+along the left-hand edge rises from the initial 9.7~m to 10.35~m within
+the first hour, holds until 11~h and falls back to 9.7~m by 12~h, so the
+depression fills to 10.35~m and then drains back to the sill. The level
+is imposed with a transmissive normal-momentum boundary, so water can
+leave as freely as it enters; the other edges are walls. Manning's
+$n = 0.03$, the specified resolution is 10~m (here triangles of at most
+100~m$^2$, 1097 in all), and the run lasts 20~h.
+
+\begin{figure}[h]
+\begin{center}
+\includegraphics[width=0.95\textwidth]{setup.png}
+\end{center}
+\caption{EA Test 1: the ground profile with the two output points, and the
+water level imposed along the left-hand edge.}
+\label{fig:ea1_setup}
+\end{figure}
+
+The report (Section~4.2) expected, and every package reproduced, a peak
+level of about 10.35~m and a final level of about 10.25~m at both points,
+with differences of up to $+0.01$~m in the final level put down to the
+wet/dry threshold; it also found the two points within a few millimetres
+of each other once the depression had filled, and a thin sheet of water
+over point~1 from about 1~h. It recommended that the test be dropped from
+the suite as too easy. \anuga{} peaks at 10.352~m and ends at 10.256~m
+at both points, still draining slowly, against 10.251--10.258~m for
+TUFLOW's five current solvers \cite{BMT2017}; its level follows TUFLOW
+Classic's to within 3~mm (root mean square). The checks
+(Figure~\ref{fig:ea1_checks}) are these expected outcomes and a stored
+baseline per flow algorithm.
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.95\textwidth]{stage_plot.png}
+\end{center}
+\caption{EA Test 1: water level at the two output points.}
+\end{figure}
+
+\begin{figure}
+\begin{center}
+\includegraphics[width=0.9\textwidth]{checks.png}
+\end{center}
+\caption{EA Test 1: the checks and their outcome.}
+\label{fig:ea1_checks}
+\end{figure}

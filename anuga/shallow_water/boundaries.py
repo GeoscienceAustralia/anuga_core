@@ -38,6 +38,20 @@ except ImportError:
         return dummy_decorator
 
 
+def _momentum_scale(boundary_depth, interior_depth):
+    """Factor for momentum transmitted onto a boundary edge with a set stage.
+
+    The flux takes the boundary velocity as momentum / boundary depth, so
+    interior momentum carried onto an edge whose set stage leaves it much
+    shallower (or dry) gives a runaway velocity and collapses the timestep.
+    Scaling by min(1, boundary depth / interior depth) transmits the interior
+    velocity instead; it is 1 wherever the boundary is at least as deep.
+    """
+    h_b = np.maximum(boundary_depth, 0.0)
+    h_i = np.maximum(interior_depth, 0.0)
+    return np.where(h_b >= h_i, 1.0, h_b / np.where(h_i > 0.0, h_i, 1.0))
+
+
 x = np.arange(100).reshape(10, 10)
 
 
@@ -214,7 +228,9 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
 
     Returns the same momentum conserved quantities as the neighbour volume
     edge (transmissive / open condition) while overriding stage with a
-    caller-supplied scalar function of time.
+    caller-supplied scalar function of time. Where the set stage leaves the
+    edge shallower than the interior, the momentum is scaled by the depth
+    ratio, so the boundary carries the interior velocity.
 
     Parameters
     ----------
@@ -232,6 +248,8 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
     >>> BC = anuga.Transmissive_momentum_set_stage_boundary(domain, lambda t: 0.5)
     >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
     """
+
+    limiter_prescribes = (True, False)
 
     def __init__(self, domain=None, function=None):
         """Initialise a transmissive-momentum / set-stage boundary.
@@ -300,6 +318,9 @@ class Transmissive_momentum_set_stage_boundary(Boundary):
         except (ValueError, TypeError):
             x = float(value[0])
 
+        z = self.domain.quantities['elevation'].edge_values[vol_id, edge_id]
+        h = self.domain.quantities['height'].edge_values[vol_id, edge_id]
+        q[1:] *= _momentum_scale(x - z, h)
         q[0] = x
 
         return q
@@ -318,7 +339,9 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
 
     Returns the same momentum component normal to the boundary as the
     neighbour volume edge.  The tangential momentum component is zeroed.
-    Stage is set by a caller-supplied function of time.
+    Stage is set by a caller-supplied function of time. Where the set stage
+    leaves the edge shallower than the interior, the normal momentum is
+    scaled by the depth ratio, so the boundary carries the interior velocity.
 
     Parameters
     ----------
@@ -338,6 +361,8 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
     ...     domain, lambda t: 0.5)
     >>> domain.set_boundary({'left': BC, 'right': BC, 'top': BC, 'bottom': BC})
     """
+
+    limiter_prescribes = (True, False)
 
     def __init__(self, domain=None, function=None, default_boundary=0.0):
         """Initialise the boundary.
@@ -396,9 +421,12 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
         except (ValueError, TypeError):
             x = float(value[0])
 
+        z = self.domain.quantities['elevation'].edge_values[vol_id, edge_id]
+        h = self.domain.quantities['height'].edge_values[vol_id, edge_id]
+        scale = _momentum_scale(x - z, h)
         q[0] = x
 
-        ndotq = (normal[0]*q[1] + normal[1]*q[2])
+        ndotq = (normal[0]*q[1] + normal[1]*q[2]) * scale
         q[1] = normal[0]*ndotq
         q[2] = normal[1]*ndotq
 
@@ -439,10 +467,12 @@ class Transmissive_n_momentum_zero_t_momentum_set_stage_boundary(Boundary):
         # Set stage
         Stage.boundary_values[ids]  = x
 
-        # Compute flux normal to edge
+        # Compute flux normal to edge, scaled to the boundary depth
+        scale = _momentum_scale(x - Elev.edge_values[vol_ids,edge_ids],
+                                Height.edge_values[vol_ids,edge_ids])
         q1 = Xmom.edge_values[vol_ids,edge_ids]
         q2 = Ymom.edge_values[vol_ids,edge_ids]
-        ndotq = n1*q1 + n2*q2
+        ndotq = (n1*q1 + n2*q2) * scale
 
         Xmom.boundary_values[ids] = ndotq * n1
         Ymom.boundary_values[ids] = ndotq * n2
@@ -535,6 +565,8 @@ class Time_stage_zero_momentum_boundary(Boundary):
     >>> domain.set_boundary({'left': Bt, 'right': Bt, 'top': Bt, 'bottom': Bt})
     """
 
+    limiter_prescribes = (True, False)
+
     def __init__(self, domain=None,
                  #f=None, # Should be removed and replaced by function below
                  function=None,
@@ -589,7 +621,8 @@ class Time_stage_zero_momentum_boundary(Boundary):
             raise Exception(msg)
 
 
-        self.f = function
+        # Boundary.get_boundary_values evaluates self.function
+        self.function = function
         self.domain = domain
 
     def __repr__(self):
@@ -598,7 +631,7 @@ class Time_stage_zero_momentum_boundary(Boundary):
 
     def evaluate(self, vol_id=None, edge_id=None):
 
-        return self.get_boundary_values()
+        return np.array([float(self.get_boundary_values()), 0.0, 0.0])
 
 
     def evaluate_segment(self, domain, segment_edges):
@@ -1103,6 +1136,8 @@ class Field_boundary(Boundary):
     >>> Bf = anuga.Field_boundary('boundary.sww', domain, mean_stage=0.5)
     >>> domain.set_boundary({'left': Bf, 'right': Bf, 'top': Bf, 'bottom': Bf})
     """
+
+    limiter_prescribes = (True, True)
 
     def __init__(self,
                  filename,

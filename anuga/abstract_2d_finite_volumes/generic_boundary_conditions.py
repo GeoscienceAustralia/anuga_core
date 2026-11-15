@@ -21,6 +21,13 @@ class Boundary:
        serves.
     """
 
+    # What this boundary condition prescribes, as seen by the edge limiter:
+    # (stage, momentum). A prescribed value bounds the reconstruction on the edge
+    # in place of the missing neighbour. Anything computed from the interior
+    # (walls, transmissive copies) must stay False: the value carries no outside
+    # information, and extrapolating against it is unstable.
+    limiter_prescribes = (False, False)
+
     def __init__(self):
         self.verbose = True
         self.default_boundary = None
@@ -195,6 +202,8 @@ class Dirichlet_boundary(Boundary):
     conserved quantities
     """
 
+    limiter_prescribes = (True, True)
+
 
     def __init__(self, dirichlet_values=None):
         Boundary.__init__(self)
@@ -305,6 +314,8 @@ class Time_boundary(Boundary):
       Momentum applied will be 0 at all times.
 
     """
+
+    limiter_prescribes = (True, True)
 
     def __init__(self, domain=None,
                  #f=None, # Should be removed and replaced by function below
@@ -428,6 +439,8 @@ class Time_space_boundary(Boundary):
 
     """
 
+    limiter_prescribes = (True, True)
+
 
     def __init__(self, domain=None,
                  function=None,
@@ -537,6 +550,8 @@ class File_boundary(Boundary):
     underlying data.
 
     """
+
+    limiter_prescribes = (True, True)
 
     # FIXME (Ole): I kind of like the name Spatio_Temporal_boundary for this
     # rather than File_boundary

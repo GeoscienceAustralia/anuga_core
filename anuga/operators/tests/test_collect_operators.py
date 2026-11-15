@@ -150,6 +150,112 @@ class Test_collect_max_quantities_operator_extra(unittest.TestCase):
         self.assertIsInstance(msg, str)
 
 
+class Test_collect_max_quantities_sync_and_velocity_height(unittest.TestCase):
+    """sync_to_host(), the store/checkpoint hook, pickling and
+    velocity_zero_height pass-through (CPU path)."""
+
+    def _domain(self, tmpdir):
+        domain = anuga.rectangular_cross_domain(4, 4, len1=10., len2=10.)
+        domain.set_name('maxqty_sync')
+        domain.set_datadir(tmpdir)
+        domain.set_quantity('elevation', lambda x, y: -x / 10.0)
+        domain.set_quantity('friction', 0.01)
+        domain.set_quantity('stage', 0.0)
+        Br = Reflective_boundary(domain)
+        Bd = anuga.Dirichlet_boundary([0.5, 0., 0.])
+        domain.set_boundary({'left': Bd, 'right': Br, 'top': Br, 'bottom': Br})
+        return domain
+
+    def test_velocity_zero_height_passes_through_set_collect_max_quantities(self):
+        """A caller-supplied threshold (run_anuga uses 0.005 m) reaches the
+        operator and gates speed; the default stays minimum_allowed_height."""
+        import tempfile
+        d = self._domain(tempfile.mkdtemp())
+        from anuga.operators.collect_max_quantities_operator import \
+            Collect_max_quantities_operator
+        default_op = Collect_max_quantities_operator(self._domain(tempfile.mkdtemp()))
+        self.assertEqual(default_op.velocity_zero_height, d.minimum_allowed_height)
+
+        op = d.set_collect_max_quantities(velocity_zero_height=0.005)
+        self.assertEqual(op.velocity_zero_height, 0.005)
+
+        # Two cells with identical momentum: one just below, one just above
+        # the threshold.  Only the deeper one may report a speed.
+        n = d.number_of_elements
+        elev = d.quantities['elevation'].centroid_values
+        stage = elev.copy()
+        stage[0] = elev[0] + 0.004
+        stage[1] = elev[1] + 0.006
+        d.quantities['stage'].centroid_values[:] = stage
+        d.quantities['xmomentum'].centroid_values[:] = num.zeros(n)
+        d.quantities['xmomentum'].centroid_values[0:2] = 0.001
+        d.quantities['ymomentum'].centroid_values[:] = num.zeros(n)
+        op()
+        self.assertEqual(op.max_speed[0], 0.0)
+        self.assertAlmostEqual(op.max_speed[1], 0.001 / 0.006)
+
+    def test_sync_to_host_refreshes_domain_quantities(self):
+        """sync_to_host() copies the host maxima into the max_* quantities."""
+        import tempfile
+        from anuga.operators.collect_max_quantities_operator import \
+            Collect_max_quantities_operator
+        d = self._domain(tempfile.mkdtemp())
+        op = Collect_max_quantities_operator(d, store_to_sww=True)
+        op.max_stage[:] = 7.0
+        # Before any update there is nothing to sync: the quantity keeps its
+        # default rather than the -max_float sentinel.
+        op.sync_to_host()
+        self.assertTrue(num.all(d.quantities['max_stage'].centroid_values == 0.0))
+        op._collected = True
+        op.max_depth[:] = 3.0
+        op.sync_to_host()
+        num.testing.assert_array_equal(
+            d.quantities['max_stage'].centroid_values, op.max_stage)
+        num.testing.assert_array_equal(
+            d.quantities['max_depth'].centroid_values, op.max_depth)
+
+    def test_store_timestep_syncs_max_quantities(self):
+        """store_timestep() calls sync_to_host() on every max operator before
+        the SWW writer runs, so each stored frame carries the current maxima."""
+        import tempfile
+        from anuga.operators.collect_max_quantities_operator import \
+            Collect_max_quantities_operator
+        d = self._domain(tempfile.mkdtemp())
+        op = Collect_max_quantities_operator(d, store_to_sww=True)
+        calls = []
+        real = op.sync_to_host
+        op.sync_to_host = lambda: (calls.append(d.get_time()), real())[1]
+        for t in d.evolve(yieldstep=0.5, finaltime=1.0):
+            pass
+        # one sync per stored frame: t = 0, 0.5, 1.0
+        self.assertEqual(len(calls), 3)
+
+        from anuga.file.netcdf import NetCDFFile
+        import os
+        fid = NetCDFFile(os.path.join(d.get_datadir(), d.get_name() + '.sww'))
+        try:
+            sww_ms = num.array(fid.variables['max_stage_c'][:])
+        finally:
+            fid.close()
+        num.testing.assert_allclose(sww_ms, op.max_stage, rtol=1e-6, atol=1e-6)
+
+    def test_pickle_resets_gpu_state_and_keeps_maxima(self):
+        """A checkpoint keeps the host maxima and forces GPU re-initialisation
+        (seeded from those maxima) on the resumed domain."""
+        import pickle
+        import tempfile
+        from anuga.operators.collect_max_quantities_operator import \
+            Collect_max_quantities_operator
+        d = self._domain(tempfile.mkdtemp())
+        op = Collect_max_quantities_operator(d)
+        op.max_stage[:] = 2.5
+        op._gpu_initialized = True    # pretend a device copy existed
+        op2 = pickle.loads(pickle.dumps(op))
+        self.assertFalse(op2._gpu_initialized)
+        self.assertIsNone(op2._gpu_dom)
+        num.testing.assert_array_equal(op2.max_stage, op.max_stage)
+
+
 class Test_collect_max_stage_operator_extra(unittest.TestCase):
     """Tests for uncovered Collect_max_stage_operator methods."""
 

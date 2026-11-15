@@ -146,6 +146,28 @@ new tests in the Appendix.
 \inputresults{../other_references/radial_dam_break_wet}
 
 %%======================
+\chapter{Environment Agency 2D benchmark} \label{ch:ea}
+%%======================
+The UK Environment Agency benchmarked 2D flood models on a set of
+idealised and real-world tests (N\'eelz and Pender
+\cite{NeelzPender2013}). Their input data (DEMs, boundary tables and
+output points) are published under the Open Government Licence v3.0 and
+are downloaded on first use. The report publishes the participating
+packages' results only as figures, so each case below is checked against
+what the report states in its text, against physical constraints, and
+against a stored result per flow algorithm, which catches any change that
+moves the answer. Tests 7 (river and floodplain linking) and 8A/8B (urban
+flooding, whose data are not public) are not yet included.
+
+\inputresults{../ea_benchmark/test1_disconnected}
+\inputresults{../ea_benchmark/test2_depressions}
+\inputresults{../ea_benchmark/test3_obstruction}
+\inputresults{../ea_benchmark/test4_floodplain}
+\inputresults{../ea_benchmark/test5_valley}
+\inputresults{../ea_benchmark/test6a_dambreak}
+\inputresults{../ea_benchmark/test6b_dambreak}
+
+%%======================
 \chapter{Sediment transport and erosion} \label{ch:sediment}
 
 The sediment cases are gathered here, analytical and experimental together,

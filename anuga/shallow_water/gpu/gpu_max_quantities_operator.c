@@ -3,8 +3,8 @@
 // Tracks the running maximum of stage, depth, speed, and momentum magnitude
 // (||(uh, vh)||) over every cell.  All four max arrays are kept device-resident
 // between calls so per-timestep cost is one parallel pass with no host<->device
-// transfer.  A D2H sync is only needed when the Python operator wants to write
-// the current maxima to the SWW file (at yield steps).
+// transfer.  A D2H sync is only needed when the host needs the current maxima
+// (the operator's sync_to_host(), called when an SWW frame is stored).
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,8 +17,15 @@
 
 // Initialise the max-quantities operator: allocates host arrays, fills initial
 // values, and maps them to the device if GPU is already initialised.
+//
+// If all four seed pointers are non-NULL the arrays start from those values
+// (e.g. the operator's host maxima restored from a checkpoint) so a resumed
+// run keeps its prior peaks.  Otherwise stage starts large-negative and
+// depth/speed/uh start at zero.
 // Returns 0 on success, -1 on allocation failure.
-int gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_height)
+int gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_height,
+                            const double *seed_stage, const double *seed_depth,
+                            const double *seed_speed, const double *seed_uh)
 {
     struct max_quantities_info *MQ = &GD->max_qty;
 
@@ -52,12 +59,19 @@ int gpu_max_quantities_init(struct gpu_domain *GD, int n, double velocity_zero_h
         return -1;
     }
 
-    // stage initialised to large negative; depth/speed/uh initialised to 0
-    for (int i = 0; i < n; i++) {
-        MQ->max_stage[i] = -1.0e38;
-        MQ->max_depth[i] = 0.0;
-        MQ->max_speed[i] = 0.0;
-        MQ->max_uh[i]    = 0.0;
+    if (seed_stage && seed_depth && seed_speed && seed_uh) {
+        memcpy(MQ->max_stage, seed_stage, n * sizeof(double));
+        memcpy(MQ->max_depth, seed_depth, n * sizeof(double));
+        memcpy(MQ->max_speed, seed_speed, n * sizeof(double));
+        memcpy(MQ->max_uh,    seed_uh,    n * sizeof(double));
+    } else {
+        // stage initialised to large negative; depth/speed/uh initialised to 0
+        for (int i = 0; i < n; i++) {
+            MQ->max_stage[i] = -1.0e38;
+            MQ->max_depth[i] = 0.0;
+            MQ->max_speed[i] = 0.0;
+            MQ->max_uh[i]    = 0.0;
+        }
     }
 
     // Concentration is non-negative, so 0 is the floor rather than a sentinel.

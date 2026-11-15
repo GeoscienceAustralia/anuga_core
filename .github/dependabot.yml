@@ -5,6 +5,9 @@ version: 2
 updates:
   - package-ecosystem: github-actions
     directory: /
+    # Work lands on develop and reaches main with each release, so updates go
+    # there too. Dependabot reads this file from main, the default branch.
+    target-branch: develop
     groups:
       github-actions:
         patterns:

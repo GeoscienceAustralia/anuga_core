@@ -5,7 +5,7 @@ import math
 import anuga.structures.inlet
 
 from anuga.utilities.system_tools import log_to_file
-from anuga.structures.inlet_operator import Inlet_operator
+from anuga.structures.inlet_operator import Inlet_operator, checked_inlet_volume
 from . import parallel_inlet
 
 
@@ -196,7 +196,7 @@ class Parallel_Inlet_operator(Inlet_operator):
             Q2 = self.update_Q(t + timestep)
             volume = 0.5 * (Q1 + Q2) * timestep
 
-            assert current_volume >= 0.0, 'Volume of water in inlet negative!'
+            current_volume = checked_inlet_volume(current_volume, total_area)
 
             for i in self.procs:
                 if i == self.master_proc:
@@ -347,7 +347,7 @@ class Parallel_Inlet_operator(Inlet_operator):
 
 
 
-            assert current_volume >= 0.0 , 'Volume of watrer in inlet negative!'
+            current_volume = checked_inlet_volume(current_volume, total_area)
 
             for i in self.procs:
                 if i == self.master_proc: continue

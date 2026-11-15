@@ -73,7 +73,9 @@ jobs:
           fetch-depth: 0  # git describe needs full history for version
       - uses: conda-incubator/setup-miniconda@v4
         with:
-          miniforge-version: latest
+          # Pinned for the Windows wheels: 26.9.4-0 breaks 'conda init' there
+          # (conda-forge/miniforge#913). See conda-setup.yml.
+          miniforge-version: 26.7.2-1
           use-mamba: true
           # No python-version here. The action would create its own 'test' env
           # from conda-forge alone, which cannot resolve a CPython release

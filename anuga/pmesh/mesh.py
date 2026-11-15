@@ -733,7 +733,7 @@ class Pmesh:
             self.userVertices.append(v)
 
     def add_hole_from_polygon(self, polygon, segment_tags=None,
-                              geo_reference=None):
+                              geo_reference=None, exclude_polygons=None):
         """
         Add a polygon with tags to the current mesh, as a region.
         The maxArea of the region can be specified.
@@ -746,6 +746,8 @@ class Pmesh:
         polygon a list of points, in meters that describe the polygon
              (e.g. [[x1,y1],[x2,y2],...]
         tags (e.g.{'wall':[0,1,3],'ocean':[2]})
+        exclude_polygons - other polygons (same coordinates as polygon) the
+        hole's seed point must not be inside, such as regions nested in it.
 
         This returns the region instance, so if the user whats to modify
         it they can.
@@ -753,12 +755,13 @@ class Pmesh:
         return self._add_area_from_polygon(polygon,
                                            segment_tags=segment_tags,
                                            hole=True,
-                                           geo_reference=geo_reference
+                                           geo_reference=geo_reference,
+                                           exclude_polygons=exclude_polygons
                                            )
 
     def add_region_from_polygon(self, polygon, segment_tags=None,
                                 max_triangle_area=None, geo_reference=None,
-                                region_tag=None):
+                                region_tag=None, exclude_polygons=None):
         """
         Add a polygon with tags to the current mesh, as a region.
         The maxArea of the region can be specified.
@@ -773,6 +776,10 @@ class Pmesh:
         segment_tags (e.g.{'wall':[0,1,3],'ocean':[2]}) add tags to the
         segements of the region
         region_tags  - add a tag to all of the triangles in the region.
+        exclude_polygons - other polygons (same coordinates as polygon) the
+        region's seed point must not be inside, such as the regions and
+        holes nested in it. Otherwise a nested polygon that includes this
+        one's first vertex can take its seed, and with it its area.
 
         This returns the region instance (if a max_triangle_area is given),
         so if the user whats to modify it they can.
@@ -785,7 +792,8 @@ class Pmesh:
         region = self._add_area_from_polygon(polygon,
                                              segment_tags=segment_tags,
                                              geo_reference=geo_reference,
-                                             region=create_region)
+                                             region=create_region,
+                                             exclude_polygons=exclude_polygons)
         if max_triangle_area is not None:
             region.set_max_area(max_triangle_area)
         if region_tag is not None:
@@ -796,7 +804,8 @@ class Pmesh:
     def _add_area_from_polygon(self, polygon, segment_tags=None,
                                geo_reference=None,
                                hole=False,
-                               region=False):
+                               region=False,
+                               exclude_polygons=None):
         """
         Add a polygon with tags to the current mesh, as a region.
         The maxArea of the region can be specified.
@@ -822,6 +831,9 @@ class Pmesh:
         # get absolute values
         if geo_reference is not None:
             polygon = geo_reference.get_absolute(polygon)
+            if exclude_polygons is not None:
+                exclude_polygons = [geo_reference.get_absolute(other)
+                                    for other in exclude_polygons]
         # polygon is now absolute
         # print "polygon  should be absolute",polygon
 
@@ -847,12 +859,12 @@ class Pmesh:
 
         if region is True:
             # get inner point - absolute values
-            inner_point = point_in_polygon(polygon)
+            inner_point = point_in_polygon(polygon, exclude=exclude_polygons)
             inner = self.add_region(inner_point[0], inner_point[1],
                                     geo_reference=None)
         elif hole is True:
             # get inner point - absolute values
-            inner_point = point_in_polygon(polygon)
+            inner_point = point_in_polygon(polygon, exclude=exclude_polygons)
             inner = self.add_hole(inner_point[0], inner_point[1],
                                   geo_reference=None)
         else:
@@ -1224,7 +1236,9 @@ class Pmesh:
         ----------
         maximum_triangle_area : float, optional
             Maximum area of any triangle. Regions with their own maximum
-            area are refined to that as well.
+            area are refined to that as well. Defaults to
+            ``self.default_maximum_triangle_area`` if set (as
+            create_pmesh_from_regions does), else no global limit.
         minimum_triangle_angle : float, optional
             Minimum angle of any triangle, in degrees (default 28.0).
         verbose : bool, optional
@@ -1243,6 +1257,15 @@ class Pmesh:
             size_field = getattr(self, 'size_field', None)
         if relax_passes is None:
             relax_passes = getattr(self, 'relax_passes', 0)
+        if maximum_triangle_area in ("", None):
+            maximum_triangle_area = getattr(self, 'default_maximum_triangle_area', None)
+        if maximum_triangle_area is None:
+            maximum_triangle_area = ""
+        elif maximum_triangle_area != "":
+            # Triangle reads the number up to the first character that is
+            # not a digit or '.', so 'a1e+20' would be an area limit of 1.
+            maximum_triangle_area = num.format_float_positional(
+                float(maximum_triangle_area), trim='-')
 
         if verbose is True:
             silent = ''
@@ -1257,15 +1280,18 @@ class Pmesh:
         if relax_passes:
             self.relax_worst_cells(passes=relax_passes, verbose=verbose)
 
-    def relax_worst_cells(self, passes=30, fraction=0.5, verbose=False):
+    def relax_worst_cells(self, passes=30, fraction=0.5, verbose=False,
+                          slide=True):
         """Move the vertices of the smallest cells so the smallest cell grows.
 
         ANUGA steps at the global minimum of radii / wave speed, so the
         smallest cell of the mesh sets the timestep of the whole run. This
         nudges the vertices of the worst ``fraction`` percent of cells, for
         up to ``passes`` passes, to enlarge them. Vertices on a segment (the
-        boundary, breaklines, region outlines) do not move and the triangles
-        are not reconnected. See
+        boundary, holes, breaklines, region outlines) keep the segment's
+        shape: the input vertices do not move, and with ``slide`` a vertex
+        the generator inserted part-way along a straight segment may move
+        along it. The triangles are not reconnected. See
         :func:`anuga.pmesh.mesh_relax.relax_worst_cells`.
 
         The mesh must have been triangulated. Vertex attributes are left as
@@ -1276,16 +1302,22 @@ class Pmesh:
         before, after : float
             Quality, min(radii, inradius), of the worst cell before and after.
         """
-        from anuga.pmesh.mesh_relax import relax_worst_cells
+        from anuga.pmesh.mesh_relax import relax_worst_cells, segment_sliders
 
         if self.tri_mesh is None:
             raise Exception('Generate the mesh before relaxing it')
 
         tri_mesh = self.tri_mesh
         fixed = num.unique(num.asarray(tri_mesh.segments, dtype=num.int64))
+        sliders = None
+        n_input = getattr(self, 'number_of_input_vertices', None)
+        if slide and n_input is not None:
+            sliders = segment_sliders(tri_mesh.vertices, tri_mesh.segments,
+                                      n_input)
         vertices, before, after = relax_worst_cells(
             tri_mesh.vertices, tri_mesh.triangles, fixed,
-            passes=passes, fraction=fraction, verbose=verbose)
+            passes=passes, fraction=fraction, verbose=verbose,
+            slide=sliders)
         tri_mesh.vertices = vertices
         return before, after
 
@@ -1402,6 +1434,9 @@ class Pmesh:
                 self.geo_reference.get_xllcorner(),
                 self.geo_reference.get_yllcorner())
 
+        # Triangle numbers the input points first, so any vertex from here
+        # on was inserted by it (relax_worst_cells lets those slide)
+        self.number_of_input_vertices = len(meshDict['pointlist'])
         generatedMesh = generate_mesh(
             meshDict['pointlist'],
             meshDict['segmentlist'],

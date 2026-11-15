@@ -1,6 +1,7 @@
 """
 Test that the kinematic viscosity operator gives the same xvelocity field
-when run serially and when run in parallel across 3 processes.
+when run serially and when run in parallel across 3 processes, in its
+velocity and momentum forms and with the explicit scheme.
 """
 
 import os
@@ -20,8 +21,15 @@ except ImportError:
 path = os.path.dirname(os.path.abspath(__file__))
 run_filename = os.path.join(path, 'run_parallel_kv_operator.py')
 
-serial_file   = os.path.join(path, 'kv_serial_xvel.npy')
-parallel_file = os.path.join(path, 'kv_parallel_xvel.npy')
+FORMS = ('velocity', 'momentum', 'explicit')
+
+
+def serial_file(form):
+    return os.path.join(path, 'kv_serial_xvel_%s.npy' % form)
+
+
+def parallel_file(form):
+    return os.path.join(path, 'kv_parallel_xvel_%s.npy' % form)
 
 
 def _remove_if_exists(f):
@@ -45,48 +53,54 @@ def _extra_mpiexec_options():
 class Test_parallel_kv_operator(unittest.TestCase):
 
     def setUp(self):
-        _remove_if_exists(serial_file)
-        _remove_if_exists(parallel_file)
-
-        # --- serial run ---
-        result = subprocess.run(
-            [sys.executable, run_filename],
-            capture_output=True)
-        if result.returncode != 0:
-            raise RuntimeError('Serial run failed:\n' +
-                               result.stdout.decode() +
-                               result.stderr.decode())
-
         extra = _extra_mpiexec_options()
-        cmd = ['mpiexec', '-np', '3'] + (extra.split() if extra else []) + \
-              [sys.executable, run_filename]
+        for form in FORMS:
+            _remove_if_exists(serial_file(form))
+            _remove_if_exists(parallel_file(form))
 
-        # --- parallel run ---
-        result = subprocess.run(cmd, capture_output=True)
-        if result.returncode != 0:
-            raise RuntimeError('Parallel run failed:\n' +
-                               result.stdout.decode() +
-                               result.stderr.decode())
+            # --- serial run ---
+            result = subprocess.run(
+                [sys.executable, run_filename, form],
+                capture_output=True)
+            if result.returncode != 0:
+                raise RuntimeError('Serial run failed:\n' +
+                                   result.stdout.decode() +
+                                   result.stderr.decode())
+
+            cmd = ['mpiexec', '-np', '3'] + (extra.split() if extra else []) + \
+                  [sys.executable, run_filename, form]
+
+            # --- parallel run ---
+            result = subprocess.run(cmd, capture_output=True)
+            if result.returncode != 0:
+                raise RuntimeError('Parallel run failed:\n' +
+                                   result.stdout.decode() +
+                                   result.stderr.decode())
 
     def tearDown(self):
-        _remove_if_exists(serial_file)
-        _remove_if_exists(parallel_file)
+        for form in FORMS:
+            _remove_if_exists(serial_file(form))
+            _remove_if_exists(parallel_file(form))
 
     def test_xvelocity_matches_serial(self):
         """Parallel xvelocity centroids match serial to within CG tolerance."""
-        assert os.path.exists(serial_file),   'serial output file missing'
-        assert os.path.exists(parallel_file), 'parallel output file missing'
+        for form in FORMS:
+            assert os.path.exists(serial_file(form)),   'serial output file missing'
+            assert os.path.exists(parallel_file(form)), 'parallel output file missing'
 
-        serial   = num.load(serial_file)
-        parallel = num.load(parallel_file)
+            serial   = num.load(serial_file(form))
+            parallel = num.load(parallel_file(form))
 
-        self.assertEqual(serial.shape, parallel.shape,
-                         'Serial and parallel result arrays have different shapes')
+            self.assertEqual(serial.shape, parallel.shape,
+                             'Serial and parallel result arrays have different shapes')
 
-        # Allow tolerance commensurate with CG convergence (tol = 1e-5)
-        self.assertTrue(
-            num.allclose(serial, parallel, rtol=1e-3, atol=1e-5),
-            f'Max absolute difference: {num.max(num.abs(serial - parallel)):.3e}')
+            # Allow tolerance commensurate with CG convergence (tol = 1e-5);
+            # the explicit scheme has no solve, so it should match to round-off
+            rtol, atol = (0.0, 1e-10) if form == 'explicit' else (1e-3, 1e-5)
+            self.assertTrue(
+                num.allclose(serial, parallel, rtol=rtol, atol=atol),
+                f'{form}: max absolute difference: '
+                f'{num.max(num.abs(serial - parallel)):.3e}')
 
 
 if __name__ == '__main__':

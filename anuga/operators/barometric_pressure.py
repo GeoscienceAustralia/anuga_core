@@ -13,10 +13,12 @@ class Barometric_pressure_operator(Operator):
     For each triangle the horizontal pressure gradient ∇p is computed from
     pressure values at the three vertices and the momentum is updated by::
 
-        d(xmom)/dt += h * dp/dx / rho_w
-        d(ymom)/dt += h * dp/dy / rho_w
+        d(xmom)/dt -= h * dp/dx / rho_w
+        d(ymom)/dt -= h * dp/dy / rho_w
 
-    where *h* is the local water depth.
+    where *h* is the local water depth. Water accelerates away from high
+    pressure, so at rest the surface falls by about 1 cm per hPa (the
+    inverse-barometer effect).
 
     Parameters
     ----------
@@ -118,8 +120,8 @@ class Barometric_pressure_operator(Operator):
 
             px, py = gradient(x0, y0, x1, y1, x2, y2, p0, p1, p2)
 
-            self.xmom_c[k] += dt * height[k] * px / rho_w
-            self.ymom_c[k] += dt * height[k] * py / rho_w
+            self.xmom_c[k] -= dt * height[k] * px / rho_w
+            self.ymom_c[k] -= dt * height[k] * py / rho_w
 
     def parallel_safe(self):
         return True

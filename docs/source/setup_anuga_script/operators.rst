@@ -78,6 +78,14 @@ Summary table
      - Applies a parabolic smoothing step that diffuses the depth-averaged
        velocity field according to ``du/dt = div(h ∇u)``.  Acts as a
        numerical stability aid for very fine meshes or sharp fronts.
+       With ``form='momentum'`` it adds an eddy viscosity ν,
+       ``d(uh)/dt = div(ν h ∇u)``, conserving momentum; add
+       ``scheme='explicit'`` (constant ν) to skip the linear solve, which
+       is much faster and runs on the GPU.  For a physical eddy viscosity
+       use ``Kinematic_viscosity_operator(domain, diffusivity=nu,
+       form='momentum', scheme='explicit')``.  The default velocity form
+       does not conserve momentum where the depth varies; leaving out
+       ``form`` gives a ``FutureWarning``, as the default may change.
      - Stabilising simulations with strong velocity gradients or sharp wet/
        dry fronts where spurious oscillations appear.
 

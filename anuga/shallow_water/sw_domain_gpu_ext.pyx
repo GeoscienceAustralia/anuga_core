@@ -10,7 +10,7 @@ Key responsibilities:
 """
 
 import cython
-from libc.stdint cimport int64_t, int32_t, uint64_t
+from libc.stdint cimport int64_t, int32_t, uint64_t, uintptr_t
 from libc.stdlib cimport malloc, free
 from libc.string cimport memset
 
@@ -85,6 +85,7 @@ cdef extern from "gpu_domain.h" nogil:
         int64_t* neighbour_edges
         int64_t* surrogate_neighbours
         int64_t* number_of_boundaries
+        int64_t* boundary_limit_mask
         double* normals
         double* edgelengths
         double* areas
@@ -280,9 +281,12 @@ cdef extern from "gpu_domain.h" nogil:
     void gpu_domain_sync_from_device(gpu_domain *GD)
     void gpu_domain_sync_all_from_device(gpu_domain *GD)
     void gpu_sync_boundary_values(gpu_domain *GD)
+    void gpu_sync_boundary_values_from_device(gpu_domain *GD)
     void gpu_sync_riverwall_to_device(gpu_domain *GD)
     void gpu_sync_tracer_source_to_device(gpu_domain *GD)
     void gpu_sync_tracer_boundary_to_device(gpu_domain *GD)
+    void gpu_sync_friction_to_device(gpu_domain *GD)
+    void gpu_sync_bed_to_device(gpu_domain *GD)
     void gpu_sync_edge_values_from_device(gpu_domain *GD)
     int gpu_boundary_edge_sync_init(gpu_domain *GD, int num_boundary_cells, int *boundary_cell_ids)
     void gpu_boundary_edge_sync_finalize(gpu_domain *GD)
@@ -473,7 +477,9 @@ cdef extern from "gpu_domain.h" nogil:
     int gpu_culverts_get_report(gpu_domain *GD, int culvert_id, double *out)
 
     # Max-quantities operator
-    int  gpu_max_quantities_init(gpu_domain *GD, int n, double velocity_zero_height)
+    int  gpu_max_quantities_init(gpu_domain *GD, int n, double velocity_zero_height,
+                                 const double *seed_stage, const double *seed_depth,
+                                 const double *seed_speed, const double *seed_uh)
     void gpu_max_quantities_update(gpu_domain *GD)
     void gpu_max_quantities_get(gpu_domain *GD,
                                 double *out_stage, double *out_depth,
@@ -509,6 +515,10 @@ cdef extern from "core_kernels.h" nogil:
     void core_apply_sediment_source(domain* D, double timestep)
     void core_apply_bedload(domain* D, double timestep)
     int64_t core_apply_repose(domain* D)
+    double* core_kv_scratch_alloc(int64_t n, int64_t m)
+    void core_kv_scratch_set_walls(double* scratch, int64_t n, int64_t m, double* flags)
+    void core_kv_scratch_free(double* scratch)
+    void core_kinematic_viscosity_explicit(domain* D, double nu, double dt, double* scratch)
 
 
 cdef extern from "gpu_culvert_operator.h" nogil:
@@ -727,6 +737,7 @@ cdef void get_domain_pointers(gpu_domain *GD, object domain_object):
     cdef double[::1] stage_backup, xmom_backup, ymom_backup
     cdef int64_t[:,::1] neighbours, neighbour_edges, surrogate_neighbours
     cdef int64_t[::1] number_of_boundaries
+    cdef int64_t[::1] boundary_limit_mask
     cdef double[:,::1] normals, edgelengths
     cdef double[::1] areas, radii, max_speed
     cdef double[:,::1] centroid_coords, edge_coords
@@ -841,6 +852,8 @@ cdef void get_domain_pointers(gpu_domain *GD, object domain_object):
 
     number_of_boundaries = domain_object.number_of_boundaries
     D.number_of_boundaries = &number_of_boundaries[0]
+    boundary_limit_mask = domain_object.boundary_limit_mask
+    D.boundary_limit_mask = &boundary_limit_mask[0]
 
     normals = domain_object.normals
     D.normals = &normals[0, 0]
@@ -1571,6 +1584,15 @@ def sync_boundary_values(GPUDomain gpu_dom):
     gpu_sync_boundary_values(&gpu_dom.GD)
 
 
+def sync_boundary_values_from_device(GPUDomain gpu_dom):
+    """
+    Sync boundary values from device to host.
+
+    Call this before a host-side operator reads boundary values.
+    """
+    gpu_sync_boundary_values_from_device(&gpu_dom.GD)
+
+
 def sync_riverwall_to_device(GPUDomain gpu_dom):
     """
     Sync riverwall crest elevations and hydraulic properties from host to device.
@@ -1580,6 +1602,26 @@ def sync_riverwall_to_device(GPUDomain gpu_dom):
     riverwalls.
     """
     gpu_sync_riverwall_to_device(&gpu_dom.GD)
+
+
+def sync_friction_to_device(GPUDomain gpu_dom):
+    """Push the friction centroid values to the device.
+
+    Friction is mapped once at setup and the per-step state sync carries only
+    the conserved quantities, so a host-side friction change has to be pushed
+    or the Manning kernel keeps the old values. One array.
+    """
+    gpu_sync_friction_to_device(&gpu_dom.GD)
+
+
+def sync_bed_to_device(GPUDomain gpu_dom):
+    """Push the bed elevation (centroid and edge values) to the device.
+
+    The bed is mapped once at setup and the per-step state sync does not carry
+    it, so a host-side bed change has to be pushed or the flux kernels keep
+    the old bed. Two arrays.
+    """
+    gpu_sync_bed_to_device(&gpu_dom.GD)
 
 
 def sync_tracer_source_to_device(GPUDomain gpu_dom):
@@ -2433,6 +2475,34 @@ def apply_bedload_gpu(GPUDomain gpu_dom, double timestep):
     core_apply_bedload(&gpu_dom.GD.D, timestep)
 
 
+def kv_scratch_alloc_gpu(int64_t n, int64_t m):
+    """Device scratch for kinematic_viscosity_explicit_gpu: 2n + m doubles.
+
+    Device-only memory (omp_target_alloc), so it has no host copy to alias.
+    Returns a handle for kv_scratch_free_gpu.
+    """
+    cdef double* p = core_kv_scratch_alloc(n, m)
+    if p == NULL:
+        raise MemoryError('could not allocate kinematic viscosity scratch on the device')
+    return <uintptr_t> p
+
+
+def kv_scratch_set_walls_gpu(uintptr_t handle, int64_t n, np.ndarray[double, ndim=1, mode="c"] flags not None):
+    """Set which of the m boundary edges are walls that carry no stress."""
+    core_kv_scratch_set_walls(<double*> handle, n, flags.shape[0], &flags[0] if flags.shape[0] else NULL)
+
+
+def kv_scratch_free_gpu(uintptr_t handle):
+    """Free scratch from kv_scratch_alloc_gpu."""
+    core_kv_scratch_free(<double*> handle)
+
+
+def kinematic_viscosity_explicit_gpu(GPUDomain gpu_dom, double nu, double dt,
+                                     uintptr_t scratch):
+    """Explicit momentum-form viscosity on the device (same kernel as mode 1)."""
+    core_kinematic_viscosity_explicit(&gpu_dom.GD.D, nu, dt, <double*> scratch)
+
+
 def apply_repose_gpu(GPUDomain gpu_dom):
     """Angle-of-repose relaxation on the device. Returns sweeps used."""
     return core_apply_repose(&gpu_dom.GD.D)
@@ -2651,17 +2721,41 @@ def apply_rate_operator_array_gpu(GPUDomain gpu_dom, int op_id,
 # Max-Quantities Operator GPU Support
 # ============================================================================
 
-def init_max_quantities_gpu(GPUDomain gpu_dom, int n, double velocity_zero_height):
+def init_max_quantities_gpu(GPUDomain gpu_dom, int n, double velocity_zero_height,
+                            max_stage=None, max_depth=None,
+                            max_speed=None, max_uh=None):
     """
     Initialise device-resident max-quantities arrays.
 
     Allocates four arrays of length *n* on the device (stage, depth, speed,
-    momentum magnitude), initialised to large-negative / zero as appropriate.
-    Call once before the evolve loop starts.
+    momentum magnitude). If all four of max_stage, max_depth, max_speed and
+    max_uh are given (float64 arrays of length *n*), the device arrays are
+    seeded from them -- e.g. the operator's host maxima after a checkpoint
+    resume, so prior peaks are kept. Otherwise they start large-negative /
+    zero as appropriate. Call once before the evolve loop starts.
 
     Returns 0 on success, -1 on allocation failure.
     """
-    ret = gpu_max_quantities_init(&gpu_dom.GD, n, velocity_zero_height)
+    cdef double[::1] s_v
+    cdef double[::1] d_v
+    cdef double[::1] sp_v
+    cdef double[::1] u_v
+    seeds = (max_stage, max_depth, max_speed, max_uh)
+    if all(a is None for a in seeds):
+        ret = gpu_max_quantities_init(&gpu_dom.GD, n, velocity_zero_height,
+                                      NULL, NULL, NULL, NULL)
+    elif any(a is None for a in seeds):
+        raise ValueError("init_max_quantities_gpu: give all four seed arrays or none")
+    else:
+        s_v  = np.ascontiguousarray(max_stage, dtype=np.float64)
+        d_v  = np.ascontiguousarray(max_depth, dtype=np.float64)
+        sp_v = np.ascontiguousarray(max_speed, dtype=np.float64)
+        u_v  = np.ascontiguousarray(max_uh,    dtype=np.float64)
+        if (s_v.shape[0] != n or d_v.shape[0] != n or
+                sp_v.shape[0] != n or u_v.shape[0] != n):
+            raise ValueError("init_max_quantities_gpu: seed arrays must have length n")
+        ret = gpu_max_quantities_init(&gpu_dom.GD, n, velocity_zero_height,
+                                      &s_v[0], &d_v[0], &sp_v[0], &u_v[0])
     if ret < 0:
         raise RuntimeError('init_max_quantities_gpu: ' + get_last_error(gpu_dom))
     return ret
@@ -2687,8 +2781,9 @@ def get_max_quantities_gpu(GPUDomain gpu_dom,
     Sync max arrays from device to host and copy into the supplied numpy arrays.
 
     The four output arrays must each have length == domain.number_of_elements.
-    This is the only call that incurs a device-to-host transfer; call it only
-    at yield steps (SWW write) or at end-of-simulation export.
+    This is the only call that incurs a device-to-host transfer; the operator
+    calls it only when an SWW frame is stored (sync_to_host), at checkpoint
+    and at end-of-simulation export.
     """
     gpu_max_quantities_get(&gpu_dom.GD,
                            &max_stage[0], &max_depth[0],
