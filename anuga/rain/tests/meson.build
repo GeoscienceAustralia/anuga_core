@@ -2,6 +2,7 @@
 python_sources = [
   '__init__.py',
   'test_rain_operators.py',
+  'test_rainfall_losses.py',
 ]
 
 py3.install_sources(

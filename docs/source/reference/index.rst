@@ -237,6 +237,7 @@ that data. See :doc:`../setup_anuga_script/rainfall` for usage and
    :toctree: generated
    :nosignatures:
 
+   Hyetograph_rate_operator
    Raster_rate_operator
    ARR_rate_operator
    Arr_ifd_rain
@@ -244,6 +245,9 @@ that data. See :doc:`../setup_anuga_script/rainfall` for usage and
    Arr_hub_rain
    ARR_point_rainfall_patterns
    Single_pattern
+   SCS_curve_number
+   Initial_continuing_loss
+   Initial_proportional_loss
 
 
 .. _api_logging:
