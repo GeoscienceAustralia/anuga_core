@@ -74,6 +74,10 @@ creates the record. Publish that draft, then store its concept record id as
 the variable `ZENODO_CONCEPT_RECID`. Every later release then becomes a new
 version of the same record, under the same concept DOI.
 
+Done for 4.2.0 (2026-11-15): the record is published as version
+10.5281/zenodo.24211862, the concept DOI is 10.5281/zenodo.24211861, and
+`ZENODO_CONCEPT_RECID` is set to 24211861.
+
 ## Each release
 
 - [ ] After publishing the GitHub release, watch *Validation reports* in the
