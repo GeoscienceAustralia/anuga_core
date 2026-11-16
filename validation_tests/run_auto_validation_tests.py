@@ -9,6 +9,10 @@ Runs two groups of validation tests:
 2. test_regression_*.py  — pytest-regressions baseline checks (behaviour_only)
    Run via  pytest test_regression_*.py
    On first run use --force-regen to generate the baseline .csv files.
+
+--shard K/N runs every N-th case, starting from the K-th: the N shards
+together run each case exactly once. The nightly workflow uses it to spread
+the suite over parallel jobs.
 """
 
 import collections
@@ -17,6 +21,22 @@ import sys
 import time
 import subprocess
 import argparse
+
+# --shard is this script's own option. Take it off the command line before
+# anuga's parser, which the validate_*.py scripts share, sees it.
+shard_parser = argparse.ArgumentParser(add_help=False)
+shard_parser.add_argument('--shard', default=None, metavar='K/N')
+shard_args, sys.argv[1:] = shard_parser.parse_known_args()
+
+shard = None
+if shard_args.shard is not None:
+    try:
+        shard_k, shard_n = (int(part) for part in shard_args.shard.split('/'))
+    except ValueError:
+        sys.exit('--shard takes K/N, for example 2/3; got %r' % shard_args.shard)
+    if not 1 <= shard_k <= shard_n:
+        sys.exit('--shard K/N needs 1 <= K <= N; got %r' % shard_args.shard)
+    shard = (shard_k, shard_n)
 
 import anuga
 anuga_args = anuga.get_args()
@@ -81,6 +101,13 @@ all_tests = [t for t in all_tests
 
 all_tests.sort()
 
+# One shard of the sorted list. Taking every N-th case, not a block of them,
+# spreads the long cases, which sit together (the EA benchmark, the HEC-RAS
+# cases), over the shards.
+n_all_tests = len(all_tests)
+if shard is not None:
+    all_tests = all_tests[shard[0] - 1::shard[1]]
+
 # Separate the two groups for display
 validate_tests   = [(p, f) for p, f, r in all_tests if r == 'python']
 regression_tests = [(p, f) for p, f, r in all_tests if r == 'pytest']
@@ -97,6 +124,9 @@ print('and some may require memory in the order of 8-16GB       ')
 if not anuga_args.long:
     print('(skipping long cases: %s; pass -l/--long to include)'
           % ', '.join(long_dirs))
+if shard is not None:
+    print('Shard %d of %d: %d of the %d cases'
+          % (shard[0], shard[1], len(all_tests), n_all_tests))
 print(80*'=')
 
 print('Simulation + accuracy tests (validate_*.py):')
@@ -240,6 +270,8 @@ for row in rows:
 print(rule)
 
 print()
+if shard is not None:
+    print(f'Shard {shard[0]} of {shard[1]}: {len(results)} of the {n_all_tests} cases.')
 if n_failed == 0:
     print(f'All {n_passed} validation tests PASSED in {format_elapsed(total_elapsed)}.')
 else:
