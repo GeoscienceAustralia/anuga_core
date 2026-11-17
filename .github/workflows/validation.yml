@@ -8,6 +8,10 @@
 # threshold -- shows up here and nowhere else. They take an hour or so, which
 # is why they run nightly rather than on every pull request.
 #
+# The suite is split over three parallel jobs (run_auto_validation_tests.py
+# --shard K/3). In one job it took 130 to 180 minutes with DE1, against a
+# 180 minute limit, and DE2 did not finish; a shard takes under an hour.
+#
 # Runs on Linux only, one Python, both long-lived branches. The HEC-RAS bridge
 # and weir behaviour cases (>100 s each) are included on the schedule and
 # optional on a manual run. Results and the plots each case writes are kept
@@ -51,7 +55,7 @@ concurrency:
 
 jobs:
   validate:
-    name: validate (${{ matrix.ref }})
+    name: validate (${{ matrix.ref }}, ${{ matrix.shard }}/3)
     # Nightly runs belong to anuga-community only; mirrors such as
     # GeoscienceAustralia carry this file but should not spend an hour of
     # runners repeating the same check. Manual runs still work anywhere.
@@ -64,6 +68,9 @@ jobs:
         # Manual runs validate the one ref asked for; the schedule covers both
         # long-lived branches.
         ref: ${{ fromJSON(github.event_name == 'workflow_dispatch' && format('["{0}"]', inputs.ref) || '["main", "develop"]') }}
+        # Each shard runs a third of the cases; change the 3 in the name, the
+        # run step and the summary with this list.
+        shard: [1, 2, 3]
     env:
       OMPI_MCA_pml: ob1        # shared memory only: see conda-setup.yml
       OMPI_MCA_btl: self,sm
@@ -71,6 +78,7 @@ jobs:
       ALG: ${{ inputs.alg || 'DE1' }}
       # Scheduled runs include the long cases; manual runs only if asked.
       LONG: ${{ github.event_name == 'schedule' || inputs.long }}
+      SHARD: ${{ matrix.shard }}/3
     steps:
       - uses: actions/checkout@v7
         with:
@@ -112,14 +120,22 @@ jobs:
           LONG_FLAG=""
           if [ "$LONG" = "true" ]; then LONG_FLAG="-l"; fi
           set -o pipefail
-          python run_auto_validation_tests.py -alg "$ALG" $LONG_FLAG 2>&1 | tee validation.log
+          # A ref from before --shard existed (main, until the next release)
+          # runs the whole suite in shard 1 and nothing in the others.
+          if grep -q -- '--shard' run_auto_validation_tests.py; then
+            python run_auto_validation_tests.py -alg "$ALG" $LONG_FLAG --shard "$SHARD" 2>&1 | tee validation.log
+          elif [ "$SHARD" = "1/3" ]; then
+            python run_auto_validation_tests.py -alg "$ALG" $LONG_FLAG 2>&1 | tee validation.log
+          else
+            echo "This ref has no --shard option: shard 1 runs the whole suite." | tee validation.log
+          fi
 
       - name: Summary
         if: always()
         shell: bash -el {0}
         run: |
           {
-            echo "## Validation (${{ matrix.ref }}, -alg $ALG, long=$LONG)"
+            echo "## Validation (${{ matrix.ref }}, shard $SHARD, -alg $ALG, long=$LONG)"
             echo
             echo '```'
             sed -n '/VALIDATION SUMMARY/,$p' validation_tests/validation.log || echo "(no summary: the run did not reach the end)"
@@ -136,7 +152,7 @@ jobs:
           REF: ${{ matrix.ref }}
         run: |
           safe=$(printf '%s' "$REF" | tr '/\\:*?"<>| \n\r' '-')
-          echo "name=validation-${safe}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+          echo "name=validation-${safe}-shard${{ matrix.shard }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
       - name: Keep the log and plots
         if: always()
