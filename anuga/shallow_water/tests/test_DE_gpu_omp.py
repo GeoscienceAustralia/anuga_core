@@ -1155,10 +1155,14 @@ class Test_GPU_RK3(unittest.TestCase):
 
         On a CPU build (gpu_offload=false) both modes run the identically
         compiled host kernels, so they agree to machine precision. On a real
-        GPU (gpu_offload=true) the device executes the same algorithm with a
-        different floating-point evaluation order (fma/contraction, reduction
-        order), so the agreement is only to ~1e-9, not 1e-12. Pick the tolerance
-        accordingly.
+        GPU (gpu_offload=true) the device runs the same algorithm and, over
+        this run, agrees to about 1e-14.
+
+        The mid-run yields are part of the test. At a yield the host zeroes
+        the momentum of nearly dry cells, and in mode 1 the next step starts
+        from those values. The device has to do the same (prepare_yield_gpu):
+        when it did not, each yield moved the two modes apart by the momentum
+        of those cells, about 1e-6 by the end of this run.
         """
         import anuga
         from anuga.shallow_water.sw_domain_gpu_ext import sync_to_device, sync_from_device
@@ -1176,7 +1180,7 @@ class Test_GPU_RK3(unittest.TestCase):
             pass
         sync_from_device(gpu_d.gpu_interface.gpu_dom)
 
-        atol = 1e-8 if anuga.gpu_offload_enabled() else 1e-12
+        atol = 1e-10 if anuga.gpu_offload_enabled() else 1e-12
         for qname in ['stage', 'xmomentum', 'ymomentum']:
             np.testing.assert_allclose(
                 gpu_d.quantities[qname].centroid_values,
