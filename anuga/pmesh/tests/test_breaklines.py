@@ -156,6 +156,22 @@ class Test_clean_breaklines(unittest.TestCase):
         assert steps.min() >= 6.0 - 1.0e-9
         assert len(lines[0]) < 60
 
+    def test_line_that_only_just_comes_within_the_gap(self):
+        # The shorter line runs 30 m from the longer one except at one vertex,
+        # where it comes 19.5 m from it: a stretch about a metre long is cut
+        # out. The two pieces then end a metre apart, and the second must end
+        # on the first's vertex, not be joined to it by a metre-long segment.
+        long_line = [[100.0, 500.0], [900.0, 500.0]]
+        dipping = [[200.0, 530.0], [480.0, 530.0], [500.0, 519.5],
+                   [520.0, 530.0], [800.0, 530.0]]
+        lines, _ = clean_breaklines([long_line, dipping], gap=20.0)
+        assert len(lines) == 3
+        for line in lines:
+            steps = num.hypot(*num.diff(num.array(line), axis=0).T)
+            assert steps.min() > 0.5 * 20.0, steps.min()
+        domain = make_domain(breaklines=lines)
+        domain.check_mesh_quality(minimum_triangle_area=5.0, action='raise')
+
     def test_self_crossing_line(self):
         loop = [[200.0, 200.0], [600.0, 600.0], [600.0, 200.0],
                 [200.0, 600.0]]
