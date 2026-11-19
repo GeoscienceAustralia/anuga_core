@@ -66,6 +66,8 @@ RUN set -euo pipefail && \
 # Collect the NVHPC redistributable runtime libs (libnvomp / libnvc / libacc* /
 # libnvhpcatm / libnvcpumath ...) the compiled extensions link against. REDIST
 # holds exactly the redistributable subset. Widen this glob if a lib is missing.
+# The SDK licence and a notice go with them
+# (tools/gpu_wheel/NOTICE_NVIDIA_RUNTIME.txt).
 #
 # Diagnostic: print the shared-library dependencies of the compiled GPU
 # extension (sw_domain_gpu_ext*.so). Anything under hpc_sdk/.../compilers/lib
@@ -77,6 +79,9 @@ RUN set -euo pipefail && \
     if [ -n "$GPU_EXT" ]; then echo '--- ldd sw_domain_gpu_ext ---'; ldd "$GPU_EXT" || true; fi && \
     mkdir -p /opt/nvhpc-redist && \
     cp -aL /opt/nvidia/hpc_sdk/Linux_x86_64/*/REDIST/compilers/lib/*.so* /opt/nvhpc-redist/ 2>/dev/null || true && \
+    cp "$(ls /opt/nvidia/hpc_sdk/Linux_x86_64/*/compilers/license/LICENSE.txt | head -1)" \
+       /opt/nvhpc-redist/LICENSE_NVIDIA_HPC_SDK.txt && \
+    cp tools/gpu_wheel/NOTICE_NVIDIA_RUNTIME.txt /opt/nvhpc-redist/ && \
     du -sh /opt/nvhpc-redist && ls -1 /opt/nvhpc-redist | sed 's/^/  redist: /'
 
 # ---- runtime: small CUDA-runtime base + venv + NVHPC redist libs ------------
