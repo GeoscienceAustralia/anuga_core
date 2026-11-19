@@ -140,6 +140,11 @@ class GPU_OMP_interface:
         from anuga.shallow_water.sw_domain_gpu_ext import sync_from_device
         sync_from_device(self.gpu_dom)
 
+    def prepare_yield(self):
+        """Protect and zero dry momenta on the device, as a yield does on the host."""
+        from anuga.shallow_water.sw_domain_gpu_ext import prepare_yield_gpu
+        return prepare_yield_gpu(self.gpu_dom)
+
     def sync_boundary_values(self):
         """Sync boundary values from host to device."""
         from anuga.shallow_water.sw_domain_gpu_ext import sync_boundary_values

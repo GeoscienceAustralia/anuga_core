@@ -375,6 +375,7 @@ cdef extern from "gpu_domain.h" nogil:
     void gpu_saxpy_conserved_quantities(gpu_domain *GD, double a, double b)
     void gpu_saxpy3_conserved_quantities(gpu_domain *GD, double a, double b, double c)
     double gpu_protect(gpu_domain *GD)
+    double gpu_prepare_step(gpu_domain *GD, int do_backup, int zero_eu)
     double gpu_compute_water_volume(gpu_domain *GD)
     double gpu_active_set_mean_fraction(gpu_domain *GD)
     void gpu_manning_friction(gpu_domain *GD)
@@ -2587,6 +2588,24 @@ def kinematic_viscosity_explicit_gpu(GPUDomain gpu_dom, double nu, double dt,
 def apply_repose_gpu(GPUDomain gpu_dom):
     """Angle-of-repose relaxation on the device. Returns sweeps used."""
     return core_apply_repose(&gpu_dom.GD.D)
+
+
+def prepare_yield_gpu(GPUDomain gpu_dom):
+    """
+    Bring the device centroid values to the state a yield leaves on the host.
+
+    Runs the protect and extrapolation centroid pass on the device: heights
+    protected, the momentum of nearly dry cells zeroed, tracer c = m/h. The
+    host does the same to its own copy at a yield, and in mode 1 the next step
+    starts from those values, so the device has to as well or the two modes
+    drift apart at every yield.
+
+    Returns
+    -------
+    float
+        Mass error (total volume added to prevent negative depths)
+    """
+    return gpu_prepare_step(&gpu_dom.GD, 0, 0)
 
 
 def protect_gpu(GPUDomain gpu_dom):

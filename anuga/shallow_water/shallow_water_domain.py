@@ -5971,13 +5971,17 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
             # (SWW writer, inundation queries, tests). The gpu edge kernel does
             # NOT compute vertex values, so sync centroids from the device and
             # run the host (openmp) protect + extrapolate, which produces edges
-            # AND vertices. The host protect does not affect the device
-            # trajectory — the next C step re-protects on the device.
+            # AND vertices.
+            #
+            # The device is protected and has its dry momenta zeroed first, as
+            # in _prepare_yield: in mode 1 this call changes the centroid
+            # values the next step starts from, so the device must change too.
             #
             # Not while fractional operators run: apply_fractional_steps() has
             # already pulled the centroids, the host is ahead of the device, and a
             # pull here would discard what an operator has just written.
             if not self._gpu_host_writes_suppressed:
+                self.gpu_interface.prepare_yield()
                 self.gpu_interface.sync_from_device()
             from .sw_domain_openmp_ext import (protect_new,
                                                extrapolate_second_order_edge_sw)
@@ -6026,8 +6030,15 @@ A sediment fraction is a tracer -- so it is transported by the machinery of
         reader of ``vertex_values`` or ``edge_values`` (see
         :meth:`_refresh_host_values`): a yield that nothing reads them at
         costs only the transfer.
+
+        The device gets the same treatment first. In mode 1 the yield's
+        protection and zeroing of dry momenta are part of the run: the next
+        step starts from them (and a Runge-Kutta step backs them up). Without
+        this a GPU run would differ from a mode 1 run, and from a mode 2 run
+        on a CPU build, by the momentum of the nearly dry cells at each yield.
         """
         if self.multiprocessor_mode == MULTIPROCESSOR_GPU and self.gpu_interface is not None:
+            self.gpu_interface.prepare_yield()
             self.gpu_interface.sync_from_device()
             from .sw_domain_openmp_ext import protect_new, extrapolate_centroids_only
             # The centroid side of the full path, which readers see: protected
