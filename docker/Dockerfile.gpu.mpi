@@ -122,12 +122,17 @@ assert e.gpu_has_mpi(), 'GPU extension was built WITHOUT C MPI'; \
 print('GPU extension has C MPI: OK')"
 
 # NVHPC redistributable runtime libs (see Dockerfile.gpu.slim).
+# The SDK licence and a notice go with them
+# (tools/gpu_wheel/NOTICE_NVIDIA_RUNTIME.txt).
 RUN set -euo pipefail && \
     GPU_EXT="$(find "$VIRTUAL_ENV" -name 'sw_domain_gpu_ext*.so' | head -1)" && \
     echo "GPU extension: ${GPU_EXT:-<not found>}" && \
     if [ -n "$GPU_EXT" ]; then echo '--- ldd sw_domain_gpu_ext ---'; ldd "$GPU_EXT" || true; fi && \
     mkdir -p /opt/nvhpc-redist && \
-    cp -aL /opt/nvidia/hpc_sdk/Linux_x86_64/*/REDIST/compilers/lib/*.so* /opt/nvhpc-redist/ 2>/dev/null || true
+    cp -aL /opt/nvidia/hpc_sdk/Linux_x86_64/*/REDIST/compilers/lib/*.so* /opt/nvhpc-redist/ 2>/dev/null || true && \
+    cp "$(ls /opt/nvidia/hpc_sdk/Linux_x86_64/*/compilers/license/LICENSE.txt | head -1)" \
+       /opt/nvhpc-redist/LICENSE_NVIDIA_HPC_SDK.txt && \
+    cp tools/gpu_wheel/NOTICE_NVIDIA_RUNTIME.txt /opt/nvhpc-redist/
 
 # Stage the MPI runtime, dropping what only a *build* needs: static archives,
 # libtool descriptors, headers, man pages and the compiler wrappers.
