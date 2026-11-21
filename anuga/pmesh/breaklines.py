@@ -248,8 +248,22 @@ def clean_breaklines(breaklines, interior_regions=None, bounding_polygon=None,
                 last = None if tuple(c[-1]) in ends else attach(c[-1])
                 if first is not None and first == last:
                     last = None
-                c = (([first] if first is not None else []) + c
-                     + ([last] if last is not None else []))
+                # A join vertex closer than the vertex spacing to the cut end
+                # (the other piece of the same line, when only a short stretch
+                # was cut out) replaces the end: no segment shorter than the
+                # spacing is added.
+                if first is not None:
+                    if num.hypot(first[0] - c[0][0],
+                                 first[1] - c[0][1]) < spacing:
+                        c[0] = first
+                    else:
+                        c = [first] + c
+                if last is not None:
+                    if num.hypot(last[0] - c[-1][0],
+                                 last[1] - c[-1][1]) < spacing:
+                        c[-1] = last
+                    else:
+                        c = c + [last]
             pieces.append((len(kept), name))
             kept.append(c)
             joinable.append(join)
